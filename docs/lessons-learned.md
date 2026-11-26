@@ -94,6 +94,10 @@ Slices 2.1 to 2.5, finished on Nov 26, 2026.
   values (L11).
 - An attempt to run the heap and responsive sweeps after changing them was refused; the
   sweeps are only type-checked and linted (L13).
+- CI's first run failed `dotnet format`: an unused `using System.Diagnostics;` in
+  `TelemetryTests.cs` (from journey 1, red on `main` too). CI's SDK (10.0.404, by
+  `rollForward: latestFeature`) flags IDE0005 there; the container's package (10.0.115) does not,
+  so `verify.mjs` passed. Read CI's own result before calling a change green.
 - In slice 2.3 the `BrowseStore` unit tests were written just after its first code
   rather than before it; its acceptance spec had been seen to fail first.
 
