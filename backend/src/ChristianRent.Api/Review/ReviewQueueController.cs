@@ -22,4 +22,9 @@ public sealed class ReviewQueueController(ISender sender) : ControllerBase
         CancellationToken cancellationToken,
         [FromQuery] int size = GetReviewQueueQuery.MaxSize) =>
         sender.Send(new GetReviewQueueQuery(cursor, size), cancellationToken);
+
+    /// <summary>Everything needed to decide on one waiting item (L2-019, criterion 2).</summary>
+    [HttpGet("{id}")]
+    public Task<ReviewItemDetailDto> Get(string id, CancellationToken cancellationToken) =>
+        sender.Send(new GetReviewItemQuery(id), cancellationToken);
 }
