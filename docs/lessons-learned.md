@@ -45,6 +45,10 @@ Each journey's entry has three parts:
 | L29 | The shell imports a library's service (such as the CDK's `LiveAnnouncer`) when it first needs it, so a lazy feature that uses the same entry point keeps its code out of the initial chunks. | 6 |
 | L30 | A page behind a CDK dialog is inert and hidden from the accessibility tree: while the dialog is open a spec reads the page by its text, and its roles only once the dialog has closed. | 6 |
 | L31 | A script that edits source files asserts that each text it replaces is there: Prettier reflows lines between edits, and a replacement that misses is silent. | 6 |
+| L32 | Before choosing a package, build it in Release, or read its `build/*.targets`: a licence check that only warns in Debug can fail a Release build and needs a key from outside the repository. | 7 |
+| L33 | A spec that proves something is released or cancelled observes the release itself (the request's `requestfailed` with `ERR_ABORTED`, an object URL that `fetch` can no longer read); asserting only what the screen shows passes even when nothing is released. | 7 |
+| L34 | A fixture that numbers what it answers keeps its count per `ApiFixtures` (a `WeakMap`), so a spec that answers again after a refusal goes on numbering instead of repeating an identifier. | 7 |
+| L35 | When a sweep's state needs an answer changed midway (an upload held or refused after one is in), its `then` takes the `api` fixture; a page object never reaches the fixtures. | 7 |
 
 ## Journeys
 
@@ -414,3 +418,65 @@ Slices 6.1 to 6.5, finished on Nov 26, 2026.
 - L19: every new spec was run 5 times, 130 of 130 green.
 - L26: the busy spec proves the button ignores a press with `dispatchEvent('click')`.
 
+### 7. Add photos to a listing
+
+Slices 7.1 to 7.6, finished on Nov 26, 2026.
+
+**What slowed it**
+
+- The container again had no .NET SDK, PlantUML or Graphviz; Ubuntu's packages installed them.
+- The design left the image library, the renditions' format, how long an unattached photo is
+  kept, the reordering control, who may read and delete an unattached photo, a photo that cannot
+  be sent, and what a switch to wanted does with photos open. ADR 0021 decides them; L2-013 gained
+  criteria 8 and 9 and marks reordering as waiting for its mock, L2-014 gained criteria 7 and 8,
+  and `photo-failed.html` was drawn, all before any code (L2).
+- ImageSharp was chosen first. Its Debug build only warned that "Release builds require a valid
+  license"; its `build/*.targets` showed that 3.2 and 4.x both refuse a Release build without a
+  Six Labors key, a credential from outside the repository. SkiaSharp (MIT) replaced it within
+  slice 7.1, and the ADR, the design and the diagrams were amended (L32).
+- A first baseline `dotnet test` raced a test file being written and did not compile; the
+  counts were read after each slice instead (L4).
+- The refused-photo spec failed because answering uploads again after the refusal restarted the
+  fixture's identifiers, and the draft ignores a photo it already holds (L34).
+- The sweeps' `then` took only the page, so the uploading and refused states had no way to hold
+  or refuse an upload midway (L35).
+
+**New lessons**: L32 to L35 above, and these details for later slices:
+
+- Skia writes no metadata, so re-encoding is how EXIF and its GPS go; a test builds a JPEG with
+  a hand-made APP1 segment and checks that no rendition holds the `Exif` marker.
+- A refusal that a screen shows the same way whatever its rule still carries the rule's code
+  (`photo_too_small`), through FluentValidation's `ErrorCode`, so the existing ProblemDetails
+  shape serves it.
+- A photo seeded by journey 2 has no `Photo` row; serving reads the listing that names a photo
+  first and the `Photo` row only for an unattached one, so both kinds are served.
+- Keeping the photos that are in, with their addresses, in the draft lets a reload show them; the
+  restore accepts only addresses under `/api/photos/`.
+
+**Earlier lessons applied**
+
+- L1: `main` was fetched first and had not moved.
+- L2: the unsent-photo state had no criterion and no mock; L2-013 criterion 8, the mock and ADR
+  0021 came first.
+- L3 and L20: storing the original instead of a rendition, the member check, both ownership
+  checks, attaching another member's photo, the count of photos that are in, releasing on
+  leaving, revoking object URLs, cancelling on publishing and keeping photos through wanted were
+  each removed, and only the tests that name them failed.
+- L4: every commit followed a green run whose counts were read: 296 backend tests, 457 unit tests
+  and 119 behaviour specs at the end.
+- L6: `MSBUILDDISABLENODEREUSE=1` held; the dev server started for the slices was stopped before
+  the last `verify.mjs`.
+- L8: `cr-photo-picker` was finished to its design-system spec (thumbnails, "On the card",
+  Remove and Cancel by position, the uploading status, full, refused and not reached), composing
+  `cr-tag`, `cr-spinner` and `cr-icon`.
+- L11 and L27: the production build ran in every slice; the initial chunks stay at 323.19 kB,
+  since the picker and both clients load with Post's route, so no budget changed.
+- L12: `withPhoto`, `withoutPhoto`, `photoProblemOf`, `photoProblemText` and the draft's photo
+  restore are `@rent/domain` helpers with a test per case.
+- L13: the sweeps visit the four photo states and a heap check adds, removes and leaves photos
+  20 times; none was run.
+- L17: the prompt and the requirements disagreed on reordering, which L2-013 names and no mock
+  draws; the requirement now says it waits for its mock, and the prompt already deferred it.
+- L19: every new spec was run 5 times, 55 of 55 green.
+- L24: no new request at start; Post's specs answer uploads only where they add photos.
+- L31: every scripted edit asserted that its text was there; none missed.

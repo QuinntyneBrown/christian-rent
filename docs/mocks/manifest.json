@@ -96,6 +96,7 @@
         "error",
         "photos-full",
         "photo-refused",
+        "photo-failed",
         "photo-uploading",
         "limited"
       ],

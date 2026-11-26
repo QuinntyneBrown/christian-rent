@@ -133,7 +133,14 @@
         (valueChange)="store.patch({ area: $event })"
       />
       @if (draft.offer === 'for-rent') {
-        <cr-photo-picker fieldId="post-photos" [count]="draft.photoIds.length" [disabled]="true" />
+        <cr-photo-picker
+          fieldId="post-photos"
+          [photos]="uploads.photos()"
+          [problem]="photoProblem()"
+          [disabled]="busy"
+          (chosen)="uploads.add($event)"
+          (remove)="uploads.remove($event)"
+        />
       }
       <cr-textarea
         fieldId="post-note"

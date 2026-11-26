@@ -38,6 +38,24 @@ describe('draftToCard', () => {
     });
   });
 
+  // L2-013 criteria 1 and 2; ADR 0021: the first photo is the card's, from its card rendition;
+  // a wanted card shows none.
+  it('shows the first photo on a card for rent, and none on a wanted card', () => {
+    const photos = ['p1', 'p2'].map((id) => ({
+      id,
+      thumbUrl: `/api/photos/${id}/thumb`,
+      cardUrl: `/api/photos/${id}/card`,
+    }));
+
+    expect(draftToCard({ ...filled, photos }, sarah).photo).toEqual({
+      url: '/api/photos/p1/card',
+      width: 800,
+      height: 600,
+      alt: '',
+    });
+    expect(draftToCard({ ...wanted, photos }, sarah).photo).toBeNull();
+  });
+
   it('shows placeholders for an empty draft, never "undefined" or an empty price', () => {
     expect(draftToCard(newDraft('id-1'), sarah)).toMatchObject({
       placeholder: true,

@@ -17,10 +17,10 @@ class Photo {
   +Guid Id
   +Guid OwnerId
   +Guid? ListingId
-  +string StorageKey
   +int Width
   +int Height
   +DateTimeOffset UploadedAt
+  +AttachTo(listingId: Guid): void
 }
 class PhotoFacts {
   +PhotoFormat Format
@@ -31,46 +31,66 @@ enum PhotoFormat {
   Jpeg
   Png
   WebP
+  Other
 }
 class PhotoRules {
   +{static} MaxBytes: 10 MB
-  +{static} MinWidth: 400
-  +{static} MinHeight: 300
+  +{static} MinLongSide: 400
+  +{static} MinShortSide: 300
   +{static} MaxSide: 8000
   +{static} MaxPerListing: 6
-  +{static} Check(facts: PhotoFacts?, length: long): PhotoRefusal?
+  +{static} KeepUnattached: 24 h
+  +{static} CheckLength(length: long): string?
+  +{static} Check(length: long, facts: PhotoFacts?): string?
 }
 interface IPhotoInspector {
-  +Inspect(content: Stream): PhotoFacts?
+  +Inspect(content: byte[]): PhotoFacts?
 }
 interface IPhotoProcessor {
-  +Process(content: Stream): IReadOnlyList<Rendition>
+  +ProcessAsync(content: byte[]): Task<IReadOnlyList<PhotoRendition>>
 }
 interface IPhotoStorage {
   +SaveAsync(key: string, content: Stream): Task
-  +OpenReadAsync(key: string): Task<Stream>
+  +OpenReadAsync(key: string): Task<Stream?>
   +DeleteAsync(key: string): Task
   +IsReachableAsync(): Task<bool>
 }
+class SkiaPhotoInspector
+class SkiaPhotoProcessor
 class UploadPhotoCommandHandler {
-  +Handle(command: UploadPhotoCommand): Task<PhotoRefDto>
+  +Handle(command: UploadPhotoCommand): Task<UploadedPhotoDto>
+}
+class DeletePhotoCommandHandler {
+  +Handle(command: DeletePhotoCommand): Task
+}
+class PurgeUnattachedPhotosCommandHandler {
+  +Handle(command: PurgeUnattachedPhotosCommand): Task<int>
 }
 class GetPhotoQueryHandler {
-  +Handle(query: GetPhotoQuery): Task<PhotoStreamDto>
+  +Handle(query: GetPhotoQuery): Task<PhotoFile>
 }
 class PhotoUploads <<Angular>> {
-  +add(files: File[]): void
-  +remove(localId: string): void
-  -controllers: Map<string, AbortController>
-  -objectUrls: string[]
+  +photos: Signal<PickerPhoto[]>
+  +problem: Signal<PhotoProblem | null>
+  +add(file: File): void
+  +remove(key: string): void
+  +cancelAll(): void
+  -inFlight: Signal<Upload[]>
+  -deletions: AbortController
 }
 UploadPhotoCommandHandler ..> IPhotoInspector
 UploadPhotoCommandHandler ..> IPhotoProcessor
 UploadPhotoCommandHandler ..> IPhotoStorage
 UploadPhotoCommandHandler ..> PhotoRules
 UploadPhotoCommandHandler --> Photo : creates
+DeletePhotoCommandHandler --> Photo : deletes own unattached
+DeletePhotoCommandHandler ..> IPhotoStorage
+PurgeUnattachedPhotosCommandHandler --> Photo : deletes after 24 h
+PurgeUnattachedPhotosCommandHandler ..> IPhotoStorage
 GetPhotoQueryHandler --> Photo : loads
 GetPhotoQueryHandler ..> IPhotoStorage
+SkiaPhotoInspector ..|> IPhotoInspector
+SkiaPhotoProcessor ..|> IPhotoProcessor
 IPhotoInspector ..> PhotoFacts
 PhotoFacts --> PhotoFormat
 PhotoRules ..> PhotoFacts

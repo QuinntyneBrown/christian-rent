@@ -72,7 +72,10 @@ export class ApiFixtures {
     this.requests.push(`${request.method()} ${url.pathname}${url.search}`);
     const body = request.postData();
     if (body !== null) {
-      this.bodies.set(key, [...(this.bodies.get(key) ?? []), JSON.parse(body) as unknown]);
+      // A JSON body is kept as data; any other, such as a photo's form, as its content type.
+      const json = (request.headers()['content-type'] ?? '').includes('application/json');
+      const kept = json ? (JSON.parse(body) as unknown) : request.headers()['content-type'];
+      this.bodies.set(key, [...(this.bodies.get(key) ?? []), kept]);
     }
     await this.held.get(key);
     const answer = this.answers.get(key)?.(url);

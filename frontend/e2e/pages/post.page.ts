@@ -1,4 +1,7 @@
-import type { Locator, Page } from '@playwright/test';
+import type { FileChooser, Locator, Page } from '@playwright/test';
+
+/** A file to choose: a path, or a name, a type and its bytes. */
+type ChosenFile = Parameters<FileChooser['setFiles']>[0];
 import { SiteHeaderPart } from './site-header.part';
 
 /**
@@ -32,6 +35,12 @@ export class PostPage {
   readonly areaHelp: Locator;
   readonly photos: Locator;
   readonly addPhoto: Locator;
+  readonly photosLabel: Locator;
+  readonly photoItems: Locator;
+  readonly photoImages: Locator;
+  readonly onTheCard: Locator;
+  readonly photosHelp: Locator;
+  readonly photosError: Locator;
   readonly note: Locator;
   readonly noteCounter: Locator;
   /** The visible labels of the fields, in order. */
@@ -53,6 +62,7 @@ export class PostPage {
   readonly previewPlace: Locator;
   readonly previewChurch: Locator;
   readonly previewPhoto: Locator;
+  readonly previewImage: Locator;
   readonly confirmation: Locator;
   readonly confirmationText: Locator;
   readonly confirmationCard: Locator;
@@ -85,7 +95,13 @@ export class PostPage {
     this.area = this.form.locator('#post-area');
     this.areaHelp = this.form.locator('#post-area-help');
     this.photos = this.form.getByRole('group', { name: /^Photos/ });
-    this.addPhoto = this.photos.getByRole('button', { name: 'Add' });
+    this.addPhoto = this.photos.getByRole('button', { name: 'Add', exact: true });
+    this.photosLabel = this.photos.locator('.line-field__label');
+    this.photoItems = this.photos.locator('.photo-picker__item');
+    this.photoImages = this.photoItems.locator('img');
+    this.onTheCard = this.photos.locator('.photo-picker__first');
+    this.photosHelp = this.photos.locator('.field__help');
+    this.photosError = this.photos.locator('.field__error');
     this.note = this.form.locator('#post-note');
     this.noteCounter = this.form.locator('.field__counter');
     this.labels = this.form.locator('.line-field__label, .field__label');
@@ -106,11 +122,34 @@ export class PostPage {
     this.previewPlace = this.preview.locator('.listing-card__place');
     this.previewChurch = this.preview.locator('.listing-card__church');
     this.previewPhoto = this.preview.locator('.listing-card__no-photo');
+    this.previewImage = this.preview.locator('img.listing-card__photo');
     this.confirmation = this.main.locator('section.confirmation');
     this.confirmationText = this.confirmation.locator('.confirmation__text');
     this.confirmationCard = this.confirmation.locator('.listing-card');
     this.backToBrowsing = this.confirmation.getByRole('link', { name: 'Back to browsing' });
     this.postAnother = this.confirmation.getByRole('button', { name: 'Post another' });
+  }
+
+  /** The status of photo `n` while it uploads, named "Uploading photo {n}". */
+  uploading(n: number): Locator {
+    return this.photos.getByRole('status', { name: `Uploading photo ${n}`, exact: true });
+  }
+
+  /** The button that removes photo `n`. */
+  removePhoto(n: number): Locator {
+    return this.photos.getByRole('button', { name: `Remove photo ${n}`, exact: true });
+  }
+
+  /** The button that cancels the upload of photo `n`. */
+  cancelUpload(n: number): Locator {
+    return this.photos.getByRole('button', { name: `Cancel upload of photo ${n}`, exact: true });
+  }
+
+  /** Chooses a file through the Add tile's file chooser, as a person does. */
+  async choosePhoto(file: ChosenFile): Promise<void> {
+    const chooser = this.page.waitForEvent('filechooser');
+    await this.addPhoto.click();
+    await (await chooser).setFiles(file);
   }
 
   /** Opens Post, with the query Browse sets when given. */

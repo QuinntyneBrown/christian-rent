@@ -15,6 +15,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
     public DbSet<Listing> Listings => Set<Listing>();
 
+    public DbSet<Photo> Photos => Set<Photo>();
+
     public DbSet<ReviewItem> ReviewItems => Set<ReviewItem>();
 
     public Task<bool> CanConnectAsync(CancellationToken cancellationToken) =>

@@ -95,14 +95,17 @@ member waiting in the review queue, and lets a member leave; sign-in itself is n
 nobody can sign in yet ([ADR 0017](docs/adr/0017-identifying-a-person-until-sign-in.md)).
 Posting is built (journey 6): Post's sentence, its fields with their rules, the live preview,
 the draft kept in the tab, and the backend that saves a listing as waiting for review, once per
-client request and at most 10 a member in 24 hours; photos come with journey 7.
+client request and at most 10 a member in 24 hours. Adding photos is built (journey 7): up to 6
+on a listing for rent, each checked by its content, size and sides, stored as renditions without
+its metadata, removable while posting, and deleted after 24 hours if no listing is posted with it
+([ADR 0021](docs/adr/0021-uploading-photos-open-decisions.md)).
 
 - The requirements are in `docs/specs/`, the mocks in `docs/mocks/`, the design system in
   `docs/design-system/` and the detailed designs in `docs/detailed-designs/`.
 - The journeys and their slices are in `docs/journeys.md` and `docs/detailed-journeys.md`, with
   **% complete**; the architecture decisions are in `docs/adr/`.
-- What comes next is journey 7, Add photos to a listing: one slice at a time, each with its
-  failing acceptance test first.
+- What comes next is journey 8, Send a message: one slice at a time, each with its failing
+  acceptance test first.
 
 ## How it works
 
@@ -154,6 +157,7 @@ export ConnectionStrings__Default="Host=localhost;Database=christian_rent;Userna
 dotnet run --project src/ChristianRent.Cli -- migrate   # apply the schema; the API never does
 dotnet run --project src/ChristianRent.Cli -- seed      # the mocks' cast: churches, members, listings, photos; safe to repeat
 dotnet run --project src/ChristianRent.Cli -- purge-departed   # daily: anonymise members who left; safe to repeat
+dotnet run --project src/ChristianRent.Cli -- purge-photos     # hourly: delete photos no posted listing names after 24 hours (ADR 0021); safe to repeat
 dotnet run --project src/ChristianRent.Api              # http://localhost:5080/health/ready
 ```
 
@@ -195,6 +199,10 @@ variables, `:` is written `__`.
 | `Members:PurgeAfterDays` | no | Days after a member leaves before `ChristianRent.Cli purge-departed` makes them anonymous and deletes their listings and photos; 0 to 30, default 30 ([L2-028](docs/specs/L2.md), criterion 2). Schedule the command daily |
 | The sign-in secret | yes | Not yet: sign-in is not designed ([ADR 0005](docs/adr/0005-authentication-seam.md)) |
 
+`ChristianRent.Cli purge-photos` needs no setting; schedule it hourly. A reverse proxy in front of
+the API must accept a request body of at least 10.1 MB for `POST /api/photos`, a 10 MB photo and
+its form ([ADR 0021](docs/adr/0021-uploading-photos-open-decisions.md)).
+
 Deployment runs `ChristianRent.Cli migrate` before the new API takes traffic; the database role
 it uses may create the `pg_trgm` and `unaccent` extensions, or they are created beforehand
 ([ADR 0015](docs/adr/0015-search-matching-and-browse-query.md)). The API and the CLI need ICU
@@ -220,7 +228,7 @@ christian-rent/
 │   ├── src/ChristianRent.Application/ MediatR handlers, validators, contracts
 │   ├── src/ChristianRent.Infrastructure/ EF Core, migrations, storage, identity, seed
 │   ├── src/ChristianRent.Api/         Controllers, middleware, error handlers, telemetry, health
-│   ├── src/ChristianRent.Cli/         migrate, seed and purge-departed
+│   ├── src/ChristianRent.Cli/         migrate, seed, purge-departed and purge-photos
 │   └── tests/                         Acceptance tests through the API, and the CLI's tests
 ├── docs/
 │   ├── journeys.md                  The journeys, by value added, with % complete

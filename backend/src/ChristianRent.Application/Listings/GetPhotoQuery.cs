@@ -2,7 +2,7 @@ using MediatR;
 
 namespace ChristianRent.Application.Listings;
 
-/// <summary>One rendition of a photo, for anyone when its listing is public (ADR 0011).</summary>
+/// <summary>One rendition of a photo, for whoever may see it (ADR 0011, ADR 0021).</summary>
 public sealed record GetPhotoQuery(Guid PhotoId, string Rendition) : IRequest<PhotoFile>;
 
 /// <summary>A rendition to stream, with the <c>Cache-Control</c> it is served with.</summary>

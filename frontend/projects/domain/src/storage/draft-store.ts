@@ -1,4 +1,4 @@
-import type { ListingDraft } from '../listings/listing-draft';
+import type { DraftPhoto, ListingDraft } from '../listings/listing-draft';
 
 /** Where the draft is kept in `sessionStorage` (compose-listing design). */
 export const DRAFT_KEY = 'cr.post.draft';
@@ -21,7 +21,7 @@ const TEXT_FIELDS = [
 /**
  * Keeps Post's draft in the `Storage` it is given, so it survives the join dialog and a reload
  * and ends with the tab (ADR 0019; L2-012, criterion 11). What is stored is read as data: only a
- * whole, valid draft comes back. A storage that is missing or refuses to write is ignored.
+ * whole, valid draft comes back, whose photos are the API's (ADR 0021). A storage that is missing or refuses to write is ignored.
  */
 export class DraftStore {
   constructor(private readonly storage: Storage | null) {}
@@ -58,15 +58,14 @@ function toDraft(value: unknown): ListingDraft | null {
   }
   const stored = value as Record<string, unknown>;
   const texts = TEXT_FIELDS.every((field) => typeof stored[field] === 'string');
-  const photoIds = stored['photoIds'];
+  const photos = toPhotos(stored['photos']);
   if (
     !texts ||
     !OFFERS.includes(stored['offer'] as string) ||
     !KINDS.includes(stored['kind'] as string) ||
     !PERIODS.includes(stored['pricePeriod'] as string) ||
     !MODES.includes(stored['whenMode'] as string) ||
-    !Array.isArray(photoIds) ||
-    !photoIds.every((id) => typeof id === 'string') ||
+    photos === null ||
     stored['clientRequestId'] === ''
   ) {
     return null;
@@ -83,7 +82,37 @@ function toDraft(value: unknown): ListingDraft | null {
     endDate: stored['endDate'],
     area: stored['area'],
     note: stored['note'],
-    photoIds: [...(photoIds as string[])],
+    photos,
     clientRequestId: stored['clientRequestId'],
   } as ListingDraft;
+}
+
+/** Where a kept photo's addresses may lead: the API's own photos, never another origin. */
+const PHOTO_ADDRESS = /^\/api\/photos\/[^/?#]+\/[a-z]+$/;
+
+/** The kept photos, each whole and from the API; null when any is not. */
+function toPhotos(value: unknown): DraftPhoto[] | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const photos: DraftPhoto[] = [];
+  for (const item of value as unknown[]) {
+    const photo = (typeof item === 'object' && item !== null ? item : {}) as Record<
+      string,
+      unknown
+    >;
+    const { id, thumbUrl, cardUrl } = photo;
+    if (
+      typeof id !== 'string' ||
+      id === '' ||
+      typeof thumbUrl !== 'string' ||
+      typeof cardUrl !== 'string' ||
+      !PHOTO_ADDRESS.test(thumbUrl) ||
+      !PHOTO_ADDRESS.test(cardUrl)
+    ) {
+      return null;
+    }
+    photos.push({ id, thumbUrl, cardUrl });
+  }
+  return photos;
 }

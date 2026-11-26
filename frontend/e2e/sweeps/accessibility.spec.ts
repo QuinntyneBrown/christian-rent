@@ -9,7 +9,7 @@ for (const screen of SCREENS) {
       await page.emulateMedia({ colorScheme });
       screen.answer(api);
       await page.goto(screen.path);
-      await screen.then?.(page);
+      await screen.then?.(page, api);
       const results = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
         .analyze();

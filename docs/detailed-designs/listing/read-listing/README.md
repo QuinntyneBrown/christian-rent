@@ -118,8 +118,8 @@ is one read by primary key with three includes.
 **Decided** (ADR 0016)
 
 - `distanceKm` is null and the area is shown alone while ADR 0012 is Open.
-- A photo with no description is described by the listing's title and its position until
-  journey 7 decides who writes descriptions.
+- A photo with no description is described by the listing's title and its position. Journey 7
+  left who writes descriptions open, and an uploaded photo has none (ADR 0021).
 - What the poster sees on their own listing beyond "This is your listing" stays undecided:
   editing and taking down are `<TO SUPPLY>` ("My listings" is not designed). `isOwn` is in the
   response; the `own` state is built with the message box in journey 8.

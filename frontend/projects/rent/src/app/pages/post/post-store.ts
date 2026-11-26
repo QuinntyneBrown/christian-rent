@@ -10,6 +10,7 @@ import {
 } from '@rent/api';
 import {
   DRAFT_LIMITS,
+  type DraftPhoto,
   DraftStore,
   type ListingDraft,
   arriveWith,
@@ -22,6 +23,8 @@ import {
   toPostRequest,
   validateDraft,
   withOffer,
+  withPhoto,
+  withoutPhoto,
 } from '@rent/domain';
 import { MemberGate } from '../../members/member-gate';
 
@@ -98,8 +101,18 @@ export class PostStore {
     this.current.update((draft) => ({ ...draft, kind }));
   }
 
-  patch(change: Partial<Omit<ListingDraft, 'offer' | 'clientRequestId' | 'photoIds'>>): void {
+  patch(change: Partial<Omit<ListingDraft, 'offer' | 'clientRequestId' | 'photos'>>): void {
     this.current.update((draft) => ({ ...draft, ...change }));
+  }
+
+  /** A photo that is in joins the others, after them (L2-013, criterion 1). */
+  addPhoto(photo: DraftPhoto): void {
+    this.current.update((draft) => withPhoto(draft, photo));
+  }
+
+  /** A photo leaves the draft; the preview follows (L2-013, criterion 2). */
+  removePhoto(id: string): void {
+    this.current.update((draft) => withoutPhoto(draft, id));
   }
 
   /**

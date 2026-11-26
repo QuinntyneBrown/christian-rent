@@ -16,4 +16,7 @@ export * from './members/member';
 export * from './members/member-summary';
 export * from './members/members-api';
 export * from './members/session';
+export * from './photos/http-photos-api';
+export * from './photos/photos-api';
+export * from './photos/picker-photo';
 export * from './state/load-state';

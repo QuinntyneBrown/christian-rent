@@ -39,6 +39,27 @@ public sealed class FakePhotoStorage : IPhotoStorage
         return Task.CompletedTask;
     }
 
+    /// <summary>Every key that holds something, in no order.</summary>
+    public IReadOnlyList<string> Keys
+    {
+        get
+        {
+            lock (_files)
+            {
+                return [.. _files.Keys];
+            }
+        }
+    }
+
+    /// <summary>What the key holds, or null.</summary>
+    public byte[]? Read(string key)
+    {
+        lock (_files)
+        {
+            return _files.TryGetValue(key, out var bytes) ? bytes : null;
+        }
+    }
+
     public void Put(string key, byte[] bytes)
     {
         lock (_files)

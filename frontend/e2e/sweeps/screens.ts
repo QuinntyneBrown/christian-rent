@@ -11,6 +11,7 @@ import {
   wanted,
 } from '../fixtures/listings';
 import { CHURCHES, answerJoining, answerMember } from '../fixtures/members';
+import { answerUploads, photoFile } from '../fixtures/photos';
 import { POSTED_ID, answerPosting } from '../fixtures/post';
 import { PostPage } from '../pages/post.page';
 
@@ -19,7 +20,8 @@ export interface Screen {
   readonly name: string;
   readonly path: string;
   readonly answer: (api: ApiFixtures) => void;
-  readonly then?: (page: Page) => Promise<void>;
+  /** What a person does before the screen is looked at; `api` can change an answer midway. */
+  readonly then?: (page: Page, api: ApiFixtures) => Promise<void>;
 }
 
 const scrollToEnd = (page: Page) =>
@@ -216,6 +218,76 @@ export const SCREENS: readonly Screen[] = [
   },
   // Post's states (docs/mocks/pages/post/), for a member.
   { name: 'post-blank', path: '/post', answer: (api) => answerMember(api) },
+  // The photos field's states (ADR 0021): one photo in and one uploading, a refused file, a file
+  // that could not be sent, and all 6.
+  {
+    name: 'post-photo-uploading',
+    path: '/post',
+    answer: (api) => {
+      answerMember(api);
+      answerUploads(api);
+    },
+    then: async (page, api) => {
+      const post = new PostPage(page);
+      await post.fillForRent();
+      await post.choosePhoto(photoFile('tools.jpg'));
+      await post.removePhoto(1).waitFor();
+      api.hold('POST', '/api/photos');
+      await post.choosePhoto(photoFile('hall.jpg'));
+      await post.uploading(2).waitFor();
+    },
+  },
+  {
+    name: 'post-photo-refused',
+    path: '/post',
+    answer: (api) => {
+      answerMember(api);
+      answerUploads(api);
+    },
+    then: async (page, api) => {
+      const post = new PostPage(page);
+      await post.fillForRent();
+      await post.choosePhoto(photoFile('tools.jpg'));
+      await post.removePhoto(1).waitFor();
+      api.refuse('POST', '/api/photos', 400, 'photo_type_refused');
+      await post.choosePhoto({
+        name: 'garage-raw.tiff',
+        mimeType: 'image/tiff',
+        buffer: Buffer.from('II*'),
+      });
+      await post.photosError.waitFor();
+    },
+  },
+  {
+    name: 'post-photo-failed',
+    path: '/post',
+    answer: (api) => {
+      answerMember(api);
+      api.answer('POST', '/api/photos', { status: 503 });
+    },
+    then: async (page) => {
+      const post = new PostPage(page);
+      await post.fillForRent();
+      await post.choosePhoto(photoFile('hall.jpg'));
+      await post.photosError.waitFor();
+    },
+  },
+  {
+    name: 'post-photos-full',
+    path: '/post',
+    answer: (api) => {
+      answerMember(api);
+      answerUploads(api);
+    },
+    then: async (page) => {
+      const post = new PostPage(page);
+      await post.fillForRent();
+      for (let n = 1; n <= 6; n++) {
+        await post.choosePhoto(photoFile());
+        await post.removePhoto(n).waitFor();
+      }
+    },
+  },
   {
     name: 'post-default',
     path: '/post',

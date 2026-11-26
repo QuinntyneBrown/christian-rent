@@ -31,3 +31,4 @@ record giving its reason (`AGENTS.md`, *Prefer best practice*).
 | [0018](0018-joining-open-decisions.md) | Joining: how a new church is matched, the limits, the dialog's title by purpose, churches that fail to load, and the gate's host page | Accepted |
 | [0019](0019-posting-open-decisions.md) | Posting: the area as free text, the draft in `sessionStorage`, past dates, the photos field until journey 7, the member's church, placeholders, the write limit, and when posting reopens | Accepted |
 | [0020](0020-bundle-budgets-after-post.md) | The initial budget after Post: 325 kB warning, 340 kB error; the shell imports CDK services lazily | Accepted |
+| [0021](0021-uploading-photos-open-decisions.md) | Uploading photos: SkiaSharp, the rules' order, renditions without metadata, who may read and delete an unattached photo, 24 hours before `purge-photos` deletes it, no reordering yet, and Post's picker | Accepted |

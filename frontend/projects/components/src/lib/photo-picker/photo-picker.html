@@ -1,15 +1,69 @@
 <div class="line-field" role="group" [attr.aria-labelledby]="fieldId() + '-label'">
   <p class="line-field__label" [id]="fieldId() + '-label'">
-    Photos <span class="optional">{{ count() }} of {{ max() }}</span>
+    Photos <span class="optional">{{ added() }} of {{ max() }}</span>
   </p>
   <ul class="photo-picker">
+    @for (photo of photos(); track photo.key; let index = $index) {
+      @let position = index + 1;
+      <li class="photo-picker__item" [class.photo-picker__item--uploading]="photo.uploading">
+        <img
+          [src]="photo.url"
+          [alt]="photo.uploading ? 'Photo ' + position + ', uploading' : 'Photo ' + position"
+          width="800"
+          height="600"
+        />
+        @if (photo.uploading) {
+          <span
+            class="photo-picker__status"
+            role="status"
+            [attr.aria-label]="'Uploading photo ' + position"
+            ><cr-spinner
+          /></span>
+        } @else if (index === 0) {
+          <cr-tag class="photo-picker__first" variant="on-photo">On the card</cr-tag>
+        }
+        <button
+          class="photo-picker__remove"
+          type="button"
+          [attr.aria-label]="
+            (photo.uploading ? 'Cancel upload of photo ' : 'Remove photo ') + position
+          "
+          [disabled]="disabled()"
+          (click)="remove.emit(photo.key)"
+        >
+          <cr-icon name="x" />
+        </button>
+      </li>
+    }
     <li>
-      <button class="photo-picker__add" type="button" [disabled]="disabled()" (click)="add.emit()">
+      <button
+        class="photo-picker__add"
+        type="button"
+        [disabled]="full() || disabled()"
+        (click)="choose()"
+      >
         <cr-icon name="image-plus" />Add
       </button>
+      <input
+        #file
+        class="photo-picker__file"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        tabindex="-1"
+        aria-hidden="true"
+        (change)="picked()"
+      />
     </li>
   </ul>
-  <p class="field__help">
-    Up to 6. JPEG, PNG or WebP, 10 MB or less each. The first one is shown on the card.
-  </p>
+  @if (problem(); as text) {
+    <p class="field__error" role="alert" [id]="fieldId() + '-error'">{{ text }}</p>
+  } @else if (full()) {
+    <p class="field__help" role="status">
+      That’s all {{ max() }} photos. Remove one to add another.
+    </p>
+  } @else {
+    <p class="field__help">
+      Up to {{ max() }}. JPEG, PNG or WebP, 10 MB or less each. The first one is shown on the card.
+    </p>
+  }
 </div>

@@ -1,6 +1,6 @@
 // Acceptance Test
 // Traces to: L2-010, L2-026
-// Description: POST /api/listings refuses invalid fields with validation_failed by the same rules as Post, keeps what a member writes as text, and accepts no photo until uploads exist.
+// Description: POST /api/listings refuses invalid fields with validation_failed by the same rules as Post, keeps what a member writes as text, and accepts no photo that was never uploaded.
 using System.Net;
 using System.Net.Http.Json;
 using ChristianRent.Api.Tests.Support;
@@ -70,8 +70,8 @@ public sealed class PostListingValidationTests : IDisposable
         Assert.Equal("<img src=x onerror=alert(1)>\nLine two", listing.Note);
     }
 
-    // ADR 0019: until journey 7 stores uploads, no photo is the member's own, so any photo
-    // identifier is refused on photoIds.
+    // ADR 0021: a photo that was never uploaded is not the member's own, so it is refused on
+    // photoIds (the other cases are in PostListingPhotosTests).
     [Fact]
     public async Task A_photo_that_was_never_uploaded_is_refused()
     {

@@ -14,8 +14,8 @@ export interface DraftPoster {
  * The card Post's preview draws for a draft (compose-listing design; L2-011): the card Browse
  * will show, with no address. An empty title, price or area is a placeholder, never
  * "undefined" or an empty price (criterion 3); a wanted listing has no photo and shows who asks
- * and when (criteria 2 and 4); a listing for rent has the "No photo yet" placeholder until
- * journey 7 adds photos (criterion 5). For a person who is not a member yet, the church and the
+ * and when (criteria 2 and 4); a listing for rent shows its first photo's card rendition, or
+ * the "No photo yet" placeholder (criterion 5; L2-013, criterion 2). For a person who is not a member yet, the church and the
  * name are "Your church" and "Your name" (criterion 6). The area has no distance (ADR 0012).
  */
 export function draftToCard(draft: ListingDraft, poster: DraftPoster | null): ListingCardView {
@@ -40,8 +40,14 @@ export function draftToCard(draft: ListingDraft, poster: DraftPoster | null): Li
     church: poster?.churchName ?? 'Your church',
     poster: wanted ? (poster?.name ?? 'Your name') : null,
     when: wanted ? whenOf(draft) : null,
-    photo: null,
+    photo: wanted ? null : cardPhoto(draft),
   };
+}
+
+function cardPhoto(draft: ListingDraft): ListingCardView['photo'] {
+  const first = draft.photos[0];
+  // The card's photo is decoration beside its title, as on Browse (ADR 0016).
+  return first ? { url: first.cardUrl, width: 800, height: 600, alt: '' } : null;
 }
 
 function whenOf(draft: ListingDraft): string | null {

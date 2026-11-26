@@ -13,6 +13,7 @@ export * from './listings/listing-card-view';
 export * from './listings/listing-draft';
 export * from './listings/listing-view';
 export * from './listings/member-name';
+export * from './listings/photo-problem';
 export * from './listings/post-copy';
 export * from './listings/post-request';
 export * from './members/join-form';

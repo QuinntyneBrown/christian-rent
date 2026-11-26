@@ -1,6 +1,7 @@
 using ChristianRent.Application.Abstractions;
 using ChristianRent.Infrastructure.Identity;
 using ChristianRent.Infrastructure.Persistence;
+using ChristianRent.Infrastructure.Photos;
 using ChristianRent.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -11,7 +12,8 @@ namespace ChristianRent.Infrastructure;
 public static class DependencyInjection
 {
     /// <summary>
-    /// The database (ADR 0003), the photo storage (ADR 0004) and the clock. The connection string
+    /// The database (ADR 0003), the photo storage (ADR 0004), the photo inspector and processor
+    /// (ADR 0021) and the clock. The connection string
     /// comes from configuration outside the repository (L2-027, criterion 4).
     /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
@@ -22,6 +24,8 @@ public static class DependencyInjection
 
         services.Configure<PhotoStorageOptions>(configuration.GetSection(PhotoStorageOptions.Section));
         services.AddSingleton<IPhotoStorage, LocalDiskPhotoStorage>();
+        services.AddSingleton<IPhotoInspector, SkiaPhotoInspector>();
+        services.AddSingleton<IPhotoProcessor, SkiaPhotoProcessor>();
 
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentMember, HttpCurrentMember>();
