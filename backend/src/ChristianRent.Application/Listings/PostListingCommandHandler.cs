@@ -1,4 +1,5 @@
 using ChristianRent.Application.Abstractions;
+using ChristianRent.Application.Errors;
 using ChristianRent.Application.Members;
 using ChristianRent.Domain.Listings;
 using ChristianRent.Domain.Review;
@@ -12,7 +13,8 @@ namespace ChristianRent.Application.Listings;
 /// <summary>
 /// Saves a member's listing as waiting for review and puts it in the review queue, in one unit
 /// of work (L2-012, criterion 1). A client request already posted answers that listing
-/// (criterion 4). The validator has checked every field.
+/// (criterion 4); a member who has posted 10 in 24 hours is refused until
+/// <see cref="PostingLimit"/> reopens (criterion 6). The validator has checked every field.
 /// </summary>
 internal sealed class PostListingCommandHandler(IAppDbContext database, ICurrentMember caller, TimeProvider clock)
     : IRequestHandler<PostListingCommand, PostListingResult>
@@ -29,13 +31,23 @@ internal sealed class PostListingCommandHandler(IAppDbContext database, ICurrent
             return new PostListingResult(ToDto(existing), Created: false);
         }
 
+        var now = clock.GetUtcNow();
+        var since = now - PostingLimit.Window;
+        var recent = await database.Listings.AsNoTracking()
+            .Where(listing => listing.MemberId == memberId && listing.CreatedAt > since)
+            .Select(listing => listing.CreatedAt)
+            .ToListAsync(cancellationToken);
+        if (PostingLimit.RetryAt(recent, now) is { } retryAt)
+        {
+            throw new LimitReachedException("post_limit_reached", retryAt);
+        }
+
         // Until journey 7 stores uploads, no photo is the member's own, so any is refused (ADR 0019).
         if (command.PhotoIds is { Count: > 0 })
         {
             throw new ValidationException([new ValidationFailure(nameof(PostListingCommand.PhotoIds), PhotoNotFoundMessage)]);
         }
 
-        var now = clock.GetUtcNow();
         var offer = ListingWords.OfferOf(command.Offer)!.Value;
         var price = command.PriceAmount is { } amount ? new Price(amount, ListingWords.PeriodOf(command.PricePeriod)!.Value) : null;
         var whenText = MemberText.Clean(command.WhenText);
