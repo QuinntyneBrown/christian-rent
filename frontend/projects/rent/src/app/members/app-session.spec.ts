@@ -67,4 +67,30 @@ describe('AppSession', () => {
 
     expect(subject.member()).toBeNull();
   });
+
+  // ADR 0024: adminGuard awaits the first answer before it decides.
+  it('is ready only once the first answer has been taken', async () => {
+    let answer!: (member: Member | null) => void;
+    const subject = session(() => new Promise((resolve) => (answer = resolve)));
+    let ready = false;
+    void subject.ready().then(() => (ready = true));
+
+    const refreshing = subject.refresh();
+    await Promise.resolve();
+    expect(ready).toBe(false);
+    answer(sarah);
+    await refreshing;
+    await Promise.resolve();
+
+    expect(ready).toBe(true);
+    expect(subject.member()?.name).toBe('Sarah Kim');
+  });
+
+  it('is ready when the first answer fails', async () => {
+    const subject = session(() => Promise.reject(new Error('offline')));
+
+    await subject.refresh();
+
+    await expect(subject.ready()).resolves.toBeUndefined();
+  });
 });

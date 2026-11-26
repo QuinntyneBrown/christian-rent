@@ -44,3 +44,9 @@
 .wordmark__tld {
   color: var(--color-brand-mark);
 }
+
+@media (min-width: 48rem) and (max-width: 61.99rem) {
+  .logo--rail .wordmark {
+    display: none;
+  }
+}

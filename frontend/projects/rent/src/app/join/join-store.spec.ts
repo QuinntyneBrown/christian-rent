@@ -40,6 +40,7 @@ function setup({
   const session: Session = {
     member: (() => null) as never,
     refresh: vi.fn(() => Promise.resolve()),
+    ready: () => Promise.resolve(),
   };
   const joins: unknown[] = [];
   TestBed.configureTestingModule({

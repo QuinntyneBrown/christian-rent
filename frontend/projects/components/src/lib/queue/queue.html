@@ -1,0 +1,24 @@
+<header class="queue__header">
+  <h1 class="queue__title" [id]="headingId()" tabindex="-1">Review</h1>
+  <p class="queue__summary" [attr.role]="announce() ? 'status' : null">{{ summary() }}</p>
+</header>
+<div class="phone-only-note">
+  <cr-alert
+    title="Open Admin on a tablet or a computer to see an item’s detail and decide on it."
+  />
+</div>
+@if (listed()) {
+  <ul class="queue__list">
+    <ng-content select="[slot=item]" />
+  </ul>
+}
+<ng-content />
+@if (more() !== 'idle') {
+  <div class="queue__more">
+    <cr-feed-status
+      [state]="more() === 'loading' ? 'loading' : 'failed'"
+      [text]="more() === 'loading' ? 'Loading more items…' : 'We couldn’t load more items.'"
+      (action)="retryMore.emit()"
+    />
+  </div>
+}

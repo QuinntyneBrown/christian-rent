@@ -54,7 +54,10 @@ describe('PostStore', () => {
       providers: [
         PostStore,
         { provide: LISTINGS_API, useValue: api },
-        { provide: SESSION, useValue: { member: signal(sarah), refresh: vi.fn() } },
+        {
+          provide: SESSION,
+          useValue: { member: signal(sarah), refresh: vi.fn(), ready: () => Promise.resolve() },
+        },
         { provide: MemberGate, useValue: { requireMember: () => Promise.resolve(member) } },
       ],
     });

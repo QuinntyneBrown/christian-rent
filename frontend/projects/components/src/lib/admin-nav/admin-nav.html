@@ -1,0 +1,17 @@
+<nav class="admin-nav" aria-label="Admin">
+  <cr-logo [inverse]="true" [rail]="true" />
+  <p class="admin-nav__label">{{ label() }}</p>
+  <ul class="admin-nav__links">
+    <li>
+      <a class="admin-nav__link" routerLink="/admin" aria-current="page" aria-label="Review queue"
+        ><cr-icon name="inbox" /><span class="admin-nav__text">Review</span>
+        @if (waiting() !== null) {
+          <span class="admin-nav__count" [attr.aria-label]="waitingLabel()">{{ waiting() }}</span>
+        }
+      </a>
+    </li>
+  </ul>
+  <a class="admin-nav__link admin-nav__exit" routerLink="/" aria-label="Back to site"
+    ><cr-icon name="logout" /><span class="admin-nav__text">Back to site</span></a
+  >
+</nav>

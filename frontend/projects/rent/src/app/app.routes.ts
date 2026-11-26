@@ -1,8 +1,9 @@
 import type { Routes } from '@angular/router';
 import { devRoutes } from './dev-routes';
+import { adminGuard } from './members/admin-guard';
 
 /**
- * Every route is lazy (L2-029, criterion 2). Admin is added by its journey.
+ * Every route is lazy (L2-029, criterion 2).
  */
 export const routes: Routes = [
   {
@@ -21,6 +22,18 @@ export const routes: Routes = [
     path: 'post',
     title: 'Post',
     loadChildren: () => import('./pages/post/post.routes'),
+  },
+  {
+    // Matched only for an admin, so nobody else downloads Admin's code (ADR 0024).
+    path: 'admin',
+    title: 'Admin',
+    canMatch: [adminGuard],
+    loadChildren: () => import('@rent/admin').then((m) => m.ADMIN_ROUTES),
+  },
+  {
+    path: 'admin',
+    title: 'Admin',
+    loadComponent: () => import('./pages/forbidden/forbidden-page').then((m) => m.ForbiddenPage),
   },
   ...devRoutes,
   {

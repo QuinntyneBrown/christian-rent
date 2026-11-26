@@ -16,4 +16,9 @@ import { RouterLink } from '@angular/router';
 export class Logo {
   /** White text, for the ink rail of Admin. */
   readonly inverse = input(false);
+  /**
+   * In Admin's rail: the mark alone where the rail is 72 px wide, from 768 to 992 px
+   * (docs/design-system/components/admin-nav.html). The link keeps its name.
+   */
+  readonly rail = input(false);
 }

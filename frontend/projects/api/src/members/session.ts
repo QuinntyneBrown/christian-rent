@@ -10,6 +10,12 @@ export interface Session {
 
   /** Asks the backend again who is signed in; never rejects. */
   refresh(): Promise<void>;
+
+  /**
+   * Settles once the first answer of who is signed in has been taken, or has failed; never
+   * rejects. `adminGuard` awaits it before it decides (ADR 0024).
+   */
+  ready(): Promise<void>;
 }
 
 export const SESSION = new InjectionToken<Session>('SESSION');

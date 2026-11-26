@@ -1,0 +1,11 @@
+<div class="admin">
+  <ng-content select="[slot=nav]" />
+  <main id="main" class="admin__main" tabindex="-1" [attr.aria-busy]="busy() || null">
+    <section class="admin__queue" [attr.aria-labelledby]="queueHeadingId()">
+      <ng-content />
+    </section>
+    <section class="admin__detail" aria-label="Detail">
+      <ng-content select="[slot=detail]" />
+    </section>
+  </main>
+</div>
