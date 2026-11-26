@@ -1,4 +1,5 @@
 using ChristianRent.Application.Abstractions;
+using ChristianRent.Infrastructure.Identity;
 using ChristianRent.Infrastructure.Persistence;
 using ChristianRent.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,9 @@ public static class DependencyInjection
 
         services.Configure<PhotoStorageOptions>(configuration.GetSection(PhotoStorageOptions.Section));
         services.AddSingleton<IPhotoStorage, LocalDiskPhotoStorage>();
+
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentMember, HttpCurrentMember>();
 
         services.AddSingleton(TimeProvider.System);
         return services;
