@@ -32,7 +32,7 @@ import {
 import { queueSummary, toRemoveCopy } from '@rent/domain';
 import { openConfirmRemoveDialog } from './confirm-remove-dialog';
 import { type DecisionOutcome, ReviewQueueStore } from './review-queue-store';
-import { ToastQueue } from './toast-queue';
+import { ToastQueue, type ToastView } from './toast-queue';
 
 /** From this width the detail panel sits beside the queue (L2-031, criterion 5). */
 const WIDE = '(min-width: 48rem)';
@@ -151,6 +151,18 @@ export class ReviewPage {
     )
       .closed.pipe(takeUntilDestroyed(this.destroyed))
       .subscribe((outcome) => this.decided(outcome));
+  }
+
+  protected goToNext(): void {
+    this.store.goToNext();
+    this.focusQueue();
+  }
+
+  /** A notification's one action; "Try again" answers with what came of the decision. */
+  protected act(toast: ToastView): void {
+    void Promise.resolve(toast.action?.run()).then((outcome) =>
+      this.decided(outcome as DecisionOutcome | undefined),
+    );
   }
 
   private decided(outcome: DecisionOutcome | undefined): void {

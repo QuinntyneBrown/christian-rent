@@ -8,7 +8,7 @@ export interface ToastRequest {
   readonly title: string;
   readonly text: string;
   /** Its one action, if any. */
-  readonly action?: { readonly label: string; readonly run: () => void };
+  readonly action?: { readonly label: string; readonly run: () => unknown };
 }
 
 export interface ToastView extends ToastRequest {

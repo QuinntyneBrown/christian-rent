@@ -12,6 +12,15 @@ export type ReviewKind = 'new-listing' | 'report' | 'new-member';
 /** What an admin does with an item (L2-020). */
 export type ReviewDecision = 'approve' | 'keep' | 'remove';
 
+/** The decision that stands, as a refused second one is told it (ADR 0026). */
+export interface EarlierDecision {
+  readonly decision: ReviewDecision;
+  /** As an ISO instant. */
+  readonly at: string;
+  /** Whether the admin asking made it. */
+  readonly byYou: boolean;
+}
+
 /** What a decision closed: the item decided, and any other it closed with it. */
 export interface ReviewDecided {
   readonly closedItemIds: readonly string[];

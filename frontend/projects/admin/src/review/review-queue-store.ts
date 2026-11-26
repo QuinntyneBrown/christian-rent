@@ -1,6 +1,7 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import {
   REVIEW_QUEUE_API,
+  type ApiError,
   type QueueItemView,
   type ReviewDecision,
   type ReviewDetailView,
@@ -13,7 +14,11 @@ import {
   type PageRequest,
   type WindowPage,
   type RemoveSubject,
+  type Notice,
+  toConflictCopy,
+  toConflictToast,
   toDecisionToast,
+  toFailedToast,
   toQueueItemView,
   toReviewDetailView,
 } from '@rent/domain';
@@ -35,7 +40,7 @@ export interface Deciding {
 }
 
 /** What came of a decision; `ignored` when it could not be started. */
-export type DecisionOutcome = 'done' | 'failed' | 'ignored';
+export type DecisionOutcome = 'done' | 'conflict' | 'gone' | 'failed' | 'ignored';
 
 /** What one decision sends, kept so that "Try again" can send the same. */
 interface Decision extends Deciding {
@@ -82,6 +87,7 @@ export class ReviewQueueStore {
   private readonly _detail = signal<ReviewDetailView | null>(null);
   private readonly _detailSkeleton = signal(false);
   private readonly _deciding = signal<Deciding | null>(null);
+  private readonly _conflict = signal<Notice | null>(null);
 
   private request: AbortController | null = null;
   private detailRequest: AbortController | null = null;
@@ -121,6 +127,8 @@ export class ReviewQueueStore {
   /** True once a detail has been awaited for 300 ms. */
   readonly detailSkeleton = this._detailSkeleton.asReadonly();
   readonly deciding = this._deciding.asReadonly();
+  /** What the panel says when another decision on its item came first. */
+  readonly conflict = this._conflict.asReadonly();
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
@@ -230,10 +238,18 @@ export class ReviewQueueStore {
   /** Decides the item whose detail is shown (L2-020). */
   decide(decision: ReviewDecision): Promise<DecisionOutcome> {
     const item = this._detailState() === 'loaded' ? this.shownItem : null;
-    if (item === null) {
+    if (item === null || this._conflict() !== null) {
       return Promise.resolve('ignored');
     }
     return this.send({ id: item.id, decision, version: item.version, subject: subjectOf(item) });
+  }
+
+  /** Drops the item decided first and selects the one that followed it. */
+  goToNext(): void {
+    const id = this._selectedId();
+    if (id !== null && this._conflict() !== null) {
+      this.close(id, new Set([id]), true);
+    }
   }
 
   private async send(sent: Decision): Promise<DecisionOutcome> {
@@ -243,6 +259,8 @@ export class ReviewQueueStore {
     const request = new AbortController();
     this.decisionRequest = request;
     this._deciding.set({ id: sent.id, decision: sent.decision });
+    // What was said of this item's last try no longer holds.
+    this.toasts.dismissKey(sent.id);
     const reading = this.reading;
     try {
       const { closedItemIds } = await this.api.decide(
@@ -259,12 +277,47 @@ export class ReviewQueueStore {
       this.close(sent.id, new Set(closedItemIds), reading === this.reading);
       return 'done';
     } catch (error) {
-      this.fail(error, request, () => undefined);
-      return 'failed';
+      let outcome: DecisionOutcome = 'failed';
+      this.fail(error, request, () => (outcome = this.refused(sent, error as ApiError)));
+      return outcome;
     } finally {
       this.decisionRequest = null;
       this._deciding.set(null);
     }
+  }
+
+  /** What follows a decision that was not made (L2-020, criteria 12, 13 and 18). */
+  private refused(sent: Decision, error: ApiError): DecisionOutcome {
+    const shown = this._selectedId() === sent.id;
+    if (error.decided) {
+      if (shown) {
+        this._conflict.set(toConflictCopy(error.decided, new Date()));
+      }
+      this.toasts.push({
+        key: sent.id,
+        tone: 'warning',
+        ...toConflictToast(error.decided, sent.subject),
+      });
+      return 'conflict';
+    }
+    if (error.code === 'not_found') {
+      if (shown) {
+        this.shownItem = null;
+        this._detail.set(null);
+        this._detailState.set('gone');
+      }
+      return 'gone';
+    }
+    // A removal's failure is said in its confirmation, which offers to try again.
+    if (sent.decision !== 'remove') {
+      this.toasts.push({
+        key: sent.id,
+        tone: 'danger',
+        ...toFailedToast(sent.subject),
+        action: { label: 'Try again', run: () => this.send(sent) },
+      });
+    }
+    return 'failed';
   }
 
   /**
@@ -389,6 +442,7 @@ export class ReviewQueueStore {
     this._selectedId.set(null);
     this.shownItem = null;
     this._detail.set(null);
+    this._conflict.set(null);
     this._detailState.set('none');
   }
 

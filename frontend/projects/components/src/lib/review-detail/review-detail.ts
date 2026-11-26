@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { ReviewDecision, ReviewDetailView } from '@rent/api';
+import { Alert } from '../alert/alert';
 import { Avatar } from '../avatar/avatar';
 import { Button } from '../button/button';
 import { Icon } from '../icon/icon';
@@ -16,7 +17,7 @@ import { Verified } from '../verified/verified';
  */
 @Component({
   selector: 'cr-review-detail',
-  imports: [Avatar, Button, Icon, RouterLink, Skeleton, Tag, Verified],
+  imports: [Alert, Avatar, Button, Icon, RouterLink, Skeleton, Tag, Verified],
   templateUrl: './review-detail.html',
   styleUrl: './review-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,6 +28,10 @@ export class ReviewDetail {
   readonly deciding = input<ReviewDecision | null>(null);
   /** No decision can be started, as while one is in flight (L2-020, criterion 16). */
   readonly off = input(false);
+  /** What to say of this item when another decision came first (L2-020, criterion 13). */
+  readonly conflict = input<{ readonly title: string; readonly text: string } | null>(null);
 
   readonly decide = output<ReviewDecision>();
+  /** "Go to the next item", past the one decided first. */
+  readonly next = output();
 }

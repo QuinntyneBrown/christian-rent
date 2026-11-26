@@ -86,7 +86,9 @@
           [view]="store.detail()"
           [deciding]="decidingHere()"
           [off]="store.deciding() !== null"
+          [conflict]="store.conflict()"
           (decide)="decide($event)"
+          (next)="goToNext()"
         />
       }
       @case ('loading') {
@@ -133,7 +135,7 @@
       [title]="toast.title"
       [text]="toast.text"
       [actionLabel]="toast.action?.label ?? null"
-      (action)="toast.action?.run()"
+      (action)="act(toast)"
       (dismissed)="toasts.dismiss(toast.id)"
     />
   }

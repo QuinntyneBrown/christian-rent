@@ -1,4 +1,6 @@
-import type { ReviewDecision, ReviewKind } from '@rent/api';
+import type { EarlierDecision, ReviewDecision, ReviewKind } from '@rent/api';
+import { formatTime } from '../listings/format-retry-at';
+import { formatInstant } from './review-words';
 
 /** What a decision is about: the kind of item, and the listing's title or the member's name. */
 export interface DecisionSubject {
@@ -18,6 +20,12 @@ export interface RemoveCopy {
   readonly confirm: string;
   readonly failedTitle: string;
   readonly failedText: string;
+}
+
+/** A title and what it says, of a notification or of the panel. */
+export interface Notice {
+  readonly title: string;
+  readonly text: string;
 }
 
 const LABELS: Record<ReviewDecision, string> = {
@@ -56,11 +64,54 @@ export function toRemoveCopy({ kind, name, poster }: RemoveSubject): RemoveCopy 
 }
 
 /** The notification of a decision that was made (L2-020, criterion 15). */
-export function toDecisionToast(
-  decision: ReviewDecision,
-  subject: DecisionSubject,
-): { readonly title: string; readonly text: string } {
+export function toDecisionToast(decision: ReviewDecision, subject: DecisionSubject): Notice {
   return { title: DONE[decision], text: nowTrue(decision, subject) };
+}
+
+const NOT_APPLIED = 'Your decision was not applied.';
+
+/** Who made the decision that stands, and what it did, in the past tense. */
+function earlier({ decision, byYou }: EarlierDecision): string {
+  return `${byYou ? 'You' : 'Another admin'} ${DONE[decision].toLowerCase()}`;
+}
+
+/**
+ * What the panel says of an item decided first: which decision, and when (L2-020, criteria 13
+ * and 17). A decision of today says only its time. `now` is passed in, so the rule needs no
+ * clock.
+ */
+export function toConflictCopy(first: EarlierDecision, now: Date): Notice {
+  const at = new Date(first.at);
+  const when =
+    at.toDateString() === now.toDateString()
+      ? `at ${formatTime(at)}`
+      : `on ${formatInstant(first.at)}`;
+  return {
+    title: 'This was already decided.',
+    // "12:14 p.m." ends its own sentence.
+    text: `${earlier(first)} it ${when} ${NOT_APPLIED}`,
+  };
+}
+
+/** The notification that another decision came first (L2-020, criterion 13). */
+export function toConflictToast(first: EarlierDecision, subject: DecisionSubject): Notice {
+  return {
+    title: 'Already decided',
+    text: `${earlier(first)} ${named(subject)} first. ${NOT_APPLIED}`,
+  };
+}
+
+/** The notification of a decision that could not be saved (L2-020, criterion 12). */
+export function toFailedToast(subject: DecisionSubject): Notice {
+  return {
+    title: 'Your decision wasn’t saved',
+    text: `We couldn’t reach christian.rent. ${named(subject)} is still in the queue.`,
+  };
+}
+
+/** A listing is named by its title in quotation marks; a member by their name. */
+function named({ kind, name }: DecisionSubject): string {
+  return kind === 'new-member' ? name : `“${name}”`;
 }
 
 function nowTrue(decision: ReviewDecision, { kind, name }: DecisionSubject): string {

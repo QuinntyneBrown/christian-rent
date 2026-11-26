@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import {
   REVIEW_QUEUE_API,
+  type ApiError,
   type ReviewDecided,
   type ReviewDecision,
   type ReviewItemDetail,
@@ -15,7 +16,7 @@ interface Asked<T> {
   readonly about: string | null;
   readonly signal: AbortSignal;
   answer(value: T): Promise<void>;
-  refuse(code: string): Promise<void>;
+  refuse(code: string, more?: Partial<ApiError>): Promise<void>;
 }
 
 export function fakeApi() {
@@ -35,8 +36,8 @@ export function fakeApi() {
           resolve(value);
           return settle();
         },
-        refuse: (code) => {
-          reject({ status: 0, code, retryAt: null, reportedAt: null, fields: null });
+        refuse: (code, more) => {
+          reject({ status: 0, code, retryAt: null, reportedAt: null, fields: null, ...more });
           return settle();
         },
       });
@@ -534,5 +535,100 @@ describe('ReviewQueueStore', () => {
     await fake.pages[1]!.answer(page(['b', 'c'], null, 3));
 
     expect(idsHeld()).toEqual(['a', 'b', 'c']);
+  });
+
+  const decided = {
+    decided: { decision: 'approve' as const, at: '2026-06-08T19:14:00Z', byYou: false },
+  };
+  const toasts = () => TestBed.inject(ToastQueue).toasts();
+
+  // L2-020 criteria 13 and 17.
+  it('keeps an item decided first on the panel, and drops it on the way to the next', async () => {
+    await showing();
+
+    const outcome = store.decide('approve');
+    await fake.decisions[0]!.refuse('already_decided', decided);
+
+    await expect(outcome).resolves.toBe('conflict');
+    expect(store.conflict()?.title).toBe('This was already decided.');
+    expect(idsHeld()).toEqual(['a', 'b', 'c']);
+    expect(titles()).toEqual(['Already decided']);
+    await expect(store.decide('approve')).resolves.toBe('ignored');
+
+    store.goToNext();
+
+    expect(idsHeld()).toEqual(['b', 'c']);
+    expect(store.waitingCount()).toBe(2);
+    expect(store.selectedId()).toBe('b');
+    expect(store.conflict()).toBeNull();
+  });
+
+  it('forgets the conflict when another item is selected', async () => {
+    await showing();
+    void store.decide('approve');
+    await fake.decisions[0]!.refuse('already_decided', decided);
+
+    store.select('b');
+    store.goToNext();
+
+    expect(store.conflict()).toBeNull();
+    expect(idsHeld()).toEqual(['a', 'b', 'c']);
+  });
+
+  // L2-020 criterion 18.
+  it('shows an item that no longer waits as gone', async () => {
+    await showing();
+
+    const outcome = store.decide('approve');
+    await fake.decisions[0]!.refuse('not_found');
+
+    await expect(outcome).resolves.toBe('gone');
+    expect(store.detailState()).toBe('gone');
+    expect(store.detail()).toBeNull();
+    expect(toasts()).toEqual([]);
+  });
+
+  // L2-020 criterion 12.
+  it('offers a failed approval again, with the same item, decision and version', async () => {
+    await showing();
+    const outcome = store.decide('approve');
+    await fake.decisions[0]!.refuse('server_error');
+    await expect(outcome).resolves.toBe('failed');
+    expect(toasts().map((toast) => [toast.tone, toast.action?.label])).toEqual([
+      ['danger', 'Try again'],
+    ]);
+    expect(idsHeld()).toEqual(['a', 'b', 'c']);
+    store.select('c');
+
+    void toasts()[0]!.action!.run();
+
+    expect(fake.decisions[1]!.about).toBe('a approve 0');
+    expect(toasts()).toEqual([]);
+    await fake.decisions[1]!.answer({ closedItemIds: ['a'] });
+    expect(titles()).toEqual(['Approved']);
+    expect(store.selectedId()).toBe('c');
+  });
+
+  // L2-020 criterion 10: the confirmation says it.
+  it('leaves a failed removal to its confirmation', async () => {
+    await showing();
+
+    const outcome = store.decide('remove');
+    await fake.decisions[0]!.refuse('server_error');
+
+    await expect(outcome).resolves.toBe('failed');
+    expect(toasts()).toEqual([]);
+  });
+
+  // A danger toast stays until it is dismissed or its item is decided.
+  it('drops the failure of an item once it is decided', async () => {
+    await showing();
+    void store.decide('approve');
+    await fake.decisions[0]!.refuse('server_error');
+
+    void store.decide('remove');
+    await fake.decisions[1]!.answer({ closedItemIds: ['a'] });
+
+    expect(titles()).toEqual(['Removed']);
   });
 });

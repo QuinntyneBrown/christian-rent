@@ -1,5 +1,20 @@
 @if (view(); as view) {
   <div class="review">
+    @if (conflict(); as conflict) {
+      <cr-alert
+        class="review__conflict"
+        tone="warning"
+        [announce]="true"
+        [title]="conflict.title"
+        [text]="conflict.text"
+      >
+        <div class="alert__actions">
+          <button cr-button variant="link" type="button" (click)="next.emit()">
+            Go to the next item
+          </button>
+        </div>
+      </cr-alert>
+    }
     @if (view.type === 'listing') {
       @if (view.report; as report) {
         <div class="review__report">
@@ -65,7 +80,7 @@
           type="button"
           [variant]="choice.decision === 'remove' ? 'danger-quiet' : 'success'"
           [busy]="deciding() === choice.decision"
-          [disabled]="off() && deciding() !== choice.decision"
+          [disabled]="conflict() !== null || (off() && deciding() !== choice.decision)"
           (click)="decide.emit(choice.decision)"
         >
           <cr-icon [name]="choice.decision === 'remove' ? 'x' : 'check'" />{{ choice.label }}

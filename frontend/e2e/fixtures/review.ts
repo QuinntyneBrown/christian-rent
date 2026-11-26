@@ -227,6 +227,26 @@ export function answerDecision(api: ApiFixtures, id: string, alsoClosed: string[
   api.answer('POST', decisionOf(id), { body: { closedItemIds: [id, ...alsoClosed] } });
 }
 
+/** The refusal of a second decision, made at 12:14 p.m. in Langley (ADR 0026). */
+export function refuseDecided(
+  api: ApiFixtures,
+  id: string,
+  first: { decision: 'approve' | 'keep' | 'remove'; decidedByYou: boolean },
+): void {
+  api.answer('POST', decisionOf(id), {
+    status: 409,
+    body: {
+      type: 'about:blank',
+      title: 'Already done',
+      status: 409,
+      code: 'already_decided',
+      decidedAt: '2026-06-08T19:14:00Z',
+      ...first,
+    },
+    headers: { 'content-type': 'application/problem+json' },
+  });
+}
+
 /** The photos of the review fixtures, served from localhost. */
 export function answerReviewPhotos(api: ApiFixtures): void {
   for (const name of ['garden', 'garden-2', 'garden-3']) {

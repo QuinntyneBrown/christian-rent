@@ -1,5 +1,12 @@
 import type { ReviewDecision, ReviewKind } from '@rent/api';
-import { decisionLabel, toDecisionToast, toRemoveCopy } from './decision-words';
+import {
+  decisionLabel,
+  toConflictCopy,
+  toConflictToast,
+  toDecisionToast,
+  toFailedToast,
+  toRemoveCopy,
+} from './decision-words';
 
 // decide-review-item design: every word of a decision, one case per row.
 describe('decision words', () => {
@@ -54,6 +61,49 @@ describe('decision words', () => {
       confirm,
       failedTitle,
       failedText: 'We couldn’t reach christian.rent. Nothing has changed.',
+    });
+  });
+
+  // L2-020 criteria 13 and 17: which decision, when, and by whom as far as it is said.
+  it.each<[ReviewDecision, boolean, Date, string]>([
+    ['approve', false, new Date(2026, 5, 8, 12, 14), 'Another admin approved it at 12:14 p.m.'],
+    ['keep', false, new Date(2026, 5, 8, 9, 5), 'Another admin kept it at 9:05 a.m.'],
+    ['remove', true, new Date(2026, 5, 8, 0, 1), 'You removed it at 12:01 a.m.'],
+    [
+      'approve',
+      false,
+      new Date(2026, 5, 7, 12, 14),
+      'Another admin approved it on Jun 7, 2026, 12:14 p.m.',
+    ],
+  ])('says that %s came first (own: %s, at %s)', (decision, byYou, at, said) => {
+    const now = new Date(2026, 5, 8, 15, 0);
+
+    expect(toConflictCopy({ decision, byYou, at: at.toISOString() }, now)).toEqual({
+      title: 'This was already decided.',
+      text: `${said} Your decision was not applied.`,
+    });
+  });
+
+  it.each<[ReviewKind, boolean, ReviewDecision, string]>([
+    ['new-listing', false, 'approve', 'Another admin approved “Garden” first.'],
+    ['report', false, 'keep', 'Another admin kept “Garden” first.'],
+    ['new-member', true, 'remove', 'You removed Garden first.'],
+  ])('notifies of a %s decided first (own: %s)', (kind, byYou, decision, said) => {
+    expect(toConflictToast({ decision, byYou, at: '' }, { kind, name: 'Garden' })).toEqual({
+      title: 'Already decided',
+      text: `${said} Your decision was not applied.`,
+    });
+  });
+
+  // L2-020 criterion 12.
+  it.each<[ReviewKind, string]>([
+    ['new-listing', '“Garden”'],
+    ['report', '“Garden”'],
+    ['new-member', 'Garden'],
+  ])('says that a decision on a %s was not saved', (kind, named) => {
+    expect(toFailedToast({ kind, name: 'Garden' })).toEqual({
+      title: 'Your decision wasn’t saved',
+      text: `We couldn’t reach christian.rent. ${named} is still in the queue.`,
     });
   });
 });

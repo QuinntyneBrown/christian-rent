@@ -1,4 +1,5 @@
 import type { HttpErrorResponse } from '@angular/common/http';
+import type { EarlierDecision } from '../review/review-item';
 
 /**
  * A refusal or failure from the backend, in the one shape every screen branches on
@@ -15,6 +16,8 @@ export interface ApiError {
   readonly reportedAt: string | null;
   /** The first message for each field of a `validation_failed` refusal. */
   readonly fields: Readonly<Record<string, string>> | null;
+  /** The decision that stands, of an `already_decided` refusal. */
+  readonly decided?: EarlierDecision;
 }
 
 /** True when a value is an ApiError, as the interceptor throws them. */
@@ -39,6 +42,20 @@ export function toApiError(response: HttpErrorResponse, now: Date): ApiError {
     retryAt: readRetryAt(body, response, now),
     reportedAt: typeof body?.['reportedAt'] === 'string' ? body['reportedAt'] : null,
     fields: readFields(body),
+    ...readDecided(body),
+  };
+}
+
+function readDecided(body: Record<string, unknown> | null): { decided?: EarlierDecision } {
+  if (body?.['code'] !== 'already_decided') {
+    return {};
+  }
+  return {
+    decided: {
+      decision: body['decision'] as EarlierDecision['decision'],
+      at: String(body['decidedAt']),
+      byYou: body['decidedByYou'] === true,
+    },
   };
 }
 
