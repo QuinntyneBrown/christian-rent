@@ -33,8 +33,9 @@ Photos become part of a listing when it is published; see
   limits (L2-014, criterion 6); a file that could not be sent because christian.rent could not
   be reached shows one that names the file and says to try adding it again (L2-013,
   criterion 8). The photos already added stay. The file name is rendered as text. It takes
-  `photos` (`PickerPhoto { key, url, uploading }`), `problem` (`PhotoProblem { file, reason }`)
-  and `max` as inputs, and emits `chosen` (a `File`) and `remove` (a position). A thumbnail's
+  `photos` (`PickerPhoto { key, url, uploading }`), `problem` (the text of a
+  `PhotoProblem { file, reason }`, from `photoProblemText`), `disabled` while the listing is sent
+  and `max` as inputs, and emits `chosen` (a `File`) and `remove` (a photo's key). A thumbnail's
   text alternative is "Photo {n}", or "Photo {n}, uploading" (ADR 0021).
 - **`PhotoUploads`** (`rent/src/app/pages/post/`) — service provided by the Post route. For
   the chosen file it creates an object URL for the immediate thumbnail and an
@@ -43,7 +44,8 @@ Photos become part of a listing when it is published; see
   criterion 3). Once a photo is in, its object URL is revoked and the thumbnail is the `thumb`
   rendition. Removing a photo that is in calls `PHOTOS_API.remove(id)`; cancelling one that is
   uploading aborts it. On `DestroyRef.onDestroy` it aborts every upload in flight and revokes
-  every object URL, so leaving Post cancels uploads (criterion 5).
+  every object URL, so leaving Post cancels uploads (criterion 5). Publishing posts the photos
+  that are in and cancels any still uploading (`cancelAll`).
 - **`PostStore`** — keeps `draft.photos` as `DraftPhoto { id, thumbUrl, cardUrl }`, the photos
   that are in, in order, written to `sessionStorage` with the rest of the draft (ADR 0019).
   `previewCard` uses the first one's `cardUrl`, so removing a photo updates the preview

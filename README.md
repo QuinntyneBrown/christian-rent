@@ -95,14 +95,17 @@ member waiting in the review queue, and lets a member leave; sign-in itself is n
 nobody can sign in yet ([ADR 0017](docs/adr/0017-identifying-a-person-until-sign-in.md)).
 Posting is built (journey 6): Post's sentence, its fields with their rules, the live preview,
 the draft kept in the tab, and the backend that saves a listing as waiting for review, once per
-client request and at most 10 a member in 24 hours; photos come with journey 7.
+client request and at most 10 a member in 24 hours. Adding photos is built (journey 7): up to 6
+on a listing for rent, each checked by its content, size and sides, stored as renditions without
+its metadata, removable while posting, and deleted after 24 hours if no listing is posted with it
+([ADR 0021](docs/adr/0021-uploading-photos-open-decisions.md)).
 
 - The requirements are in `docs/specs/`, the mocks in `docs/mocks/`, the design system in
   `docs/design-system/` and the detailed designs in `docs/detailed-designs/`.
 - The journeys and their slices are in `docs/journeys.md` and `docs/detailed-journeys.md`, with
   **% complete**; the architecture decisions are in `docs/adr/`.
-- What comes next is journey 7, Add photos to a listing: one slice at a time, each with its
-  failing acceptance test first.
+- What comes next is journey 8, Send a message: one slice at a time, each with its failing
+  acceptance test first.
 
 ## How it works
 

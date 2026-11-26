@@ -70,11 +70,13 @@ class GetPhotoQueryHandler {
   +Handle(query: GetPhotoQuery): Task<PhotoFile>
 }
 class PhotoUploads <<Angular>> {
-  +uploading: Signal<UploadingPhoto[]>
+  +photos: Signal<PickerPhoto[]>
+  +problem: Signal<PhotoProblem | null>
   +add(file: File): void
-  +remove(position: number): void
-  -controllers: Map<string, AbortController>
-  -objectUrls: Map<string, string>
+  +remove(key: string): void
+  +cancelAll(): void
+  -inFlight: Signal<Upload[]>
+  -deletions: AbortController
 }
 UploadPhotoCommandHandler ..> IPhotoInspector
 UploadPhotoCommandHandler ..> IPhotoProcessor
