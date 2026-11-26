@@ -79,7 +79,8 @@ The add-photos design and the Post mocks leave open what journey 7 has to settle
     thumbnail is its `thumb` rendition and the preview's photo its `card` rendition, both from
     the API, and the object URL is revoked. Removing a photo that is in deletes it on the
     backend; cancelling one that is uploading aborts the request. Leaving Post aborts every
-    upload and revokes every object URL.
+    upload and revokes every object URL. Publishing posts the photos that are in and cancels
+    any still uploading, so nothing joins a draft that has been sent.
   - A refusal (any `photo_*` code, a 400 or a 413) shows the refusal message with the file's name
     and the limits (L2-014, criterion 6). A failure to reach christian.rent (status 0 or 5xx)
     shows "“{file}” wasn’t added. We couldn’t reach christian.rent. Try adding it again."

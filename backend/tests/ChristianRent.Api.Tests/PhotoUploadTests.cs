@@ -22,7 +22,6 @@ public sealed class PhotoUploadTests : IDisposable
     // of its fitted size with no embedded metadata, in file storage; the database holds only who
     // uploaded it, its dimensions and when.
     [Fact]
-    [Trait("Category", "Critical")]
     public async Task A_member_uploads_a_photo_that_is_stored_as_renditions_without_its_location()
     {
         var sarah = TestData.Member("Sarah Kim", TestData.Grace, signInId: "sarah-kim");
