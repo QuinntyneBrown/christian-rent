@@ -41,6 +41,7 @@ export function toListingView(detail: ListingDetail, now: Date): ListingView {
       : `Message ${firstName} about this listing`,
     posterFirstName: firstName,
     isOwn: detail.isOwn,
+    reportedAt: detail.reportedAt,
     price: priceView(detail),
   };
 }

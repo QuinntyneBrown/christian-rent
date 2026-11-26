@@ -29,11 +29,12 @@ function detail(id: string): ListingDetail {
       church: { name: 'Grace Community Church', isVerified: true },
     },
     isOwn: false,
+    reportedAt: null,
   };
 }
 
 function refusal(status: number, code: string | null): ApiError {
-  return { status, code, retryAt: null, fields: null };
+  return { status, code, retryAt: null, reportedAt: null, fields: null };
 }
 
 /** A ListingsApi whose answers a test gives one at a time. */

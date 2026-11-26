@@ -67,6 +67,7 @@ class ListingDetailDto {
   +ListingPhotoDto[] Photos
   +PosterDto Poster
   +bool IsOwn
+  +DateTimeOffset? ReportedAt
 }
 class ListingPhotoDto {
   +string Url

@@ -5,6 +5,7 @@ const error = (status: number, code: string | null): ApiError => ({
   status,
   code,
   retryAt: null,
+  reportedAt: null,
   fields: null,
 });
 

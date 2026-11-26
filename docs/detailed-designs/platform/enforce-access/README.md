@@ -83,7 +83,8 @@ not, known.
 
 **Frontend — `api` library**
 
-- **`ApiError`** — `{ status, code, retryAt, fields }`. `code` is `null` when the response
+- **`ApiError`** — `{ status, code, retryAt, reportedAt, fields }` (`reportedAt` is when the
+  caller's earlier report was filed, on `already_reported`; ADR 0023). `code` is `null` when the response
   is not a ProblemDetails, for example when the backend cannot be reached.
 - **`apiErrorInterceptor`** — functional `HttpInterceptorFn` that converts every failed
   response into an `ApiError`. Screens branch on `code` and show their own generic copy;

@@ -74,7 +74,10 @@ when a member leaves.
   their photo files (every rendition) through `IPhotoStorage.DeleteAsync`. It clears the text
   of every message the member sent (`Message.ClearText()`; the message stays, empty, so the
   other person's conversation keeps its shape) and deletes the messages about the member's
-  listings with those listings (L2-016, criterion 7; ADR 0022). The command prints
+  listings with those listings (L2-016, criterion 7; ADR 0022). It clears the note of every
+  report the member sent (`Report.ClearNote()`; the report stays, so the listing is still
+  reviewed) and deletes the reports about the member's listings with their review items
+  (L2-021, criterion 13; ADR 0023). The command prints
   how many members, listings and photos it handled, and running it again changes nothing.
 - **`TelemetryScrubber`** — designed in
   [fail-clearly-and-operate](../fail-clearly-and-operate/README.md). Spans record the route

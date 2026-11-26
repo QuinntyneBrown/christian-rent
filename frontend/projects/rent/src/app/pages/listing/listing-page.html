@@ -18,7 +18,13 @@
     }
     @case ('loaded') {
       @if (store.view(); as view) {
-        <cr-listing-toolbar />
+        <cr-listing-toolbar>
+          @if (!view.isOwn) {
+            <button cr-button variant="ghost" size="sm" type="button" (click)="report()">
+              <cr-icon name="flag" />Report
+            </button>
+          }
+        </cr-listing-toolbar>
         <cr-listing-layout>
           <cr-listing [listing]="view" />
           <cr-message-box

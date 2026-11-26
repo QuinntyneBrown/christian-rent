@@ -23,4 +23,7 @@ export * from './messages/messages-api';
 export * from './photos/http-photos-api';
 export * from './photos/photos-api';
 export * from './photos/picker-photo';
+export * from './reports/http-reports-api';
+export * from './reports/report';
+export * from './reports/reports-api';
 export * from './state/load-state';

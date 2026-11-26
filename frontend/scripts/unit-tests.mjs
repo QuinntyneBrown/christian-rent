@@ -20,5 +20,9 @@ for (const [name, project] of Object.entries(workspace.projects)) {
     console.log(`${name}: no unit tests yet`);
     continue;
   }
-  execFileSync('npx', ['ng', 'test', name, '--watch=false'], { stdio: 'inherit' });
+  // Windows runs npx through its .cmd shim, which only a shell can start (as verify.mjs does).
+  execFileSync('npx', ['ng', 'test', name, '--watch=false'], {
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+  });
 }

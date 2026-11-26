@@ -10,9 +10,11 @@ import {
 } from '../fixtures/listings';
 import { answerJoining, answerMember } from '../fixtures/members';
 import { refuseSendingAtLimit } from '../fixtures/messages';
+import { answerReporting } from '../fixtures/reports';
 import { answerUploads, photoFile } from '../fixtures/photos';
 import { ListingPage } from '../pages/listing.page';
 import { PostPage } from '../pages/post.page';
+import { ReportDialogPart } from '../pages/report-dialog.part';
 import { expect, test } from '../fixtures/test';
 
 // AGENTS.md, Prove it: leaving a screen returns its memory. Enter and leave a screen many times
@@ -205,6 +207,33 @@ test('opening the join dialog and closing it keeps the heap stable', async ({ pa
     await page.getByLabel('Your church').selectOption({ label: 'My church isn’t listed' });
     await page.getByRole('button', { name: 'Not now' }).click();
     await expect(dialog).toHaveCount(0);
+  };
+
+  await roundTrip();
+  const before = await heapAfterGc();
+  for (let round = 0; round < ROUNDS; round++) {
+    await roundTrip();
+  }
+  const after = await heapAfterGc();
+
+  expect(after - before).toBeLessThan(ALLOWED_GROWTH_BYTES);
+});
+
+test('opening the report dialog and closing it keeps the heap stable', async ({ page, api }) => {
+  answerMember(api);
+  answerListing(api, hall());
+  answerReporting(api, hall().id);
+  const heapAfterGc = await heapMeter(page);
+  const screen = new ListingPage(page);
+  const dialog = new ReportDialogPart(page);
+  await screen.open(hall().id);
+
+  const roundTrip = async () => {
+    await screen.report.click();
+    await dialog.reason('A scam').check();
+    await dialog.note.fill('a'.repeat(500));
+    await dialog.cancel.click();
+    await expect(dialog.root).toHaveCount(0);
   };
 
   await roundTrip();

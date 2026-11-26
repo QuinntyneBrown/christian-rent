@@ -11,6 +11,8 @@ export interface ApiError {
   readonly code: string | null;
   /** When a limit lifts, as an ISO instant. */
   readonly retryAt: string | null;
+  /** When the member's earlier report was filed, of an `already_reported` refusal. */
+  readonly reportedAt: string | null;
   /** The first message for each field of a `validation_failed` refusal. */
   readonly fields: Readonly<Record<string, string>> | null;
 }
@@ -23,6 +25,7 @@ export function isApiError(value: unknown): value is ApiError {
     typeof (value as ApiError).status === 'number' &&
     'code' in value &&
     'retryAt' in value &&
+    'reportedAt' in value &&
     'fields' in value
   );
 }
@@ -34,6 +37,7 @@ export function toApiError(response: HttpErrorResponse, now: Date): ApiError {
     status: response.status,
     code: typeof body?.['code'] === 'string' ? body['code'] : null,
     retryAt: readRetryAt(body, response, now),
+    reportedAt: typeof body?.['reportedAt'] === 'string' ? body['reportedAt'] : null,
     fields: readFields(body),
   };
 }

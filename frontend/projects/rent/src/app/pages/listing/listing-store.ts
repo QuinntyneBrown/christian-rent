@@ -82,6 +82,11 @@ export class ListingStore {
     }
   }
 
+  /** Remembers that the member reported this listing, so Report says so without asking. */
+  markReported(reportedAt: string): void {
+    this._view.update((view) => view && { ...view, reportedAt });
+  }
+
   private cancel(): void {
     this.request?.abort();
     this.request = null;

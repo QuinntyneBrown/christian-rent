@@ -18,6 +18,7 @@ export * from './listings/message-draft';
 export * from './listings/photo-problem';
 export * from './listings/post-copy';
 export * from './listings/post-request';
+export * from './listings/report-form';
 export * from './members/join-form';
 export * from './search/listing-window';
 export * from './search/browse-query';

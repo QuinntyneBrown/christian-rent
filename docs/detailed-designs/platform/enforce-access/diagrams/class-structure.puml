@@ -43,6 +43,7 @@ class ApiError <<TypeScript>> {
   +status: number
   +code: string | null
   +retryAt: string | null
+  +reportedAt: string | null
   +fields: Record<string, string> | null
 }
 ICurrentMember <|.. HttpCurrentMember

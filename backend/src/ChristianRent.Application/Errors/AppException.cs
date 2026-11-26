@@ -15,7 +15,16 @@ public sealed class NotFoundException() : AppException("not_found", "Not found."
 /// <summary>The caller may not do this; the code says why (not_a_member, not_an_admin, own_listing).</summary>
 public sealed class ForbiddenException(string code) : AppException(code, "Forbidden.");
 
-/// <summary>The action was already taken (already_reported, already_decided, decision_not_allowed).</summary>
+/// <summary>
+/// The member reported this listing before, at <see cref="ReportedAt"/>; nothing more is filed
+/// (L2-021, criterion 3).
+/// </summary>
+public sealed class AlreadyReportedException(DateTimeOffset reportedAt) : AppException("already_reported", "Conflict.")
+{
+    public DateTimeOffset ReportedAt { get; } = reportedAt;
+}
+
+/// <summary>The action was already taken (already_decided, decision_not_allowed).</summary>
 public sealed class ConflictException(string code) : AppException(code, "Conflict.");
 
 /// <summary>A limit is reached until <see cref="RetryAt"/> (post_limit_reached, message_limit_reached).</summary>

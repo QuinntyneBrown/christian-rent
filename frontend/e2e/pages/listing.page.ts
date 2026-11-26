@@ -9,6 +9,8 @@ export class ListingPage {
   readonly header: SiteHeaderPart;
   readonly main: Locator;
   readonly allListings: Locator;
+  /** Report, in the toolbar above the listing. */
+  readonly report: Locator;
   readonly heading: Locator;
   readonly listing: Locator;
   readonly tag: Locator;
@@ -41,6 +43,9 @@ export class ListingPage {
     this.allListings = this.main
       .locator('.listing-toolbar')
       .getByRole('link', { name: 'All listings', exact: true });
+    this.report = this.main
+      .locator('.listing-toolbar')
+      .getByRole('button', { name: 'Report', exact: true });
     this.heading = this.main.getByRole('heading', { level: 1 });
     this.listing = this.main.locator('article.listing');
     this.tag = this.listing.locator('.tag');

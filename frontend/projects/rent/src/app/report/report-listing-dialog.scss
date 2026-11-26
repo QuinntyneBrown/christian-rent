@@ -1,0 +1,7 @@
+// The report dialog's form, from docs/mocks/dialogs/report-listing/: its fields one under
+// another.
+.report-dialog__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}

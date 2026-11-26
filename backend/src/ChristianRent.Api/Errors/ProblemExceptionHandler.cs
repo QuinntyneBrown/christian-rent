@@ -20,6 +20,7 @@ internal sealed partial class ProblemExceptionHandler : IExceptionHandler
             NotFoundException notFound => Problems.Create(StatusCodes.Status404NotFound, notFound.Code, "Not found"),
             ForbiddenException forbidden => Problems.Create(StatusCodes.Status403Forbidden, forbidden.Code, "Not allowed"),
             ConflictException conflict => Problems.Create(StatusCodes.Status409Conflict, conflict.Code, "Already done"),
+            AlreadyReportedException reported => AlreadyReported(reported),
             LimitReachedException limit => LimitReached(limit),
             _ => null,
         };
@@ -38,6 +39,13 @@ internal sealed partial class ProblemExceptionHandler : IExceptionHandler
         problem.Extensions["errors"] = exception.Errors
             .GroupBy(failure => JsonNamingPolicy.CamelCase.ConvertName(failure.PropertyName))
             .ToDictionary(group => group.Key, group => group.Select(failure => failure.ErrorMessage).ToArray());
+        return problem;
+    }
+
+    private static Microsoft.AspNetCore.Mvc.ProblemDetails AlreadyReported(AlreadyReportedException exception)
+    {
+        var problem = Problems.Create(StatusCodes.Status409Conflict, exception.Code, "Already done");
+        problem.Extensions["reportedAt"] = exception.ReportedAt;
         return problem;
     }
 

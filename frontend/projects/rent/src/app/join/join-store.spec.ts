@@ -12,7 +12,13 @@ import {
 import { NEW_CHURCH } from '@rent/domain';
 import { JoinStore } from './join-store';
 
-const unreachable: ApiError = { status: 0, code: null, retryAt: null, fields: null };
+const unreachable: ApiError = {
+  status: 0,
+  code: null,
+  retryAt: null,
+  reportedAt: null,
+  fields: null,
+};
 const grace: ChurchOption = { id: 'grace', name: 'Grace Community Church', city: 'Langley' };
 const sarah = {
   id: 'm1',

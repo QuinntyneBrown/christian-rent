@@ -116,14 +116,15 @@ a message waits for the Messages inbox, which is not designed (L2-016, criterion
 | 8.5 | Invalid, failed and limited states keep the text and dates; the draft in `sessionStorage`; a listing taken down | L2-015, L2-016, L2-033 | Yes |
 | 8.6 | One's own listing shows no message box; a person who is not a member joins and their message is sent | L2-015, L2-017 | Yes |
 
-## 9. Report a listing (Main) — 3 days — 0% complete
+## 9. Report a listing (Main) — 3 days — 100% complete
 
-Design: [report-listing](detailed-designs/reports/report-listing/README.md).
+Design: [report-listing](detailed-designs/reports/report-listing/README.md). An admin sees and
+decides a report in journeys 10 and 11.
 
-| # | Slice | L2 |
-|---|---|---|
-| 9.1 | `ReportListingCommand` adds a report to the review queue; already reported | L2-021, L2-025 |
-| 9.2 | `ReportListingDialog` with its reasons and note; announced confirmation | L2-021, L2-032 |
+| # | Slice | L2 | Done |
+|---|---|---|---|
+| 9.1 | `ReportListingCommand` adds a report to the review queue, with its refusals; already reported, told only to the reporter by the Listing read; `purge-departed` and reports | L2-021, L2-025, L2-026, L2-028 | Yes |
+| 9.2 | `ReportListingDialog` with its reasons and note, invalid, busy, failed and already states, announced confirmation, and the join dialog first for a person who is not a member | L2-021, L2-032 | Yes |
 
 ## 10. View the review queue (Admin) — 4 days — 0% complete
 
@@ -160,4 +161,4 @@ Design: [verify-members-and-churches](detailed-designs/members/verify-members-an
 
 | Journeys | Effort (days) | % complete |
 |---|---|---|
-| 12 | 52 | 65 |
+| 12 | 52 | 79 |

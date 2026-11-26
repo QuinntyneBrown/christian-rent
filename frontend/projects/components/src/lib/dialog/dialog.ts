@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { Button } from '../button/button';
-import { Icon } from '../icon/icon';
+import { Icon, type IconName } from '../icon/icon';
 
 /**
  * A short task over the page (docs/design-system/components/dialog.html): the backdrop, and the
@@ -24,6 +24,8 @@ export class Dialog {
   /** The description's id, which the dialog is described by. */
   readonly descriptionId = input<string | null>(null);
   readonly description = input<string | null>(null);
+  /** Decoration before the title, in a round tinted badge. */
+  readonly icon = input<IconName | null>(null);
   /** While a request is in flight, Close does nothing. */
   readonly closeDisabled = input(false);
 

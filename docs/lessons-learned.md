@@ -53,6 +53,9 @@ Each journey's entry has three parts:
 | L37 | A mutation that removes the only use of an import fails the .NET build (IDE0005 is an error), not the test: mutate so the import stays in use. | 8 |
 | L38 | A spec whose rule reads today fixes the browser's clock (`page.clock.setFixedTime`) before the page opens, and a sweep's `then` after it; such a spec asserts nothing a fixture derives from the real clock ("Posted 2 days ago"). | 8 |
 | L39 | When a service is small enough to write whole, plan the slices by what the spec can see failing (send, then each refusal the screen shows), or accept that later specs pass at once and prove each by mutation in that slice. | 8 |
+| L40 | Before the first run of the checks on a new machine, check that the files are checked out with LF, that `DOTNET_ROOT` (if set) holds the runtimes the SDK's tools need, and that scripts start `npx` through a shell on Windows. | 9 |
+| L41 | Follow each criterion about a later visit ("told so on selecting it again") through the whole data path: if a reload loses what the screen knew, the read has to carry it, for that caller only. | 9 |
+| L42 | A dialog tells its page what it has done as soon as it knows, and keeps the close result for what only closing means: Escape and navigation close it with no result. | 9 |
 
 ## Journeys
 
@@ -568,3 +571,70 @@ Slices 8.1 to 8.6, finished on Nov 26, 2026.
   loaded for it.
 - L30: behind the join dialog the spec reads only the dialog; the box is read once it closes.
 - L33: the leaving spec observes the request fail with `net::ERR_ABORTED`.
+
+### 9. Report a listing
+
+Slices 9.1 and 9.2, finished on Nov 26, 2026, on Windows.
+
+**What slowed it**
+
+- The first run of the checks on Windows failed three ways, none of them in the code. The unit
+  tests could not start `npx` without a shell, which `frontend/scripts/unit-tests.mjs` now uses
+  there. The checkout had CRLF line endings (`core.autocrlf=true`) where `.editorconfig` asks for
+  LF, so both format checks failed until the files were checked out again with
+  `git -c core.autocrlf=false checkout`. `DOTNET_ROOT` pointed at a folder with older runtimes
+  than `dotnet format` needs, so the `dotnet` commands ran with it unset (L40).
+- With other processes keeping the machine busy, behaviour specs that this journey had not
+  touched timed out: 2 in one run of `verify.mjs` and 14 in a second run of the specs alone, on
+  the unchanged branch. With 3 workers all 136 passed, and every later run of `verify.mjs`
+  passed.
+- The design could not meet L2-021 criterion 8, "told so on selecting Report again", from the
+  409 alone: after a reload the screen knows nothing. The Listing read now tells the caller, and
+  only the caller, when they reported it (L41). It, a listing taken down while a report is
+  written, a departed member's reports and the other open points are in ADR 0023; L2-021 gained
+  criteria 11 to 13 before any code.
+- A report filed and then dismissed with Escape would have left the page not knowing it, if the
+  page learned of it only from the dialog's close result (L42).
+
+**New lessons**: L40 to L42 above, and these details for later slices:
+
+- Journey 10's queue meets two things: a review item of kind `Report` has the report's
+  identifier as its subject; and `purge-departed` deletes the listings of a departed member but
+  not the new-listing review items that point at them, which the queue must not fail on.
+- "Already reported" says the report "is with an admin" whatever its status. Journey 11 closes
+  reports and should check that the sentence still holds.
+- `cr-dialog` takes an optional icon for a result, and `cr-radio-group` is the first radio
+  group in `@rent/components`.
+
+**Earlier lessons applied**
+
+- L1: `main` was fetched first and the branch was made from it.
+- L2: every state had a mock; the criteria that were missing came first, with ADR 0023.
+- L3 and L20: the member check and the public-listing check on the backend, and on the frontend
+  closing while busy, aborting on leaving, the join gate and no Report on one's own listing were
+  each broken, and only the tests that name them failed.
+- L4: every commit of a slice followed a run of `verify.mjs` that was read.
+- L8: the dialog is composed of `cr-dialog`, `cr-radio-group`, `cr-textarea`, `cr-alert` and
+  `cr-button`; the page writes no design-system class.
+- L9 and L24: Listing asks nothing new at start, so no existing spec needed a new answer.
+- L11 and L27: the production build ran in the frontend slices; the initial total went from
+  323.17 kB to 323.24 kB, since the dialog is its own chunk (11.2 kB) and
+  `HttpReportsApi` loads with Listing's route. No budget changed.
+- L12: the reasons, the cleaned note, the date and the words of each state are `@rent/domain`,
+  with a test per case.
+- L13: the sweeps visit the dialog's six states and a heap check opens and closes it 20 times;
+  none was run.
+- L19: the new specs were run 5 times before their commit.
+- L26: the busy spec presses the busy controls with `dispatchEvent('click')`.
+- L28 and L29: the CDK dialog was already lazy for the join dialog, so opening a second lazy
+  dialog moved nothing into the initial chunks.
+- L30: the specs read the page behind the dialog only once it has closed.
+- L31: the editing scripts asserted each replaced text, which stopped a script on a text that
+  Prettier had reflowed.
+- L33: the leaving spec observes the report's request fail with `net::ERR_ABORTED`.
+- L37: the backend mutations kept every import in use.
+- L39: the backend slices were planned by what each could refuse; two of the "second report"
+  tests passed at once (another member may report; another failure is not a second report), and
+  each was then proved by mutation (L20). A script that runs a command with Python's
+  `shell=True` on Windows runs `cmd.exe`, where `NAME=value command` runs nothing; set the
+  environment in the calling shell, and read the test counts (L36).

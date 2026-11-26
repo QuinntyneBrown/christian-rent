@@ -1,0 +1,21 @@
+<fieldset [attr.aria-describedby]="error() ? fieldId() + '-error' : null">
+  <legend>{{ legend() }} <span class="visually-hidden">Required</span></legend>
+  @for (option of options(); track option.value) {
+    <label class="choice">
+      <input
+        type="radio"
+        [id]="fieldId() + '-' + option.value"
+        [name]="fieldId()"
+        [value]="option.value"
+        [checked]="value() === option.value"
+        [disabled]="disabled()"
+        [attr.aria-invalid]="error() ? 'true' : null"
+        (change)="value.set(option.value)"
+      />
+      <span class="choice__text">{{ option.label }}</span>
+    </label>
+  }
+  @if (error(); as error) {
+    <p class="field__error" role="alert" [id]="fieldId() + '-error'">{{ error }}</p>
+  }
+</fieldset>

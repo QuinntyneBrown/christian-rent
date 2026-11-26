@@ -23,7 +23,13 @@ describe('apiErrorInterceptor', () => {
       .expectOne('/api/listings/1')
       .flush({ status: 404, code: 'not_found' }, { status: 404, statusText: 'Not Found' });
 
-    expect(await result).toEqual({ status: 404, code: 'not_found', retryAt: null, fields: null });
+    expect(await result).toEqual({
+      status: 404,
+      code: 'not_found',
+      retryAt: null,
+      reportedAt: null,
+      fields: null,
+    });
     backend.verify();
   });
 

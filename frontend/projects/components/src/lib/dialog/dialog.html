@@ -2,6 +2,11 @@
 <div class="dialog">
   <div class="dialog__panel">
     <div class="dialog__header">
+      @if (icon(); as icon) {
+        <div class="dialog__icon dialog__icon--info" aria-hidden="true">
+          <cr-icon [name]="icon" />
+        </div>
+      }
       <div class="dialog__heading">
         <h2 class="dialog__title" [id]="titleId()">{{ title() }}</h2>
         @if (description(); as description) {

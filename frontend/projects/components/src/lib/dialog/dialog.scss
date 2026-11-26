@@ -50,6 +50,20 @@
   padding: var(--space-6) var(--space-6) 0;
 }
 
+.dialog__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+}
+
+.dialog__icon--info {
+  background: var(--color-info-bg);
+  color: var(--color-info-icon);
+}
+
 .dialog__heading {
   flex: 1;
   min-width: 0;

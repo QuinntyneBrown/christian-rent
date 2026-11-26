@@ -38,4 +38,6 @@ export interface ListingDetail {
   readonly poster: ListingPoster;
   /** True when the signed-in member posted it. */
   readonly isOwn: boolean;
+  /** When the signed-in member reported it, as an ISO instant; null for everyone else. */
+  readonly reportedAt: string | null;
 }

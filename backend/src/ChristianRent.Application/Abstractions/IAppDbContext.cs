@@ -2,6 +2,7 @@ using ChristianRent.Domain.Churches;
 using ChristianRent.Domain.Listings;
 using ChristianRent.Domain.Members;
 using ChristianRent.Domain.Messages;
+using ChristianRent.Domain.Reports;
 using ChristianRent.Domain.Review;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +23,8 @@ public interface IAppDbContext
     DbSet<Photo> Photos { get; }
 
     DbSet<Message> Messages { get; }
+
+    DbSet<Report> Reports { get; }
 
     DbSet<ReviewItem> ReviewItems { get; }
 

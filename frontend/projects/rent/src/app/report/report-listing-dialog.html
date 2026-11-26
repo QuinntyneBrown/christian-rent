@@ -1,0 +1,89 @@
+<cr-dialog
+  titleId="report-title"
+  [title]="copy().title"
+  descriptionId="report-description"
+  [description]="copy().description"
+  [icon]="icon()"
+  [closeDisabled]="busy()"
+  (closed)="close()"
+>
+  @if (step() === 'form') {
+    <form id="report-form" class="report-dialog__form" novalidate (submit)="submit($event)">
+      @if (store.state() === 'failed') {
+        <cr-alert
+          tone="danger"
+          [announce]="true"
+          title="Your report wasn’t sent."
+          text="We couldn’t reach christian.rent. Your reason and note are still here."
+        />
+      }
+      <cr-radio-group
+        fieldId="report-reason"
+        legend="Why are you reporting it?"
+        [options]="reasons"
+        [value]="store.reason()"
+        (valueChange)="store.choose($event)"
+        [error]="store.reasonError()"
+        [disabled]="busy()"
+      />
+      <cr-textarea
+        fieldId="report-note"
+        label="Note"
+        optional="(optional)"
+        [maxlength]="noteLimit"
+        [counter]="store.counter()"
+        [value]="store.note()"
+        (valueChange)="store.setNote($event)"
+        [readonly]="busy()"
+      />
+    </form>
+  }
+  <p class="visually-hidden" role="status">{{ announcement() }}</p>
+  @if (step() === 'form') {
+    <button
+      cr-button
+      slot="footer"
+      type="button"
+      [attr.aria-disabled]="busy() ? 'true' : null"
+      (click)="close()"
+    >
+      Cancel
+    </button>
+  }
+  @if (step() === 'form') {
+    <button
+      cr-button
+      slot="footer"
+      variant="primary"
+      type="submit"
+      form="report-form"
+      [busy]="busy()"
+    >
+      {{ store.state() === 'failed' ? 'Try again' : 'Send report' }}
+    </button>
+  }
+  @if (step() === 'success') {
+    <button
+      cr-button
+      slot="footer"
+      variant="primary"
+      type="button"
+      class="report-dialog__acknowledge"
+      (click)="close()"
+    >
+      Done
+    </button>
+  }
+  @if (step() === 'already') {
+    <button
+      cr-button
+      slot="footer"
+      variant="primary"
+      type="button"
+      class="report-dialog__acknowledge"
+      (click)="close()"
+    >
+      OK, close
+    </button>
+  }
+</cr-dialog>
