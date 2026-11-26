@@ -1,6 +1,5 @@
 using ChristianRent.Application.Abstractions;
 using ChristianRent.Domain.Listings;
-using ChristianRent.Domain.Members;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,7 +15,7 @@ internal sealed class BrowseListingsQueryHandler(IAppDbContext database) : IRequ
     public async Task<ListingsPageDto> Handle(BrowseListingsQuery query, CancellationToken cancellationToken)
     {
         var cards =
-            from listing in PublicListings()
+            from listing in PublicListings.Of(database)
             join member in database.Members on listing.MemberId equals member.Id
             join church in database.Churches on member.ChurchId equals church.Id
             select new { listing, member.Name, ChurchName = church.Name };
@@ -80,14 +79,9 @@ internal sealed class BrowseListingsQueryHandler(IAppDbContext database) : IRequ
         return new ListingsPageDto(items, nextCursor, await CountAsync(cancellationToken));
     }
 
-    private IQueryable<Listing> PublicListings() =>
-        database.Listings.Where(listing =>
-            listing.Status == ListingStatus.Approved &&
-            database.Members.Any(member => member.Id == listing.MemberId && member.Status == MemberStatus.Active));
-
     private async Task<ListingCountsDto> CountAsync(CancellationToken cancellationToken)
     {
-        var counts = await PublicListings()
+        var counts = await PublicListings.Of(database)
             .GroupBy(listing => listing.Offer)
             .Select(group => new { Offer = group.Key, Count = group.Count() })
             .ToListAsync(cancellationToken);
