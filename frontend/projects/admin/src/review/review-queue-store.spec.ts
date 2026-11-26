@@ -738,4 +738,35 @@ describe('ReviewQueueStore', () => {
     expect(fake.arrivals[0]!.signal.aborted).toBe(true);
     expect(vi.getTimerCount()).toBe(0);
   });
+
+  // A released page asked for before the decision could bring the decided item back.
+  it('drops a page above that was on its way when a decision was made', async () => {
+    const total = 4 * PAGE_SIZE;
+    store.showDetail(true);
+    await loadedQueueOf(total);
+    await fake.items[0]!.answer(detail('0-0'));
+    for (let index = 1; index < 4; index++) {
+      void store.loadMore('down', () => 100);
+      await answerPage(index, total);
+    }
+    void store.loadMore('up', () => 100);
+
+    void store.decide('approve');
+    await fake.decisions[0]!.answer({ closedItemIds: ['0-0'] });
+
+    expect(fake.pages.at(-1)!.signal.aborted).toBe(true);
+    expect(idsHeld()).not.toContain('0-0');
+  });
+
+  // "Show them" moves focus once the queue is read; a reading that was cut short moves nothing.
+  it('answers that nothing was shown when the admin leaves while the arrivals load', async () => {
+    await loaded();
+    await wait(ARRIVALS_MS);
+    await fake.arrivals[0]!.answer(counts(1));
+    const shown = toasts()[0]!.action!.run();
+
+    TestBed.resetTestingModule();
+
+    await expect(shown).resolves.toBe('ignored');
+  });
 });

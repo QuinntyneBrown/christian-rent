@@ -310,8 +310,10 @@ export class ReviewQueueStore {
   }
 
   private async showArrivals(): Promise<DecisionOutcome> {
-    await this.load();
-    return 'done';
+    const shown = this.load();
+    const request = this.request!;
+    await shown;
+    return request.signal.aborted ? 'ignored' : 'done';
   }
 
   private stopLooking(): void {
@@ -399,8 +401,9 @@ export class ReviewQueueStore {
    */
   private close(id: string, closed: ReadonlySet<string>, sameReading: boolean): void {
     const next = this.rowAfter(id, closed);
-    // A page on its way may have been read before the decision; it is asked for again.
-    if (this._moreState() === 'loading') {
+    // A page on its way, above or below, may have been read before the decision; it is asked
+    // for again. A reading of the queue from its start is left to finish.
+    if (this._state() === 'loaded' && this.request !== null) {
       this.request?.abort();
       this.request = null;
     }
