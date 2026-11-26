@@ -28,6 +28,7 @@ class Listing {
 class ListingPhoto {
   +Guid PhotoId
   +int Position
+  +string? Description
 }
 class Member {
   +Guid Id
@@ -44,7 +45,7 @@ class Church {
   +bool IsVerified
 }
 class ListingVisibility {
-  +{static} CanBeSeenBy(listing: Listing, caller: Member?): bool
+  +{static} CanBeSeenBy(listing: Listing, posterStatus: MemberStatus, callerId: Guid?, callerIsAdmin: bool): bool
 }
 class GetListingQuery {
   +Guid Id
@@ -54,14 +55,25 @@ class GetListingQueryHandler {
 }
 class ListingDetailDto {
   +Guid Id
+  +string Offer
+  +string Kind
   +string Title
   +PriceDto? Price
-  +string When
+  +WhenDto When
   +string Area
+  +int? DistanceKm
   +string? Note
-  +PhotoRefDto[] Photos
+  +DateTimeOffset PostedAt
+  +ListingPhotoDto[] Photos
   +PosterDto Poster
   +bool IsOwn
+}
+class ListingPhotoDto {
+  +string Url
+  +string ThumbUrl
+  +int Width
+  +int Height
+  +string? Description
 }
 class PosterDto {
   +string Name
@@ -81,5 +93,6 @@ GetListingQueryHandler ..> ListingVisibility : asks
 GetListingQueryHandler --> Listing : loads
 GetListingQueryHandler ..> ListingDetailDto : returns
 ListingDetailDto *-- PosterDto
+ListingDetailDto *-- "0..6" ListingPhotoDto
 PosterDto *-- ChurchDto
 @enduml

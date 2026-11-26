@@ -22,69 +22,107 @@ The message box beside the listing is designed in
 
 **Frontend — `rent` application**
 
-- **`ListingPage`** (`rent/src/app/listing/listing-page.ts`, selector `cr-listing-page`) —
-  lazy page for `/listings/:id`. It provides `ListingStore`, reads the `id` route input, and
-  lays the listing and the aside out with the `listing-layout` block: one column under
-  768 px, the aside to the right from 768 px (L2-031, criterion 3).
-- **`ListingStore`** — route-scoped store with `state`: `loading`, `loaded`, `not-found`,
-  `failed`. It calls `LISTINGS_API.get(id, signal)` and aborts the request when the route is
-  destroyed. An `ApiError` with the code `not_found` maps to `not-found`; any other failure
-  maps to `failed` with "Try again".
+- **`ListingPage`** (`rent/src/app/pages/listing/listing-page.ts`, selector `cr-listing-page`)
+  — lazy page for `/listings/:id`, loaded by `listing.routes.ts`, which binds `LISTINGS_API` to
+  `HttpListingsApi` for the route. It provides `ListingStore`, reads the `id` route input, and
+  composes `cr-listing-toolbar`, `cr-listing-layout`, `cr-listing` and `cr-message-box`: one
+  column under 768 px, the aside to the right from 768 px (L2-031, criterion 3). Once the
+  listing has loaded it sets the document title to the listing's title through
+  `RentTitleStrategy.setPageTitle` ("Listing not found" for the not-found state) (ADR 0016).
+- **`ListingStore`** (`rent/src/app/pages/listing/listing-store.ts`) — route-scoped store with
+  `state`: `loading`, `loaded`, `not-found`, `failed`, and `skeleton`, true once the request
+  has waited 300 ms (L2-033, criteria 1 and 5). `load(id)` calls `LISTINGS_API.get(id, signal)`
+  and aborts the request, and clears the skeleton's timer, when the route is destroyed. An
+  `ApiError` with the code `not_found` maps to `not-found`; any other failure maps to `failed`
+  with "Try again". It turns the `ListingDetail` into a `ListingView` with `toListingView`.
+
+**Frontend — `domain` library**
+
+- **`toListingView(detail, now)`** (`domain/src/listings/listing-view.ts`) — writes every word
+  the screen shows (L2-022): the tag ("For rent · space", "Wanted · thing"), the place
+  (`formatPlace`), "when" (`formatWhen`), "Posted 2 days ago" (`formatAge`), the photos with
+  their text alternatives, the poster's initials (`initialsOf`), tint (`avatarTint`) and "Member
+  since 2023", and the message box's head ("Rent for", "$45", "CAD / hour").
+- **`formatAge(from, now)`** — "just now", then minutes, hours, days, weeks, months and years,
+  rounded down (ADR 0016).
+- **`initialsOf(name)`**, **`firstNameOf(name)`**, **`avatarTint(name)`** — the first letters
+  of the first two words skipping "Pastor", "Dr." and "The"; the first such word; one of `sun`,
+  `sky` and `leaf` from a stable hash of the name (ADR 0016).
 
 **Frontend — `components` library**
 
-- **`cr-gallery`** — one large photo above a row of thumbnails. Thumbnails are buttons; the
-  arrow keys move between them (L2-007, criterion 3). The large photo carries the photo's
+- **`cr-listing-toolbar`** — the `listing-toolbar` block: `cr-back-link` "All listings", a link
+  back to Browse (L2-007, criterion 8), and a slot for the Report button (journey 9).
+- **`cr-back-link`** — the `back-link` block: an arrow and a label, linking to `href`.
+- **`cr-listing-layout`** — the `listing-layout` block: the listing, and an `aside` slot that
+  sits under it below 768 px and to its right, sticky, from 768 px.
+- **`cr-listing`** — the `listing` block, from a `ListingView`: `cr-gallery` for a listing for
+  rent or `cr-wanted-panel` for a wanted one, `cr-tag` with the kind, the title as the screen's
+  `h1`, the facts (place, "when" for a listing for rent, "Posted 2 days ago"), the note, and
+  `cr-poster`. Every member-written word is rendered as text (L2-026).
+- **`cr-gallery`** — one large photo above a row of thumbnails. Thumbnails are buttons; Tab
+  reaches each, Enter shows it, and the left and right arrow keys show the photo before or after
+  and move focus to its thumbnail (L2-007, criterion 3). The large photo carries the photo's
   description as its text alternative. Each thumbnail is named "Photo {n} of {count}", has an
   empty `alt` and carries `aria-current` when shown. A polite live region reads "Photo 1 of
-  3" (criterion 7).
-- **`listing-toolbar`** — "All listings", a link back to Browse (criterion 8), and the
-  Report button.
-- **`listing-meta`** — the area followed by the distance ("Langley · 3 km"), "when" for a
-  listing for rent, and "Posted 2 days ago" from `formatAge(postedAt)` (criterion 6).
-- **`cr-wanted-panel`** — the head of a wanted listing, with no photo.
-- **`cr-poster`** — the member's initials, member name, church name and "Member since
-  {year}" (L2-008, criterion 6).
-- **`cr-verified`** — an icon and the word "Verified". `cr-poster` renders one beside the
-  member and one beside the church, each only when its flag is true (L2-008).
+  3" (criterion 7). One photo shows alone, with no thumbnails and no count; none shows "No photo
+  yet" (criterion 9; ADR 0016). The large photo is the `gallery` rendition, loaded with
+  priority; thumbnails are the `thumb` rendition.
+- **`cr-wanted-panel`** — the head of a wanted listing, with no photo: its tag, its title as the
+  `h1`, and when it is needed.
+- **`cr-poster`** — `cr-avatar` with the member's initials, the member name, church name and
+  "Member since {year}" (L2-008, criterion 6).
+- **`cr-avatar`** — the initials on one of three tints; decorative (`aria-hidden`).
+- **`cr-verified`** — an icon and the word "Verified", followed by a visually hidden "member" or
+  "church". `cr-poster` renders one beside the member and one beside the church, each only when
+  its flag is true (L2-008).
 - **`cr-tag`** — "For rent · space", "Wanted · thing".
-- **`cr-skeleton`**, **`cr-empty-state`** — loading, failed and not-found states.
+- **`cr-message-box`** — the panel beside the listing. This journey builds its head: the
+  visually hidden heading, "Rent for" or "They'll pay", and the price with its currency (L2-007,
+  criterion 10; L2-022, criterion 9). Journey 8 adds the form and its states (ADR 0016).
+- **`cr-skeleton`**, **`cr-plain-page`** — loading, failed and not-found states.
 
 The screen has no payment control, no calendar, no review, no rating and no advert; "when"
 is a line of text (L2-024).
 
 **Frontend — `api` library**
 
-- **`ListingsApi.get(id)`** returns **`ListingDetail`**: `{ id, offer, kind, title, price,
-  when, area, distanceKm, note, postedAt, photos, poster, isOwn }`. `poster` is
+- **`ListingsApi.get(id, signal)`** returns **`ListingDetail`**: `{ id, offer, kind, title,
+  price, when, area, distanceKm, note, postedAt, photos, poster, isOwn }`. Each photo is
+  `{ url, thumbUrl, width, height, description }`; `poster` is
   `{ name, isVerified, memberSince, church: { name, isVerified } }`.
+- **`ListingView`** — what `cr-listing` and `cr-message-box` draw, every word already written.
 
 **Backend**
 
-- **`ListingsController.Get`** — `GET /api/listings/{id}`, `[AllowAnonymous]`.
+- **`ListingsController.Get`** — `GET /api/listings/{id}`, `[AllowAnonymous]`. An `id` that
+  is not a GUID is sent as an unknown one, so it gets the same answer (ADR 0016).
 - **`GetListingQuery`** — `{ Id }`.
 - **`GetListingQueryHandler`** — loads the listing with its member, church and photos, then
-  asks `ListingVisibility.CanBeSeenBy(listing, caller)`. A listing that cannot be seen, or
-  does not exist, raises `NotFoundException`, returned as a 404 ProblemDetails with the code
-  `not_found` in both cases (L2-007, criterion 4; L2-025, criterion 2).
+  asks `ListingVisibility.CanBeSeenBy`. A listing that cannot be seen, or does not exist,
+  raises `NotFoundException`, returned as a 404 ProblemDetails with the code `not_found` in
+  both cases (L2-007, criterion 4; L2-025, criterion 2).
 - **`ListingVisibility`** (`ChristianRent.Domain`) — a listing can be seen when it is
   `Approved` and its poster is active, or when the caller is its poster or an admin.
-- **`ListingDetailDto`**, **`PosterDto`**, **`ChurchDto`** — the response. `PosterDto` has
-  no email address, phone number or street address property, so none can be serialized
-  (L2-008, criterion 5).
+- **`ListingDetailDto`**, **`ListingPhotoDto`**, **`PosterDto`**, **`ChurchDto`** — the
+  response. `PostedAt` is the listing's `CreatedAt`; `MemberSince` is the year the member
+  joined; `DistanceKm` is null while ADR 0012 is Open; each photo carries its `gallery` and
+  `thumb` renditions' addresses (ADR 0011). `PosterDto` has no email address, phone number or
+  street address property, so none can be serialized (L2-008, criterion 5).
 - **`PhotosController.Get`** — serves each photo rendition from file storage with the same
   visibility rule; see [add-photos](../../post/add-photos/README.md).
 
 The response time target is 200 ms at the 95th percentile (L2-030, criterion 2); the query
 is one read by primary key with three includes.
 
-**Undecided**
+**Decided** (ADR 0016)
 
-- How `distanceKm` is measured: `<TO SUPPLY>`.
-- Who writes the description that is a photo's text alternative: `<TO SUPPLY>`. The mocks
-  give each large photo a description, and Post has no field for one.
-- What the poster sees on their own listing beyond "This is your listing": editing and
-  taking down are `<TO SUPPLY>` ("My listings" is not designed).
+- `distanceKm` is null and the area is shown alone while ADR 0012 is Open.
+- A photo with no description is described by the listing's title and its position until
+  journey 7 decides who writes descriptions.
+- What the poster sees on their own listing beyond "This is your listing" stays undecided:
+  editing and taking down are `<TO SUPPLY>` ("My listings" is not designed). `isOwn` is in the
+  response; the `own` state is built with the message box in journey 8.
 
 ### Mocks
 
@@ -97,6 +135,7 @@ The mocks are the source of truth for the UI of this feature. The states this de
 - [`docs/mocks/pages/listing/loading.html`](../../../mocks/pages/listing/loading.html): skeleton in the shape of the listing
 - [`docs/mocks/pages/listing/error.html`](../../../mocks/pages/listing/error.html): failed; "Try again"
 - [`docs/mocks/pages/listing/not-found.html`](../../../mocks/pages/listing/not-found.html): not found, with a way back to Browse
+- [`docs/mocks/pages/listing/edge.html`](../../../mocks/pages/listing/edge.html): one photo, the longest title and names, a price with cents, no note
 
 ## Requirements
 
@@ -107,7 +146,7 @@ acceptance criteria in the specification remain authoritative.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-007` | `L1-002` | The Listing screen shall show an approved listing's photos (for rent only), title, kind, price, when, area with its distance, note and how long ago it was posted. Each photo shall be reachable by touch and keyboard. The large photo shall have a text alternative that describes it, and each thumbnail a name by position. A listing that is not approved, is removed or does not exist shall show "not found" to anyone but its poster or an admin. The area shall never be a street address. "All listings" shall lead back to Browse. |
+| `L2-007` | `L1-002` | The Listing screen shall show an approved listing's photos (for rent only), title, kind, price with its currency, when, area with its distance once a person's area is known, note and how long ago it was posted. One photo shall show alone; none shall show "No photo yet". Each photo shall be reachable by touch and keyboard. The large photo shall have a text alternative that describes it, and each thumbnail a name by position. A listing that is not approved, is removed or does not exist shall show "not found" to anyone but its poster or an admin. The area shall never be a street address. "All listings" shall lead back to Browse. |
 | `L2-008` | `L1-002` | A listing shall show the name of the member who posted it and the name of their church. The member and the church shall each be marked "Verified" with text and an icon only when verified. The member's initials and the year they became a member shall be shown. The member's email address, phone number and street address shall not be in the response. |
 | `L2-014` | `L1-004` | A photo shall be accepted only when its content is a JPEG, PNG or WebP image of at most 10 MB, at least 400 × 300 px and at most 8,000 px on either side. A refusal shall name the file and the limits. Embedded metadata shall be removed before storage. Photos shall be served from file storage at a fitted size, never from the database, and a photo of a listing that is not approved shall be served only to its poster or an admin. |
 | `L2-022` | `L1-009` | Prices shall be shown in Canadian dollars with their period, with cents only when not zero and a thousands separator. Distances shall be in kilometres. Dates shall write the month as a word, ranges shall use "to", and times shall be in 12-hour form. Copy shall use Canadian spelling. An area shall be a place in Canada. |

@@ -32,13 +32,13 @@ box "Backend — ChristianRent.Infrastructure" #FFF4E5
 end box
 actor -> page : Open /listings/{id}
 page -> store : load(id)
-page --> actor : Skeleton in the shape of the listing (L2-033)
+page --> actor : Skeleton in the shape of the listing after 300 ms (L2-033)
 store -> client : get(id)
 client -> ctrl : GET /api/listings/{id}
 ctrl -> handler : Send GetListingQuery
 handler -> db : Listing with member, church and photos
 db --> handler : Listing or nothing
-handler -> vis : CanBeSeenBy(listing, caller)
+handler -> vis : CanBeSeenBy(listing, poster status, caller)
 alt approved, or caller is poster or admin
   vis --> handler : true
   handler --> ctrl : ListingDetailDto, no contact detail (L2-008)

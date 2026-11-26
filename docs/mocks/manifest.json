@@ -62,7 +62,8 @@
         "submitting",
         "sent",
         "failed",
-        "limited"
+        "limited",
+        "edge"
       ],
       "not_applicable": {
         "empty": "A listing is one item, not a collection; an address with no listing behind it is the not-found state."
