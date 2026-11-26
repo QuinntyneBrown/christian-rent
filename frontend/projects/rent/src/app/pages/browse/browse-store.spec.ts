@@ -8,6 +8,7 @@ import {
   type ListingsApi,
   type ListingsFilter,
   type ListingsPage,
+  type PostedListing,
 } from '@rent/api';
 import { BrowseQuery } from '@rent/domain';
 import { BrowseStore, SEARCH_DELAY_MS, SKELETON_DELAY_MS } from './browse-store';
@@ -60,6 +61,10 @@ class FakeListingsApi implements ListingsApi {
 
   get(): Promise<ListingDetail> {
     return Promise.reject(new Error('Browse reads no single listing.'));
+  }
+
+  post(): Promise<PostedListing> {
+    return Promise.reject(new Error('Browse posts nothing.'));
   }
 }
 

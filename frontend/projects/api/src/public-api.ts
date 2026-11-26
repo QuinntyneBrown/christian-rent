@@ -9,6 +9,7 @@ export * from './listings/listing-card-view';
 export * from './listings/listing-detail';
 export * from './listings/listing-view';
 export * from './listings/listings-api';
+export * from './listings/post-listing';
 export * from './members/http-churches-api';
 export * from './members/http-members-api';
 export * from './members/member';

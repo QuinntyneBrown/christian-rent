@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,12 +10,15 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import type { PricePeriod } from '@rent/api';
 import {
   Alert,
   Button,
+  Confirmation,
   DateRange,
   FieldRow,
+  Icon,
   LineField,
   ListingCard,
   PhotoPicker,
@@ -58,12 +62,15 @@ const PERIODS: readonly WordOption[] = [
   imports: [
     Alert,
     Button,
+    Confirmation,
     DateRange,
     FieldRow,
+    Icon,
     LineField,
     ListingCard,
     PhotoPicker,
     PostLayout,
+    RouterLink,
     Sentence,
     SiteHeader,
     Textarea,
@@ -86,7 +93,9 @@ export class PostPage {
   protected readonly summaryTitle = summaryTitle;
 
   private readonly summary = viewChild(Alert);
+  private readonly confirmation = viewChild(Confirmation);
   private readonly injector = inject(Injector);
+  private readonly document = inject(DOCUMENT);
 
   constructor() {
     effect(() => {
@@ -96,16 +105,31 @@ export class PostPage {
     });
   }
 
-  protected submitted(): void {
+  protected async submitted(): Promise<void> {
+    if (this.store.submitState() === 'submitting') {
+      return;
+    }
     if (!this.store.check()) {
       afterNextRender(() => this.summary()?.focus(), { injector: this.injector });
+      return;
     }
+    await this.store.publish();
+    if (this.store.submitState() === 'sent') {
+      afterNextRender(() => this.confirmation()?.focus(), { injector: this.injector });
+    }
+  }
+
+  protected startAnother(): void {
+    this.store.startAnother();
+    afterNextRender(() => this.document.querySelector<HTMLElement>('main h1')?.focus(), {
+      injector: this.injector,
+    });
   }
 
   /** A summary link moves focus to its field, without changing the address. */
   protected focusField(event: Event, field: DraftField): void {
     event.preventDefault();
-    document.getElementById(FIELD_IDS[field])?.focus();
+    this.document.getElementById(FIELD_IDS[field])?.focus();
   }
 
   protected periodChosen(period: string): void {

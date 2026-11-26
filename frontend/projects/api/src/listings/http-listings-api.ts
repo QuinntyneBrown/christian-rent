@@ -1,8 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import type { Observable } from 'rxjs';
 import type { ListingsPage } from './listing-card';
 import type { ListingDetail } from './listing-detail';
 import type { ListingsApi, ListingsFilter } from './listings-api';
+import type { PostListingRequest, PostedListing } from './post-listing';
 
 /**
  * `ListingsApi` over HTTP. The route that uses it provides it, so its code stays out of the
@@ -31,24 +33,27 @@ export class HttpListingsApi implements ListingsApi {
     if (cursor !== null) {
       params = params.set('cursor', cursor);
     }
-    return this.request<ListingsPage>('/api/listings', params, signal);
+    return this.send(this.http.get<ListingsPage>('/api/listings', { params }), signal);
   }
 
   get(id: string, signal: AbortSignal): Promise<ListingDetail> {
-    return this.request<ListingDetail>(
-      `/api/listings/${encodeURIComponent(id)}`,
-      new HttpParams(),
+    return this.send(
+      this.http.get<ListingDetail>(`/api/listings/${encodeURIComponent(id)}`),
       signal,
     );
   }
 
-  private request<T>(url: string, params: HttpParams, signal: AbortSignal): Promise<T> {
+  post(request: PostListingRequest, signal: AbortSignal): Promise<PostedListing> {
+    return this.send(this.http.post<PostedListing>('/api/listings', request), signal);
+  }
+
+  private send<T>(response: Observable<T>, signal: AbortSignal): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       if (signal.aborted) {
         reject(signal.reason);
         return;
       }
-      const subscription = this.http.get<T>(url, { params }).subscribe({
+      const subscription = response.subscribe({
         next: resolve,
         error: reject,
       });

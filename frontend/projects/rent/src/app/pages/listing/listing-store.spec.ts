@@ -5,6 +5,7 @@ import {
   type ListingDetail,
   type ListingsApi,
   type ListingsPage,
+  type PostedListing,
 } from '@rent/api';
 import { ListingStore, SKELETON_DELAY_MS } from './listing-store';
 
@@ -50,6 +51,10 @@ class FakeListingsApi implements ListingsApi {
 
   get(id: string, signal: AbortSignal): Promise<ListingDetail> {
     return new Promise((resolve, reject) => this.calls.push({ id, signal, resolve, reject }));
+  }
+
+  post(): Promise<PostedListing> {
+    return Promise.reject(new Error('Listing posts nothing.'));
   }
 }
 

@@ -96,4 +96,40 @@ describe('HttpListingsApi', () => {
     expect(request.cancelled).toBe(true);
     expect(((await listing) as DOMException).name).toBe('AbortError');
   });
+
+  // publish-listing design: POST /api/listings with the request; aborting cancels it.
+  it('posts a listing and answers what the API answers', async () => {
+    const request = {
+      clientRequestId: 'id-1',
+      offer: 'wanted' as const,
+      kind: 'thing' as const,
+      title: 'Van',
+      priceAmount: null,
+      pricePeriod: null,
+      whenText: 'Weekends',
+      startDate: null,
+      endDate: null,
+      area: 'Langley',
+      note: null,
+      photoIds: [],
+    };
+    const posted = api.post(request, new AbortController().signal);
+    const sent = backend.expectOne('/api/listings');
+
+    expect(sent.request.method).toBe('POST');
+    expect(sent.request.body).toEqual(request);
+    sent.flush({ id: 'l1', status: 'waiting-for-review' });
+    expect(await posted).toEqual({ id: 'l1', status: 'waiting-for-review' });
+  });
+
+  it('cancels a post in flight when its signal aborts', async () => {
+    const controller = new AbortController();
+    const posted = api.post({} as never, controller.signal);
+    const sent = backend.expectOne('/api/listings');
+
+    controller.abort();
+
+    await expect(posted).rejects.toBeDefined();
+    expect(sent.cancelled).toBe(true);
+  });
 });
