@@ -12,6 +12,8 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Dialog } from '@angular/cdk/dialog';
 import { type ReviewDecision, SESSION } from '@rent/api';
 import {
   AdminLayout,
@@ -27,8 +29,9 @@ import {
   Toast,
   ToastRegion,
 } from '@rent/components';
-import { queueSummary } from '@rent/domain';
-import { ReviewQueueStore } from './review-queue-store';
+import { queueSummary, toRemoveCopy } from '@rent/domain';
+import { openConfirmRemoveDialog } from './confirm-remove-dialog';
+import { type DecisionOutcome, ReviewQueueStore } from './review-queue-store';
 import { ToastQueue } from './toast-queue';
 
 /** From this width the detail panel sits beside the queue (L2-031, criterion 5). */
@@ -83,6 +86,8 @@ export class ReviewPage {
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private readonly injector = inject(Injector);
+  private readonly dialogs = inject(Dialog);
+  private readonly destroyed = inject(DestroyRef);
   private readonly above = viewChild<ElementRef<HTMLElement>>('above');
   private readonly top = viewChild<ElementRef<HTMLElement>>('top');
   private readonly bottom = viewChild<ElementRef<HTMLElement>>('bottom');
@@ -125,8 +130,31 @@ export class ReviewPage {
     return deciding !== null && deciding.id === this.store.selectedId() ? deciding.decision : null;
   });
 
-  protected async decide(decision: ReviewDecision): Promise<void> {
-    if ((await this.store.decide(decision)) === 'done') {
+  protected decide(decision: ReviewDecision): void {
+    if (decision === 'remove') {
+      this.confirmRemove();
+    } else {
+      void this.store.decide(decision).then((outcome) => this.decided(outcome));
+    }
+  }
+
+  /** Remove takes effect only once it is confirmed (L2-020, criterion 4). */
+  private confirmRemove(): void {
+    const subject = this.store.subject();
+    if (subject === null) {
+      return;
+    }
+    openConfirmRemoveDialog(
+      this.dialogs,
+      { copy: toRemoveCopy(subject), confirm: () => this.store.decide('remove') },
+      this.injector,
+    )
+      .closed.pipe(takeUntilDestroyed(this.destroyed))
+      .subscribe((outcome) => this.decided(outcome));
+  }
+
+  private decided(outcome: DecisionOutcome | undefined): void {
+    if (outcome === 'done') {
       this.focusQueue();
     }
   }

@@ -1,0 +1,27 @@
+<cr-dialog
+  titleId="confirm-remove-title"
+  [title]="copy.title"
+  descriptionId="confirm-remove-description"
+  [description]="copy.description"
+  icon="alert"
+  tone="danger"
+  [closeDisabled]="busy()"
+  (closed)="keep()"
+>
+  @if (failed()) {
+    <cr-alert tone="danger" [announce]="true" [title]="copy.failedTitle" [text]="copy.failedText" />
+  }
+  <button
+    cr-button
+    slot="footer"
+    type="button"
+    class="confirm-remove-dialog__keep"
+    [attr.aria-disabled]="busy() ? 'true' : null"
+    (click)="keep()"
+  >
+    Keep it
+  </button>
+  <button cr-button slot="footer" variant="danger" type="button" [busy]="busy()" (click)="remove()">
+    {{ failed() ? 'Try again' : copy.confirm }}
+  </button>
+</cr-dialog>

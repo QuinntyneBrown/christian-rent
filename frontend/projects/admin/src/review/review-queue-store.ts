@@ -12,7 +12,7 @@ import {
   ListingWindow,
   type PageRequest,
   type WindowPage,
-  type DecisionSubject,
+  type RemoveSubject,
   toDecisionToast,
   toQueueItemView,
   toReviewDetailView,
@@ -40,7 +40,7 @@ export type DecisionOutcome = 'done' | 'failed' | 'ignored';
 /** What one decision sends, kept so that "Try again" can send the same. */
 interface Decision extends Deciding {
   readonly version: number;
-  readonly subject: DecisionSubject;
+  readonly subject: RemoveSubject;
 }
 
 /** A wait shorter than this shows no loading state (L2-033, criterion 5). */
@@ -218,6 +218,13 @@ export class ReviewQueueStore {
     this.clearSelection();
     this._selectedId.set(id);
     void this.loadDetail(id);
+  }
+
+  /** What the item whose detail is shown is about; null while none is. */
+  subject(): RemoveSubject | null {
+    return this._detailState() === 'loaded' && this.shownItem !== null
+      ? subjectOf(this.shownItem)
+      : null;
   }
 
   /** Decides the item whose detail is shown (L2-020). */
@@ -413,7 +420,11 @@ export class ReviewQueueStore {
 }
 
 /** What a decision is about, as its notification names it. */
-function subjectOf(item: ReviewItemDetail): DecisionSubject {
+function subjectOf(item: ReviewItemDetail): RemoveSubject {
   const listing = item.listing ?? item.report?.listing;
-  return { kind: item.kind, name: listing?.title ?? item.member!.name };
+  return {
+    kind: item.kind,
+    name: listing?.title ?? item.member!.name,
+    poster: listing?.poster.name ?? null,
+  };
 }
