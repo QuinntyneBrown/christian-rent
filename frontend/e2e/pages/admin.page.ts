@@ -21,6 +21,17 @@ export class AdminPage {
   readonly rowButtons: Locator;
   readonly currentRow: Locator;
 
+  /** The queue's loading rows, and its message when it is empty or did not load. */
+  readonly skeletonRows: Locator;
+  readonly queueMessageTitle: Locator;
+  readonly queueMessageText: Locator;
+  readonly queueTryAgain: Locator;
+  /** The panel's loading shape, and what it says when an item cannot be shown. */
+  readonly detailSkeleton: Locator;
+  readonly detailAlert: Locator;
+  readonly detailTryAgain: Locator;
+  readonly reloadQueue: Locator;
+
   /** What follows the last row while more items wait. */
   readonly more: Locator;
   readonly moreText: Locator;
@@ -57,7 +68,13 @@ export class AdminPage {
     this.backToSite = this.nav.getByRole('link', { name: 'Back to site' });
 
     const queue = main.locator('.admin__queue');
-    this.rows = queue.locator('.queue-item');
+    this.rows = queue.locator('.queue-item:not(.queue-item--loading)');
+    this.skeletonRows = queue.locator('.queue-item--loading');
+    this.queueMessageTitle = queue.locator('.empty__title');
+    this.queueMessageText = queue.locator('.empty__text');
+    this.queueTryAgain = queue
+      .locator('.empty__actions')
+      .getByRole('button', { name: 'Try again' });
     this.rowTitles = queue.locator('.queue-item__title');
     this.rowDetails = queue.locator('.queue-item__meta');
     this.rowTags = queue.locator('.queue-item .tag');
@@ -73,6 +90,10 @@ export class AdminPage {
     this.queue = queue;
 
     this.detail = page.getByRole('region', { name: 'Detail' });
+    this.detailSkeleton = this.detail.locator('.review--loading');
+    this.detailAlert = this.detail.getByRole('alert');
+    this.detailTryAgain = this.detail.getByRole('button', { name: 'Try again' });
+    this.reloadQueue = this.detail.getByRole('button', { name: 'Reload the queue' });
     this.detailTitle = this.detail.getByRole('heading', { level: 2 });
     this.detailPrice = this.detail.locator('.review__price');
     this.detailTag = this.detail.locator('.review .tag');

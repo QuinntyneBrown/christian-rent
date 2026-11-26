@@ -1,51 +1,123 @@
 <cr-admin-layout [detailBusy]="store.detailState() === 'loading'">
-  <cr-admin-nav slot="nav" [name]="name()" [waiting]="store.waitingCount()" />
+  <cr-admin-nav
+    slot="nav"
+    [name]="name()"
+    [waiting]="store.state() === 'loaded' ? store.waitingCount() : null"
+  />
   <ng-container slot="queue">
     <cr-queue-header
       [summary]="summary()"
+      [announce]="store.state() === 'loading'"
       [phoneNote]="
         store.state() === 'loaded'
           ? 'Open Admin on a tablet or a computer to see an item’s detail and decide on it.'
           : null
       "
     />
-    @if (store.state() === 'loaded') {
-      <div #above class="review-page__spacer review-page__spacer--before" aria-hidden="true"></div>
-      <div #top class="review-page__sentinel" aria-hidden="true"></div>
-      <cr-queue-list>
-        @for (page of store.pages(); track page.index) {
-          @for (item of page.items; track item.id) {
-            <li [attr.data-page]="page.index">
-              <cr-queue-item
-                [item]="item"
-                [selectable]="wide()"
-                [current]="store.selectedId() === item.id"
-                (chosen)="store.select($event)"
-              />
-            </li>
-          }
+    @switch (store.state()) {
+      @case ('loading') {
+        @if (store.skeleton()) {
+          <cr-queue-list [busy]="true">
+            @for (placeholder of skeletons; track $index) {
+              <li aria-hidden="true"><cr-queue-item [item]="null" /></li>
+            }
+          </cr-queue-list>
         }
-      </cr-queue-list>
-      <div #bottom class="review-page__sentinel" aria-hidden="true"></div>
-      <div #below class="review-page__spacer review-page__spacer--after" aria-hidden="true"></div>
-      @if (store.moreState(); as more) {
-        @if (more !== 'done') {
-          <cr-queue-more
-            [state]="more"
-            [shown]="store.held()"
-            [total]="store.waitingCount()"
-            [next]="store.nextCount()"
-            (more)="loadMore()"
-          />
+      }
+      @case ('failed') {
+        <cr-empty-state
+          variant="error"
+          title="We couldn’t load the queue."
+          text="Check your connection and try again."
+        >
+          <button cr-button variant="primary" type="button" (click)="store.load()">
+            <cr-icon name="refresh" />Try again
+          </button>
+        </cr-empty-state>
+      }
+      @case ('empty') {
+        <cr-empty-state
+          variant="done"
+          title="All caught up"
+          text="New listings, reports and new members will show up here."
+        />
+      }
+      @case ('loaded') {
+        <div
+          #above
+          class="review-page__spacer review-page__spacer--before"
+          aria-hidden="true"
+        ></div>
+        <div #top class="review-page__sentinel" aria-hidden="true"></div>
+        <cr-queue-list>
+          @for (page of store.pages(); track page.index) {
+            @for (item of page.items; track item.id) {
+              <li [attr.data-page]="page.index">
+                <cr-queue-item
+                  [item]="item"
+                  [selectable]="wide()"
+                  [current]="store.selectedId() === item.id"
+                  (chosen)="store.select($event)"
+                />
+              </li>
+            }
+          }
+        </cr-queue-list>
+        <div #bottom class="review-page__sentinel" aria-hidden="true"></div>
+        <div #below class="review-page__spacer review-page__spacer--after" aria-hidden="true"></div>
+        @if (store.moreState(); as more) {
+          @if (more !== 'done') {
+            <cr-queue-more
+              [state]="more"
+              [shown]="store.held()"
+              [total]="store.waitingCount()"
+              [next]="store.nextCount()"
+              (more)="loadMore()"
+            />
+          }
         }
       }
     }
   </ng-container>
   <ng-container slot="detail">
-    @if (store.detail(); as detail) {
-      <cr-review-detail [view]="detail" />
-    } @else if (store.detailSkeleton()) {
-      <cr-review-detail [view]="null" />
+    @switch (store.detailState()) {
+      @case ('loaded') {
+        <cr-review-detail [view]="store.detail()" />
+      }
+      @case ('loading') {
+        @if (store.detailSkeleton()) {
+          <cr-review-detail [view]="null" />
+        }
+      }
+      @case ('failed') {
+        <cr-empty-state
+          variant="error"
+          [announce]="true"
+          title="We couldn’t load this item."
+          text="Check your connection and try again."
+        >
+          <button cr-button variant="primary" type="button" (click)="store.retryDetail()">
+            <cr-icon name="refresh" />Try again
+          </button>
+        </cr-empty-state>
+      }
+      @case ('gone') {
+        <cr-empty-state
+          variant="error"
+          [announce]="true"
+          title="This item is no longer waiting."
+          text="What it was about is no longer there to review."
+        >
+          <button cr-button variant="primary" type="button" (click)="store.load()">
+            <cr-icon name="refresh" />Reload the queue
+          </button>
+        </cr-empty-state>
+      }
+      @default {
+        @if (store.skeleton()) {
+          <cr-review-detail [view]="null" />
+        }
+      }
     }
   </ng-container>
 </cr-admin-layout>

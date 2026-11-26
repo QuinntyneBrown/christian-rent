@@ -213,6 +213,73 @@ describe('ReviewQueueStore', () => {
     expect(store.detailSkeleton()).toBe(false);
   });
 
+  it.each([
+    ['server_error', 'failed'],
+    ['network', 'failed'],
+    ['not_found', 'gone'],
+  ])('shows a detail refused with "%s" as %s, with the queue kept', async (code, state) => {
+    await loaded();
+
+    await fake.items[0]!.refuse(code);
+
+    expect(store.detailState()).toBe(state);
+    expect(store.state()).toBe('loaded');
+    expect(store.selectedId()).toBe('a');
+  });
+
+  it('asks again for a detail that failed, by "Try again" or by choosing its row', async () => {
+    await loaded();
+    await fake.items[0]!.refuse('server_error');
+
+    store.retryDetail();
+    await fake.items[1]!.refuse('server_error');
+    store.select('a');
+    await fake.items[2]!.answer(detail('a'));
+
+    expect(fake.items.map((asked) => asked.about)).toEqual(['a', 'a', 'a']);
+    expect(store.detailState()).toBe('loaded');
+  });
+
+  it('retries nothing for a detail that did not fail', async () => {
+    await loaded();
+
+    store.retryDetail();
+
+    expect(fake.items).toHaveLength(1);
+  });
+
+  it('says that the queue failed, and loads it afresh', async () => {
+    store.showDetail(true);
+    void store.load();
+    await fake.pages[0]!.refuse('server_error');
+    expect(store.state()).toBe('failed');
+    expect(fake.items).toEqual([]);
+
+    void store.load();
+    await fake.pages[1]!.answer(page(['a']));
+
+    expect(store.state()).toBe('loaded');
+    expect(store.selectedId()).toBe('a');
+  });
+
+  it('is empty when nothing waits, and asks for no detail', async () => {
+    await loaded([]);
+
+    expect(store.state()).toBe('empty');
+    expect(fake.items).toEqual([]);
+  });
+
+  it('selects the first item afresh when the queue is reloaded', async () => {
+    await loaded();
+    await fake.items[0]!.refuse('not_found');
+
+    void store.load();
+    await fake.pages[1]!.answer(page(['b']));
+
+    expect(store.selectedId()).toBe('b');
+    expect(store.detailState()).toBe('loading');
+  });
+
   /** The ids of page `index` of a queue of `total` items. */
   const idsOf = (index: number, total: number) =>
     Array.from(

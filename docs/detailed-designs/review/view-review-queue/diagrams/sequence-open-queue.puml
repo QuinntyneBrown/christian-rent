@@ -38,7 +38,7 @@ alt admin
   router -> page : Load the @rent/admin chunk
   page -> store : load()
   page --> actor : Skeleton rows (L2-033)
-  store -> ctrl : GET /api/review-queue?size=50
+  store -> ctrl : GET /api/review-queue
   ctrl -> ctrl : Admin policy (L2-019 criterion 5)
   ctrl -> handler : Send GetReviewQueueQuery
   handler -> db : Waiting items, oldest first, 51 rows

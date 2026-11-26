@@ -42,6 +42,13 @@ The view-review-queue design and the admin mocks leave open what journey 10 has 
   that writes and reads them.
 - **A church records who entered it.** `Church` gains `EnteredById`, set when a join creates a
   new church. It is null for the sample churches and for any entered before this.
+- **The page, not the route, provides the queue's state.** `ReviewPage` provides
+  `ReviewQueueStore`, as Browse, Listing and Post provide theirs. Angular keeps a route's
+  providers after the route is left, so a store the route provided would never abort its
+  requests. The route binds only `REVIEW_QUEUE_API`, which holds no state.
+- **The spacers are watched too.** The observer watches the spacers that stand for released
+  pages as well as the ends of the rows, so that a jump into one, as the Home key or a dragged
+  scrollbar makes, loads what belongs there.
 - **Under 768 px the queue is read-only.** No row is a button, none is current, and no detail is
   requested, so a phone downloads no photos it cannot show. The page watches the same width the
   stylesheet uses, with `matchMedia`, and stops watching when it is left.

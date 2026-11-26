@@ -178,9 +178,10 @@ export class ReviewQueueStore {
     }
   }
 
-  /** Selects an item and loads its detail. */
+  /** Selects an item and loads its detail; choosing one that failed asks for it again. */
   select(id: string): void {
-    if (!this.detailShown || id === this._selectedId()) {
+    const shown = id === this._selectedId() && this._detailState() !== 'failed';
+    if (!this.detailShown || shown) {
       return;
     }
     this.clearSelection();
@@ -215,6 +216,14 @@ export class ReviewQueueStore {
     }
   }
 
+  /** "Try again" for the selected item whose detail failed to load. */
+  retryDetail(): void {
+    const id = this._selectedId();
+    if (id !== null && this._detailState() === 'failed') {
+      void this.loadDetail(id);
+    }
+  }
+
   private async loadDetail(id: string): Promise<void> {
     const request = new AbortController();
     this.detailRequest = request;
@@ -227,7 +236,10 @@ export class ReviewQueueStore {
         this._detailState.set('loaded');
       }
     } catch (error) {
-      this.fail(error, request, () => this._detailState.set('failed'));
+      // An item decided or removed since the queue was read is gone, not broken.
+      this.fail(error, request, () =>
+        this._detailState.set(isApiError(error) && error.code === 'not_found' ? 'gone' : 'failed'),
+      );
     } finally {
       if (this.detailRequest === request) {
         this.detailRequest = null;

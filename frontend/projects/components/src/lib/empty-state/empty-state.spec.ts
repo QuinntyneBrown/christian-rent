@@ -10,12 +10,12 @@ import { EmptyState } from './empty-state';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 class Host {
-  readonly variant = signal<'nothing' | 'error'>('nothing');
+  readonly variant = signal<'nothing' | 'error' | 'done'>('nothing');
 }
 
 // docs/design-system/components/empty-state.html.
 describe('EmptyState', () => {
-  function render(variant: 'nothing' | 'error') {
+  function render(variant: 'nothing' | 'error' | 'done') {
     const fixture = TestBed.createComponent(Host);
     fixture.componentInstance.variant.set(variant);
     fixture.detectChanges();
@@ -30,6 +30,14 @@ describe('EmptyState', () => {
     expect(section?.getAttribute('aria-labelledby')).toBe(title?.id);
     expect(section?.querySelector('.no-results__text')?.textContent).toBe('Be the first.');
     expect(section?.querySelector('.no-results__actions button')?.textContent).toBe('Act');
+  });
+
+  it('says that there is nothing left to do, with its tick and no way forward', () => {
+    const section = render('done').querySelector('section.empty:not(.empty--error)');
+
+    expect(section?.querySelector('.empty__icon--success cr-icon')).not.toBeNull();
+    expect(section?.querySelector('h2.empty__title')?.textContent).toBe('Nothing yet.');
+    expect(section?.querySelector('button')).toBeNull();
   });
 
   it('says that nothing could be loaded, with its warning icon', () => {

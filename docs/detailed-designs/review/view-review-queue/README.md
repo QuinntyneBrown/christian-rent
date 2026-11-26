@@ -38,19 +38,22 @@ A new library, loaded only for an admin. Its place in the dependency direction i
 so. `rent` imports it only with `import('@rent/admin')`.
 
 - **`ADMIN_ROUTES`** — one route whose `providers` bind `REVIEW_QUEUE_API` to
-  `HttpReviewQueueApi` and provide `ReviewQueueStore`, so their code and state stay out of
-  the initial bundle and go when the admin leaves.
+  `HttpReviewQueueApi`, so its code stays out of the initial bundle. The client holds no
+  state.
 - **`ReviewPage`** (selector `cr-review-page`) — lays out `cr-admin-nav`, the queue and the
   detail panel with `cr-admin-layout`. It watches `(min-width: 48rem)` with `matchMedia`:
   under it, it shows the queue and a note that deciding needs a wider screen, and asks for no
   detail; from it, the detail panel sits beside the queue and the first item is selected
   (L2-019, criterion 13; L2-031, criteria 5 and 7). The heading "Review" carries
   "4 waiting · oldest first", and "· showing 50" when more wait than are held (criteria 6 and
-  10). An `IntersectionObserver` watches the ends of the list and loads the page beyond them.
-  It removes the media listener and disconnects the observer when it is destroyed.
+  10). An `IntersectionObserver` watches the ends of the list, and the spacers that stand for
+  released rows, and loads the page beyond them; so a jump into a spacer, as the Home key
+  makes, loads what belongs there. It removes the media listener and disconnects the observer
+  when it is destroyed. It provides `ReviewQueueStore` itself: Angular keeps a route's
+  providers after the route is left, so only the page's own end can end the store.
 - **`ReviewQueueStore`** — `state` (`loading`, `loaded`, `empty`, `failed`), `pages`,
-  `waitingCount`, `moreState`, `selectedId`, `detail` (`loading`, `loaded`, `failed`,
-  `gone`). It loads pages of 50 by cursor and holds at most 3 in a `ListingWindow`
+  `waitingCount`, `moreState`, `selectedId`, `detailState` (`none`, `loading`, `loaded`,
+  `failed`, `gone`) and `detail`. It loads pages of 50 by cursor and holds at most 3 in a `ListingWindow`
   (criteria 4 and 19). `select(id)` loads the detail and aborts the previous detail request.
   A loading state is shown only after 300 ms (L2-033, criterion 5). Destroying it aborts both
   requests and clears its timers.

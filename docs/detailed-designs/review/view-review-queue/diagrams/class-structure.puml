@@ -57,14 +57,17 @@ class ReviewItemDetailDto {
   +NewMemberDetailDto? Member
 }
 class ReviewQueueStore <<Angular>> {
-  +state: Signal<QueueState>
-  +pages: Signal<WindowPage<ReviewItemSummary>[]>
+  +state: Signal<ReviewState>
+  +pages: Signal<WindowPage<QueueItemView>[]>
   +moreState: Signal<MoreState>
   +waitingCount: Signal<number>
-  +detail: Signal<ReviewItemDetail | null>
-  +load(): void
-  +loadMore(): void
+  +detailState: Signal<DetailState>
+  +detail: Signal<ReviewDetailView | null>
+  +load(): Promise<void>
+  +loadMore(direction, measure): Promise<void>
+  +showDetail(shown: boolean): void
   +select(id: string): void
+  +retryDetail(): void
 }
 class WaitingReviewItems <<static>> {
   +Of(database: IAppDbContext): IQueryable<ReviewItem>

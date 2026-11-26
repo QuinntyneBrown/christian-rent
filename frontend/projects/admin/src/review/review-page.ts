@@ -16,6 +16,9 @@ import { SESSION } from '@rent/api';
 import {
   AdminLayout,
   AdminNav,
+  Button,
+  EmptyState,
+  Icon,
   QueueHeader,
   QueueItem,
   QueueList,
@@ -38,16 +41,32 @@ const WIDE = '(min-width: 48rem)';
  */
 @Component({
   selector: 'cr-review-page',
-  imports: [AdminLayout, AdminNav, QueueHeader, QueueItem, QueueList, QueueMore, ReviewDetail],
+  imports: [
+    AdminLayout,
+    AdminNav,
+    Button,
+    EmptyState,
+    Icon,
+    QueueHeader,
+    QueueItem,
+    QueueList,
+    QueueMore,
+    ReviewDetail,
+  ],
   templateUrl: './review-page.html',
   styleUrl: './review-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  // Provided here, not by the route, whose providers would outlive the screen: leaving Admin
+  // destroys the store, which aborts what it was loading.
+  providers: [ReviewQueueStore],
   host: {
     '[style.--review-before.px]': 'store.before()',
     '[style.--review-after.px]': 'store.after()',
   },
 })
 export class ReviewPage {
+  protected readonly skeletons = Array.from({ length: 6 });
+
   protected readonly store = inject(ReviewQueueStore);
   private readonly member = inject(SESSION).member;
   protected readonly name = computed(() => this.member()?.name ?? '');
@@ -93,12 +112,26 @@ export class ReviewPage {
     });
   }
 
+  /** The line under the heading; empty until a wait is long enough to be told. */
   protected readonly summary = computed(() => {
+    switch (this.store.state()) {
+      case 'loading':
+        return this.store.skeleton() ? 'Loading the queue…' : '';
+      case 'failed':
+        return 'The queue didn’t load';
+      case 'empty':
+        return 'Nothing is waiting';
+      case 'loaded':
+        return this.counted();
+    }
+  });
+
+  private counted(): string {
     const waiting = this.store.waitingCount();
     const held = this.store.held();
     const showing = waiting > held ? ` · showing ${held}` : '';
     return `${waiting} waiting · oldest first${showing}`;
-  });
+  }
 
   /** "Load 13 more" and "Try again" after the next page failed. */
   protected loadMore(): void {
