@@ -33,7 +33,7 @@ box "Backend — ChristianRent.Infrastructure" #FFF4E5
   database "Database" as db
 end box
 actor -> router : Open /admin
-router -> router : adminGuard reads SESSION.member().isAdmin
+router -> router : adminGuard awaits SESSION.ready(), reads member().isAdmin
 alt admin
   router -> page : Load the @rent/admin chunk
   page -> store : load()

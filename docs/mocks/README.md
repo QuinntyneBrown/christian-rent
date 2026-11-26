@@ -78,6 +78,7 @@ what accessibility (L2-032) required.
 | Admin shows "median wait 38 min · 61 approved this week" and "14 months · 6 rentals". | "4 waiting · oldest first", and "Member since". | Nothing in the requirements measures these, and no rental is recorded here: no payment and no booking happen on christian.rent. |
 | Remove acts at once. | Remove opens a confirmation that names what is removed. | L2-020. |
 | The queue shows the newest first. | Oldest first. | L2-019. |
+| "Member since" as a date on a report. | "Member since" as the month and year everywhere ("Jun 2026"). | One form for one fact (ADR 0024). |
 | Listing puts the message box beside the listing from 1024 px. | From 768 px. | `AGENTS.md` and L2-031: beside it on tablet and desktop. The same holds for Post's preview. |
 | Cards go to 2, 3 and 4 columns at 640, 1024 and 1280 px. | 1 column under 576 px, 2 from 576, 3 from 768, 4 from 1200. | L2-031 names 576, 768, 992 and 1200 px. At 992 the gutters widen. |
 

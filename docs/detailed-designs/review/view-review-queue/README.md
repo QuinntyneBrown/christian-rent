@@ -22,13 +22,16 @@ and the browser never downloads Admin's code. Deciding an item is designed in
 
 - **Route `/admin`** — `{ path: 'admin', canMatch: [adminGuard], loadChildren: () =>
   import('@rent/admin').then(m => m.ADMIN_ROUTES) }`.
-- **`adminGuard`** — a `CanMatchFn` that awaits `SESSION` and returns
-  `member()?.isAdmin === true`. When it returns false the route does not match, the
+- **`adminGuard`** — a `CanMatchFn` that awaits `SESSION.ready()`, which settles once the
+  first answer of `GET /api/members/me` has been taken, and returns
+  `member()?.isAdmin === true` (ADR 0024). When it returns false the route does not match, the
   `@rent/admin` chunk is never requested (L2-019, criterion 5), and the next route,
   `{ path: 'admin', loadComponent: ForbiddenPage }`, renders "This page is for admins".
   The guard is a convenience; the backend's refusal is the rule.
 - **`ForbiddenPage`** — small lazy page in `rent`. It says "This page is for admins", names
-  who is signed in, and links back to Browse (L2-019, criterion 11).
+  who is signed in ("You’re signed in as Sarah Kim, who isn’t an admin of christian.rent.", or
+  "You’re not signed in as an admin of christian.rent." for anyone who is not a member), and
+  links back to Browse (L2-019, criterion 11).
 
 **Frontend — `admin` library (`frontend/projects/admin`, imported as `@rent/admin`)**
 
@@ -46,8 +49,10 @@ A new library, loaded only for an admin. Its place in the dependency direction i
   "· showing 50" when more wait than are loaded (L2-019, criteria 6 and 10).
 - **`ReviewQueueStore`** — `state` (`loading`, `loaded`, `empty`, `failed`), `items`,
   `waitingCount`, `selectedId`, `detail`. It loads pages of 50 by cursor as the list end is
-  reached, and keeps at most 3 pages in memory, like `ListingWindow`. `select(id)` loads the
-  detail and aborts the previous detail request.
+  reached, and keeps at most 3 pages in a `ListingWindow`, with a sentinel above and below the
+  list. `select(id)` loads the detail and aborts the previous detail request. The address holds
+  the selection, `/admin?item={id}`; with none, the first item is selected. The detail is asked
+  for only from 768 px, where it is shown (ADR 0024).
 
 **Frontend — `components` library**
 
@@ -70,6 +75,8 @@ A new library, loaded only for an admin. Its place in the dependency direction i
   `CreatedAt` ascending then `Id`, pages by keyset cursor with `Size = 50`, and returns
   `ReviewQueuePageDto { Items, NextCursor, WaitingCount }`.
 - **`ReviewItemSummaryDto`** — `{ Id, Kind, Title, Who, WaitingSince, Offer?, ThumbUrl? }`.
+  An item whose subject has gone (a listing the purge deleted) is neither listed nor counted
+  (ADR 0024).
 - **`GetReviewItemQueryHandler`** — returns `ReviewItemDetailDto` by kind (L2-019,
   criterion 2):
   - new listing: every field, the photos, the tag "For rent · space" or "Wanted · thing",
@@ -79,18 +86,21 @@ A new library, loaded only for an admin. Its place in the dependency direction i
     "Public since". The panel reads "Reported as a scam by a member, 40 min ago" and the
     DTO holds no reporter identity. "View on site" opens the listing (criterion 8);
   - new member: name, when they joined, church and city, the declaration, the church's
-    status, the count of the member's listings with whether they are public, and the count
-    of messages sent. The panel has no control for the church (criterion 9).
+    status with who entered it (`Church.EnteredById`, set when a member enters a new church
+    on joining), the counts of the member's listings by offer with how many are public, and
+    the count of messages sent. The panel has no control for the church (criterion 9).
 - **`ReviewItem`** — `{ Id, Kind, SubjectId, CreatedAt, Decision?, DecidedBy?, DecidedAt?,
   Version }`. `SubjectId` names a listing, a report or a member according to `Kind`.
 
-**Undecided**
+**Decided in ADR 0024**
 
-- How a member becomes an admin (who sets `Member.IsAdmin`): `<TO SUPPLY>`. Seed data may
-  create the first admin.
-- How `ReviewQueueStore` learns that new items arrived while the queue is open (an interval
-  or a push): `<TO SUPPLY>`. When it does, it pushes an info toast, "2 new items are
-  waiting", whose action "Show them" reloads the queue (L2-019, criterion 12).
+- An operator makes an admin: `ChristianRent.Cli grant-admin <sign-in-id>` sets
+  `Member.IsAdmin`. No endpoint makes an admin.
+- New items while the queue is open (L2-019, criterion 12) are noticed in journey 11, which
+  builds the review toast: the store asks for the first page again every 60 s while the page is
+  visible and, when the waiting count has grown, pushes the info toast "2 new items are
+  waiting", whose action "Show them" reloads the queue.
+- The words for waiting time, report reasons, dates and a new member's listings and messages.
 
 ### Mocks
 

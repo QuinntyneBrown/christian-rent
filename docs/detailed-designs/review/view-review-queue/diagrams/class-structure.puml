@@ -29,6 +29,13 @@ enum ReviewItemKind {
   Report
   NewMember
 }
+class Church {
+  +Guid Id
+  +string Name
+  +string City
+  +bool IsVerified
+  +Guid? EnteredById
+}
 class GetReviewQueueQuery {
   +string? Cursor
   +int Size
@@ -78,4 +85,5 @@ ReviewQueuePageDto *-- "0..50" ReviewItemSummaryDto
 GetReviewItemQueryHandler --> ReviewItem : reads
 GetReviewItemQueryHandler ..> ReviewItemDetailDto : returns
 ReviewQueueStore ..> ReviewQueuePageDto : receives
+GetReviewItemQueryHandler --> Church : reads who entered it
 @enduml
