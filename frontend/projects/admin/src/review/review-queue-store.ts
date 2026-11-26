@@ -15,6 +15,7 @@ import {
   type WindowPage,
   type RemoveSubject,
   type Notice,
+  toArrivalsToast,
   toConflictCopy,
   toConflictToast,
   toDecisionToast,
@@ -51,6 +52,12 @@ interface Decision extends Deciding {
 /** A wait shorter than this shows no loading state (L2-033, criterion 5). */
 export const SKELETON_DELAY_MS = 300;
 
+/** How often the screen looks for new items (L2-019, criterion 12; ADR 0027). */
+export const ARRIVALS_MS = 60_000;
+
+/** The key of the one notification about new items. */
+const ARRIVALS_KEY = 'arrivals';
+
 /** The pages kept in memory, 50 items each (L2-019, criterion 19). */
 export const WINDOW_PAGES = 3;
 
@@ -67,7 +74,9 @@ export type MeasurePage = (index: number) => number;
  * that item's detail; selecting another aborts the detail still on its way. Nothing is selected,
  * and no detail asked for, while the screen shows no detail panel (L2-019, criterion 13).
  * It decides the selected item, one decision at a time, and what a decision closes leaves the
- * queue (decide-review-item design). Destroying it aborts its requests and clears its timers.
+ * queue (decide-review-item design). While the queue is shown or empty and the page visible, it
+ * looks every 60 s for items that arrived since the queue was read. Destroying it aborts its
+ * requests and clears its timers.
  */
 @Injectable()
 export class ReviewQueueStore {
@@ -96,6 +105,11 @@ export class ReviewQueueStore {
   private shownItem: ReviewItemDetail | null = null;
   /** Counts the readings of the queue from its oldest item. */
   private reading = 0;
+  private arrivalsRequest: AbortController | null = null;
+  private arrivalsTimer: ReturnType<typeof setTimeout> | null = null;
+  /** When the first page of this reading was read, and how many arrivals have been told. */
+  private asOf = '';
+  private told = 0;
   private skeletonTimer: ReturnType<typeof setTimeout> | null = null;
   private detailSkeletonTimer: ReturnType<typeof setTimeout> | null = null;
   /** Whether the screen is wide enough to show a detail panel. */
@@ -134,6 +148,7 @@ export class ReviewQueueStore {
     inject(DestroyRef).onDestroy(() => {
       this.request?.abort();
       this.decisionRequest?.abort();
+      this.stopLooking();
       this.clearSelection();
       this.stopSkeletonTimer();
     });
@@ -145,6 +160,8 @@ export class ReviewQueueStore {
     const request = new AbortController();
     this.request = request;
     this.reading++;
+    this.stopLooking();
+    this.toasts.dismissKey(ARRIVALS_KEY);
     this.clearSelection();
     this._state.set('loading');
     this.window.clear();
@@ -159,6 +176,9 @@ export class ReviewQueueStore {
       this.receive(first, page, () => 0);
       this._state.set(page.items.length > 0 ? 'loaded' : 'empty');
       this.selectFirst();
+      this.asOf = page.asOf;
+      this.told = 0;
+      this.lookLater();
     } catch (error) {
       this.fail(error, request, () => this._state.set('failed'));
     } finally {
@@ -249,6 +269,57 @@ export class ReviewQueueStore {
     const id = this._selectedId();
     if (id !== null && this._conflict() !== null) {
       this.close(id, new Set([id]), true);
+    }
+  }
+
+  /** The next look is timed from the answer to the last, so one is in flight at a time. */
+  private lookLater(): void {
+    this.arrivalsTimer = setTimeout(() => void this.look(), ARRIVALS_MS);
+  }
+
+  private async look(): Promise<void> {
+    this.arrivalsTimer = null;
+    if (document.visibilityState === 'hidden') {
+      this.lookLater();
+      return;
+    }
+    const request = new AbortController();
+    this.arrivalsRequest = request;
+    try {
+      const arrivals = await this.api.arrivals(this.asOf, request.signal);
+      const total = arrivals.newListings + arrivals.reports + arrivals.newMembers;
+      // Told again only once more have arrived, so a notification dismissed stays away.
+      if (this.arrivalsRequest === request && total > this.told) {
+        this.told = total;
+        this.toasts.push({
+          key: ARRIVALS_KEY,
+          tone: 'info',
+          ...toArrivalsToast(arrivals),
+          action: { label: 'Show them', run: () => this.showArrivals() },
+        });
+      }
+    } catch (error) {
+      // A look that fails says nothing; the next one tries again.
+      this.fail(error, request, () => undefined);
+    } finally {
+      if (this.arrivalsRequest === request) {
+        this.arrivalsRequest = null;
+        this.lookLater();
+      }
+    }
+  }
+
+  private async showArrivals(): Promise<DecisionOutcome> {
+    await this.load();
+    return 'done';
+  }
+
+  private stopLooking(): void {
+    this.arrivalsRequest?.abort();
+    this.arrivalsRequest = null;
+    if (this.arrivalsTimer !== null) {
+      clearTimeout(this.arrivalsTimer);
+      this.arrivalsTimer = null;
     }
   }
 

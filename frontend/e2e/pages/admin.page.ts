@@ -71,6 +71,8 @@ export class AdminPage {
   readonly toastTitles: Locator;
   readonly toastTexts: Locator;
   readonly dismissToast: Locator;
+  /** The one action of the notification that new items arrived. */
+  readonly showThem: Locator;
 
   private readonly facts: Locator;
   private readonly queue: Locator;
@@ -143,6 +145,7 @@ export class AdminPage {
     this.tryDecisionAgain = this.toastRegion.getByRole('button', { name: 'Try again' });
     this.toasts = this.toastRegion.locator('.toast');
     this.dismissToast = this.toastRegion.getByRole('button', { name: 'Dismiss' });
+    this.showThem = this.toastRegion.getByRole('button', { name: 'Show them' });
     this.toastTitles = this.toastRegion.locator('.toast__title');
     this.toastTexts = this.toastRegion.locator('.toast__text');
   }

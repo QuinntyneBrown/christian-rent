@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
 import type {
+  ReviewArrivals,
   ReviewDecided,
   ReviewDecision,
   ReviewItemDetail,
@@ -27,6 +28,12 @@ export class HttpReviewQueueApi implements ReviewQueueApi {
       this.http.get<ReviewItemDetail>(`/api/review-queue/${encodeURIComponent(id)}`),
       signal,
     );
+  }
+
+  arrivals(since: string, signal: AbortSignal): Promise<ReviewArrivals> {
+    // Encoded whole: HttpParams would leave an offset's "+", which a server reads as a space.
+    const url = `/api/review-queue/arrivals?since=${encodeURIComponent(since)}`;
+    return this.send(this.http.get<ReviewArrivals>(url), signal);
   }
 
   decide(

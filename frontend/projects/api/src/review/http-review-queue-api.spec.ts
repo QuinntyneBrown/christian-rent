@@ -53,6 +53,17 @@ describe('HttpReviewQueueApi', () => {
     await expect(decided).resolves.toEqual({ closedItemIds: ['a/b'] });
   });
 
+  // The offset's "+" must reach the API as it is, not as a space.
+  it('asks what arrived since an instant, encoded whole', async () => {
+    const arrived = api.arrivals('2026-06-08T19:00:00+00:00', new AbortController().signal);
+
+    http
+      .expectOne('/api/review-queue/arrivals?since=2026-06-08T19%3A00%3A00%2B00%3A00')
+      .flush({ newListings: 1, reports: 0, newMembers: 0 });
+
+    await expect(arrived).resolves.toEqual({ newListings: 1, reports: 0, newMembers: 0 });
+  });
+
   // Lesson L33: the abort is observed on the request itself.
   it('cancels the request in flight when it is aborted', async () => {
     const abort = new AbortController();

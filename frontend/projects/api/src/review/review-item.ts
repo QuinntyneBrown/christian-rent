@@ -12,6 +12,13 @@ export type ReviewKind = 'new-listing' | 'report' | 'new-member';
 /** What an admin does with an item (L2-020). */
 export type ReviewDecision = 'approve' | 'keep' | 'remove';
 
+/** What has begun to wait since the queue was read, counted by kind. */
+export interface ReviewArrivals {
+  readonly newListings: number;
+  readonly reports: number;
+  readonly newMembers: number;
+}
+
 /** The decision that stands, as a refused second one is told it (ADR 0026). */
 export interface EarlierDecision {
   readonly decision: ReviewDecision;

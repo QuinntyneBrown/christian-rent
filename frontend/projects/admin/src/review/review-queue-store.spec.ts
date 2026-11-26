@@ -4,11 +4,18 @@ import {
   type ApiError,
   type ReviewDecided,
   type ReviewDecision,
+  type ReviewArrivals,
   type ReviewItemDetail,
   type ReviewItemSummary,
   type ReviewQueuePage,
 } from '@rent/api';
-import { PAGE_SIZE, ReviewQueueStore, SKELETON_DELAY_MS, WINDOW_PAGES } from './review-queue-store';
+import {
+  ARRIVALS_MS,
+  PAGE_SIZE,
+  ReviewQueueStore,
+  SKELETON_DELAY_MS,
+  WINDOW_PAGES,
+} from './review-queue-store';
 import { ToastQueue } from './toast-queue';
 
 /** A request the test answers, with the signal it was given. */
@@ -23,6 +30,7 @@ export function fakeApi() {
   const pages: Asked<ReviewQueuePage>[] = [];
   const items: Asked<ReviewItemDetail>[] = [];
   const decisions: Asked<ReviewDecided>[] = [];
+  const arrivals: Asked<ReviewArrivals>[] = [];
   const ask = <T>(into: Asked<T>[], about: string | null, signal: AbortSignal) =>
     new Promise<T>((resolve, reject) => {
       signal.addEventListener('abort', () => reject(new DOMException('', 'AbortError')));
@@ -46,7 +54,9 @@ export function fakeApi() {
     pages,
     items,
     decisions,
+    arrivals,
     api: {
+      arrivals: (since: string, signal: AbortSignal) => ask(arrivals, since, signal),
       page: (cursor: string | null, signal: AbortSignal) => ask(pages, cursor, signal),
       item: (id: string, signal: AbortSignal) => ask(items, id, signal),
       decide: (id: string, decision: ReviewDecision, version: number, signal: AbortSignal) =>
@@ -630,5 +640,102 @@ describe('ReviewQueueStore', () => {
     await fake.decisions[1]!.answer({ closedItemIds: ['a'] });
 
     expect(titles()).toEqual(['Removed']);
+  });
+
+  const counts = (newListings: number, reports = 0) => ({ newListings, reports, newMembers: 0 });
+  const wait = (ms: number) => vi.advanceTimersByTimeAsync(ms);
+
+  // L2-019 criterion 12; ADR 0027.
+  it('looks for new items every 60 s, one look at a time, since the first page', async () => {
+    await loaded();
+
+    await wait(ARRIVALS_MS - 1);
+    expect(fake.arrivals).toEqual([]);
+    await wait(1);
+    expect(fake.arrivals.map((asked) => asked.about)).toEqual(['2026-06-08T19:00:00Z']);
+    await wait(3 * ARRIVALS_MS);
+    expect(fake.arrivals).toHaveLength(1);
+    await fake.arrivals[0]!.answer(counts(0));
+    await wait(ARRIVALS_MS);
+
+    expect(fake.arrivals).toHaveLength(2);
+    expect(ARRIVALS_MS).toBe(60_000);
+    expect(titles()).toEqual([]);
+  });
+
+  it('says what arrived, and again only once more has', async () => {
+    await loaded([]);
+    const look = async (answer: ReviewArrivals) => {
+      await wait(ARRIVALS_MS);
+      await fake.arrivals.at(-1)!.answer(answer);
+    };
+
+    await look(counts(1));
+    expect(titles()).toEqual(['1 new item is waiting']);
+    TestBed.inject(ToastQueue).dismiss(toasts()[0]!.id);
+    await look(counts(1));
+    expect(titles()).toEqual([]);
+    await look(counts(1, 1));
+
+    expect(titles()).toEqual(['2 new items are waiting']);
+    expect(toasts()[0]).toMatchObject({ tone: 'info', action: { label: 'Show them' } });
+  });
+
+  it('reads the queue from its oldest item when asked to show them', async () => {
+    await loaded();
+    await wait(ARRIVALS_MS);
+    await fake.arrivals[0]!.answer(counts(1));
+
+    void toasts()[0]!.action!.run();
+
+    expect(fake.pages).toHaveLength(2);
+    expect(titles()).toEqual([]);
+    await fake.pages[1]!.answer(page(['a', 'b', 'c']));
+    await wait(ARRIVALS_MS);
+    await fake.arrivals[1]!.answer(counts(1));
+    expect(titles()).toEqual(['1 new item is waiting']);
+  });
+
+  it('does not look while the page is hidden', async () => {
+    const hidden = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+    await loaded();
+
+    await wait(2 * ARRIVALS_MS);
+    expect(fake.arrivals).toEqual([]);
+    hidden.mockReturnValue('visible');
+    await wait(ARRIVALS_MS);
+
+    expect(fake.arrivals).toHaveLength(1);
+    hidden.mockRestore();
+  });
+
+  it('says nothing of a look that fails, and looks again', async () => {
+    await loaded();
+
+    await wait(ARRIVALS_MS);
+    await fake.arrivals[0]!.refuse('server_error');
+    await wait(ARRIVALS_MS);
+
+    expect(fake.arrivals).toHaveLength(2);
+    expect(titles()).toEqual([]);
+  });
+
+  it('looks for nothing while the queue could not be read', async () => {
+    void store.load();
+    await fake.pages[0]!.refuse('server_error');
+
+    await wait(2 * ARRIVALS_MS);
+
+    expect(fake.arrivals).toEqual([]);
+  });
+
+  it('stops looking, and aborts a look on its way, when the admin leaves', async () => {
+    await loaded();
+    await wait(ARRIVALS_MS);
+
+    TestBed.resetTestingModule();
+
+    expect(fake.arrivals[0]!.signal.aborted).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
   });
 });

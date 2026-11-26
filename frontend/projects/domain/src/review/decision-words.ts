@@ -1,4 +1,4 @@
-import type { EarlierDecision, ReviewDecision, ReviewKind } from '@rent/api';
+import type { EarlierDecision, ReviewArrivals, ReviewDecision, ReviewKind } from '@rent/api';
 import { formatTime } from '../listings/format-retry-at';
 import { formatInstant } from './review-words';
 
@@ -107,6 +107,27 @@ export function toFailedToast(subject: DecisionSubject): Notice {
     title: 'Your decision wasn’t saved',
     text: `We couldn’t reach christian.rent. ${named(subject)} is still in the queue.`,
   };
+}
+
+/** The notification that new items arrived: how many, and what (L2-019, criterion 12). */
+export function toArrivalsToast({ newListings, reports, newMembers }: ReviewArrivals): Notice {
+  const total = newListings + reports + newMembers;
+  const parts = [
+    counted(newListings, 'new listing'),
+    counted(reports, 'report'),
+    counted(newMembers, 'new member'),
+  ].filter((part) => part !== null);
+  const what =
+    parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}` : `${parts[0]}`;
+  return {
+    title: total === 1 ? '1 new item is waiting' : `${total} new items are waiting`,
+    text: `${what.charAt(0).toUpperCase()}${what.slice(1)} arrived while you were reviewing.`,
+  };
+}
+
+/** "a report", "2 reports"; null for none. */
+function counted(count: number, noun: string): string | null {
+  return count === 0 ? null : count === 1 ? `a ${noun}` : `${count} ${noun}s`;
 }
 
 /** A listing is named by its title in quotation marks; a member by their name. */

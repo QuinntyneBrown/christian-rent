@@ -1,5 +1,6 @@
 import { InjectionToken } from '@angular/core';
 import type {
+  ReviewArrivals,
   ReviewDecided,
   ReviewDecision,
   ReviewItemDetail,
@@ -18,6 +19,9 @@ export interface ReviewQueueApi {
 
   /** One waiting item. One that no longer waits rejects with the code `not_found`. */
   item(id: string, signal: AbortSignal): Promise<ReviewItemDetail>;
+
+  /** What arrived since `since`, the `asOf` of a first page. */
+  arrivals(since: string, signal: AbortSignal): Promise<ReviewArrivals>;
 
   /**
    * Decides an item as it was read, by its `version`. One already decided otherwise rejects with

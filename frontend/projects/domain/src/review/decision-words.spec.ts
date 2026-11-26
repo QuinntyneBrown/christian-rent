@@ -1,6 +1,7 @@
 import type { ReviewDecision, ReviewKind } from '@rent/api';
 import {
   decisionLabel,
+  toArrivalsToast,
   toConflictCopy,
   toConflictToast,
   toDecisionToast,
@@ -106,4 +107,22 @@ describe('decision words', () => {
       text: `We couldn’t reach christian.rent. ${named} is still in the queue.`,
     });
   });
+
+  // L2-019 criterion 12: how many arrived, and what.
+  it.each<[number, number, number, string, string]>([
+    [1, 0, 0, '1 new item is waiting', 'A new listing'],
+    [0, 1, 0, '1 new item is waiting', 'A report'],
+    [0, 0, 1, '1 new item is waiting', 'A new member'],
+    [1, 1, 0, '2 new items are waiting', 'A new listing and a report'],
+    [2, 1, 1, '4 new items are waiting', '2 new listings, a report and a new member'],
+    [0, 3, 2, '5 new items are waiting', '3 reports and 2 new members'],
+  ])(
+    'tells of %d new listings, %d reports and %d new members',
+    (newListings, reports, newMembers, title, what) => {
+      expect(toArrivalsToast({ newListings, reports, newMembers })).toEqual({
+        title,
+        text: `${what} arrived while you were reviewing.`,
+      });
+    },
+  );
 });
