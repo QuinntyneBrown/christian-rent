@@ -14,7 +14,7 @@ for (const screen of SCREENS) {
         await page.setViewportSize({ width, height: 800 });
         screen.answer(api);
         await page.goto(screen.path);
-        await screen.then?.(page);
+        await screen.then?.(page, api);
         await expect(page).toHaveScreenshot(`${screen.name}-${colorScheme}-${width}.png`, {
           fullPage: true,
         });

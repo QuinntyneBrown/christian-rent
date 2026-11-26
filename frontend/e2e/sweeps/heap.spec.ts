@@ -9,6 +9,7 @@ import {
   page as listingsPage,
 } from '../fixtures/listings';
 import { answerJoining, answerMember } from '../fixtures/members';
+import { answerUploads, photoFile } from '../fixtures/photos';
 import { PostPage } from '../pages/post.page';
 import { expect, test } from '../fixtures/test';
 
@@ -195,6 +196,42 @@ test('writing a listing on Post and leaving it keeps the heap stable', async ({ 
     await post.summary.waitFor();
     await leaveForNotFound(page);
     await expect(post.form).toHaveCount(0);
+  };
+
+  await roundTrip();
+  const before = await heapAfterGc();
+  for (let round = 0; round < ROUNDS; round++) {
+    await roundTrip();
+  }
+  const after = await heapAfterGc();
+
+  expect(after - before).toBeLessThan(ALLOWED_GROWTH_BYTES);
+});
+
+// The photo upload (ADR 0021): adding a photo, removing it, and leaving Post while another
+// uploads, again and again, releases every object URL, upload and thumbnail.
+test('adding and removing photos on Post and leaving it keeps the heap stable', async ({
+  page,
+  api,
+}) => {
+  answerMember(api);
+  answerUploads(api);
+  const heapAfterGc = await heapMeter(page);
+  const post = new PostPage(page);
+  await page.goto('/no-such-page');
+
+  const roundTrip = async () => {
+    await page.evaluate(() => history.pushState({}, '', '/post'));
+    await page.evaluate(() => dispatchEvent(new PopStateEvent('popstate')));
+    await post.choosePhoto(photoFile('trailer.jpg'));
+    await post.removePhoto(1).click();
+    await expect(post.photoItems).toHaveCount(0);
+    const release = api.hold('POST', '/api/photos');
+    await post.choosePhoto(photoFile('trailer.jpg'));
+    await post.uploading(1).waitFor();
+    await leaveForNotFound(page);
+    await expect(post.form).toHaveCount(0);
+    release();
   };
 
   await roundTrip();

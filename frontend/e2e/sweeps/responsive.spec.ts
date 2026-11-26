@@ -8,7 +8,7 @@ for (const screen of SCREENS) {
       await page.setViewportSize({ width, height: 800 });
       screen.answer(api);
       await page.goto(screen.path);
-      await screen.then?.(page);
+      await screen.then?.(page, api);
 
       const sideways = await page.evaluate(
         () => document.documentElement.scrollWidth > document.documentElement.clientWidth,

@@ -1,4 +1,7 @@
-import type { Locator, Page } from '@playwright/test';
+import type { FileChooser, Locator, Page } from '@playwright/test';
+
+/** A file to choose: a path, or a name, a type and its bytes. */
+type ChosenFile = Parameters<FileChooser['setFiles']>[0];
 import { SiteHeaderPart } from './site-header.part';
 
 /**
@@ -143,7 +146,7 @@ export class PostPage {
   }
 
   /** Chooses a file through the Add tile's file chooser, as a person does. */
-  async choosePhoto(file: string): Promise<void> {
+  async choosePhoto(file: ChosenFile): Promise<void> {
     const chooser = this.page.waitForEvent('filechooser');
     await this.addPhoto.click();
     await (await chooser).setFiles(file);
