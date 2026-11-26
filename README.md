@@ -235,6 +235,7 @@ christian-rent/
 │   ├── projects/api/                  Contracts, types, injection tokens, HTTP clients (@rent/api)
 │   ├── projects/domain/               Rules the browser applies itself (@rent/domain)
 │   ├── projects/components/           Presentation components, cr-* (@rent/components)
+│   ├── projects/admin/                Admin, downloaded only by an admin (@rent/admin)
 │   ├── projects/rent/                 The app: pages, shell, routes and the composition root
 │   └── e2e/                           Behaviour specs, fixtures, page objects and the sweeps
 ├── backend/                         The .NET service
