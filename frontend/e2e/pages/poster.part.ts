@@ -13,8 +13,8 @@ export class PosterPart {
     this.avatar = root.locator('.avatar');
     this.name = root.locator('.poster__name');
     this.church = root.locator('.poster__church');
-    this.memberVerified = root.locator('.poster__line', { has: this.name }).locator('.verified');
-    this.churchVerified = root.locator('.poster__line', { has: this.church }).locator('.verified');
+    this.memberVerified = root.locator('.poster__line:has(.poster__name) .verified');
+    this.churchVerified = root.locator('.poster__line:has(.poster__church) .verified');
     this.since = root.locator('.poster__since');
   }
 }
