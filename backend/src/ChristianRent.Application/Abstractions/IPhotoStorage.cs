@@ -2,7 +2,7 @@ namespace ChristianRent.Application.Abstractions;
 
 /// <summary>
 /// Where photo renditions are kept, apart from the database (ADR 0004, ADR 0011). A key is
-/// <c>{photoId:N}/{rendition}.jpg</c>. The add-photos journey adds deleting.
+/// <c>{photoId:N}/{rendition}.jpg</c>.
 /// </summary>
 public interface IPhotoStorage
 {
@@ -14,4 +14,7 @@ public interface IPhotoStorage
 
     /// <summary>Opens what the key holds for reading, or answers null when it holds nothing.</summary>
     Task<Stream?> OpenReadAsync(string key, CancellationToken cancellationToken);
+
+    /// <summary>Deletes what the key holds; a key that holds nothing is not an error.</summary>
+    Task DeleteAsync(string key, CancellationToken cancellationToken);
 }

@@ -131,6 +131,9 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset?>("AnonymizedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("ChurchId")
                         .HasColumnType("uuid");
 

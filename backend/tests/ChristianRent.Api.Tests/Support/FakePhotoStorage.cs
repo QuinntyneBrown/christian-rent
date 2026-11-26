@@ -29,6 +29,16 @@ public sealed class FakePhotoStorage : IPhotoStorage
         }
     }
 
+    public Task DeleteAsync(string key, CancellationToken cancellationToken)
+    {
+        lock (_files)
+        {
+            _files.Remove(key);
+        }
+
+        return Task.CompletedTask;
+    }
+
     public void Put(string key, byte[] bytes)
     {
         lock (_files)

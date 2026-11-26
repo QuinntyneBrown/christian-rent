@@ -24,4 +24,12 @@ public sealed class MembersController(ISender sender) : ControllerBase
     [HttpGet("me")]
     public async Task<IActionResult> Me(CancellationToken cancellationToken) =>
         await sender.Send(new GetCurrentMemberQuery(), cancellationToken) is { } member ? Ok(member) : NoContent();
+
+    /// <summary>The member leaves; their listings and photos stop being public at once (L2-028).</summary>
+    [HttpDelete("me")]
+    public async Task<IActionResult> Leave(CancellationToken cancellationToken)
+    {
+        await sender.Send(new DeleteMembershipCommand(), cancellationToken);
+        return NoContent();
+    }
 }

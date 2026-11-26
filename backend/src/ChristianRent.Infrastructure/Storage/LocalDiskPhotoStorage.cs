@@ -47,6 +47,12 @@ public sealed class LocalDiskPhotoStorage(IOptions<PhotoStorageOptions> options,
         return Task.FromResult(stream);
     }
 
+    public Task DeleteAsync(string key, CancellationToken cancellationToken)
+    {
+        File.Delete(PathOf(key));
+        return Task.CompletedTask;
+    }
+
     /// <summary>The file a key names, refused when it would leave the storage directory.</summary>
     private string PathOf(string key)
     {

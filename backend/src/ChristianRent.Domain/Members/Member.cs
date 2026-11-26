@@ -52,6 +52,33 @@ public sealed class Member
     public static Member Join(string signInId, string name, Guid churchId, DateTimeOffset now) =>
         new(Guid.NewGuid(), signInId, name, churchId, isVerified: false, now);
 
+    /// <summary>When the purge made the departed member anonymous; null until then.</summary>
+    public DateTimeOffset? AnonymizedAt { get; private set; }
+
     /// <summary>An admin removes the member; their listings stop being public.</summary>
     public void Remove() => Status = MemberStatus.Removed;
+
+    /// <summary>
+    /// The member asks to leave: their listings stop being public at once, and the sign-in is no
+    /// longer this member (L2-028, criterion 2; ADR 0017).
+    /// </summary>
+    public void Depart(DateTimeOffset now)
+    {
+        Status = MemberStatus.Departed;
+        DepartedAt = now;
+        SignInId = null;
+    }
+
+    /// <summary>
+    /// The purge replaces what identifies a departed member (L2-028, criterion 2): the name
+    /// becomes <see cref="FormerMemberName"/>, and the sign-in is already gone.
+    /// </summary>
+    public void Anonymize(DateTimeOffset now)
+    {
+        Name = FormerMemberName;
+        SignInId = null;
+        AnonymizedAt = now;
+    }
+
+    public const string FormerMemberName = "Former member";
 }

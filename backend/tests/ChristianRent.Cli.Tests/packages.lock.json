@@ -13,6 +13,12 @@
           "Microsoft.Extensions.Logging": "10.0.15"
         }
       },
+      "Microsoft.Extensions.TimeProvider.Testing": {
+        "type": "Direct",
+        "requested": "[10.11.1, )",
+        "resolved": "10.11.1",
+        "contentHash": "+ao8Sj5oSSANi3rM1JN0u/76bTE61Afxb2idMhlLjB84Z/bFArnUQeRrXOqzqaqj8bxqPQQUKXwv3jai+IN+GA=="
+      },
       "xunit.v3": {
         "type": "Direct",
         "requested": "[4.0.3, )",
