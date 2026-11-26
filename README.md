@@ -167,8 +167,13 @@ dotnet run --project src/ChristianRent.Cli -- migrate   # apply the schema; the 
 dotnet run --project src/ChristianRent.Cli -- seed      # the mocks' cast: churches, members, listings, photos; safe to repeat
 dotnet run --project src/ChristianRent.Cli -- purge-departed   # daily: anonymise members who left and clear the messages and report notes they wrote; safe to repeat
 dotnet run --project src/ChristianRent.Cli -- purge-photos     # hourly: delete photos no posted listing names after 24 hours (ADR 0021); safe to repeat
+dotnet run --project src/ChristianRent.Cli -- grant-admin <member-id>   # make an active member an admin; safe to repeat
 dotnet run --project src/ChristianRent.Api              # http://localhost:5080/health/ready
 ```
+
+Only `grant-admin` makes someone an admin: no screen or endpoint does, the seed makes nobody one,
+and nothing takes it back yet ([ADR 0024](docs/adr/0024-viewing-the-review-queue-open-decisions.md)).
+It prints the member's identifier, never a name.
 
 `npm start` sends `/api` to the API on port 5080. Nobody can sign in yet: sign-in is not designed
 ([ADR 0005](docs/adr/0005-authentication-seam.md)), so every member action answers 401.
@@ -237,7 +242,7 @@ christian-rent/
 │   ├── src/ChristianRent.Application/ MediatR handlers, validators, contracts
 │   ├── src/ChristianRent.Infrastructure/ EF Core, migrations, storage, identity, seed
 │   ├── src/ChristianRent.Api/         Controllers, middleware, error handlers, telemetry, health
-│   ├── src/ChristianRent.Cli/         migrate, seed, purge-departed and purge-photos
+│   ├── src/ChristianRent.Cli/         migrate, seed, grant-admin, purge-departed and purge-photos
 │   └── tests/                         Acceptance tests through the API, and the CLI's tests
 ├── docs/
 │   ├── journeys.md                  The journeys, by value added, with % complete

@@ -23,6 +23,10 @@ public sealed class ReviewItem
 
     public DateTimeOffset CreatedAt { get; private set; }
 
+    /// <summary>An item with a known identifier, as seed data enters them.</summary>
+    public static ReviewItem Create(Guid id, ReviewItemKind kind, Guid subjectId, DateTimeOffset createdAt) =>
+        new(id, kind, subjectId, createdAt);
+
     /// <summary>A new listing waits for an admin to approve it (L2-012, criterion 1).</summary>
     public static ReviewItem ForNewListing(Guid listingId, DateTimeOffset now) =>
         new(Guid.NewGuid(), ReviewItemKind.NewListing, listingId, now);

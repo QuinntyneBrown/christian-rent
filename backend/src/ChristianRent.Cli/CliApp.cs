@@ -18,9 +18,11 @@ namespace ChristianRent.Cli;
 public static class CliApp
 {
     public const string Usage = """
-        Usage: ChristianRent.Cli <migrate|seed|purge-departed|purge-photos>
+        Usage: ChristianRent.Cli <migrate|seed|grant-admin|purge-departed|purge-photos>
           migrate         Apply the pending EF Core migrations to the database in ConnectionStrings:Default.
           seed            Enter the sample data of the mocks' cast and its photos. Safe to run again: it changes nothing twice.
+          grant-admin     grant-admin <member-id> makes an active member an admin, who may then use Admin. Nothing else
+                          makes anyone an admin. Safe to run again.
           purge-departed  Make members who left Members:PurgeAfterDays (at most 30) days ago anonymous, and delete
                           their listings and photos. Run it daily. Safe to run again: it changes nothing twice.
           purge-photos    Delete the photos no posted listing names that were uploaded 24 hours ago or more, and
@@ -44,8 +46,15 @@ public static class CliApp
                 var photos = scope.ServiceProvider.GetRequiredService<IPhotoStorage>();
                 var entered = await SampleData.SeedAsync(database, photos, cancellationToken);
                 await output.WriteLineAsync(
-                    $"Seeded {entered.Churches} churches, {entered.Members} members, {entered.Listings} listings and {entered.Photos} photos.");
+                    $"Seeded {entered.Churches} churches, {entered.Members} members, {entered.Listings} listings, " +
+                    $"{entered.Photos} photos and {entered.ReviewItems} review items.");
                 return 0;
+
+            case ["grant-admin", var given]:
+                var granted = Guid.TryParse(given, out var memberId) && await scope.ServiceProvider.GetRequiredService<ISender>()
+                    .Send(new GrantAdminCommand(memberId), cancellationToken);
+                await output.WriteLineAsync(granted ? $"Member {memberId} is an admin." : "No active member has that identifier.");
+                return granted ? 0 : 1;
 
             case ["purge-departed"]:
                 var days = scope.ServiceProvider.GetService<IOptions<MemberPurgeOptions>>()?.Value.PurgeAfterDays ?? MemberPurgeOptions.MaxDays;

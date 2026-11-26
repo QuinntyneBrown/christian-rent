@@ -3,6 +3,7 @@ using ChristianRent.Application.Listings;
 using ChristianRent.Domain.Churches;
 using ChristianRent.Domain.Listings;
 using ChristianRent.Domain.Members;
+using ChristianRent.Domain.Review;
 using ChristianRent.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -72,12 +73,24 @@ public static class SampleData
         Wanted(Id("1157a000-0009"), Marcus, ListingKind.Space, "Storage locker for our food bank", null, "From September", null, null, "Langley"),
     ];
 
+    /// <summary>
+    /// What waits in the review queue, oldest first: the two waiting listings, and Dr. Alicia
+    /// Gomez as a new member between them (docs/mocks/README.md).
+    /// </summary>
+    public static IReadOnlyList<ReviewItem> ReviewItems() =>
+    [
+        ReviewItem.Create(Id("4e71e700-0001"), ReviewItemKind.NewListing, Id("1157a000-0008"), Day(8, hour: 9)),
+        ReviewItem.Create(Id("4e71e700-0002"), ReviewItemKind.NewMember, Alicia.Id, Day(8, hour: 11)),
+        ReviewItem.Create(Id("4e71e700-0003"), ReviewItemKind.NewListing, Id("1157a000-0009"), Day(8, hour: 12)),
+    ];
+
     /// <summary>Enters every sample row and photo that is not there yet, and says how many it entered.</summary>
     public static async Task<SeedCounts> SeedAsync(AppDbContext database, IPhotoStorage photos, CancellationToken cancellationToken)
     {
         var churches = await AddMissingAsync(database, database.Churches, Churches, church => church.Id, cancellationToken);
         var members = await AddMissingAsync(database, database.Members, Members, member => member.Id, cancellationToken);
         var listings = await AddMissingAsync(database, database.Listings, Listings(), listing => listing.Id, cancellationToken);
+        var reviewItems = await AddMissingAsync(database, database.ReviewItems, ReviewItems(), item => item.Id, cancellationToken);
         await database.SaveChangesAsync(cancellationToken);
 
         var written = 0;
@@ -102,7 +115,7 @@ public static class SampleData
             written += wrote ? 1 : 0;
         }
 
-        return new SeedCounts(churches, members, listings, written);
+        return new SeedCounts(churches, members, listings, written, reviewItems);
     }
 
     private static async Task<int> AddMissingAsync<T>(
@@ -148,4 +161,4 @@ public static class SampleData
 }
 
 /// <summary>How many rows and photos one run of the seed entered.</summary>
-public sealed record SeedCounts(int Churches, int Members, int Listings, int Photos);
+public sealed record SeedCounts(int Churches, int Members, int Listings, int Photos, int ReviewItems);
