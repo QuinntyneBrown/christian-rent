@@ -20,9 +20,10 @@ responsive (try 360, 768 and 1280 px), has a light and a dark theme, and works w
 | File | What it is |
 |---|---|
 | `manifest.json` | The list of screens, their states and the requirements each serves. |
-| `assets/tokens.css` | The design tokens. Every colour, size and duration lives here and nowhere else. |
-| `assets/ui.css` | The component kit shared by every mock. |
-| `assets/fonts/` | Bricolage Grotesque and Instrument Sans, self-hosted (SIL Open Font License). |
+| `../design-system/tokens/tokens.css` | The design tokens. Every colour, size and duration lives there and nowhere else. |
+| `../design-system/assets/components.css` | The component stylesheet every mock links. |
+| `../design-system/assets/fonts/` | Bricolage Grotesque and Instrument Sans, self-hosted (SIL Open Font License). |
+| `assets/tokens.css` | One line that imports the tokens, for the generated gallery. |
 | `assets/photos/` | The prototype's sample photos, resized. |
 | `assets/mock.css`, `assets/mock.js` | The mock bar and notes. Not product UI. |
 

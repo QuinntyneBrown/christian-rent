@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Posted by | christian.rent design system</title>
+<meta name="description" content="Who posted a listing and the church they belong to, each marked Verified when an admin has confirmed it.">
+<link rel="stylesheet" href="../tokens/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/ds.css">
+</head>
+<body id="top">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="ds-shell">
+  <nav class="ds-nav" aria-label="Design system">
+    <div class="ds-nav__brand"><a href="../index.html">christian.rent DS</a><button class="ds-theme-toggle" type="button" aria-pressed="false">☾ Dark</button></div>
+    <details open><summary>Foundations</summary><ul><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/typography.html">Typography</a></li><li><a href="../foundations/spacing.html">Spacing</a></li><li><a href="../foundations/layout.html">Layout</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/iconography.html">Iconography</a></li><li><a href="../foundations/theming.html">Theming</a></li><li><a href="../foundations/responsive.html">Responsive</a></li><li><a href="../foundations/accessibility.html">Accessibility</a></li><li><a href="../foundations/content.html">Content</a></li></ul></details>
+    <details open><summary>Components</summary><ul><li><a href="../components/button.html">Button</a></li><li><a href="../components/link.html">Link</a></li><li><a href="../components/text-field.html">Text field</a></li><li><a href="../components/textarea.html">Textarea</a></li><li><a href="../components/select.html">Select</a></li><li><a href="../components/checkbox.html">Checkbox</a></li><li><a href="../components/radio-group.html">Radio group</a></li><li><a href="../components/date-range.html">Date range</a></li><li><a href="../components/form-field.html">Form field</a></li><li><a href="../components/line-field.html">Line field</a></li><li><a href="../components/word-toggle.html">Word toggle</a></li><li><a href="../components/photo-picker.html">Photo picker</a></li><li><a href="../components/search-bar.html">Search bar</a></li><li><a href="../components/segmented.html">Switch (Everything, For rent, Wanted)</a></li><li><a href="../components/kind-filter.html">Kind filter</a></li><li><a href="../components/logo.html">Logo</a></li><li><a href="../components/site-header.html">Site header</a></li><li><a href="../components/admin-nav.html">Admin navigation</a></li><li><a href="../components/skip-link.html">Skip link</a></li><li><a href="../components/dialog.html">Dialog</a></li><li><a href="../components/listing-card.html">Listing card</a></li><li><a href="../components/message-box.html">Message box</a></li><li><a href="../components/gallery.html">Photo gallery</a></li><li><a href="../components/wanted-panel.html">Wanted panel</a></li><li><a href="../components/poster.html">Posted by</a></li><li><a href="../components/queue-item.html">Queue item</a></li><li><a href="../components/review-detail.html">Review detail</a></li><li><a href="../components/avatar.html">Avatar</a></li><li><a href="../components/tag.html">Tag</a></li><li><a href="../components/verified.html">Verified mark</a></li><li><a href="../components/toast.html">Toast</a></li><li><a href="../components/alert.html">Alert</a></li><li><a href="../components/skeleton.html">Skeleton</a></li><li><a href="../components/spinner.html">Spinner</a></li><li><a href="../components/empty-state.html">Empty and error states</a></li><li><a href="../components/confirmation.html">Confirmation</a></li><li><a href="../components/hero.html">Browse headline</a></li><li><a href="../components/layout.html">Layout primitives</a></li></ul></details>
+    <details open><summary>Patterns</summary><ul><li><a href="../patterns/forms.html">Forms</a></li><li><a href="../patterns/feedback-and-loading.html">Feedback and loading</a></li><li><a href="../patterns/empty-and-error-states.html">Empty and error states</a></li><li><a href="../patterns/navigation-and-page-structure.html">Navigation and page structure</a></li><li><a href="../patterns/dialogs-and-overlays.html">Dialogs and overlays</a></li><li><a href="../patterns/lists.html">Lists of listings and the queue</a></li><li><a href="../patterns/notifications.html">Notifications</a></li><li><a href="../patterns/content-and-tone.html">Content and tone</a></li></ul></details>
+  </nav>
+  <main id="main" class="ds-main">
+    <header class="ds-header">
+      <p class="ds-kicker">Component · Data display</p>
+      <h1>Posted by</h1>
+      <p class="ds-lead">Who posted a listing and the church they belong to, each marked Verified when an admin has confirmed it.</p>
+      <div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span><span class="ds-pill">Status: stable</span></div>
+      <ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#anatomy">Anatomy</a></li><li><a href="#variants">Variants</a></li><li><a href="#sizes">Sizes</a></li><li><a href="#states">States</a></li><li><a href="#responsive">Responsive behaviour</a></li><li><a href="#theming">Theming</a></li><li><a href="#accessibility">Accessibility</a></li><li><a href="#content">Content</a></li><li><a href="#do-dont">Do and don’t</a></li><li><a href="#tokens">Tokens</a></li><li><a href="#code">Code</a></li><li><a href="#sources">Sources</a></li></ul>
+    </header>
+<section class="ds-section" id="overview"><h2><a href="#overview">Overview</a></h2>
+<p>People rent from people they can place. Under every listing: the member’s name, their church, and since when they have been a member. The member and the church are verified separately, so each carries its own mark.</p>
+</section>
+<section class="ds-section" id="anatomy"><h2><a href="#anatomy">Anatomy</a></h2>
+<div class="ds-anatomy"><figure class="ds-anatomy__figure"><section class="poster" aria-label="Posted by">
+        <span class="avatar avatar--lg avatar--sun" aria-hidden="true">DW</span>
+        <div>
+          <p class="poster__line"><span class="poster__name">Pastor Dan Whitaker</span><span class="verified"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z"/><path d="m9 12 2 2 4-4"/></svg>Verified<span class="visually-hidden"> member</span></span></p>
+          <p class="poster__line"><span class="poster__church">Grace Community Church</span><span class="verified"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z"/><path d="m9 12 2 2 4-4"/></svg>Verified<span class="visually-hidden"> church</span></span></p>
+          <p class="poster__since">Member since 2023</p>
+        </div>
+      </section><span class="ds-callout" style="left: 6%; top: 62%;" aria-hidden="true">1</span><span class="ds-callout" style="left: 22%; top: 48%;" aria-hidden="true">2</span><span class="ds-callout" style="left: 52%; top: 48%;" aria-hidden="true">3</span><span class="ds-callout" style="left: 22%; top: 66%;" aria-hidden="true">4</span><span class="ds-callout" style="left: 22%; top: 84%;" aria-hidden="true">5</span></figure><ol class="ds-anatomy__list"><li><div><b>Initials</b><small>On a pale tile; decorative.</small></div></li><li><div><b>Name</b><small>The member’s name as they gave it.</small></div></li><li><div><b>Verified marks</b><small>One for the member, one for the church.</small></div></li><li><div><b>Church</b><small>The church’s name.</small></div></li><li><div><b>Since</b><small>“Member since 2023”.</small></div></li></ol></div>
+</section>
+<section class="ds-section" id="variants"><h2><a href="#variants">Variants</a></h2>
+<div class="ds-example"><div class="ds-example__canvas"><section class="poster" aria-label="Posted by">
+        <span class="avatar avatar--lg avatar--sun" aria-hidden="true">DW</span>
+        <div>
+          <p class="poster__line"><span class="poster__name">Pastor Dan Whitaker</span><span class="verified"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z"/><path d="m9 12 2 2 4-4"/></svg>Verified<span class="visually-hidden"> member</span></span></p>
+          <p class="poster__line"><span class="poster__church">Grace Community Church</span><span class="verified"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z"/><path d="m9 12 2 2 4-4"/></svg>Verified<span class="visually-hidden"> church</span></span></p>
+          <p class="poster__since">Member since 2023</p>
+        </div>
+      </section></div><div class="ds-example__caption"><span>Member and church verified</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;section class=&quot;poster&quot; aria-label=&quot;Posted by&quot;&gt;
+        &lt;span class=&quot;avatar avatar--lg avatar--sun&quot; aria-hidden=&quot;true&quot;&gt;DW&lt;/span&gt;
+        &lt;div&gt;
+          &lt;p class=&quot;poster__line&quot;&gt;&lt;span class=&quot;poster__name&quot;&gt;Pastor Dan Whitaker&lt;/span&gt;&lt;span class=&quot;verified&quot;&gt;&lt;svg class=&quot;icon&quot; aria-hidden=&quot;true&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z&quot;/&gt;&lt;path d=&quot;m9 12 2 2 4-4&quot;/&gt;&lt;/svg&gt;Verified&lt;span class=&quot;visually-hidden&quot;&gt; member&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+          &lt;p class=&quot;poster__line&quot;&gt;&lt;span class=&quot;poster__church&quot;&gt;Grace Community Church&lt;/span&gt;&lt;span class=&quot;verified&quot;&gt;&lt;svg class=&quot;icon&quot; aria-hidden=&quot;true&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z&quot;/&gt;&lt;path d=&quot;m9 12 2 2 4-4&quot;/&gt;&lt;/svg&gt;Verified&lt;span class=&quot;visually-hidden&quot;&gt; church&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+          &lt;p class=&quot;poster__since&quot;&gt;Member since 2023&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;</code></pre></details></div><div class="ds-example"><div class="ds-example__canvas"><section class="poster" aria-label="Posted by">
+        <span class="avatar avatar--lg avatar--leaf" aria-hidden="true">ML</span>
+        <div>
+          <p class="poster__line"><span class="poster__name">Marcus Lee</span><span class="verified"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z"/><path d="m9 12 2 2 4-4"/></svg>Verified<span class="visually-hidden"> member</span></span></p>
+          <p class="poster__line"><span class="poster__church">New Song Fellowship</span></p>
+          <p class="poster__since">Member since 2024</p>
+        </div>
+      </section></div><div class="ds-example__caption"><span>Member verified, church not yet</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;section class=&quot;poster&quot; aria-label=&quot;Posted by&quot;&gt;
+        &lt;span class=&quot;avatar avatar--lg avatar--leaf&quot; aria-hidden=&quot;true&quot;&gt;ML&lt;/span&gt;
+        &lt;div&gt;
+          &lt;p class=&quot;poster__line&quot;&gt;&lt;span class=&quot;poster__name&quot;&gt;Marcus Lee&lt;/span&gt;&lt;span class=&quot;verified&quot;&gt;&lt;svg class=&quot;icon&quot; aria-hidden=&quot;true&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z&quot;/&gt;&lt;path d=&quot;m9 12 2 2 4-4&quot;/&gt;&lt;/svg&gt;Verified&lt;span class=&quot;visually-hidden&quot;&gt; member&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+          &lt;p class=&quot;poster__line&quot;&gt;&lt;span class=&quot;poster__church&quot;&gt;New Song Fellowship&lt;/span&gt;&lt;/p&gt;
+          &lt;p class=&quot;poster__since&quot;&gt;Member since 2024&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;</code></pre></details></div><div class="ds-example"><div class="ds-example__canvas"><section class="poster" aria-label="Posted by">
+        <span class="avatar avatar--lg avatar--sky" aria-hidden="true">AG</span>
+        <div>
+          <p class="poster__line"><span class="poster__name">Dr. Alicia Gomez</span></p>
+          <p class="poster__line"><span class="poster__church">St. Paul’s Anglican</span></p>
+          <p class="poster__since">Member since 2026</p>
+        </div>
+      </section></div><div class="ds-example__caption"><span>A new member: neither</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;section class=&quot;poster&quot; aria-label=&quot;Posted by&quot;&gt;
+        &lt;span class=&quot;avatar avatar--lg avatar--sky&quot; aria-hidden=&quot;true&quot;&gt;AG&lt;/span&gt;
+        &lt;div&gt;
+          &lt;p class=&quot;poster__line&quot;&gt;&lt;span class=&quot;poster__name&quot;&gt;Dr. Alicia Gomez&lt;/span&gt;&lt;/p&gt;
+          &lt;p class=&quot;poster__line&quot;&gt;&lt;span class=&quot;poster__church&quot;&gt;St. Paul’s Anglican&lt;/span&gt;&lt;/p&gt;
+          &lt;p class=&quot;poster__since&quot;&gt;Member since 2026&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;</code></pre></details></div>
+</section>
+<section class="ds-section" id="sizes" data-na="Posted by has one size."><h2><a href="#sizes">Sizes</a></h2><p class="ds-na">Posted by has one size.</p></section>
+<section class="ds-section" id="states" data-na="Not interactive: it has no states."><h2><a href="#states">States</a></h2><p class="ds-na">Not interactive: it has no states.</p></section>
+<section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive behaviour</a></h2>
+<p>It takes the width of its container and wraps its text; it has no breakpoint of its own.</p>
+</section>
+<section class="ds-section" id="theming"><h2><a href="#theming">Theming</a></h2>
+<p>Posted by reads only semantic tokens, so it follows the theme with no rule of its own. The colour tokens it reads are <code>--color-border-default</code>, <code>--color-fg-default</code>, <code>--color-fg-muted</code>. To restyle it, change those tokens; never write a colour in the component.</p><div class="ds-themes"><div data-theme="light"><div class="cluster"><section class="poster" aria-label="Posted by">
+        <span class="avatar avatar--lg avatar--sun" aria-hidden="true">DW</span>
+        <div>
+          <p class="poster__line"><span class="poster__name">Pastor Dan Whitaker</span><span class="verified"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z"/><path d="m9 12 2 2 4-4"/></svg>Verified<span class="visually-hidden"> member</span></span></p>
+          <p class="poster__line"><span class="poster__church">Grace Community Church</span><span class="verified"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z"/><path d="m9 12 2 2 4-4"/></svg>Verified<span class="visually-hidden"> church</span></span></p>
+          <p class="poster__since">Member since 2023</p>
+        </div>
+      </section></div></div><div data-theme="dark"><div class="cluster"><section class="poster" aria-label="Posted by">
+        <span class="avatar avatar--lg avatar--sun" aria-hidden="true">DW</span>
+        <div>
+          <p class="poster__line"><span class="poster__name">Pastor Dan Whitaker</span><span class="verified"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z"/><path d="m9 12 2 2 4-4"/></svg>Verified<span class="visually-hidden"> member</span></span></p>
+          <p class="poster__line"><span class="poster__church">Grace Community Church</span><span class="verified"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z"/><path d="m9 12 2 2 4-4"/></svg>Verified<span class="visually-hidden"> church</span></span></p>
+          <p class="poster__since">Member since 2023</p>
+        </div>
+      </section></div></div></div>
+</section>
+<section class="ds-section" id="accessibility"><h2><a href="#accessibility">Accessibility</a></h2>
+<h3>Role and pattern</h3><p>A <code>&lt;section aria-label="Posted by"&gt;</code>.</p>
+<h3>Keyboard</h3><table class="ds-table ds-keys"><thead><tr><th scope="col">Key</th><th scope="col">Action</th></tr></thead><tbody><tr><td>None</td><td>Not focusable: it is read in document order.</td></tr></tbody></table>
+<h3>Focus</h3><p>The shared focus ring: a 2 px outline in <code>--color-focus-ring</code>, offset 2 px, never removed.</p>
+<h3>Labelling</h3><p>Each mark is the word “Verified” with an icon, followed for assistive technology by what it verifies: “Verified member”, “Verified church”.</p>
+<h3>Contrast</h3><div class="ds-pair"><span>Name and church</span><span class="ds-pair__ratio" data-contrast="--color-fg-default|--color-bg-canvas" data-min="4.5"></span></div><div class="ds-pair"><span>Verified</span><span class="ds-pair__ratio" data-contrast="--color-success-fg|--color-bg-canvas" data-min="4.5"></span></div><div class="ds-pair"><span>Since</span><span class="ds-pair__ratio" data-contrast="--color-fg-muted|--color-bg-canvas" data-min="4.5"></span></div>
+<h3>Motion</h3><p>None.</p>
+<h3>Touch</h3><p>Nothing to press.</p>
+</section>
+<section class="ds-section" id="content"><h2><a href="#content">Content</a></h2>
+<ul><li>Never an email address, a phone number or a street address.</li><li>No mark at all when not verified. There is no “Unverified” label.</li><li>Names and church names are data and are rendered as text.</li></ul>
+</section>
+<section class="ds-section" id="do-dont"><h2><a href="#do-dont">Do and don’t</a></h2>
+<div class="ds-dodont"><figure class="ds-do"><div class="ds-example__canvas ds-example__canvas--stack"><section class="poster" aria-label="Posted by">
+        <span class="avatar avatar--lg avatar--leaf" aria-hidden="true">ML</span>
+        <div>
+          <p class="poster__line"><span class="poster__name">Marcus Lee</span><span class="verified"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z"/><path d="m9 12 2 2 4-4"/></svg>Verified<span class="visually-hidden"> member</span></span></p>
+          <p class="poster__line"><span class="poster__church">New Song Fellowship</span></p>
+          <p class="poster__since">Member since 2024</p>
+        </div>
+      </section></div><figcaption>Mark only what is verified.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas ds-example__canvas--stack"><section class="poster" aria-label="Posted by">
+        <span class="avatar avatar--lg avatar--leaf" aria-hidden="true">ML</span>
+        <div>
+          <p class="poster__line"><span class="poster__name">Marcus Lee</span><span class="verified"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z"/><path d="m9 12 2 2 4-4"/></svg>Verified<span class="visually-hidden"> member</span></span></p>
+          <p class="poster__line"><span class="poster__church">New Song Fellowship</span><span class="verified"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z"/><path d="m9 12 2 2 4-4"/></svg>Verified<span class="visually-hidden"> church</span></span></p>
+          <p class="poster__since">Member since 2024</p>
+        </div>
+      </section></div><figcaption>Mark the church because its member is verified.</figcaption></figure><figure class="ds-do"><div class="ds-example__canvas ds-example__canvas--stack"><span class="verified"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z"/><path d="m9 12 2 2 4-4"/></svg>Verified<span class="visually-hidden"> member</span></span></div><figcaption>Icon and word together.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas ds-example__canvas--stack"><span class="verified"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z"/><path d="m9 12 2 2 4-4"/></svg><span class="visually-hidden">Verified</span></span></div><figcaption>A green tick alone.</figcaption></figure></div>
+</section>
+<section class="ds-section" id="tokens"><h2><a href="#tokens">Tokens</a></h2>
+<div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Token</th><th scope="col">Role</th><th scope="col">Light</th><th scope="col">Dark</th></tr></thead><tbody><tr><td><code>--space-4</code></td><td>16px default padding, stack gap</td><td><span data-theme="light"><span data-token="--space-4"></span></span></td><td><span data-theme="dark"><span data-token="--space-4"></span></span></td></tr><tr><td><code>--space-10</code></td><td>40px</td><td><span data-theme="light"><span data-token="--space-10"></span></span></td><td><span data-theme="dark"><span data-token="--space-10"></span></span></td></tr><tr><td><code>--space-8</code></td><td>32px section gap</td><td><span data-theme="light"><span data-token="--space-8"></span></span></td><td><span data-theme="dark"><span data-token="--space-8"></span></span></td></tr><tr><td><code>--color-border-default</code></td><td>hairlines, card edges (decorative)</td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-border-default" data-swatch></i><span data-token="--color-border-default"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-border-default" data-swatch></i><span data-token="--color-border-default"></span></span></td></tr><tr><td><code>--text-card-title</code></td><td></td><td><span data-theme="light"><span data-token="--text-card-title"></span></span></td><td><span data-theme="dark"><span data-token="--text-card-title"></span></span></td></tr><tr><td><code>--space-1</code></td><td>4px  icon-to-label</td><td><span data-theme="light"><span data-token="--space-1"></span></span></td><td><span data-theme="dark"><span data-token="--space-1"></span></span></td></tr><tr><td><code>--space-2</code></td><td>8px  inside chips, between inline items</td><td><span data-theme="light"><span data-token="--space-2"></span></span></td><td><span data-theme="dark"><span data-token="--space-2"></span></span></td></tr><tr><td><code>--text-body-sm</code></td><td></td><td><span data-theme="light"><span data-token="--text-body-sm"></span></span></td><td><span data-theme="dark"><span data-token="--text-body-sm"></span></span></td></tr><tr><td><code>--color-fg-default</code></td><td>body text</td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-fg-default" data-swatch></i><span data-token="--color-fg-default"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-fg-default" data-swatch></i><span data-token="--color-fg-default"></span></span></td></tr><tr><td><code>--font-weight-medium</code></td><td></td><td><span data-theme="light"><span data-token="--font-weight-medium"></span></span></td><td><span data-theme="dark"><span data-token="--font-weight-medium"></span></span></td></tr><tr><td><code>--color-fg-muted</code></td><td>secondary text</td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-fg-muted" data-swatch></i><span data-token="--color-fg-muted"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-fg-muted" data-swatch></i><span data-token="--color-fg-muted"></span></span></td></tr><tr><td><code>--space-0-5</code></td><td>2px  hairline gaps</td><td><span data-theme="light"><span data-token="--space-0-5"></span></span></td><td><span data-theme="dark"><span data-token="--space-0-5"></span></span></td></tr></tbody></table></div>
+</section>
+<section class="ds-section" id="code"><h2><a href="#code">Code</a></h2>
+<pre><code>&lt;section class=&quot;poster&quot; aria-label=&quot;Posted by&quot;&gt;
+        &lt;span class=&quot;avatar avatar--lg avatar--sun&quot; aria-hidden=&quot;true&quot;&gt;DW&lt;/span&gt;
+        &lt;div&gt;
+          &lt;p class=&quot;poster__line&quot;&gt;&lt;span class=&quot;poster__name&quot;&gt;Pastor Dan Whitaker&lt;/span&gt;&lt;span class=&quot;verified&quot;&gt;&lt;svg class=&quot;icon&quot; aria-hidden=&quot;true&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z&quot;/&gt;&lt;path d=&quot;m9 12 2 2 4-4&quot;/&gt;&lt;/svg&gt;Verified&lt;span class=&quot;visually-hidden&quot;&gt; member&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+          &lt;p class=&quot;poster__line&quot;&gt;&lt;span class=&quot;poster__church&quot;&gt;Grace Community Church&lt;/span&gt;&lt;span class=&quot;verified&quot;&gt;&lt;svg class=&quot;icon&quot; aria-hidden=&quot;true&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M12 3l2.3 1.7 2.9-.1.9 2.7 2.3 1.7-.9 2.7.9 2.7-2.3 1.7-.9 2.7-2.9-.1L12 21l-2.3-1.7-2.9.1-.9-2.7-2.3-1.7.9-2.7-.9-2.7 2.3-1.7.9-2.7 2.9.1z&quot;/&gt;&lt;path d=&quot;m9 12 2 2 4-4&quot;/&gt;&lt;/svg&gt;Verified&lt;span class=&quot;visually-hidden&quot;&gt; church&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+          &lt;p class=&quot;poster__since&quot;&gt;Member since 2023&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;</code></pre><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Class</th><th scope="col">Kind</th></tr></thead><tbody><tr><td><code>.poster</code></td><td>Block</td></tr><tr><td><code>.poster__name</code></td><td>Element</td></tr><tr><td><code>.poster__line</code></td><td>Element</td></tr><tr><td><code>.poster__church</code></td><td>Element</td></tr><tr><td><code>.poster__since</code></td><td>Element</td></tr></tbody></table></div>
+</section>
+<section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
+<p>Mocks this component was extracted from:</p><ul><li><a href="../../mocks/pages/listing/default.html">pages/listing/default</a></li><li><a href="../../mocks/pages/listing/wanted.html">pages/listing/wanted</a></li><li><a href="../../mocks/pages/listing/unverified.html">pages/listing/unverified</a></li></ul><p>Drift fixed during extraction: the prototype showed one tick beside the church on every listing, verified or not.</p>
+</section>
+    <footer class="ds-footer"><span>christian.rent design system · extracted from <a href="../../mocks/index.html">docs/mocks</a></span><a href="#top">Back to top</a></footer>
+  </main>
+</div>
+<script src="../assets/ds.js"></script>
+</body>
+</html>
