@@ -9,7 +9,9 @@ import {
   page as listingsPage,
 } from '../fixtures/listings';
 import { answerJoining, answerMember } from '../fixtures/members';
+import { refuseSendingAtLimit } from '../fixtures/messages';
 import { answerUploads, photoFile } from '../fixtures/photos';
+import { ListingPage } from '../pages/listing.page';
 import { PostPage } from '../pages/post.page';
 import { expect, test } from '../fixtures/test';
 
@@ -117,6 +119,40 @@ test('searching and switching Browse again and again keeps the heap stable', asy
     await field.press('Escape');
     await everything.click();
     await expect(cards).toHaveCount(7);
+  };
+
+  await roundTrip();
+  const before = await heapAfterGc();
+  for (let round = 0; round < ROUNDS; round++) {
+    await roundTrip();
+  }
+  const after = await heapAfterGc();
+
+  expect(after - before).toBeLessThan(ALLOWED_GROWTH_BYTES);
+});
+
+// Lazy loading and memory: writing a message, meeting the limit (which starts the composer's
+// timer) and leaving the listing, again and again, returns the composer, its request and its timer.
+test('writing a message at the limit and leaving the listing keeps the heap stable', async ({
+  page,
+  api,
+}) => {
+  answerNoListings(api);
+  answerMember(api);
+  answerListing(api, hall());
+  refuseSendingAtLimit(api, hall().id, new Date(Date.now() + 30 * 60 * 1000));
+  const heapAfterGc = await heapMeter(page);
+  await page.goto('/');
+  const screen = new ListingPage(page);
+
+  const roundTrip = async () => {
+    await page.evaluate((id) => history.pushState({}, '', `/listings/${id}`), hall().id);
+    await page.evaluate(() => dispatchEvent(new PopStateEvent('popstate')));
+    await screen.message.text.fill('Is the hall free? '.repeat(50));
+    await screen.message.submit.click();
+    await expect(screen.message.submit).toBeDisabled();
+    await screen.allListings.click();
+    await expect(screen.heading).toHaveCount(0);
   };
 
   await roundTrip();
