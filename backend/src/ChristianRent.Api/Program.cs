@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddAccess();
+builder.Services.AddRateLimits();
 builder.Services.AddHealthEndpoints();
 
 builder.Services.Configure<SiteOptions>(builder.Configuration.GetSection(SiteOptions.Section));
@@ -62,7 +63,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStatusCodePages();
 app.UseMiddleware<CrossSiteRequestGuard>();
+app.UseRouting();
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapHealthEndpoints();
