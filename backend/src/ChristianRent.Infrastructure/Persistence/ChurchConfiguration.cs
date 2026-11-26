@@ -14,6 +14,7 @@ internal sealed class ChurchConfiguration : IEntityTypeConfiguration<Church>
         builder.Property(church => church.Name).HasMaxLength(Church.MaxNameLength).IsRequired();
         builder.Property(church => church.City).HasMaxLength(Church.MaxCityLength).IsRequired();
         builder.Property(church => church.IsVerified).IsRequired();
-        builder.HasIndex(church => new { church.Name, church.City }).IsUnique();
+        builder.Property(church => church.MatchKey).HasMaxLength(ChurchMatch.MaxKeyLength).IsRequired();
+        builder.HasIndex(church => church.MatchKey).IsUnique();
     }
 }

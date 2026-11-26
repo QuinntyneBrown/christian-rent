@@ -59,17 +59,22 @@ when a member leaves.
 **Personal data — backend**
 
 - **Collected fields** — `Member` holds the name, the church, the join time, the two flags,
-  the status, and the sign-in identifier. No other personal field exists (L2-028, criterion
-  1). The area of a listing is a city or neighbourhood.
-- **`DeleteMembershipCommand`** — sent by `DELETE /api/members/me`. Its handler sets
-  `Member.Status = Departed` and `DepartedAt = now`. `ListingVisibility` then hides the
+  the status, when they left, and the sign-in identifier (`SignInId`,
+  [ADR 0017](../../../adr/0017-identifying-a-person-until-sign-in.md)). No other personal field
+  exists (L2-028, criterion 1). The area of a listing is a city or neighbourhood.
+- **`DeleteMembershipCommand`** — sent by `DELETE /api/members/me`, which answers 204. Its
+  handler needs a member (`RequireMember()`, else 403 `not_a_member`) and calls
+  `Member.Depart(now)`: `Status = Departed`, `DepartedAt = now`, and `SignInId` cleared, so
+  the person is no longer this member at once (ADR 0017). `ListingVisibility` then hides the
   member's listings and photos at once (criterion 2).
 - **`PurgeDepartedMembersCommand`** — run daily by the `purge-departed` command of
-  `ChristianRent.Cli`. For each member departed more than a configured number of days, at
-  most 30, `Member.Anonymize()` replaces the name with a fixed placeholder and clears the
-  sign-in identifier; the handler deletes the member's listings and their photo files
-  through `IPhotoStorage`, and replaces the text of messages the member sent with a
-  placeholder, so the other person's conversation keeps its shape.
+  `ChristianRent.Cli`. For each member departed at least `Members:PurgeAfterDays` days ago
+  (default 30, at most 30) and not yet anonymised, `Member.Anonymize(now)` replaces the name
+  with "Former member" and sets `AnonymizedAt`; the handler deletes the member's listings and
+  their photo files (every rendition) through `IPhotoStorage.DeleteAsync`. Messages do not
+  exist yet; when journey 8 adds them, the purge replaces the text of messages the member sent
+  with a placeholder, so the other person's conversation keeps its shape. The command prints
+  how many members, listings and photos it handled, and running it again changes nothing.
 - **`TelemetryScrubber`** — designed in
   [fail-clearly-and-operate](../fail-clearly-and-operate/README.md). Spans record the route
   template, never the path with values, the query string or a body (criterion 3). Handlers
@@ -82,7 +87,8 @@ when a member leaves.
   weakened.
 - The origin of file storage, when photos are served from an origin other than the API's;
   `img-src` then names it: `<TO SUPPLY>`.
-- The screen from which a member asks to leave: `<TO SUPPLY>`; no mock exists.
+- The screen from which a member asks to leave: `<TO SUPPLY>`; no mock exists, and no screen
+  is built. `DELETE /api/members/me` and `purge-departed` are built (journey 5).
 - Whether messages a departed member received are also cleared: `<TO SUPPLY>`.
 - The contact detail collected "to reach them", which depends on sign-in: `<TO SUPPLY>`.
 

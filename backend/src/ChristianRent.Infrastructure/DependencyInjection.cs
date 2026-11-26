@@ -25,6 +25,7 @@ public static class DependencyInjection
 
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentMember, HttpCurrentMember>();
+        services.AddScoped<Microsoft.AspNetCore.Authentication.IClaimsTransformation, MemberClaimsTransformation>();
 
         services.AddSingleton(TimeProvider.System);
         return services;

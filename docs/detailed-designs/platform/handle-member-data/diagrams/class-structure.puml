@@ -22,19 +22,21 @@ class SecurityHeadersMiddleware {
 }
 class Member {
   +string Name
+  +string? SignInId
   +MemberStatus Status
   +DateTimeOffset? DepartedAt
+  +DateTimeOffset? AnonymizedAt
   +Depart(now): void
-  +Anonymize(): void
+  +Anonymize(now): void
 }
 class DeleteMembershipCommandHandler {
   +Handle(command: DeleteMembershipCommand): Task
 }
 class PurgeDepartedMembersCommand {
-  +int OlderThanDays
+  +int AfterDays
 }
 class PurgeDepartedMembersCommandHandler {
-  +Handle(command: PurgeDepartedMembersCommand): Task<int>
+  +Handle(command: PurgeDepartedMembersCommand): Task<PurgeResult>
 }
 interface IPhotoStorage {
   +DeleteAsync(key: string): Task

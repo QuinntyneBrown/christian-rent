@@ -21,7 +21,8 @@ class Member {
   +bool IsAdmin
   +MemberStatus Status
   +DateTimeOffset JoinedAt
-  +{static} Join(name, church, now): Member
+  +string? SignInId
+  +{static} Join(signInId, name, church, now): Member
   +Verify(): void
   +Remove(): void
 }
@@ -34,6 +35,7 @@ class Church {
   +Guid Id
   +string Name
   +string City
+  +string MatchKey
   +bool IsVerified
   +{static} Enter(name, city): Church
   +Verify(): void
@@ -51,13 +53,24 @@ class JoinCommandValidator {
 class JoinCommandHandler {
   +Handle(command: JoinCommand): Task<MemberDto>
 }
+class ReviewItem {
+  +Guid Id
+  +ReviewItemKind Kind
+  +Guid SubjectId
+  +DateTimeOffset CreatedAt
+  +{static} ForNewMember(memberId, now): ReviewItem
+}
+class MemberClaimsTransformation {
+  +TransformAsync(principal): Task<ClaimsPrincipal>
+}
 interface ICurrentMember {
+  +string? SignInId
   +Guid? MemberId
   +bool IsMember
   +bool IsAdmin
 }
 class MemberGate <<Angular>> {
-  +requireMember(): Promise<boolean>
+  +requireMember(purpose): Promise<boolean>
 }
 interface Session <<TypeScript>> {
   +member: Signal<MemberSummary | null>
@@ -69,6 +82,8 @@ JoinCommandHandler ..> JoinCommand : handles
 JoinCommandValidator ..> JoinCommand : validates
 JoinCommandHandler --> Member : creates
 JoinCommandHandler --> Church : finds or creates
+JoinCommandHandler --> ReviewItem : adds
 JoinCommandHandler ..> ICurrentMember
+MemberClaimsTransformation ..> Member : finds by SignInId
 MemberGate ..> Session : reads
 @enduml

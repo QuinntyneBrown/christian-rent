@@ -23,6 +23,14 @@ public class ProbeApiFactory : ApiFactory
         return client;
     }
 
+    /// <summary>A person signed in by <paramref name="signInId"/>, member or not (ADR 0017).</summary>
+    public HttpClient CreateSignedInClient(string signInId)
+    {
+        var client = CreateHttpsClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.SignInHeader, signInId);
+        return client;
+    }
+
     protected override void ConfigureTestServices(IServiceCollection services)
     {
         services.AddControllers().AddApplicationPart(typeof(ProbeController).Assembly);

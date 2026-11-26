@@ -1,0 +1,105 @@
+<cr-dialog
+  titleId="join-title"
+  [title]="title"
+  descriptionId="join-description"
+  description="Browsing is open to anyone. To post, message or report, tell us who you are. What you’ve filled in is kept."
+  [closeDisabled]="busy()"
+  (closed)="notNow()"
+>
+  <form id="join-form" class="join-form" novalidate (submit)="submit($event)">
+    @if (store.status() === 'failed') {
+      <cr-alert
+        tone="danger"
+        [announce]="true"
+        title="You weren’t added."
+        text="We couldn’t reach christian.rent. What you entered is still here."
+      />
+    }
+    <cr-text-field
+      fieldId="join-name"
+      label="Your name"
+      name="name"
+      autocomplete="name"
+      [maxlength]="limits.name"
+      [value]="store.form().name"
+      (valueChange)="store.set('name', $event)"
+      [error]="store.errors().name"
+      [readonly]="busy()"
+    />
+    <cr-select
+      fieldId="join-church"
+      label="Your church"
+      name="church"
+      prompt="Choose a church"
+      [options]="churchOptions()"
+      [value]="store.form().church"
+      (valueChange)="store.set('church', $event)"
+      [error]="store.errors().church"
+      [disabled]="busy()"
+      [help]="
+        store.churchesState() === 'failed'
+          ? 'We couldn’t load the list of churches. Try again, or choose “My church isn’t listed” to enter yours.'
+          : null
+      "
+    >
+      @if (store.churchesState() === 'failed') {
+        <button
+          cr-button
+          variant="link"
+          type="button"
+          class="field__action join-form__retry"
+          (click)="store.loadChurches()"
+        >
+          Try again
+        </button>
+      }
+    </cr-select>
+    @if (store.isNewChurch()) {
+      <cr-field-row>
+        <cr-text-field
+          fieldId="join-church-name"
+          label="Church name"
+          name="church-name"
+          [maxlength]="limits.newChurchName"
+          [value]="store.form().newChurchName"
+          (valueChange)="store.set('newChurchName', $event)"
+          [error]="store.errors().newChurchName"
+          [readonly]="busy()"
+        />
+        <cr-text-field
+          fieldId="join-church-city"
+          label="City"
+          name="church-city"
+          [maxlength]="limits.newChurchCity"
+          [value]="store.form().newChurchCity"
+          (valueChange)="store.set('newChurchCity', $event)"
+          [error]="store.errors().newChurchCity"
+          [readonly]="busy()"
+        />
+      </cr-field-row>
+      <p class="join-form__note">An admin confirms a new church before it is shown as verified.</p>
+    }
+    <cr-checkbox
+      fieldId="join-declaration"
+      label="I am a Christian"
+      description="christian.rent is for Christians."
+      name="christian"
+      [checked]="store.form().declaresChristian"
+      (checkedChange)="store.set('declaresChristian', $event)"
+      [error]="store.errors().declaresChristian"
+      [disabled]="busy()"
+    />
+  </form>
+  <button
+    cr-button
+    slot="footer"
+    type="button"
+    [attr.aria-disabled]="busy() ? 'true' : null"
+    (click)="notNow()"
+  >
+    Not now
+  </button>
+  <button cr-button slot="footer" variant="primary" type="submit" form="join-form" [busy]="busy()">
+    {{ store.status() === 'failed' ? 'Try again' : 'Become a member' }}
+  </button>
+</cr-dialog>

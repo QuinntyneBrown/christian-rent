@@ -33,7 +33,7 @@ internal sealed partial class ProblemExceptionHandler : IExceptionHandler
     private static Microsoft.AspNetCore.Mvc.ProblemDetails ValidationFailed(ValidationException exception)
     {
         var codes = exception.Errors.Select(failure => failure.ErrorCode).Distinct(StringComparer.Ordinal).ToList();
-        var code = codes is [var only] && OwnCode().IsMatch(only) ? only : "validation_failed";
+        var code = codes is [{ } only] && OwnCode().IsMatch(only) ? only : "validation_failed";
         var problem = Problems.Create(StatusCodes.Status400BadRequest, code, "Check the fields");
         problem.Extensions["errors"] = exception.Errors
             .GroupBy(failure => JsonNamingPolicy.CamelCase.ConvertName(failure.PropertyName))

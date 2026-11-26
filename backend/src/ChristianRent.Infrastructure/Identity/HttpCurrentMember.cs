@@ -5,13 +5,18 @@ using Microsoft.AspNetCore.Http;
 namespace ChristianRent.Infrastructure.Identity;
 
 /// <summary>
-/// Reads the caller from the authenticated principal: the claim <c>member_id</c>, and the role
-/// <c>admin</c> (ADR 0005). Nobody is signed in until sign-in is designed.
+/// Reads the caller from the authenticated principal: the sign-in identifier <c>sub</c>, and the
+/// claim <c>member_id</c> and role <c>admin</c> that <see cref="MemberClaimsTransformation"/>
+/// adds for an active member (ADR 0005, ADR 0017). Nobody is signed in until sign-in is designed.
 /// </summary>
 public sealed class HttpCurrentMember(IHttpContextAccessor accessor) : ICurrentMember
 {
+    public const string SignInIdClaim = "sub";
     public const string MemberIdClaim = "member_id";
     public const string AdminRole = "admin";
+
+    public string? SignInId =>
+        accessor.HttpContext?.User.FindFirstValue(SignInIdClaim) is { Length: > 0 } id ? id : null;
 
     public Guid? MemberId =>
         Guid.TryParse(accessor.HttpContext?.User.FindFirstValue(MemberIdClaim), out var id) ? id : null;

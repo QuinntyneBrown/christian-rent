@@ -213,7 +213,8 @@
         "new-church",
         "busy",
         "invalid",
-        "failed"
+        "failed",
+        "churches-failed"
       ]
     },
     {
@@ -244,7 +245,13 @@
       ],
       "states": [
         "default"
-      ]
+      ],
+      "not_applicable": {
+        "info": "The error toast has one tone: it reports an unexpected error, and its default state is the danger tone. Other tones belong to the review toast.",
+        "success": "The error toast has one tone: it reports an unexpected error, and its default state is the danger tone. Other tones belong to the review toast.",
+        "warning": "The error toast has one tone: it reports an unexpected error, and its default state is the danger tone. Other tones belong to the review toast.",
+        "danger": "The error toast has one tone: it reports an unexpected error, and its default state is the danger tone. Other tones belong to the review toast."
+      }
     }
   ]
 }

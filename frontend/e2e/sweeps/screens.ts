@@ -10,6 +10,7 @@ import {
   page as listingsPage,
   wanted,
 } from '../fixtures/listings';
+import { CHURCHES, answerJoining } from '../fixtures/members';
 
 /** One screen in one state: what the API answers, and what a person does before it is looked at. */
 export interface Screen {
@@ -156,6 +157,71 @@ export const SCREENS: readonly Screen[] = [
     path: `/listings/${hall().id}`,
     answer: (api) => api.refuse('GET', `/api/listings/${hall().id}`, 404, 'not_found'),
   },
+  // The join dialog's states (docs/mocks/dialogs/join/), over the e2e build's host page.
+  {
+    name: 'join',
+    path: '/dev/member-gate',
+    answer: answerJoining,
+    then: openJoin,
+  },
+  {
+    name: 'join-new-church',
+    path: '/dev/member-gate',
+    answer: answerJoining,
+    then: async (page) => {
+      await openJoin(page);
+      await page.getByLabel('Your church').selectOption({ label: 'My church isn’t listed' });
+    },
+  },
+  {
+    name: 'join-invalid',
+    path: '/dev/member-gate',
+    answer: answerJoining,
+    then: async (page) => {
+      await openJoin(page);
+      await page.getByRole('button', { name: 'Become a member' }).click();
+    },
+  },
+  {
+    name: 'join-failed',
+    path: '/dev/member-gate',
+    answer: (api) => {
+      answerJoining(api);
+      api.refuse('POST', '/api/members', 503, 'unexpected');
+    },
+    then: async (page) => {
+      await openJoin(page);
+      await page.getByLabel('Your name').fill('Sarah Kim');
+      await page
+        .getByLabel('Your church')
+        .selectOption({ label: 'Grace Community Church, Langley' });
+      await page.getByRole('checkbox', { name: /I am a Christian/ }).check();
+      await page.getByRole('button', { name: 'Become a member' }).click();
+      await page.getByRole('alert').waitFor();
+    },
+  },
+  {
+    name: 'join-churches-failed',
+    path: '/dev/member-gate',
+    answer: (api) => {
+      answerJoining(api);
+      api.refuse('GET', '/api/churches', 503, 'unexpected');
+    },
+    then: async (page) => {
+      await page.getByRole('button', { name: 'Post', exact: true }).click();
+      await page.locator('#join-church-help').waitFor();
+    },
+  },
 ];
+
+/** Opens the join dialog from the host page and waits for its churches. */
+async function openJoin(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Post', exact: true }).click();
+  await page
+    .getByLabel('Your church')
+    .locator('option')
+    .nth(CHURCHES.length + 1)
+    .waitFor({ state: 'attached' });
+}
 
 export const WIDTHS = [320, 360, 576, 768, 992, 1200, 1440] as const;

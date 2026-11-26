@@ -8,6 +8,7 @@ import {
   many,
   page as listingsPage,
 } from '../fixtures/listings';
+import { answerJoining } from '../fixtures/members';
 import { expect, test } from '../fixtures/test';
 
 // AGENTS.md, Prove it: leaving a screen returns its memory. Enter and leave a screen many times
@@ -143,6 +144,29 @@ test('opening a listing and leaving it keeps the heap stable', async ({ page, ap
     await page.getByRole('button', { name: 'Photo 3 of 3', exact: true }).click();
     await allListings.click();
     await expect(heading).toHaveCount(0);
+  };
+
+  await roundTrip();
+  const before = await heapAfterGc();
+  for (let round = 0; round < ROUNDS; round++) {
+    await roundTrip();
+  }
+  const after = await heapAfterGc();
+
+  expect(after - before).toBeLessThan(ALLOWED_GROWTH_BYTES);
+});
+
+test('opening the join dialog and closing it keeps the heap stable', async ({ page, api }) => {
+  answerJoining(api);
+  const heapAfterGc = await heapMeter(page);
+  await page.goto('/dev/member-gate');
+  const dialog = page.getByRole('dialog');
+
+  const roundTrip = async () => {
+    await page.getByRole('button', { name: 'Post', exact: true }).click();
+    await page.getByLabel('Your church').selectOption({ label: 'My church isn’t listed' });
+    await page.getByRole('button', { name: 'Not now' }).click();
+    await expect(dialog).toHaveCount(0);
   };
 
   await roundTrip();

@@ -23,9 +23,10 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: `npx ng serve rent --port ${port}`,
+    // The e2e build adds the host pages of ADR 0018; no other build has them.
+    command: `npx ng serve rent --configuration e2e --port ${port}`,
     url: `http://localhost:${port}`,
     reuseExistingServer: !process.env['CI'],
-    timeout: 120_000,
+    timeout: 240_000,
   },
 });

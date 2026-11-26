@@ -30,7 +30,7 @@ box "Backend — ChristianRent.Infrastructure" #FFF4E5
 end box
 actor -> ctrl : DELETE /api/members/me
 ctrl -> del : Send DeleteMembershipCommand
-del -> member : Depart(now), Status = Departed
+del -> member : Depart(now): Status = Departed, sign-in unlinked
 del -> db : Save
 del --> ctrl : Done
 ctrl --> actor : 204; listings and photos are no longer public (L2-028)
@@ -38,8 +38,8 @@ ctrl --> actor : 204; listings and photos are no longer public (L2-028)
 cli -> purge : Send PurgeDepartedMembersCommand
 purge -> db : Members departed longer than the configured days
 db --> purge : Members
-purge -> member : Anonymize()
+purge -> member : Anonymize(now)
 purge -> files : Delete the member's photo files
-purge -> db : Delete listings, clear sent message text, save
+purge -> db : Delete listings, save
 purge --> cli : Count purged, within 30 days of leaving (L2-028)
 @enduml

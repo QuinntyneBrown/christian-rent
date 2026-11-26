@@ -19,6 +19,12 @@ public sealed class MemoryPhotoStorage : IPhotoStorage
         Saves++;
     }
 
+    public Task DeleteAsync(string key, CancellationToken cancellationToken)
+    {
+        Files.Remove(key);
+        return Task.CompletedTask;
+    }
+
     public Task<Stream?> OpenReadAsync(string key, CancellationToken cancellationToken) =>
         Task.FromResult<Stream?>(Files.TryGetValue(key, out var bytes) ? new MemoryStream(bytes) : null);
 }

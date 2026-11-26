@@ -23,6 +23,14 @@ export class ApiFixtures {
   readonly unanswered: string[] = [];
   /** Every API request, in order, as `METHOD path?query`. */
   readonly requests: string[] = [];
+  /** The body of every request that sent one, by `METHOD path`, in order. */
+  readonly bodies = new Map<string, unknown[]>();
+
+  constructor() {
+    // Every screen asks who is signed in when the app starts (ADR 0017). Unless a spec says
+    // otherwise, nobody signed in is a member.
+    this.answer('GET', '/api/members/me', { status: 204 });
+  }
 
   /** Answers `method path` (path without the query string), for example `GET /api/listings`. */
   answer(method: string, path: string, answer: ApiAnswer | ApiResponder): void {
@@ -62,6 +70,10 @@ export class ApiFixtures {
     const url = new URL(request.url());
     const key = `${request.method()} ${url.pathname}`;
     this.requests.push(`${request.method()} ${url.pathname}${url.search}`);
+    const body = request.postData();
+    if (body !== null) {
+      this.bodies.set(key, [...(this.bodies.get(key) ?? []), JSON.parse(body) as unknown]);
+    }
     await this.held.get(key);
     const answer = this.answers.get(key)?.(url);
     if (!answer) {

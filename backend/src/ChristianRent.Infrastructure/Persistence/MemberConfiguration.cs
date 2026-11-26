@@ -16,6 +16,9 @@ internal sealed class MemberConfiguration : IEntityTypeConfiguration<Member>
         builder.Property(member => member.IsVerified).IsRequired();
         builder.Property(member => member.Status).HasConversion<string>().HasMaxLength(16).IsRequired();
         builder.Property(member => member.JoinedAt).IsRequired();
+        builder.Property(member => member.IsAdmin).IsRequired();
+        builder.Property(member => member.SignInId).HasMaxLength(Member.MaxSignInIdLength);
+        builder.HasIndex(member => member.SignInId).IsUnique();
         builder.HasOne<Church>().WithMany().HasForeignKey(member => member.ChurchId).OnDelete(DeleteBehavior.Restrict);
     }
 }

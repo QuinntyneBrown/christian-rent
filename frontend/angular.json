@@ -53,6 +53,17 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "e2e": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "projects/rent/src/app/dev-routes.ts",
+                  "with": "projects/rent/src/app/dev-routes.e2e.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -65,6 +76,9 @@
             },
             "development": {
               "buildTarget": "rent:build:development"
+            },
+            "e2e": {
+              "buildTarget": "rent:build:e2e"
             }
           },
           "defaultConfiguration": "development",

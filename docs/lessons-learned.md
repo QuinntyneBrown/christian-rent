@@ -36,6 +36,10 @@ Each journey's entry has three parts:
 | L20 | A spec that passes on its first run because an earlier slice already built the code is proved by mutation in the same slice: break the rule it names and watch that spec, and only that spec, fail. | 4 |
 | L21 | A Playwright `has:` locator is relative to the element it filters; build it from the element (or write `:has(...)` in the selector), never from the page or the root. | 4 |
 | L22 | Before reusing a design-system rule in a component, check it with the longest content the edge mock draws: `aspect-ratio` beside an explicit `min-height` clips text, and an image whose ratio differs from its box needs `NgOptimizedImage`'s `fill`. | 4 |
+| L23 | After adding a dynamic import of a package the running dev server has not seen, restart the server or rerun before reading a failure: Vite optimises the new dependency at runtime and reloads the page in the middle of a spec. | 5 |
+| L24 | A request every screen makes at start (such as `GET /api/members/me`) gets a default answer in `ApiFixtures`' constructor, which a spec overrides; L9 at the level of the shared fixture. | 5 |
+| L25 | Generated content (`::before`) is part of an accessible name and description: a decorative sign gets an empty alternative (`content: '⚠' / ''`), and specs check descriptions with `toHaveAccessibleDescription`. | 5 |
+| L26 | Playwright treats `aria-disabled` as not enabled, so a spec proves that a busy control ignores presses with `dispatchEvent('click')`; geometry of an animated panel is measured with reduced motion emulated. | 5 |
 
 ## Journeys
 
@@ -267,3 +271,73 @@ Slices 4.1 to 4.4, finished on Nov 26, 2026.
   now ADR 0016, and its lessons L19 to L22.
 - CI's newer SDK failed the backend job on journey 1's unused `using`, which `main` had since
   removed; after the rebase CI's result was read before calling the journey done.
+
+### 5. Become a member
+
+Slices 5.1 to 5.4, finished on Nov 26, 2026.
+
+**What slowed it**
+
+- The container again had no .NET SDK, PlantUML or Graphviz; Ubuntu's packages installed them.
+- The design left the identification of a person, the city's limit, how a church is matched,
+  the dialog's title for a message or a report, and churches that fail to load open. ADR 0017
+  and ADR 0018 decide them; L2-017 gained criteria 13 to 15 and L2-025 criteria 1 and 5 were
+  made exact, and `dialogs/join/churches-failed.html` was drawn, all before any code (L2).
+- The mocks' checker requires one `h1` per mock, so a dialog's title stays the mock's `h1`; the
+  app's is an `h2`, as the design system says, and the mocks' README records why.
+- Nothing calls `MemberGate` until journeys 6, 8 and 9. A host page that only the `e2e` build
+  contains (a file replacement, ADR 0018) drives it; Playwright now serves that build.
+- A cold `ng serve` took longer than Playwright's 120 s; the web server now has 240 s.
+- The first run against a warm server failed two specs because Vite optimised
+  `@angular/cdk/dialog` and reloaded the page mid-spec (L23).
+- A handler-raised `ValidationException` without an error code made `ProblemExceptionHandler`
+  throw; it now treats a missing code as `validation_failed`.
+- The error's "⚠" was read as part of each field's description (L25); the design system's rule
+  and the component's both give it an empty alternative now.
+- The initial bundle went 165 bytes over ADR 0014's 315 kB warning. Comparing the build stats
+  with the last commit (L11) showed the session at start (+2.5 kB), including `HttpChurchesApi`,
+  which only the lazy dialog needs; in its own file it left the initial chunk: 314.85 kB, no
+  budget raised. The next journey that grows the initial chunk needs an ADR for the budget.
+- The join dialog was built with all its states in one step, so the states spec passed on its
+  first run; each rule was proved by mutation instead (L20). The unit tests of the five new
+  components, `JoinStore`, `AppSession` and the HTTP clients were written after their code and
+  passed at once; the domain rule's were seen to fail first, as was every backend test.
+
+**New lessons**: L23 to L26 above, and these details for later slices:
+
+- `IClaimsTransformation` turns a signed-in `sub` into the active member's `member_id` once per
+  request, so handlers keep reading `ICurrentMember` and `RequireMember()` gives
+  `not_a_member`.
+- The CDK `Dialog` takes a CSS selector for `autoFocus` (`'#join-name'`) and returns focus by
+  itself; `cr-dialog` draws its own backdrop and covers the viewport, so the CDK needs no global
+  CSS and draws no backdrop.
+- A dialog that must not close while busy sets `DialogRef.disableClose` from an effect.
+- A command-line command that reads a setting validates it through the command's validator and
+  answers exit code 1 with the setting's name.
+
+**Earlier lessons applied**
+
+- L1: `main` was fetched first and had not moved.
+- L2: the churches-failed state had no mock and the dialog's title by purpose no criterion;
+  both came before the code.
+- L3 and L20: the claims transformation, the review item, the church key, `disableClose`, the
+  focus on the first invalid field and the session's refresh were each removed and the specs
+  that name them seen to fail, and only those.
+- L4: every commit followed a green run whose counts were read: 192 backend tests and 83
+  behaviour specs at the end.
+- L6: `MSBUILDDISABLENODEREUSE=1` held; the dev server started for the slices was stopped
+  before `verify.mjs`.
+- L8: the dialog composes six new components (`cr-dialog`, `cr-text-field`, `cr-select`,
+  `cr-checkbox`, `cr-alert`, `cr-field-row`), each with its own tests; it writes no
+  design-system class but `field__action` on its retry button.
+- L9 and L24: `GET /api/members/me`, which every screen now asks, is answered 204 by default
+  in the shared fixture, so no existing spec changed.
+- L10: the join dialog's page object names "Close" and "Post" with `exact: true`.
+- L11: see above; the initial chunk is 314.85 kB.
+- L12: the dialog's rules are `validateJoinForm` and `toJoinRequest` in `@rent/domain`, with a
+  test per case.
+- L13: the sweeps visit the dialog's five states, and a heap check opens and closes it 20 times;
+  none was run.
+- L16: the church key uses `SearchNormalizer`, with ICU on; its test has accents on both sides.
+- L19: the join specs were run 5 times each, 80 of 80 green.
+

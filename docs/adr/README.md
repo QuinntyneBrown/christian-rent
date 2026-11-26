@@ -15,7 +15,7 @@ record giving its reason (`AGENTS.md`, *Prefer best practice*).
 | [0002](0002-backend-layers-and-cli.md) | The backend is four layers plus `ChristianRent.Cli`, which alone migrates and seeds | Accepted |
 | [0003](0003-database-engine.md) | PostgreSQL for development and the first migration; the production service is open | Open |
 | [0004](0004-file-storage.md) | Photos behind `IPhotoStorage`, on local disk in development; the production product is open | Open |
-| [0005](0005-authentication-seam.md) | An authentication seam that signs nobody in until sign-in is designed | Accepted |
+| [0005](0005-authentication-seam.md) | An authentication seam that signs nobody in until sign-in is designed | Accepted; extended by 0017 |
 | [0006](0006-bundle-budgets.md) | The `angular.json` budget values | Accepted; values superseded by 0014 |
 | [0007](0007-test-approach.md) | Tests use fixtures, EF Core InMemory and fake clocks, never a real backend, database or sleep | Accepted |
 | [0008](0008-ci-scope.md) | CI runs lint, the builds and one acceptance path per feature, in under 5 minutes | Accepted |
@@ -27,3 +27,5 @@ record giving its reason (`AGENTS.md`, *Prefer best practice*).
 | [0014](0014-bundle-budgets-after-browse.md) | The initial budget after Browse: 315 kB warning, 330 kB error | Accepted |
 | [0015](0015-search-matching-and-browse-query.md) | A search matches every word in a listing's normalised text; Browse's address holds `show`, `kind` and `q` | Accepted |
 | [0016](0016-listing-screen-open-decisions.md) | The Listing screen: area without distance, a gallery of one photo or none, the fallback text alternative, "Posted", the avatar, the price in the message box's head, and the title | Accepted |
+| [0017](0017-identifying-a-person-until-sign-in.md) | A signed-in person is a `sub` claim; joining stores it on `Member` and no sign-in screen is built | Accepted |
+| [0018](0018-joining-open-decisions.md) | Joining: how a new church is matched, the limits, the dialog's title by purpose, churches that fail to load, and the gate's host page | Accepted |

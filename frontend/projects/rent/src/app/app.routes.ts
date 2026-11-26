@@ -1,4 +1,5 @@
 import type { Routes } from '@angular/router';
+import { devRoutes } from './dev-routes';
 
 /**
  * Every route is lazy (L2-029, criterion 2). Post and Admin are added by their journeys.
@@ -16,6 +17,7 @@ export const routes: Routes = [
     title: 'Listing',
     loadChildren: () => import('./pages/listing/listing.routes'),
   },
+  ...devRoutes,
   {
     path: '**',
     title: 'Page not found',
