@@ -27,6 +27,14 @@ public static class ListingWords
         _ => throw new ArgumentOutOfRangeException(nameof(kind)),
     };
 
+    /// <summary>The kind a word names, or null when it names none; the words are exact.</summary>
+    public static ListingKind? KindOf(string? word) => word switch
+    {
+        "space" => ListingKind.Space,
+        "thing" => ListingKind.Thing,
+        _ => null,
+    };
+
     public static string Of(PricePeriod period) => period switch
     {
         PricePeriod.Hour => "hour",

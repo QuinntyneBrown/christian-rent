@@ -22,6 +22,11 @@ internal sealed class BrowseListingsQueryHandler(IAppDbContext database) : IRequ
             listings = listings.Where(listing => listing.SearchText.Contains(word));
         }
 
+        if (ListingWords.KindOf(query.Kind) is { } kind)
+        {
+            listings = listings.Where(listing => listing.Kind == kind);
+        }
+
         var counted = listings;
         if (ListingWords.OfferOf(query.Show) is { } offer)
         {

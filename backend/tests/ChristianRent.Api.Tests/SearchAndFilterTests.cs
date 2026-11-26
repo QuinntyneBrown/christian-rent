@@ -156,6 +156,39 @@ public sealed class SearchAndFilterTests : IDisposable
         Assert.Equal(JsonValueKind.Null, second.GetProperty("nextCursor").ValueKind);
     }
 
+    // L2-035 criteria 1 to 3: spaces, things or both, together with the switch and the term;
+    // the counts are those of the kind and the term.
+    [Theory]
+    [InlineData("?kind=space", new[] { "Parking space near church", "Fellowship hall" }, 2, 2, 0)]
+    [InlineData("?kind=thing", new[] { "Folding chairs" }, 1, 0, 1)]
+    [InlineData("?kind=space&show=wanted", new string[0], 2, 2, 0)]
+    [InlineData("?kind=space&q=gymnasium", new[] { "Fellowship hall" }, 1, 1, 0)]
+    public async Task The_kind_filter_applies_with_the_switch_and_the_term(string query, string[] titles, int everything, int forRent, int wanted)
+    {
+        await SeedCastAsync();
+        using var client = _factory.CreateHttpsClient();
+
+        var page = await GetAsync(client, $"/api/listings{query}");
+
+        Assert.Equal(titles, Titles(page));
+        AssertCounts(page, everything, forRent, wanted);
+    }
+
+    // L2-026 criterion 2: a kind the filter does not have is refused.
+    [Theory]
+    [InlineData("all")]
+    [InlineData("spaces")]
+    [InlineData("SPACE")]
+    public async Task A_kind_the_filter_does_not_have_is_refused(string kind)
+    {
+        using var client = _factory.CreateHttpsClient();
+
+        using var response = await client.GetAsync($"/api/listings?kind={Uri.EscapeDataString(kind)}", TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("kind_invalid", (await Problem.ReadAsync(response)).Code);
+    }
+
     private async Task SeedCastAsync()
     {
         await _factory.SeedAsync(

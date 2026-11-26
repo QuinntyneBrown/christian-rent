@@ -15,6 +15,7 @@
   />
   <div class="filters">
     <cr-segmented label="Show" [options]="switchOptions()" />
+    <cr-kind-filter [kind]="query().kind" (kindChange)="kindChanged($event)" />
   </div>
   <p class="visually-hidden" role="status" aria-live="polite">{{ store.announcement() }}</p>
   @switch (store.state()) {

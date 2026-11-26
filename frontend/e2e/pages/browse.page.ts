@@ -31,6 +31,9 @@ export class BrowsePage {
   readonly switch: Locator;
   readonly switchOptions: Locator;
   readonly switchCurrent: Locator;
+  /** The kind filter: All, Spaces and Things, each a toggle button. */
+  readonly kindFilter: Locator;
+  readonly kindPressed: Locator;
   /** The search bar: the field, the area as text, and Search. */
   readonly searchBar: Locator;
   readonly searchField: Locator;
@@ -66,6 +69,8 @@ export class BrowsePage {
     this.switch = this.main.getByRole('navigation', { name: 'Show', exact: true });
     this.switchOptions = this.switch.locator('a.segmented__option');
     this.switchCurrent = this.switch.locator('a.segmented__option[aria-current="true"]');
+    this.kindFilter = this.main.getByRole('group', { name: 'Kind', exact: true });
+    this.kindPressed = this.kindFilter.locator('button[aria-pressed="true"]');
     this.searchBar = this.main.getByRole('search');
     this.searchField = this.searchBar.getByRole('searchbox', {
       name: 'Search listings',
@@ -73,6 +78,11 @@ export class BrowsePage {
     });
     this.searchButton = this.searchBar.getByRole('button', { name: 'Search', exact: true });
     this.searchArea = this.searchBar.locator('.search-bar__near');
+  }
+
+  /** The kind filter's option named `name`. */
+  kindOption(name: 'All' | 'Spaces' | 'Things'): Locator {
+    return this.kindFilter.getByRole('button', { name, exact: true });
   }
 
   /** Types a term as a person does, a key at a time. */

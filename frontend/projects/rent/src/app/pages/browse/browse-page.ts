@@ -20,6 +20,8 @@ import {
   FeedStatus,
   Hero,
   Icon,
+  KindFilter,
+  type KindChoice,
   ListingCard,
   ListingGrid,
   SearchBar,
@@ -42,7 +44,8 @@ const SWITCH: readonly { offer: BrowseOffer; label: string }[] = [
 
 /**
  * Browse, the home screen (browse-listings and search-and-filter designs): the headline with
- * the two buttons that lead to posting, the search bar, the switch, and approved listings, newest first, loaded
+ * the two buttons that lead to posting, the search bar, the switch, the kind filter, and approved
+ * listings, newest first, loaded
  * a page at a time as the person reaches the end of the list (L2-006). The address is the
  * single source of the choice: the page reads a `BrowseQuery` from its query parameters and the
  * store shows it (L2-002, criterion 5; ADR 0015). One `IntersectionObserver` watches a sentinel
@@ -57,6 +60,7 @@ const SWITCH: readonly { offer: BrowseOffer; label: string }[] = [
     FeedStatus,
     Hero,
     Icon,
+    KindFilter,
     ListingCard,
     ListingGrid,
     NgTemplateOutlet,
@@ -134,6 +138,11 @@ export class BrowsePage {
   /** Typing writes the term to the address; the store waits for typing to pause (L2-003). */
   protected typed(term: string): void {
     this.show(this.query().withTerm(term));
+  }
+
+  /** Spaces, Things or All, kept in the address with the switch and the term (L2-035). */
+  protected kindChanged(kind: KindChoice): void {
+    this.show(this.query().withKind(kind));
   }
 
   /** Enter or Search searches the term at once (L2-003, criterion 6). */

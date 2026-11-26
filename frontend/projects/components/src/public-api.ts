@@ -6,6 +6,7 @@ export * from './lib/empty-state/empty-state';
 export * from './lib/feed-status/feed-status';
 export * from './lib/hero/hero';
 export * from './lib/icon/icon';
+export * from './lib/kind-filter/kind-filter';
 export * from './lib/listing-card/listing-card';
 export * from './lib/listing-grid/listing-grid';
 export * from './lib/logo/logo';
