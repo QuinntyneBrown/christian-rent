@@ -57,7 +57,7 @@ export function toReportDialogCopy(
     case 'already':
       return {
         title: 'You’ve already reported this listing.',
-        description: `Your report from ${formatReportDate(reportedAt ?? '')} is with an admin. There’s no need to send it again.`,
+        description: `You reported this listing on ${formatReportDate(reportedAt ?? '')}. There’s no need to send it again.`,
       };
   }
 }
