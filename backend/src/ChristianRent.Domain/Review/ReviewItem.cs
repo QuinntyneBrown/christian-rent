@@ -2,7 +2,8 @@ namespace ChristianRent.Domain.Review;
 
 /// <summary>
 /// One entry of the review queue, pointing at its subject by <see cref="Kind"/> and
-/// <see cref="SubjectId"/> (view-review-queue design). Journey 11 adds the decision.
+/// <see cref="SubjectId"/> (view-review-queue design). An admin ends its wait with one decision,
+/// which stands (decide-review-item design); an item is never deleted for being decided.
 /// </summary>
 public sealed class ReviewItem
 {
@@ -22,6 +23,41 @@ public sealed class ReviewItem
     public Guid SubjectId { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
+
+    /// <summary>What an admin decided; null while the item waits.</summary>
+    public ReviewDecision? Decision { get; private set; }
+
+    /// <summary>The admin who decided; with <see cref="DecidedAt"/> and <see cref="Decision"/>, the record (L2-020, criterion 6).</summary>
+    public Guid? DecidedBy { get; private set; }
+
+    public DateTimeOffset? DecidedAt { get; private set; }
+
+    /// <summary>Raised by each change; the concurrency token that guards a decision (ADR 0026).</summary>
+    public int Version { get; private set; }
+
+    /// <summary>What may be decided about an item of a kind: the decision table (L2-020).</summary>
+    public static IReadOnlyList<ReviewDecision> AllowedDecisions(ReviewItemKind kind) => kind switch
+    {
+        ReviewItemKind.Report => [ReviewDecision.Keep, ReviewDecision.Remove],
+        _ => [ReviewDecision.Approve, ReviewDecision.Remove],
+    };
+
+    /// <summary>
+    /// Records who decided what and when (L2-020, criterion 6), once: a second decision raises
+    /// <see cref="AlreadyDecidedException"/> and the first stands (criterion 5).
+    /// </summary>
+    public void Decide(ReviewDecision decision, Guid adminId, DateTimeOffset now)
+    {
+        if (Decision is not null)
+        {
+            throw new AlreadyDecidedException();
+        }
+
+        Decision = decision;
+        DecidedBy = adminId;
+        DecidedAt = now;
+        Version++;
+    }
 
     /// <summary>An item with a known identifier, as seed data enters them.</summary>
     public static ReviewItem Create(Guid id, ReviewItemKind kind, Guid subjectId, DateTimeOffset createdAt) =>

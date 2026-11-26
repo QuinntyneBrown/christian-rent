@@ -27,4 +27,9 @@ public sealed class ReviewQueueController(ISender sender) : ControllerBase
     [HttpGet("{id}")]
     public Task<ReviewItemDetailDto> Get(string id, CancellationToken cancellationToken) =>
         sender.Send(new GetReviewItemQuery(id), cancellationToken);
+
+    /// <summary>The admin decides the item; the answer names every item that closed (L2-020).</summary>
+    [HttpPost("{id}/decision")]
+    public Task<DecidedDto> Decide(string id, DecisionRequest request, CancellationToken cancellationToken) =>
+        sender.Send(new DecideReviewItemCommand(id, request.Decision, request.Version), cancellationToken);
 }

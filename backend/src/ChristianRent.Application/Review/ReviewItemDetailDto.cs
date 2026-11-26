@@ -4,7 +4,8 @@ namespace ChristianRent.Application.Review;
 
 /// <summary>
 /// One waiting review item in full (view-review-queue design). <c>Kind</c> says which one of
-/// <c>Listing</c>, <c>Report</c> and <c>Member</c> is set; the others are null.
+/// <c>Listing</c>, <c>Report</c> and <c>Member</c> is set; the others are null. A decision sends
+/// <c>Version</c> back, and is one of <c>AllowedDecisions</c> (decide-review-item design).
 /// </summary>
 public sealed record ReviewItemDetailDto(
     Guid Id,
@@ -12,7 +13,9 @@ public sealed record ReviewItemDetailDto(
     DateTimeOffset WaitingSince,
     ReviewListingDto? Listing,
     ReportDetailDto? Report,
-    NewMemberDetailDto? Member);
+    NewMemberDetailDto? Member,
+    int Version,
+    IReadOnlyList<string> AllowedDecisions);
 
 /// <summary>
 /// A listing as an admin decides on it (L2-019, criteria 7 and 15): every field, every photo in
