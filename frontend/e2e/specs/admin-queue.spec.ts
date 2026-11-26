@@ -56,8 +56,8 @@ test.describe('The review queue', () => {
     await expect(admin.reviewLink).toHaveAttribute('aria-current', 'page');
     await expect(admin.waitingCount).toHaveText('4');
     await expect(admin.backToSite).toHaveAttribute('href', '/');
-    // Deciding comes with its own journey: nothing here changes what waits.
-    await expect(admin.detailControls).toHaveCount(0);
+    // A new listing is only approved or removed: nothing else is offered.
+    await expect(admin.detailControls).toHaveText(['Approve', 'Remove']);
     await expect(admin.phoneNote).toBeHidden();
   });
 

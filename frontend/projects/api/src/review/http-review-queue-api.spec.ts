@@ -42,6 +42,17 @@ describe('HttpReviewQueueApi', () => {
     await expect(item).resolves.toEqual({ id: 'a/b' });
   });
 
+  it('sends a decision with the version of the item it was made on', async () => {
+    const decided = api.decide('a/b', 'keep', 3, new AbortController().signal);
+
+    const sent = http.expectOne('/api/review-queue/a%2Fb/decision');
+    expect(sent.request.method).toBe('POST');
+    expect(sent.request.body).toEqual({ decision: 'keep', version: 3 });
+    sent.flush({ closedItemIds: ['a/b'] });
+
+    await expect(decided).resolves.toEqual({ closedItemIds: ['a/b'] });
+  });
+
   // Lesson L33: the abort is observed on the request itself.
   it('cancels the request in flight when it is aborted', async () => {
     const abort = new AbortController();

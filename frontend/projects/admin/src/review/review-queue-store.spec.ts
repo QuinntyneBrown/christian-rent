@@ -1,11 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import {
   REVIEW_QUEUE_API,
+  type ReviewDecided,
+  type ReviewDecision,
   type ReviewItemDetail,
   type ReviewItemSummary,
   type ReviewQueuePage,
 } from '@rent/api';
 import { PAGE_SIZE, ReviewQueueStore, SKELETON_DELAY_MS, WINDOW_PAGES } from './review-queue-store';
+import { ToastQueue } from './toast-queue';
 
 /** A request the test answers, with the signal it was given. */
 interface Asked<T> {
@@ -18,6 +21,7 @@ interface Asked<T> {
 export function fakeApi() {
   const pages: Asked<ReviewQueuePage>[] = [];
   const items: Asked<ReviewItemDetail>[] = [];
+  const decisions: Asked<ReviewDecided>[] = [];
   const ask = <T>(into: Asked<T>[], about: string | null, signal: AbortSignal) =>
     new Promise<T>((resolve, reject) => {
       signal.addEventListener('abort', () => reject(new DOMException('', 'AbortError')));
@@ -40,9 +44,12 @@ export function fakeApi() {
   return {
     pages,
     items,
+    decisions,
     api: {
       page: (cursor: string | null, signal: AbortSignal) => ask(pages, cursor, signal),
       item: (id: string, signal: AbortSignal) => ask(items, id, signal),
+      decide: (id: string, decision: ReviewDecision, version: number, signal: AbortSignal) =>
+        ask(decisions, `${id} ${decision} ${version}`, signal),
     },
   };
 }
@@ -64,7 +71,7 @@ export function page(
   nextCursor: string | null = null,
   waitingCount = ids.length,
 ): ReviewQueuePage {
-  return { items: ids.map(row), nextCursor, waitingCount };
+  return { items: ids.map(row), nextCursor, waitingCount, asOf: '2026-06-08T19:00:00Z' };
 }
 
 export function detail(id: string): ReviewItemDetail {
@@ -72,6 +79,8 @@ export function detail(id: string): ReviewItemDetail {
     id,
     kind: 'new-listing',
     waitingSince: '2026-06-08T16:00:00Z',
+    version: 0,
+    allowedDecisions: ['approve', 'remove'],
     report: null,
     member: null,
     listing: {
@@ -105,7 +114,7 @@ describe('ReviewQueueStore', () => {
     vi.setSystemTime(new Date('2026-06-08T19:00:00Z'));
     fake = fakeApi();
     TestBed.configureTestingModule({
-      providers: [ReviewQueueStore, { provide: REVIEW_QUEUE_API, useValue: fake.api }],
+      providers: [ReviewQueueStore, ToastQueue, { provide: REVIEW_QUEUE_API, useValue: fake.api }],
     });
     store = TestBed.inject(ReviewQueueStore);
   });
@@ -385,5 +394,145 @@ describe('ReviewQueueStore', () => {
 
     expect(fake.pages[1]!.signal.aborted).toBe(true);
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  /** The queue loaded, with the detail of the item selected. */
+  async function showing(ids = ['a', 'b', 'c'], selected = ids[0]!): Promise<void> {
+    await loaded(ids);
+    store.select(selected);
+    await fake.items.at(-1)!.answer(detail(selected));
+  }
+
+  const titles = () =>
+    TestBed.inject(ToastQueue)
+      .toasts()
+      .map((toast) => toast.title);
+  const idsHeld = () => store.items().map((item) => item.id);
+
+  // L2-020 criteria 11 and 15.
+  it('drops a decided item, says so, and selects the one that followed it', async () => {
+    await showing(['a', 'b', 'c'], 'b');
+
+    const outcome = store.decide('approve');
+    expect(fake.decisions[0]!.about).toBe('b approve 0');
+    await fake.decisions[0]!.answer({ closedItemIds: ['b'] });
+
+    await expect(outcome).resolves.toBe('done');
+    expect(idsHeld()).toEqual(['a', 'c']);
+    expect(store.waitingCount()).toBe(2);
+    expect(store.selectedId()).toBe('c');
+    expect(fake.items.at(-1)!.about).toBe('c');
+    expect(titles()).toEqual(['Approved']);
+  });
+
+  it('selects the one before when the last is decided', async () => {
+    await showing(['a', 'b'], 'b');
+
+    void store.decide('approve');
+    await fake.decisions[0]!.answer({ closedItemIds: ['b'] });
+
+    expect(store.selectedId()).toBe('a');
+  });
+
+  // Removing a reported listing closes every item about it.
+  it('drops every item the decision closed and selects the next that stays', async () => {
+    await showing(['a', 'b', 'c', 'd'], 'b');
+
+    void store.decide('remove');
+    await fake.decisions[0]!.answer({ closedItemIds: ['b', 'c', 'elsewhere'] });
+
+    expect(idsHeld()).toEqual(['a', 'd']);
+    expect(store.waitingCount()).toBe(1);
+    expect(store.selectedId()).toBe('d');
+  });
+
+  it('keeps the item the admin selected while the decision was on its way', async () => {
+    await showing(['a', 'b', 'c'], 'a');
+
+    void store.decide('approve');
+    store.select('c');
+    await fake.decisions[0]!.answer({ closedItemIds: ['a'] });
+
+    expect(store.selectedId()).toBe('c');
+    expect(idsHeld()).toEqual(['b', 'c']);
+  });
+
+  it('is all caught up once the last item is decided', async () => {
+    await showing(['a']);
+
+    void store.decide('approve');
+    await fake.decisions[0]!.answer({ closedItemIds: ['a'] });
+
+    expect(store.state()).toBe('empty');
+    expect(store.selectedId()).toBeNull();
+    expect(store.detailState()).toBe('none');
+  });
+
+  it('reads the queue again when the rows held run out while more wait', async () => {
+    store.showDetail(true);
+    void store.load();
+    await fake.pages[0]!.answer(page(['a'], 'next', 2));
+    await fake.items[0]!.answer(detail('a'));
+
+    void store.decide('approve');
+    await fake.decisions[0]!.answer({ closedItemIds: ['a'] });
+
+    expect(fake.pages.map((asked) => asked.about)).toEqual([null, null]);
+    expect(store.state()).toBe('loading');
+  });
+
+  // L2-020 criterion 16.
+  it('has one decision in flight at a time', async () => {
+    await showing();
+
+    void store.decide('approve');
+    expect(store.deciding()).toEqual({ id: 'a', decision: 'approve' });
+    await expect(store.decide('remove')).resolves.toBe('ignored');
+    await fake.decisions[0]!.answer({ closedItemIds: ['a'] });
+
+    expect(fake.decisions).toHaveLength(1);
+    expect(store.deciding()).toBeNull();
+  });
+
+  it('decides nothing while no detail is shown', async () => {
+    await loaded();
+
+    await expect(store.decide('approve')).resolves.toBe('ignored');
+
+    expect(fake.decisions).toEqual([]);
+  });
+
+  it('aborts a decision on its way when the admin leaves', async () => {
+    await showing();
+    void store.decide('approve');
+
+    TestBed.resetTestingModule();
+
+    expect(fake.decisions[0]!.signal.aborted).toBe(true);
+  });
+
+  it('asks again for a next page that was on its way when a decision was made', async () => {
+    store.showDetail(true);
+    void store.load();
+    await fake.pages[0]!.answer(page(['a', 'b'], 'next', 3));
+    await fake.items[0]!.answer(detail('a'));
+    void store.loadMore('down', () => 0);
+
+    void store.decide('approve');
+    await fake.decisions[0]!.answer({ closedItemIds: ['a'] });
+
+    expect(fake.pages[1]!.signal.aborted).toBe(true);
+    expect(store.moreState()).toBe('idle');
+    expect(store.nextCount()).toBe(1);
+  });
+
+  // After decisions the pages no longer end where they did, so one asked again can overlap.
+  it('shows no item twice when a page asked again overlaps one still held', async () => {
+    void store.load();
+    await fake.pages[0]!.answer(page(['a', 'b'], 'next', 4));
+    void store.loadMore('down', () => 0);
+    await fake.pages[1]!.answer(page(['b', 'c'], null, 3));
+
+    expect(idsHeld()).toEqual(['a', 'b', 'c']);
   });
 });

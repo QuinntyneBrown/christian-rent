@@ -58,13 +58,25 @@
         </div>
       }
     </dl>
-    @if (view.type === 'listing' && view.siteHref; as href) {
-      <div class="decision-bar">
+    <div class="decision-bar">
+      @for (choice of view.decisions; track choice.decision) {
+        <button
+          cr-button
+          type="button"
+          [variant]="choice.decision === 'remove' ? 'danger-quiet' : 'success'"
+          [busy]="deciding() === choice.decision"
+          [disabled]="off() && deciding() !== choice.decision"
+          (click)="decide.emit(choice.decision)"
+        >
+          <cr-icon [name]="choice.decision === 'remove' ? 'x' : 'check'" />{{ choice.label }}
+        </button>
+      }
+      @if (view.type === 'listing' && view.siteHref; as href) {
         <a class="decision-bar__view" [routerLink]="href"
           >View on site <cr-icon name="external" size="sm"
         /></a>
-      </div>
-    }
+      }
+    </div>
   </div>
 } @else {
   <div class="review review--loading" aria-hidden="true">

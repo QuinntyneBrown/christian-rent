@@ -68,7 +68,7 @@ test.describe('The detail of a review item', () => {
       'Public since: Jun 6, 2026',
     ]);
     await expect(admin.viewOnSite).toHaveAttribute('href', `/listings/${PARTY_BUS_LISTING.id}`);
-    await expect(admin.detailControls).toHaveCount(1);
+    await expect(admin.detailControls).toHaveText(['Keep listing', 'Remove', 'View on site']);
   });
 
   // L2-019 criterion 8: "View on site" opens the listing.
@@ -112,7 +112,7 @@ test.describe('The detail of a review item', () => {
       'Messages sent: None',
     ]);
     // Confirming a church comes with its own journey: there is no control for it.
-    await expect(admin.detailControls).toHaveCount(0);
+    await expect(admin.detailControls).toHaveText(['Approve', 'Remove']);
   });
 
   // L2-026 criterion 1: what members write is text, never HTML.

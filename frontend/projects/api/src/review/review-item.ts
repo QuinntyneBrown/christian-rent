@@ -9,6 +9,14 @@ import type { ReportReason } from '../reports/report';
 /** What a review item is about. */
 export type ReviewKind = 'new-listing' | 'report' | 'new-member';
 
+/** What an admin does with an item (L2-020). */
+export type ReviewDecision = 'approve' | 'keep' | 'remove';
+
+/** What a decision closed: the item decided, and any other it closed with it. */
+export interface ReviewDecided {
+  readonly closedItemIds: readonly string[];
+}
+
 /** One row of the review queue, as `GET /api/review-queue` answers it (view-review-queue design). */
 export interface ReviewItemSummary {
   readonly id: string;
@@ -32,6 +40,8 @@ export interface ReviewQueuePage {
   readonly nextCursor: string | null;
   /** How many items wait in all. */
   readonly waitingCount: number;
+  /** When the page was read, as an ISO instant: arrivals are counted from the first page's. */
+  readonly asOf: string;
 }
 
 /** A listing as an admin decides on it: every field, and every photo in the member's order. */
@@ -91,6 +101,10 @@ export interface ReviewItemDetail {
   readonly id: string;
   readonly kind: ReviewKind;
   readonly waitingSince: string;
+  /** Sent back with a decision (ADR 0026). */
+  readonly version: number;
+  /** What its kind takes (L2-020, criterion 8). */
+  readonly allowedDecisions: readonly ReviewDecision[];
   readonly listing: ReviewListing | null;
   readonly report: ReviewReport | null;
   readonly member: ReviewMember | null;

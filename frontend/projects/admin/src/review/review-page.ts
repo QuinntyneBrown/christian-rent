@@ -12,7 +12,7 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { SESSION } from '@rent/api';
+import { type ReviewDecision, SESSION } from '@rent/api';
 import {
   AdminLayout,
   AdminNav,
@@ -24,9 +24,12 @@ import {
   QueueList,
   QueueMore,
   ReviewDetail,
+  Toast,
+  ToastRegion,
 } from '@rent/components';
 import { queueSummary } from '@rent/domain';
 import { ReviewQueueStore } from './review-queue-store';
+import { ToastQueue } from './toast-queue';
 
 /** From this width the detail panel sits beside the queue (L2-031, criterion 5). */
 const WIDE = '(min-width: 48rem)';
@@ -53,13 +56,15 @@ const WIDE = '(min-width: 48rem)';
     QueueList,
     QueueMore,
     ReviewDetail,
+    Toast,
+    ToastRegion,
   ],
   templateUrl: './review-page.html',
   styleUrl: './review-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   // Provided here, not by the route, whose providers would outlive the screen: leaving Admin
   // destroys the store, which aborts what it was loading.
-  providers: [ReviewQueueStore],
+  providers: [ReviewQueueStore, ToastQueue],
   host: {
     '[style.--review-before.px]': 'store.before()',
     '[style.--review-after.px]': 'store.after()',
@@ -69,6 +74,7 @@ export class ReviewPage {
   protected readonly skeletons = Array.from({ length: 6 });
 
   protected readonly store = inject(ReviewQueueStore);
+  protected readonly toasts = inject(ToastQueue);
   private readonly member = inject(SESSION).member;
   protected readonly name = computed(() => this.member()?.name ?? '');
 
@@ -111,6 +117,32 @@ export class ReviewPage {
       this.ends();
       afterNextRender(() => this.watch(), { injector: this.injector });
     });
+  }
+
+  /** The decision on the selected item that is in flight. */
+  protected readonly decidingHere = computed(() => {
+    const deciding = this.store.deciding();
+    return deciding !== null && deciding.id === this.store.selectedId() ? deciding.decision : null;
+  });
+
+  protected async decide(decision: ReviewDecision): Promise<void> {
+    if ((await this.store.decide(decision)) === 'done') {
+      this.focusQueue();
+    }
+  }
+
+  /**
+   * The button that had focus is gone with its item, so focus goes to the row then selected,
+   * or to the heading when none is (L2-020, criterion 15).
+   */
+  private focusQueue(): void {
+    afterNextRender(
+      () => {
+        const row = this.host.querySelector<HTMLElement>('.queue-item[aria-current="true"]');
+        (row ?? this.host.querySelector<HTMLElement>('#queue-title'))?.focus();
+      },
+      { injector: this.injector },
+    );
   }
 
   /** The line under the heading. */

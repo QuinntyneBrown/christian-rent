@@ -36,6 +36,8 @@ function item(part: Partial<ReviewItemDetail>): ReviewItemDetail {
     id: 'i1',
     kind: 'new-listing',
     waitingSince: noon(2026, 6, 8),
+    version: 0,
+    allowedDecisions: ['approve', 'remove'],
     listing: null,
     report: null,
     member: null,
@@ -99,6 +101,10 @@ describe('toReviewDetailView', () => {
         { term: 'Posted', value: 'Jun 8, 2026, 12:00 p.m.', verified: null },
       ],
       siteHref: null,
+      decisions: [
+        { decision: 'approve', label: 'Approve' },
+        { decision: 'remove', label: 'Remove' },
+      ],
     });
   });
 
@@ -136,7 +142,12 @@ describe('toReviewDetailView', () => {
   });
 
   it('writes a report over the listing, with since when it has been public', () => {
-    const detail = item({ kind: 'report', report: report() });
+    const detail = item({ kind: 'report', report: report(), allowedDecisions: ['keep', 'remove'] });
+
+    expect(toReviewDetailView(detail, NOW).decisions).toEqual([
+      { decision: 'keep', label: 'Keep listing' },
+      { decision: 'remove', label: 'Remove' },
+    ]);
 
     expect(toReviewDetailView(detail, NOW)).toMatchObject({
       type: 'listing',
@@ -186,6 +197,10 @@ describe('toReviewDetailView', () => {
         },
         { term: 'Listings', value: '1 wanted listing, public', verified: null },
         { term: 'Messages sent', value: 'None', verified: null },
+      ],
+      decisions: [
+        { decision: 'approve', label: 'Approve' },
+        { decision: 'remove', label: 'Remove' },
       ],
     });
   });

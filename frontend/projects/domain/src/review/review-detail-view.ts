@@ -10,6 +10,7 @@ import type {
   ReviewReport,
 } from '@rent/api';
 import { formatPrice } from '../listings/format-price';
+import { decisionLabel } from './decision-words';
 import { formatWhen } from '../listings/format-when';
 import { avatarTint, initialsOf } from '../listings/member-name';
 import { formatInstant, formatInstantDay, formatMonth, formatWaiting } from './review-words';
@@ -29,17 +30,24 @@ const REASONS: Record<ReportReason, string> = {
  * passed in, so the rule needs no clock.
  */
 export function toReviewDetailView(detail: ReviewItemDetail, now: Date): ReviewDetailView {
+  const decisions = detail.allowedDecisions.map((decision) => ({
+    decision,
+    label: decisionLabel(decision),
+  }));
   switch (detail.kind) {
     case 'new-listing':
-      return listingView(detail.listing!);
+      return { ...listingView(detail.listing!), decisions };
     case 'report':
-      return reportView(detail.report!, now);
+      return { ...reportView(detail.report!, now), decisions };
     case 'new-member':
-      return memberView(detail.member!);
+      return { ...memberView(detail.member!), decisions };
   }
 }
 
-function listingView(listing: ReviewListing): ReviewListingView {
+/** A listing or a member written without what may be decided, which the item says. */
+type Subject<T> = Omit<T, 'decisions'>;
+
+function listingView(listing: ReviewListing): Subject<ReviewListingView> {
   const wanted = listing.offer === 'wanted';
   const price = formatPrice(listing.price, listing.offer);
   return {
@@ -63,7 +71,7 @@ function listingView(listing: ReviewListing): ReviewListingView {
 }
 
 /** A reported listing is public: it says since when, and can be opened on the site. */
-function reportView(report: ReviewReport, now: Date): ReviewListingView {
+function reportView(report: ReviewReport, now: Date): Subject<ReviewListingView> {
   const waited = formatWaiting(report.reportedAt, now);
   const by = ` by a member, ${waited === 'just now' ? waited : `${waited} ago`}`;
   return {
@@ -80,7 +88,7 @@ function reportView(report: ReviewReport, now: Date): ReviewListingView {
   };
 }
 
-function memberView(member: ReviewMember): ReviewMemberView {
+function memberView(member: ReviewMember): Subject<ReviewMemberView> {
   const initials = initialsOf(member.name);
   return {
     type: 'member',

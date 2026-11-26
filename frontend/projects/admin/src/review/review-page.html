@@ -82,7 +82,12 @@
   <ng-container slot="detail">
     @switch (store.detailState()) {
       @case ('loaded') {
-        <cr-review-detail [view]="store.detail()" />
+        <cr-review-detail
+          [view]="store.detail()"
+          [deciding]="decidingHere()"
+          [off]="store.deciding() !== null"
+          (decide)="decide($event)"
+        />
       }
       @case ('loading') {
         @if (store.detailSkeleton()) {
@@ -121,3 +126,15 @@
     }
   </ng-container>
 </cr-admin-layout>
+<cr-toast-region>
+  @for (toast of toasts.toasts(); track toast.id) {
+    <cr-toast
+      [tone]="toast.tone"
+      [title]="toast.title"
+      [text]="toast.text"
+      [actionLabel]="toast.action?.label ?? null"
+      (action)="toast.action?.run()"
+      (dismissed)="toasts.dismiss(toast.id)"
+    />
+  }
+</cr-toast-region>
