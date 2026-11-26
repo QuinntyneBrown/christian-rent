@@ -48,9 +48,9 @@ public sealed class ReviewItem
     /// </summary>
     public void Decide(ReviewDecision decision, Guid adminId, DateTimeOffset now)
     {
-        if (Decision is not null)
+        if (Decision is { } first)
         {
-            throw new AlreadyDecidedException();
+            throw new AlreadyDecidedException(first, DecidedAt!.Value, DecidedBy!.Value);
         }
 
         Decision = decision;

@@ -2,6 +2,8 @@ using ChristianRent.Application.Abstractions;
 using ChristianRent.Application.Errors;
 using ChristianRent.Domain.Listings;
 using ChristianRent.Domain.Review;
+using FluentValidation;
+using FluentValidation.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,6 +29,26 @@ internal sealed class DecideReviewItemCommandHandler(
 
         var item = await database.ReviewItems.SingleOrDefaultAsync(item => item.Id == id, cancellationToken)
             ?? throw new NotFoundException();
+        if (item.Decision is not null)
+        {
+            return await AnswerDecidedAsync(item, decision, adminId, cancellationToken);
+        }
+
+        if (!await WaitingReviewItems.Of(database).AnyAsync(waiting => waiting.Id == id, cancellationToken))
+        {
+            throw new NotFoundException();
+        }
+
+        if (command.Version != item.Version)
+        {
+            throw new ValidationException([new ValidationFailure(nameof(command.Version), "The item has no such version.") { ErrorCode = "version_unknown" }]);
+        }
+
+        if (!ReviewItem.AllowedDecisions(item.Kind).Contains(decision))
+        {
+            throw new ConflictException("decision_not_allowed");
+        }
+
         var now = clock.GetUtcNow();
         item.Decide(decision, adminId, now);
         var closed = new List<ReviewItem> { item };
@@ -70,8 +92,46 @@ internal sealed class DecideReviewItemCommandHandler(
                 break;
         }
 
-        await database.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await database.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // Another decision saved first; the version caught it (ADR 0026). When it was another
+            // item this removal would have closed, nothing stands and trying again succeeds.
+            var stored = await database.ReviewItems.AsNoTracking().SingleAsync(found => found.Id == id, cancellationToken);
+            if (stored.Decision is null)
+            {
+                throw;
+            }
+
+            return await AnswerDecidedAsync(stored, decision, adminId, cancellationToken);
+        }
+
         return new DecidedDto(closed.Select(decided => decided.Id).ToList());
+    }
+
+    /// <summary>
+    /// A second decision. The same admin sending the same one again, whose first answer was lost,
+    /// is answered as made, with what it closed (L2-020, criterion 17); anything else is refused
+    /// and the first stands (criterion 5).
+    /// </summary>
+    private async Task<DecidedDto> AnswerDecidedAsync(
+        ReviewItem item, ReviewDecision decision, Guid adminId, CancellationToken cancellationToken)
+    {
+        if (item.Decision != decision || item.DecidedBy != adminId)
+        {
+            throw new ReviewItemDecidedException(
+                ReviewWords.Of(item.Decision!.Value), item.DecidedAt!.Value, item.DecidedBy == adminId);
+        }
+
+        // What one decision closed carries its admin and its instant.
+        var closed = await database.ReviewItems.AsNoTracking()
+            .Where(other => other.DecidedBy == adminId && other.DecidedAt == item.DecidedAt)
+            .Select(other => other.Id)
+            .ToListAsync(cancellationToken);
+        return new DecidedDto(closed);
     }
 
     private Task<Listing> ListingAsync(Guid id, CancellationToken cancellationToken) =>

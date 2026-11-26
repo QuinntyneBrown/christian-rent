@@ -5,14 +5,9 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using ChristianRent.Api.Tests.Support;
-using ChristianRent.Application.Abstractions;
-using ChristianRent.Domain.Churches;
 using ChristianRent.Domain.Listings;
 using ChristianRent.Domain.Members;
-using ChristianRent.Domain.Messages;
-using ChristianRent.Domain.Notices;
 using ChristianRent.Domain.Reports;
-using ChristianRent.Domain.Review;
 using ChristianRent.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -147,55 +142,5 @@ public sealed class ReportListingAgainTests : IDisposable
         return (
             await database.Reports.CountAsync(TestContext.Current.CancellationToken),
             await database.ReviewItems.CountAsync(TestContext.Current.CancellationToken));
-    }
-
-    /// <summary>
-    /// The API whose handlers reach the database through an <see cref="IAppDbContext"/> that runs
-    /// <see cref="BeforeSave"/> before it saves, so a test injects a fault there (ADR 0007).
-    /// </summary>
-    private sealed class RacingApiFactory : ProbeApiFactory
-    {
-        public Func<AppDbContext, Task>? BeforeSave { get; set; }
-
-        protected override void ConfigureTestServices(IServiceCollection services)
-        {
-            base.ConfigureTestServices(services);
-            services.AddScoped<IAppDbContext>(provider => new RacingDbContext(provider, this));
-        }
-
-        private sealed class RacingDbContext(IServiceProvider services, RacingApiFactory factory) : IAppDbContext
-        {
-            private AppDbContext Inner => services.GetRequiredService<AppDbContext>();
-
-            public DbSet<Church> Churches => Inner.Churches;
-
-            public DbSet<Member> Members => Inner.Members;
-
-            public DbSet<Listing> Listings => Inner.Listings;
-
-            public DbSet<Photo> Photos => Inner.Photos;
-
-            public DbSet<Message> Messages => Inner.Messages;
-
-            public DbSet<Report> Reports => Inner.Reports;
-
-            public DbSet<ReviewItem> ReviewItems => Inner.ReviewItems;
-
-            public DbSet<ListingRemovalNotice> ListingRemovalNotices => Inner.ListingRemovalNotices;
-
-            public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
-            {
-                if (factory.BeforeSave is { } fault)
-                {
-                    // The competing writer has its own unit of work.
-                    using var scope = factory.Services.CreateScope();
-                    await fault(scope.ServiceProvider.GetRequiredService<AppDbContext>());
-                }
-
-                return await Inner.SaveChangesAsync(cancellationToken);
-            }
-
-            public Task<bool> CanConnectAsync(CancellationToken cancellationToken) => Inner.CanConnectAsync(cancellationToken);
-        }
     }
 }
