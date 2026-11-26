@@ -28,8 +28,19 @@ public sealed class PhotosController(ISender sender) : ControllerBase
     }
 
     /// <summary>
+    /// A member deletes their own photo that no listing names (ADR 0021): 204, or not_found.
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        await sender.Send(new DeletePhotoCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>
     /// A rendition of a photo. Anyone may read an approved listing's photo, as Browse shows it;
-    /// the handler answers not_found for anything else (ADR 0011).
+    /// its poster, an admin or its uploader may read one that is not public; the handler answers
+    /// not_found for anything else (ADR 0011, ADR 0021).
     /// </summary>
     [HttpGet("{id:guid}/{rendition}")]
     [AllowAnonymous]
