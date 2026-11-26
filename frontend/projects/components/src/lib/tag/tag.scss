@@ -1,0 +1,47 @@
+// Tag, from docs/design-system/components/tag.html.
+:host {
+  display: inline-flex;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 1.5rem;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-full);
+  font: var(--text-overline);
+  white-space: nowrap;
+  background: var(--color-bg-subtle);
+  color: var(--color-fg-default);
+}
+
+.tag--on-photo {
+  background: var(--color-bg-photo-tag);
+  color: var(--color-fg-default);
+}
+
+.tag--on-wanted {
+  background: var(--color-bg-on-wanted-tag);
+  color: var(--color-fg-on-wanted);
+}
+
+.tag--new {
+  background: var(--color-wanted-subtle);
+  color: var(--color-fg-wanted);
+}
+
+.tag--reported {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
+}
+
+.tag--new-member {
+  background: var(--color-rent-subtle);
+  color: var(--color-fg-rent-on-subtle);
+}
+
+.tag--lg {
+  min-height: 1.75rem;
+  font-size: var(--font-size-sm);
+}

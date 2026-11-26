@@ -1,0 +1,13 @@
+@if (state() === 'loading') {
+  <div class="feed-status" role="status">
+    <cr-spinner />
+    <p>{{ text() }}</p>
+  </div>
+} @else {
+  <div class="feed-status" role="alert">
+    <p>{{ text() }}</p>
+    <button cr-button type="button" (click)="action.emit()">
+      <cr-icon name="refresh" />{{ actionLabel() }}
+    </button>
+  </div>
+}

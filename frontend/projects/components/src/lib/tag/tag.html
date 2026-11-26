@@ -1,0 +1,10 @@
+<span
+  class="tag"
+  [class.tag--on-photo]="variant() === 'on-photo'"
+  [class.tag--on-wanted]="variant() === 'on-wanted'"
+  [class.tag--new]="variant() === 'new'"
+  [class.tag--reported]="variant() === 'reported'"
+  [class.tag--new-member]="variant() === 'new-member'"
+  [class.tag--lg]="large()"
+  ><ng-content
+/></span>

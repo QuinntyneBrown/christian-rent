@@ -1,8 +1,11 @@
+import { answerNoListings } from '../fixtures/listings';
 import { expect, test } from '../fixtures/test';
 import { BrowsePage } from '../pages/browse.page';
 import { ErrorToastPart } from '../pages/error-toast.part';
 
 test.describe('An unexpected error in the browser', () => {
+  test.beforeEach(({ api }) => answerNoListings(api));
+
   test.use({ expectedPageErrors: ['A bug nobody caught'] });
 
   // L2-033 criterion 7; L2-032 criterion 4.

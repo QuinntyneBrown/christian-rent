@@ -1,0 +1,15 @@
+<ng-template #actions><ng-content /></ng-template>
+@if (variant() === 'error') {
+  <section class="empty empty--error" [attr.aria-labelledby]="titleId">
+    <div class="empty__icon"><cr-icon name="alert" size="lg" /></div>
+    <h2 class="empty__title" [id]="titleId">{{ title() }}</h2>
+    <p class="empty__text">{{ text() }}</p>
+    <div class="empty__actions"><ng-container *ngTemplateOutlet="actions" /></div>
+  </section>
+} @else {
+  <section class="no-results" [attr.aria-labelledby]="titleId">
+    <h2 class="no-results__title" [id]="titleId">{{ title() }}</h2>
+    <p class="no-results__text">{{ text() }}</p>
+    <div class="no-results__actions"><ng-container *ngTemplateOutlet="actions" /></div>
+  </section>
+}

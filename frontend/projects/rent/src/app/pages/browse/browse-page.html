@@ -1,4 +1,21 @@
 <cr-site-header [member]="member()" />
 <main id="main" class="container" tabindex="-1">
-  <cr-hero title="Rent it from your" accent="church family." />
+  <cr-hero
+    title="Rent it from your"
+    accent="church family."
+    lead="Halls, rooms, vans and tools, shared between believers near Langley, BC. Or ask for what you need."
+  >
+    <a cr-button variant="rent" routerLink="/post" [queryParams]="{ offer: 'for-rent' }"
+      >I have something to rent</a
+    >
+    <a cr-button variant="outline" routerLink="/post" [queryParams]="{ offer: 'wanted' }"
+      >I’m looking for something</a
+    >
+  </cr-hero>
+  <p class="visually-hidden" role="status" aria-live="polite">{{ store.announcement() }}</p>
+  <cr-listing-grid>
+    @for (card of store.cards(); track card.href; let index = $index) {
+      <li><cr-listing-card [card]="card" [priority]="index < 4" /></li>
+    }
+  </cr-listing-grid>
 </main>

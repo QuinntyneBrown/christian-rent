@@ -1,0 +1,15 @@
+// Feed status, from docs/design-system/components/spinner.html and empty-state.html.
+:host {
+  display: block;
+}
+
+.feed-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: calc(-1 * var(--space-10));
+  padding-bottom: var(--space-20);
+  text-align: center;
+  color: var(--color-fg-muted);
+}

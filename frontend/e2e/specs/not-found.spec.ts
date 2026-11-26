@@ -1,8 +1,11 @@
+import { answerNoListings } from '../fixtures/listings';
 import { expect, test } from '../fixtures/test';
 import { BrowsePage } from '../pages/browse.page';
 import { NotFoundPage } from '../pages/not-found.page';
 
 test.describe('An address that matches no screen', () => {
+  test.beforeEach(({ api }) => answerNoListings(api));
+
   // L2-033 criterion 3; L2-036 criterion 1.
   test('shows "not found" with the header and a way back to Browse @critical', async ({ page }) => {
     const notFound = new NotFoundPage(page);

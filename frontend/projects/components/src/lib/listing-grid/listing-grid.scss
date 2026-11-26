@@ -1,0 +1,32 @@
+// Listing grid, from docs/design-system/components/listing-card.html (L2-031, criterion 2).
+:host {
+  display: block;
+}
+
+.listing-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  // The gutter widens from 992 px with the layout's (L2-031, criterion 2).
+  gap: var(--space-10) max(var(--space-6), var(--layout-gutter));
+  margin: 0;
+  padding: var(--space-8) 0 var(--space-20);
+  list-style: none;
+}
+
+@media (min-width: 36rem) {
+  .listing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 48rem) {
+  .listing-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 75rem) {
+  .listing-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
