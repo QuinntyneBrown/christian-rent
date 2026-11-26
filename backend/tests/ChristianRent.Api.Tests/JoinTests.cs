@@ -100,6 +100,49 @@ public sealed class JoinTests : IDisposable
         Assert.Equal(TestData.StPauls.Id, (await database.Members.SingleAsync(TestContext.Current.CancellationToken)).ChurchId);
     }
 
+    // L2-017 criterion 14 (ADR 0017): joining again creates nothing and answers the same member.
+    [Fact]
+    public async Task Joining_twice_creates_nothing_and_answers_the_same_member()
+    {
+        await _factory.SeedAsync(TestData.Grace);
+        using var client = _factory.CreateSignedInClient("sarah-kim");
+        var body = new { name = "Sarah Kim", churchId = TestData.Grace.Id, declaresChristian = true };
+        using var first = await client.PostAsJsonAsync("/api/members", body, TestContext.Current.CancellationToken);
+
+        using var second = await client.PostAsJsonAsync(
+            "/api/members",
+            new { name = "Sarah K.", newChurchName = "Another Church", newChurchCity = "Langley", declaresChristian = true },
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.OK, second.StatusCode);
+        var id = (await first.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken)).GetProperty("id").GetGuid();
+        var again = await second.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken);
+        Assert.Equal(id, again.GetProperty("id").GetGuid());
+        Assert.Equal("Sarah Kim", again.GetProperty("name").GetString());
+        var (members, items) = await ReadAsync();
+        Assert.Single(members);
+        Assert.Single(items);
+    }
+
+    // L2-018 criterion 4 (ADR 0017): a member an admin removed cannot join again as the same person.
+    [Fact]
+    public async Task A_removed_member_cannot_join_again()
+    {
+        var mike = TestData.Member("Mike Rentals", TestData.Grace, signInId: "mike-rentals");
+        mike.Remove();
+        await _factory.SeedAsync(TestData.Grace, mike);
+        using var client = _factory.CreateSignedInClient("mike-rentals");
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/members",
+            new { name = "Mike Rentals", churchId = TestData.Grace.Id, declaresChristian = true },
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal("not_a_member", (await Problem.ReadAsync(response)).Code);
+        Assert.Empty((await ReadAsync()).Items);
+    }
+
     // become-member design: once joined, the same person is answered as that member.
     [Fact]
     public async Task A_member_is_answered_who_they_are()

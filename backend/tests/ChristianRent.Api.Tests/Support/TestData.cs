@@ -17,8 +17,8 @@ public static class TestData
 
     public static readonly Church StPauls = Church.Create(Guid.Parse("c4a7e1f0-0006-4000-8000-000000000006"), "St. Paul’s Anglican", "Fort Langley", isVerified: false);
 
-    public static Member Member(string name, Church church, Guid? id = null, bool isVerified = true, int joinedIn = 2026) =>
-        Domain.Members.Member.Create(id ?? Guid.NewGuid(), name, church.Id, isVerified, new DateTimeOffset(joinedIn, 1, 5, 9, 0, 0, TimeSpan.Zero));
+    public static Member Member(string name, Church church, Guid? id = null, bool isVerified = true, int joinedIn = 2026, string? signInId = null) =>
+        Domain.Members.Member.Create(id ?? Guid.NewGuid(), name, church.Id, isVerified, new DateTimeOffset(joinedIn, 1, 5, 9, 0, 0, TimeSpan.Zero), signInId);
 
     /// <summary>A listing for rent with one photo, approved at <paramref name="approvedAt"/> when given.</summary>
     public static Listing ForRent(Member poster, string title, DateTimeOffset? approvedAt, Price? price = null, string area = "Langley", Guid? photoId = null)

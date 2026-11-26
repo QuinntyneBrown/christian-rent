@@ -3,6 +3,8 @@ using ChristianRent.Application.Errors;
 using ChristianRent.Domain.Churches;
 using ChristianRent.Domain.Members;
 using ChristianRent.Domain.Review;
+using FluentValidation;
+using FluentValidation.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +20,16 @@ internal sealed class JoinCommandHandler(IAppDbContext database, ICurrentMember 
     public async Task<JoinResult> Handle(JoinCommand command, CancellationToken cancellationToken)
     {
         var signInId = caller.SignInId ?? throw new ForbiddenException("not_a_member");
+        var existing = await database.Members.FirstOrDefaultAsync(member => member.SignInId == signInId, cancellationToken);
+        if (existing is not null)
+        {
+            // Joining twice creates nothing (L2-017, criterion 14); a removed member cannot join
+            // again as the same person (L2-018, criterion 4; ADR 0017).
+            return existing.Status == MemberStatus.Active
+                ? new JoinResult(ToDto(existing), Created: false)
+                : throw new ForbiddenException("not_a_member");
+        }
+
         var now = clock.GetUtcNow();
 
         var church = await ChurchOfAsync(command, cancellationToken);
@@ -34,7 +46,7 @@ internal sealed class JoinCommandHandler(IAppDbContext database, ICurrentMember 
         if (command.ChurchId is { } id)
         {
             return await database.Churches.FirstOrDefaultAsync(church => church.Id == id, cancellationToken)
-                ?? throw new NotFoundException();
+                ?? throw new ValidationException([new ValidationFailure(nameof(JoinCommand.ChurchId), JoinCommandValidator.ChurchMessage)]);
         }
 
         var name = MemberText.Clean(command.NewChurchName);
