@@ -30,7 +30,10 @@ not, known.
    `Secure` and `HttpOnly`.
 3. **Authentication** — until sign-in is designed, one scheme, `NoSignIn`, signs nobody in, so
    every protected endpoint answers 401 ([ADR 0005](../../../adr/0005-authentication-seam.md)).
-   The sign-in scheme is `<TO SUPPLY>`.
+   The sign-in scheme is `<TO SUPPLY>`; whatever it is, it puts the person's sign-in identifier
+   in the claim `sub`, and `MemberClaimsTransformation` adds `member_id` and the role `admin`
+   for the active member with that identifier
+   ([ADR 0017](../../../adr/0017-identifying-a-person-until-sign-in.md)).
 4. **Rate limiter** — ASP.NET Core `AddRateLimiter` with one global partitioned limiter. The
    partition key is the member identifier, or the remote address for an anonymous caller.
    `GET` and `HEAD` take a token from the `read` window, 120 per minute; every other method
@@ -42,15 +45,18 @@ not, known.
    appears on exactly these actions: `ListingsController.Browse`, `ListingsController.Get`,
    `PhotosController.Get`, and the health endpoints. L2-025, criterion 1 names the first
    three; L2-034 requires the health endpoints, and no requirement states their exemption.
-   `MembersController.Join` and `ChurchesController.List` do not require membership (L2-025,
-   criterion 5); whether they require an identified person waits for sign-in. The `Admin`
-   policy requires `ICurrentMember.IsAdmin`.
+   `MembersController.Join`, `MembersController.Me` and `ChurchesController.List` need a
+   signed-in person and not a member (L2-025, criterion 5; ADR 0017). The `Admin` policy
+   requires `ICurrentMember.IsAdmin`.
 6. **Controllers** — each action sends one MediatR request and checks nothing itself.
 
 **Backend — application layer**
 
-- **`ICurrentMember`** — `MemberId`, `IsMember`, `IsAdmin`. `HttpCurrentMember`
-  (`ChristianRent.Infrastructure`) resolves it once per request.
+- **`ICurrentMember`** — `SignInId`, `MemberId`, `IsMember`, `IsAdmin`. `HttpCurrentMember`
+  (`ChristianRent.Infrastructure`) reads them from the principal, which
+  `MemberClaimsTransformation` has resolved once per request. A handler that needs a member
+  calls `RequireMember()`, which raises `ForbiddenException("not_a_member")` for anyone who is
+  not an active member.
 - **Ownership checks** live in handlers: a handler loads the resource, then compares its
   owner with `ICurrentMember.MemberId`. A resource that is not the caller's to see is
   answered exactly like one that does not exist (L2-025, criterion 2).
@@ -118,7 +124,7 @@ acceptance criteria in the specification remain authoritative.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-025` | `L1-011` | Every endpoint other than browsing, searching, reading an approved listing and serving its photos shall respond 401 without a signed-in member. Listing the churches and joining shall not be refused for want of membership. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
+| `L2-025` | `L1-011` | Every endpoint other than browsing, searching, reading an approved listing and serving its photos shall respond 401 to anyone not signed in. Listing the churches, joining and asking who is signed in shall not be refused for want of membership. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
 | `L2-027` | `L1-011` | HTTP requests shall be redirected to HTTPS and responses shall carry HSTS. A data-changing request from another site shall be refused. More than 120 read requests or 30 write requests from one client in a minute shall be refused with 429 and a Retry-After header. Secrets shall come from configuration outside the repository. |
 
 ## Diagrams
