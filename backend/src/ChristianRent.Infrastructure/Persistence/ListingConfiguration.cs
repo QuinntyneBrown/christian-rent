@@ -23,6 +23,7 @@ internal sealed class ListingConfiguration : IEntityTypeConfiguration<Listing>
         builder.Property(listing => listing.WhenText).HasMaxLength(Listing.MaxWhenTextLength);
         builder.Property(listing => listing.Area).HasMaxLength(Listing.MaxAreaLength).IsRequired();
         builder.Property(listing => listing.Note).HasMaxLength(Listing.MaxNoteLength);
+        builder.Property(listing => listing.SearchText).HasMaxLength(Listing.MaxSearchTextLength).IsRequired();
         builder.Property(listing => listing.Status).HasConversion<string>().HasMaxLength(24).IsRequired();
         builder.Property(listing => listing.CreatedAt).IsRequired();
         builder.HasOne<Member>().WithMany().HasForeignKey(listing => listing.MemberId).OnDelete(DeleteBehavior.Restrict);
@@ -40,5 +41,8 @@ internal sealed class ListingConfiguration : IEntityTypeConfiguration<Listing>
 
         // Browse reads approved listings, most recently approved first, by keyset (ADR 0013).
         builder.HasIndex(listing => new { listing.Status, listing.ApprovedAt, listing.Id });
+
+        // A search's Contains becomes a parameterised LIKE, which a trigram index serves (ADR 0015).
+        builder.HasIndex(listing => listing.SearchText).HasMethod("gin").HasOperators("gin_trgm_ops");
     }
 }

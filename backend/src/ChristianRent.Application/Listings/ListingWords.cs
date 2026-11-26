@@ -12,11 +12,27 @@ public static class ListingWords
         _ => throw new ArgumentOutOfRangeException(nameof(offer)),
     };
 
+    /// <summary>The offer a word names, or null when it names none; the words are exact.</summary>
+    public static ListingOffer? OfferOf(string? word) => word switch
+    {
+        "for-rent" => ListingOffer.ForRent,
+        "wanted" => ListingOffer.Wanted,
+        _ => null,
+    };
+
     public static string Of(ListingKind kind) => kind switch
     {
         ListingKind.Space => "space",
         ListingKind.Thing => "thing",
         _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
+    /// <summary>The kind a word names, or null when it names none; the words are exact.</summary>
+    public static ListingKind? KindOf(string? word) => word switch
+    {
+        "space" => ListingKind.Space,
+        "thing" => ListingKind.Thing,
+        _ => null,
     };
 
     public static string Of(PricePeriod period) => period switch

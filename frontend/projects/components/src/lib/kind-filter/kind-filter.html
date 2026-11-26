@@ -1,0 +1,12 @@
+<div class="kind-filter" role="group" aria-label="Kind">
+  @for (option of options; track option.kind) {
+    <button
+      class="kind-filter__option"
+      type="button"
+      [attr.aria-pressed]="kind() === option.kind ? 'true' : 'false'"
+      (click)="kindChange.emit(option.kind)"
+    >
+      {{ option.label }}
+    </button>
+  }
+</div>

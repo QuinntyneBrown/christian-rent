@@ -86,14 +86,16 @@ shell (the header with the wordmark, the skip link and the "not found" page), th
 with the platform's cross-cuts (access, refusals, security headers, rate limits, telemetry, health,
 migrations and seed), the test harness and CI. Browse is built (journey 2): approved listings,
 newest first, loaded a page at a time as the list is scrolled, with their photos served from file
-storage.
+storage. Search and filter is built (journey 3): the search bar, the switch between Everything,
+For rent and Wanted, and the Spaces and Things filter, all kept in the address, and the offer to
+ask for what a search did not find.
 
 - The requirements are in `docs/specs/`, the mocks in `docs/mocks/`, the design system in
   `docs/design-system/` and the detailed designs in `docs/detailed-designs/`.
 - The journeys and their slices are in `docs/journeys.md` and `docs/detailed-journeys.md`, with
   **% complete**; the architecture decisions are in `docs/adr/`.
-- What comes next is journey 3, Search and filter listings: one slice at a time, each with its
-  failing acceptance test first.
+- What comes next is journey 4, Read a listing: one slice at a time, each with its failing
+  acceptance test first.
 
 ## How it works
 
@@ -184,7 +186,11 @@ variables, `:` is written `__`.
 | `ASPNETCORE_ENVIRONMENT` | no | `Production` when deployed: HTTPS redirection and HSTS are on outside `Development` |
 | The sign-in secret | yes | Not yet: sign-in is not designed ([ADR 0005](docs/adr/0005-authentication-seam.md)) |
 
-Deployment runs `ChristianRent.Cli migrate` before the new API takes traffic. The host that
+Deployment runs `ChristianRent.Cli migrate` before the new API takes traffic; the database role
+it uses may create the `pg_trgm` and `unaccent` extensions, or they are created beforehand
+([ADR 0015](docs/adr/0015-search-matching-and-browse-query.md)). The API and the CLI need ICU
+(`libicu`) on the host, as Microsoft's non-Alpine .NET images have, because a search ignores
+accents through Unicode normalisation. The host that
 serves the built frontend (`frontend/dist/rent/browser`) should send the same
 Content-Security-Policy as the API; hosting is not chosen yet.
 

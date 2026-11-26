@@ -17,12 +17,14 @@
         "L2-023",
         "L2-029",
         "L2-031",
-        "L2-033"
+        "L2-033",
+        "L2-035"
       ],
       "states": [
         "default",
         "for-rent",
         "wanted",
+        "spaces",
         "loading",
         "empty",
         "error",

@@ -34,13 +34,13 @@ end box
 actor -> bar : Type "parking"
 bar -> page : termChange
 page -> page : BrowseQuery.withTerm, first 100 characters (L2-003)
-page -> page : Write ?q= to the address (L2-002)
-page -> store : search(query)
-store -> store : debounceTime(300)
+page -> page : Write ?q= to the address, replaceUrl (L2-002)
+page -> store : search(query) from queryParamMap
+store -> store : Wait 300 ms after the last change (timer)
 opt an earlier request is in flight
-  store -> client : Unsubscribe, request aborted (L2-003)
+  store -> client : AbortController.abort(), request cancelled (L2-003)
 end
-store -> client : browse(query)
+store -> client : browse(query.filter(), null, signal)
 client -> ctrl : GET /api/listings?show=for-rent&q=parking
 ctrl -> handler : Send BrowseListingsQuery
 handler -> norm : Words("parking")

@@ -7,6 +7,16 @@
   >
     <ng-container *ngTemplateOutlet="postingButtons" />
   </cr-hero>
+  <cr-search-bar
+    [term]="query().term"
+    [area]="area"
+    (termChange)="typed($event)"
+    (submitted)="submitted($event)"
+  />
+  <div class="filters">
+    <cr-segmented label="Show" [options]="switchOptions()" />
+    <cr-kind-filter [kind]="query().kind" (kindChange)="kindChanged($event)" />
+  </div>
   <p class="visually-hidden" role="status" aria-live="polite">{{ store.announcement() }}</p>
   @switch (store.state()) {
     @case ('loading') {
@@ -24,6 +34,21 @@
         text="Be the first. Post a space or a thing you can rent out, or ask for what you need."
       >
         <ng-container *ngTemplateOutlet="postingButtons" />
+      </cr-empty-state>
+    }
+    @case ('no-results') {
+      <cr-empty-state
+        [title]="noResultsTitle()"
+        text="Post a request and the people near Langley who can help will see it."
+      >
+        <a
+          cr-button
+          variant="wanted"
+          routerLink="/post"
+          [queryParams]="{ offer: 'wanted', title: store.term() }"
+          >Ask for “{{ store.term() }}”</a
+        >
+        <a cr-button variant="ghost" [routerLink]="[]" [queryParams]="cleared()">Clear search</a>
       </cr-empty-state>
     }
     @case ('failed') {

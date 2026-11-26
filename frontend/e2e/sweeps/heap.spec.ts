@@ -1,5 +1,12 @@
 import type { Page } from '@playwright/test';
-import { answerNoListings, answerPhotos, many, page as listingsPage } from '../fixtures/listings';
+import {
+  answerListings,
+  answerNoListings,
+  answerPhotos,
+  cast,
+  many,
+  page as listingsPage,
+} from '../fixtures/listings';
 import { expect, test } from '../fixtures/test';
 
 // AGENTS.md, Prove it: leaving a screen returns its memory. Enter and leave a screen many times
@@ -75,6 +82,42 @@ test('scrolling Browse’s list and leaving it keeps the heap stable', async ({ 
   await roundTrip();
   const before = await heapAfterGc();
   for (let round = 0; round < 5; round++) {
+    await roundTrip();
+  }
+  const after = await heapAfterGc();
+
+  expect(after - before).toBeLessThan(ALLOWED_GROWTH_BYTES);
+});
+
+// L2-003 with AGENTS.md, Bound what grows: searching, switching and clearing again and again
+// keeps the heap bounded; each new query releases the list, the request and the timer before it.
+test('searching and switching Browse again and again keeps the heap stable', async ({
+  page,
+  api,
+}) => {
+  answerListings(api, cast());
+  answerPhotos(api);
+  const heapAfterGc = await heapMeter(page);
+  await page.goto('/');
+  const field = page.getByRole('searchbox', { name: 'Search listings', exact: true });
+  const cards = page.locator('a.listing-card');
+  const wantedOption = page.getByRole('link', { name: /^Wanted/ });
+  const everything = page.getByRole('link', { name: /^Everything/ });
+
+  const roundTrip = async () => {
+    await field.fill('langley');
+    await field.press('Enter');
+    await expect(cards).toHaveCount(5);
+    await wantedOption.click();
+    await expect(cards).toHaveCount(2);
+    await field.press('Escape');
+    await everything.click();
+    await expect(cards).toHaveCount(7);
+  };
+
+  await roundTrip();
+  const before = await heapAfterGc();
+  for (let round = 0; round < ROUNDS; round++) {
     await roundTrip();
   }
   const after = await heapAfterGc();

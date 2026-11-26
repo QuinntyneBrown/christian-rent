@@ -20,11 +20,20 @@ class BrowseQuery <<TypeScript>> {
   +{static} fromParams(params: ParamMap): BrowseQuery
   +toParams(): Params
   +withTerm(term: string): BrowseQuery
+  +withOffer(offer): BrowseQuery
+  +withKind(kind): BrowseQuery
+  +filter(): ListingsFilter
+  +equals(other: BrowseQuery): boolean
+}
+class ListingsFilter <<TypeScript>> {
+  +offer: 'for-rent' | 'wanted' | null
+  +kind: 'space' | 'thing' | null
+  +term: string
 }
 class BrowseStore <<Angular>> {
-  +search(query: BrowseQuery): void
+  +search(query: BrowseQuery, options: { now: boolean }): void
   +state: Signal<BrowseState>
-  +counts: Signal<ListingCounts>
+  +counts: Signal<ListingCounts | null>
 }
 class SearchNormalizer {
   +{static} MaxTermLength: 100
@@ -39,8 +48,10 @@ class Listing {
   -RefreshSearchText(): void
 }
 class BrowseListingsQuery {
-  +ListingOffer? Offer
-  +ListingKind? Kind
+  +string? Cursor
+  +int Size
+  +string? Show
+  +string? Kind
   +string? Search
 }
 class BrowseListingsQueryHandler {
@@ -52,6 +63,7 @@ class ListingCountsDto {
   +int Wanted
 }
 BrowseStore ..> BrowseQuery : receives
+BrowseQuery ..> ListingsFilter : gives
 BrowseListingsQueryHandler ..> BrowseListingsQuery : handles
 BrowseListingsQueryHandler ..> SearchNormalizer : uses
 BrowseListingsQueryHandler --> Listing : matches SearchText

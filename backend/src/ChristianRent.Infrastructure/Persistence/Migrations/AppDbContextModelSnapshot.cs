@@ -20,6 +20,7 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
                 .HasAnnotation("ProductVersion", "10.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("ChristianRent.Domain.Churches.Church", b =>
@@ -84,6 +85,11 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)");
 
+                    b.Property<string>("SearchText")
+                        .IsRequired()
+                        .HasMaxLength(1162)
+                        .HasColumnType("character varying(1162)");
+
                     b.Property<DateOnly?>("StartDate")
                         .HasColumnType("date");
 
@@ -104,6 +110,11 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("MemberId");
+
+                    b.HasIndex("SearchText");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchText"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("SearchText"), new[] { "gin_trgm_ops" });
 
                     b.HasIndex("Status", "ApprovedAt", "Id");
 

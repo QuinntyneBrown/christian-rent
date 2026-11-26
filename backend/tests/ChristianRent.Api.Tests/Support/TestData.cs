@@ -49,6 +49,19 @@ public static class TestData
         return listing;
     }
 
+    /// <summary>
+    /// An approved listing with the offer, kind and words a search reads (search-and-filter
+    /// design): its title, note and area.
+    /// </summary>
+    public static Listing Approved(Member poster, ListingOffer offer, ListingKind kind, string title, DateTimeOffset approvedAt, string? note = null, string area = "Langley")
+    {
+        var listing = Listing.Create(
+            Guid.NewGuid(), poster.Id, offer, kind, title, null, "Weekdays", null, null, area, note,
+            new DateTimeOffset(2026, 6, 1, 9, 0, 0, TimeSpan.Zero));
+        listing.Approve(approvedAt);
+        return listing;
+    }
+
     /// <summary>Enters the rows in the factory's in-memory store.</summary>
     public static async Task SeedAsync(this ApiFactory factory, params object[] rows)
     {

@@ -43,16 +43,16 @@ Design: [browse-listings](detailed-designs/browse/browse-listings/README.md).
 | 2.4 | Loading more on scroll with a bounded `ListingWindow` | L2-006, L2-030 | Yes |
 | 2.5 | Card photos sized, reserved and lazy below the fold; columns at 576, 768, 992 and 1200 px | L2-029, L2-031 | Yes |
 
-## 3. Search and filter listings (Main) — 4 days — 0% complete
+## 3. Search and filter listings (Main) — 4 days — 100% complete
 
 Design: [search-and-filter-listings](detailed-designs/browse/search-and-filter-listings/README.md).
 
-| # | Slice | L2 |
-|---|---|---|
-| 3.1 | Switch between Everything, For rent and Wanted, with counts, kept in the address | L2-002 |
-| 3.2 | Search by words (`SearchNormalizer`), debounced, kept in the address | L2-003, L2-026 |
-| 3.3 | Spaces, things or both | L2-035 |
-| 3.4 | No results offers to post a request for the search | L2-004 |
+| # | Slice | L2 | Done |
+|---|---|---|---|
+| 3.1 | Switch between Everything, For rent and Wanted, with counts, kept in the address | L2-002 | Yes |
+| 3.2 | Search by words (`SearchNormalizer`), debounced, kept in the address | L2-003, L2-026 | Yes |
+| 3.3 | Spaces, things or both, kept in the address | L2-035 | Yes |
+| 3.4 | No results offers to post a request for the search | L2-004 | Yes |
 
 ## 4. Read a listing (Main) — 4 days — 0% complete
 
@@ -154,4 +154,4 @@ Design: [verify-members-and-churches](detailed-designs/members/verify-members-an
 
 | Journeys | Effort (days) | % complete |
 |---|---|---|
-| 12 | 52 | 17 |
+| 12 | 52 | 25 |
