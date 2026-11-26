@@ -4,6 +4,7 @@ import {
   LISTINGS_API,
   type ListingCard,
   type ListingCounts,
+  type ListingDetail,
   type ListingsApi,
   type ListingsFilter,
   type ListingsPage,
@@ -55,6 +56,10 @@ class FakeListingsApi implements ListingsApi {
     return new Promise((resolve, reject) =>
       this.calls.push({ filter, cursor, signal, resolve, reject }),
     );
+  }
+
+  get(): Promise<ListingDetail> {
+    return Promise.reject(new Error('Browse reads no single listing.'));
   }
 }
 

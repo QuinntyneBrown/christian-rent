@@ -1,0 +1,30 @@
+// Listing layout, from docs/design-system/assets/components.css (Listing screen).
+:host {
+  display: block;
+}
+
+.listing-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-10);
+  padding-block: var(--space-4) var(--space-20);
+}
+
+@media (min-width: 48rem) {
+  .listing-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(17.5rem, var(--layout-aside-width));
+    gap: var(--space-8);
+  }
+
+  .listing-layout__aside {
+    position: sticky;
+    top: calc(var(--layout-topbar-height) + var(--space-6));
+    align-self: start;
+  }
+}
+
+@media (min-width: 62rem) {
+  .listing-layout {
+    gap: var(--space-10);
+  }
+}

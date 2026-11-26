@@ -106,6 +106,7 @@ the shell's not-found page. Browse and the shell stay as they are.
   - `docs/mocks/pages/listing/loading.html`
   - `docs/mocks/pages/listing/error.html`
   - `docs/mocks/pages/listing/not-found.html`
+  - `docs/mocks/pages/listing/edge.html` (one photo, long words, no note; ADR 0016)
 - Check each state you will build exists and is complete (light and dark, phone to desktop, keyboard focus,
   real copy). If a state the design or the criteria need is missing, draw it before any code, add it to
   `docs/mocks/manifest.json`, and note any departure from the prototype in `docs/mocks/README.md`.

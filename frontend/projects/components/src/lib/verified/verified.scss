@@ -1,0 +1,13 @@
+// Verified mark, from docs/design-system/components/verified.html.
+:host {
+  display: inline-flex;
+}
+
+.verified {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font: var(--text-overline);
+  color: var(--color-success-fg);
+  white-space: nowrap;
+}

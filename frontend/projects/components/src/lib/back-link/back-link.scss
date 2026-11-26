@@ -1,0 +1,19 @@
+// Back link, from docs/design-system/components/link.html.
+:host {
+  display: inline-flex;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target-min);
+  padding-right: var(--space-2);
+  color: var(--color-fg-muted);
+  font: var(--text-label);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--color-fg-default);
+  }
+}

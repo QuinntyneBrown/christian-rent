@@ -1,0 +1,9 @@
+<div class="wanted-panel">
+  <cr-tag class="wanted-panel__tag" variant="on-wanted" [large]="true"
+    ><cr-icon name="search" size="sm" /> {{ tag() }}</cr-tag
+  >
+  <h1 class="wanted-panel__title">{{ title() }}</h1>
+  @if (when(); as when) {
+    <p class="wanted-panel__when"><cr-icon name="calendar" size="sm" /> {{ when }}</p>
+  }
+</div>

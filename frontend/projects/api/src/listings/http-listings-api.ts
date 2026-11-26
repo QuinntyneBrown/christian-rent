@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import type { ListingsPage } from './listing-card';
+import type { ListingDetail } from './listing-detail';
 import type { ListingsApi, ListingsFilter } from './listings-api';
 
 /**
@@ -30,14 +31,27 @@ export class HttpListingsApi implements ListingsApi {
     if (cursor !== null) {
       params = params.set('cursor', cursor);
     }
-    return new Promise<ListingsPage>((resolve, reject) => {
+    return this.request<ListingsPage>('/api/listings', params, signal);
+  }
+
+  get(id: string, signal: AbortSignal): Promise<ListingDetail> {
+    return this.request<ListingDetail>(
+      `/api/listings/${encodeURIComponent(id)}`,
+      new HttpParams(),
+      signal,
+    );
+  }
+
+  private request<T>(url: string, params: HttpParams, signal: AbortSignal): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
       if (signal.aborted) {
         reject(signal.reason);
         return;
       }
-      const subscription = this.http
-        .get<ListingsPage>('/api/listings', { params })
-        .subscribe({ next: resolve, error: reject });
+      const subscription = this.http.get<T>(url, { params }).subscribe({
+        next: resolve,
+        error: reject,
+      });
       signal.addEventListener(
         'abort',
         () => {

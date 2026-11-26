@@ -1,0 +1,35 @@
+@if (listing(); as listing) {
+  <article class="listing">
+    @if (listing.wanted) {
+      <cr-wanted-panel [tag]="listing.tag" [title]="listing.title" [when]="listing.when" />
+    } @else {
+      <cr-gallery [photos]="listing.photos" />
+      <p class="listing__kind">
+        <cr-tag [large]="true">{{ listing.tag }}</cr-tag>
+      </p>
+      <h1 class="listing__title">{{ listing.title }}</h1>
+    }
+    <ul class="listing__facts">
+      <li><cr-icon name="pin" size="sm" /> {{ listing.place }}</li>
+      @if (!listing.wanted && listing.when) {
+        <li><cr-icon name="calendar" size="sm" /> {{ listing.when }}</li>
+      }
+      <li>{{ listing.posted }}</li>
+    </ul>
+    @if (listing.note; as note) {
+      <p class="listing__note">{{ note }}</p>
+    }
+    <cr-poster [poster]="listing.poster" />
+  </article>
+} @else {
+  <div class="listing listing--loading" aria-hidden="true">
+    <div class="listing__photo-skeleton"><cr-skeleton shape="fill" /></div>
+    <cr-skeleton class="listing__title-skeleton" shape="title" [width]="80" />
+    <cr-skeleton class="listing__facts-skeleton" [width]="50" />
+    <div class="listing__note-skeleton">
+      <cr-skeleton />
+      <cr-skeleton />
+      <cr-skeleton [width]="70" />
+    </div>
+  </div>
+}

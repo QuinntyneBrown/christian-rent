@@ -54,16 +54,16 @@ Design: [search-and-filter-listings](detailed-designs/browse/search-and-filter-l
 | 3.3 | Spaces, things or both, kept in the address | L2-035 | Yes |
 | 3.4 | No results offers to post a request for the search | L2-004 | Yes |
 
-## 4. Read a listing (Main) — 4 days — 0% complete
+## 4. Read a listing (Main) — 4 days — 100% complete
 
 Design: [read-listing](detailed-designs/listing/read-listing/README.md).
 
-| # | Slice | L2 |
-|---|---|---|
-| 4.1 | `GetListingQuery` with `ListingVisibility`: an approved listing, or 404 that reveals nothing | L2-007, L2-025 |
-| 4.2 | Listing screen: gallery, description, price, where and when | L2-007, L2-022, L2-024 |
-| 4.3 | Who posted it and their church, each marked Verified only when verified | L2-008 |
-| 4.4 | Loading, error, not found; the message box beside the listing from 768 px | L2-031, L2-033 |
+| # | Slice | L2 | Done |
+|---|---|---|---|
+| 4.1 | `GetListingQuery` with `ListingVisibility`: an approved listing, or 404 that reveals nothing | L2-007, L2-025 | Yes |
+| 4.2 | Listing screen: gallery, description, price, where and when | L2-007, L2-022, L2-024 | Yes |
+| 4.3 | Who posted it and their church, each marked Verified only when verified | L2-008 | Yes |
+| 4.4 | Loading, error, not found; the message box beside the listing from 768 px | L2-031, L2-033 | Yes |
 
 ## 5. Become a member (Main) — 5 days — 0% complete
 
@@ -154,4 +154,4 @@ Design: [verify-members-and-churches](detailed-designs/members/verify-members-an
 
 | Journeys | Effort (days) | % complete |
 |---|---|---|
-| 12 | 52 | 25 |
+| 12 | 52 | 33 |

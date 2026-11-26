@@ -32,6 +32,10 @@ Each journey's entry has three parts:
 | L16 | Before relying on Unicode text rules in the backend (normalisation, casing beyond ASCII), check `InvariantGlobalization`; test with accented text on both sides. | 3 |
 | L17 | When a feature prompt and the requirements disagree, the requirements and the detailed journeys win; the same change brings the prompt in line. | 3 |
 | L18 | A fixture that answers as the backend would (`answerListings` narrows by `show`, `kind` and `q`) lets each spec state one behaviour; the matching rule itself is proved once, on the backend. | 3 |
+| L19 | Before committing a new spec, run it with `--repeat-each` (5 or more); a spec that reads geometry or state first waits for the screen's final state, such as its heading or its last list item. | 4 |
+| L20 | A spec that passes on its first run because an earlier slice already built the code is proved by mutation in the same slice: break the rule it names and watch that spec, and only that spec, fail. | 4 |
+| L21 | A Playwright `has:` locator is relative to the element it filters; build it from the element (or write `:has(...)` in the selector), never from the page or the root. | 4 |
+| L22 | Before reusing a design-system rule in a component, check it with the longest content the edge mock draws: `aspect-ratio` beside an explicit `min-height` clips text, and an image whose ratio differs from its box needs `NgOptimizedImage`'s `fill`. | 4 |
 
 ## Journeys
 
@@ -196,3 +200,70 @@ Slices 3.1 to 3.4, finished on Nov 26, 2026.
   `cr-segmented` as text.
 - L13: the sweeps visit the for-rent, wanted, spaces and no-results states, and a heap check
   searches and switches again and again; none was run.
+### 4. Read a listing
+
+Slices 4.1 to 4.4, finished on Nov 26, 2026.
+
+**What slowed it**
+
+- The container again had no .NET SDK, PlantUML or Graphviz; Ubuntu's packages installed them,
+  as journeys 1 and 2 found.
+- The design left the gallery with one photo or none, the photo's text alternative, "Posted",
+  the avatar's tint, where the price goes before the message box exists, and the title open.
+  ADR 0016 decides them, the `edge` mock and two gallery variants draw them, and L2-007 gained
+  criteria 9 and 10, all before any code (L2).
+- L9 slipped once more: Browse's spec that clicks a card failed on the new
+  `GET /api/listings/{id}` it had never needed. `verify.mjs` caught it before the commit; the
+  spec now answers it and checks the Listing heading.
+- A touch-target test was flaky: it measured while the loading toolbar was being swapped for
+  the loaded one. It surfaced only because the mutation runs of L20 failed it too; it now waits
+  for the thumbnails, and every Listing spec was then run 5 to 6 times (L19).
+- A page object built `has:` from the root and found nothing (L21).
+- `NgOptimizedImage` warned that the 4:3 `gallery` rendition did not match its 16:10 box; the
+  large photo uses `fill` with `sizes`. The design system's wanted panel pairs `aspect-ratio`
+  with `min-height`, which would clip a long title; `cr-wanted-panel` sizes itself with
+  `min-height: max(16rem, 62.5cqi)` instead (L22).
+- Slices 4.3 and 4.4's specs passed on their first run, because slice 4.2 composed `cr-listing`
+  from all its parts, the poster and the wanted panel included, and the store already had every
+  state. Each was proved by mutation instead (L20); journey 2 saw the same with its edge spec.
+
+**New lessons**: L19 to L22 above, and these details for later slices:
+
+- A route's static `title` covers the wait; `RentTitleStrategy.setPageTitle` replaces it once a
+  screen's own title is known, as text, without a second announcement. It is provided as itself
+  and as `TitleStrategy` (`useExisting`), so a page can inject it.
+- An API address that takes an identifier takes it as a string and lets the handler parse it,
+  so a malformed one gets the same `not_found` as an unknown one; a route constraint would
+  answer differently.
+- A held fixture route lets a spec prove that leaving aborts a request: the browser reports the
+  request as failed with `net::ERR_ABORTED`.
+
+**Earlier lessons applied**
+
+- L1: `main` was fetched first and had not moved.
+- L2: six of the seven states the design names had mocks; a gallery of one photo or none had
+  none. The criterion, the mock, the design-system variants, the ADR and the design came first.
+- L3 and L20: the visibility check, the arrow keys, the photo's fallback description, the
+  church's mark, the abort on leaving, the `not_found` mapping, the 300 ms delay and the
+  two-column layout were each removed and their tests seen to fail.
+- L4: every commit followed a green `verify.mjs`; the behaviour specs went from 34 to 51, and
+  are 67 with journey 3's after the rebase.
+- L6: `MSBUILDDISABLENODEREUSE=1` held, and no dev server or API was left running.
+- L8: Listing composes ten new components (`cr-back-link`, `cr-listing-toolbar`,
+  `cr-listing-layout`, `cr-listing`, `cr-gallery`, `cr-wanted-panel`, `cr-poster`, `cr-avatar`,
+  `cr-verified`, `cr-message-box`) with `cr-tag`, `cr-skeleton` and `cr-plain-page`; the page
+  writes no design-system class.
+- L9: it slipped once (above); `verify.mjs` caught it.
+- L10: thumbnails are found by their exact names, "Photo 2 of 3".
+- L11: the initial chunk went from 309.7 kB to 310.3 kB, the route entry and the title hook,
+  and is 313.1 kB with journey 3's; the budgets of ADR 0014 hold.
+- L12: `ListingView` is in `@rent/api` and `toListingView`, `formatAge` and the name helpers in
+  `@rent/domain`, each with a test per case.
+- L13: the sweeps gained Listing's seven states and a heap check of opening and leaving a
+  listing; none was run.
+- Journey 3 merged while this one was open, so its lessons arrived with the rebase. L14: the
+  title strategy keeps journey 3's rule (announce only when the path changes) beside
+  `setPageTitle`. Its ADR 0015 took the number this journey had used; the Listing's record is
+  now ADR 0016, and its lessons L19 to L22.
+- CI's newer SDK failed the backend job on journey 1's unused `using`, which `main` had since
+  removed; after the rebase CI's result was read before calling the journey done.

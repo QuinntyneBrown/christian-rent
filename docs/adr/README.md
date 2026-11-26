@@ -26,3 +26,4 @@ record giving its reason (`AGENTS.md`, *Prefer best practice*).
 | [0013](0013-browse-paging-and-window.md) | Browse orders by approval, pages by a keyset cursor, and keeps a window of 3 pages | Accepted |
 | [0014](0014-bundle-budgets-after-browse.md) | The initial budget after Browse: 315 kB warning, 330 kB error | Accepted |
 | [0015](0015-search-matching-and-browse-query.md) | A search matches every word in a listing's normalised text; Browse's address holds `show`, `kind` and `q` | Accepted |
+| [0016](0016-listing-screen-open-decisions.md) | The Listing screen: area without distance, a gallery of one photo or none, the fallback text alternative, "Posted", the avatar, the price in the message box's head, and the title | Accepted |

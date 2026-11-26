@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test';
+import { answerListing, hall } from '../fixtures/listing';
 import {
   answerListings,
   answerNoListings,
@@ -113,6 +114,35 @@ test('searching and switching Browse again and again keeps the heap stable', asy
     await field.press('Escape');
     await everything.click();
     await expect(cards).toHaveCount(7);
+  };
+
+  await roundTrip();
+  const before = await heapAfterGc();
+  for (let round = 0; round < ROUNDS; round++) {
+    await roundTrip();
+  }
+  const after = await heapAfterGc();
+
+  expect(after - before).toBeLessThan(ALLOWED_GROWTH_BYTES);
+});
+
+// Lazy loading and memory: opening a listing with its photos and leaving it, again and again,
+// returns the Listing screen's memory.
+test('opening a listing and leaving it keeps the heap stable', async ({ page, api }) => {
+  answerNoListings(api);
+  answerListing(api, hall());
+  const heapAfterGc = await heapMeter(page);
+  await page.goto('/');
+  const heading = page.getByRole('heading', { level: 1, name: 'Sunlit fellowship hall for 80' });
+  const allListings = page.getByRole('link', { name: 'All listings', exact: true });
+
+  const roundTrip = async () => {
+    await page.evaluate((id) => history.pushState({}, '', `/listings/${id}`), hall().id);
+    await page.evaluate(() => dispatchEvent(new PopStateEvent('popstate')));
+    await expect(heading).toBeVisible();
+    await page.getByRole('button', { name: 'Photo 3 of 3', exact: true }).click();
+    await allListings.click();
+    await expect(heading).toHaveCount(0);
   };
 
   await roundTrip();

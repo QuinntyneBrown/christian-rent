@@ -1,0 +1,40 @@
+<section class="gallery" aria-label="Photos">
+  <div class="gallery__main">
+    @if (current(); as photo) {
+      <img
+        class="gallery__photo"
+        [ngSrc]="photo.url"
+        fill
+        sizes="(min-width: 72rem) 46rem, (min-width: 48rem) calc(100vw - 30rem), 100vw"
+        [alt]="photo.alt"
+        priority
+      />
+    } @else {
+      <div class="gallery__no-photo" role="img" aria-label="No photo yet">
+        <cr-icon name="image" size="lg" />
+      </div>
+    }
+  </div>
+  @if (photos().length > 1) {
+    <ul class="gallery__thumbs">
+      @for (photo of photos(); track $index; let position = $index) {
+        <li>
+          <button
+            #thumb
+            class="gallery__thumb"
+            type="button"
+            [attr.aria-current]="position === index() ? 'true' : 'false'"
+            [attr.aria-label]="'Photo ' + (position + 1) + ' of ' + photos().length"
+            (click)="show(position)"
+            (keydown)="step($event, position)"
+          >
+            <img [ngSrc]="photo.thumbUrl" width="240" height="180" alt="" />
+          </button>
+        </li>
+      }
+    </ul>
+    <p class="gallery__count" aria-live="polite">
+      Photo {{ index() + 1 }} of {{ photos().length }}
+    </p>
+  }
+</section>

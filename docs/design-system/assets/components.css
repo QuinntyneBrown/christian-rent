@@ -331,6 +331,8 @@ a.listing-card:hover, a.listing-card[data-state="hover"] { transform: translateY
 .gallery__thumb { display: block; width: 4.5rem; height: 3.375rem; padding: 0; border: var(--border-width-thick) solid transparent; border-radius: var(--radius-sm); overflow: hidden; background: var(--color-bg-surface-sunken); cursor: pointer; flex: none; }
 .gallery__thumb img { width: 100%; height: 100%; object-fit: cover; }
 .gallery__thumb[aria-current="true"] { border-color: var(--color-fg-default); }
+.gallery__no-photo { width: 100%; height: 100%; display: grid; place-items: center; color: var(--color-fg-muted); }
+.gallery__no-photo .icon { width: 2.5rem; height: 2.5rem; }
 .gallery__count { margin-top: var(--space-2); font: var(--text-body-sm); color: var(--color-fg-muted); }
 .wanted-panel { display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-6); min-height: 16rem; aspect-ratio: 16 / 10; padding: var(--space-6); border-radius: var(--radius-xl); background: var(--color-wanted); color: var(--color-fg-on-wanted); }
 .wanted-panel__title { font: var(--text-h1); letter-spacing: var(--letter-spacing-tight); color: inherit; overflow-wrap: anywhere; }

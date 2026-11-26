@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
 import type { ApiFixtures } from '../fixtures/api';
+import { answerListing, gym, hall, office, van } from '../fixtures/listing';
 import {
   answerListings,
   answerPhotos,
@@ -113,6 +114,47 @@ export const SCREENS: readonly Screen[] = [
     name: 'not-found',
     path: '/no-such-page',
     answer: () => undefined,
+  },
+  {
+    name: 'listing',
+    path: `/listings/${hall().id}`,
+    answer: (api) => answerListing(api, hall()),
+    then: (page) => page.locator('.gallery__main img').waitFor(),
+  },
+  {
+    name: 'listing-wanted',
+    path: `/listings/${van().id}`,
+    answer: (api) => answerListing(api, van()),
+  },
+  {
+    name: 'listing-unverified',
+    path: `/listings/${office().id}`,
+    answer: (api) => answerListing(api, office()),
+  },
+  {
+    name: 'listing-edge',
+    path: `/listings/${gym().id}`,
+    answer: (api) => answerListing(api, gym()),
+    then: (page) => page.locator('.gallery__main img').waitFor(),
+  },
+  {
+    name: 'listing-loading',
+    path: `/listings/${hall().id}`,
+    answer: (api) => {
+      api.hold('GET', `/api/listings/${hall().id}`);
+      answerListing(api, hall());
+    },
+    then: (page) => page.locator('.listing--loading').waitFor(),
+  },
+  {
+    name: 'listing-error',
+    path: `/listings/${hall().id}`,
+    answer: (api) => api.refuse('GET', `/api/listings/${hall().id}`, 503, 'unexpected'),
+  },
+  {
+    name: 'listing-not-found',
+    path: `/listings/${hall().id}`,
+    answer: (api) => api.refuse('GET', `/api/listings/${hall().id}`, 404, 'not_found'),
   },
 ];
 

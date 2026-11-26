@@ -1,0 +1,37 @@
+// Wanted panel, from docs/design-system/components/wanted-panel.html.
+:host {
+  display: block;
+  // The panel's height follows its width (16:10), measured against the host.
+  container-type: inline-size;
+}
+
+.wanted-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-6);
+  // At least 16:10 and 16rem, and taller when a long title needs it: never clipped.
+  min-height: max(16rem, 62.5cqi);
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  background: var(--color-wanted);
+  color: var(--color-fg-on-wanted);
+}
+
+.wanted-panel__tag {
+  align-self: flex-start;
+}
+
+.wanted-panel__title {
+  font: var(--text-h1);
+  letter-spacing: var(--letter-spacing-tight);
+  color: inherit;
+  overflow-wrap: anywhere;
+}
+
+.wanted-panel__when {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--font-weight-medium);
+}

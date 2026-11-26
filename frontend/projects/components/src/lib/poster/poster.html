@@ -1,0 +1,18 @@
+<section class="poster" aria-label="Posted by">
+  <cr-avatar [initials]="poster().initials" [tint]="poster().tint" size="lg" />
+  <div class="poster__body">
+    <p class="poster__line">
+      <span class="poster__name">{{ poster().name }}</span>
+      @if (poster().isVerified) {
+        <cr-verified subject="member" />
+      }
+    </p>
+    <p class="poster__line">
+      <span class="poster__church">{{ poster().church }}</span>
+      @if (poster().churchIsVerified) {
+        <cr-verified subject="church" />
+      }
+    </p>
+    <p class="poster__since">{{ poster().since }}</p>
+  </div>
+</section>
