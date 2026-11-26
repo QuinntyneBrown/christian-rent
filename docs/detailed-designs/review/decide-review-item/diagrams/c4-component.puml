@@ -1,0 +1,35 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Decide a review item
+
+Container_Boundary(spa, "rent application (Angular workspace)") {
+  Component(ui, "cr-review-detail, cr-toast", "components library", "Decision bar and toasts")
+}
+Container_Boundary(admlib, "admin library (lazy chunk)") {
+  Component(page, "ReviewPage", "Angular page", "Routes decide events")
+  Component(dialog, "ConfirmRemoveDialog", "CDK Dialog", "Confirms Remove")
+  Component(store, "ReviewQueueStore", "Route-scoped signal store", "decide(), next item, conflict")
+  Component(toasts, "ToastQueue", "Route-scoped service", "8 s timers, released on destroy")
+  Component(client, "HttpReviewQueueApi", "REVIEW_QUEUE_API", "Typed HTTP client")
+}
+Container_Boundary(api, "ChristianRent backend") {
+  Component(ctrl, "ReviewQueueController", "ASP.NET Core controller, Admin policy", "POST /api/review-queue/{id}/decision")
+  Component(handler, "DecideReviewItemCommandHandler", "MediatR handler", "Applies the decision table")
+  Component(item, "ReviewItem", "Domain entity", "Decide(), concurrency token")
+  Component(subj, "Listing, Report, Member", "Domain entities", "Approve, Remove, Close, Verify")
+  Component(notify, "IMemberNotifier", "Application interface", "Tells the poster of a removal")
+}
+ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
+Rel(ui, page, "Emits decide")
+Rel(page, dialog, "Opens for Remove")
+Rel(page, store, "decide(id, decision)")
+Rel(store, toasts, "push(toast)")
+Rel(store, client, "decide(id, decision, version)")
+Rel(client, ctrl, "POST decision", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends DecideReviewItemCommand")
+Rel(handler, item, "Decide(decision, adminId, now)")
+Rel(handler, subj, "Applies the effect")
+Rel(handler, notify, "ListingRemovedAsync")
+Rel(handler, db, "Saves in one unit of work", "IAppDbContext")
+@enduml

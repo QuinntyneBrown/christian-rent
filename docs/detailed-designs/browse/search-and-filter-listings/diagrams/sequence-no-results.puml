@@ -1,0 +1,32 @@
+@startuml
+title UML sequence behaviour — Offer to post a request
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Anyone" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "BrowsePage" as page
+  participant "BrowseStore" as store
+  participant "cr-empty-state" as empty
+  participant "PostPage (lazy)" as post
+end box
+store --> page : state = empty, query.term = "bouncy castle"
+page -> empty : Render no-results with term
+empty --> actor : Term as text, "Post a request for it" (L2-004)
+actor -> empty : Take the offer
+empty -> page : Navigate /post?offer=wanted&title=bouncy castle
+page -> post : Router loads the Post chunk
+post -> post : Set "I need", title = term (L2-004 criterion 2)
+post --> actor : Post, set to "I need"
+@enduml

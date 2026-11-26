@@ -1,0 +1,51 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Fail clearly and operate in production
+
+class "LoadState<T>" as LS <<TypeScript>> {
+  +status: 'loading' | 'loaded' | 'empty' | 'failed'
+  +value?: T
+  +error?: ApiError
+}
+class UnhandledExceptionHandler {
+  +TryHandleAsync(context, exception, token): ValueTask<bool>
+}
+class DatabaseHealthCheck {
+  +CheckHealthAsync(context, token): Task<HealthCheckResult>
+}
+class PhotoStorageHealthCheck {
+  +CheckHealthAsync(context, token): Task<HealthCheckResult>
+}
+interface IHealthCheck
+class TelemetryScrubber {
+  +OnEnd(activity: Activity): void
+}
+class MigrateCommand {
+  +ExecuteAsync(): Task<int>
+}
+class SeedCommand {
+  +ExecuteAsync(): Task<int>
+}
+interface IAppDbContext {
+  +CanConnectAsync(token): Task<bool>
+}
+interface IPhotoStorage {
+  +IsReachableAsync(): Task<bool>
+}
+IHealthCheck <|.. DatabaseHealthCheck
+IHealthCheck <|.. PhotoStorageHealthCheck
+DatabaseHealthCheck ..> IAppDbContext
+PhotoStorageHealthCheck ..> IPhotoStorage
+LS ..> UnhandledExceptionHandler : failed carries its ProblemDetails
+@enduml

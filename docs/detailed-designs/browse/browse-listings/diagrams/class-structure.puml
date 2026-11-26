@@ -1,0 +1,103 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Browse listings
+
+enum ListingOffer {
+  ForRent
+  Wanted
+}
+enum ListingKind {
+  Space
+  Thing
+}
+enum ListingStatus {
+  WaitingForReview
+  Approved
+  Removed
+}
+class Listing {
+  +Guid Id
+  +Guid MemberId
+  +ListingOffer Offer
+  +ListingKind Kind
+  +string Title
+  +Price? Price
+  +string Area
+  +ListingStatus Status
+  +DateTimeOffset? ApprovedAt
+  +IsPublic(): bool
+}
+class Price {
+  +decimal Amount
+  +PricePeriod Period
+}
+class BrowseListingsQuery {
+  +ListingOffer? Offer
+  +ListingKind? Kind
+  +string? Search
+  +string? Cursor
+  +int Size
+}
+class BrowseListingsQueryHandler {
+  +Handle(query: BrowseListingsQuery): Task<ListingsPageDto>
+}
+class ListingCursor {
+  +DateTimeOffset ApprovedAt
+  +Guid Id
+  +Encode(): string
+  +{static} Decode(text: string): ListingCursor
+}
+class ListingsPageDto {
+  +ListingCardDto[] Items
+  +string? NextCursor
+  +ListingCountsDto Counts
+}
+class ListingCardDto {
+  +Guid Id
+  +string Offer
+  +string Kind
+  +string Title
+  +PriceDto? Price
+  +string Area
+  +int? DistanceKm
+  +string When
+  +string PosterName
+  +string ChurchName
+  +PhotoRefDto? Photo
+}
+class BrowseStore <<Angular>> {
+  +state: Signal<BrowseState>
+  +moreState: Signal<MoreState>
+  +cards: Signal<ListingCard[]>
+  +loadFirst(): void
+  +loadMore(): void
+}
+class ListingWindow <<TypeScript>> {
+  +maxPages: 3
+  +append(page: ListingsPage): void
+  +release(pageIndex: number, height: number): void
+  +visible(): ListingCard[]
+}
+BrowseListingsQueryHandler ..> BrowseListingsQuery : handles
+BrowseListingsQueryHandler ..> ListingCursor : decodes / encodes
+BrowseListingsQueryHandler --> Listing : reads
+BrowseListingsQueryHandler ..> ListingsPageDto : returns
+ListingsPageDto *-- "0..24" ListingCardDto
+Listing --> ListingOffer
+Listing --> ListingKind
+Listing --> ListingStatus
+Listing *-- "0..1" Price
+BrowseStore *-- ListingWindow
+BrowseStore ..> ListingsPageDto : receives as ListingsPage
+@enduml

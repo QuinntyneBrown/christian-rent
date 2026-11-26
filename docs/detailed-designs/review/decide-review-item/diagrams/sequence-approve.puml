@@ -1,0 +1,58 @@
+@startuml
+title UML sequence behaviour — Approve a new listing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Admin" as actor
+box "Frontend — admin library (lazy)" #E0F2FE
+  participant "ReviewPage" as page
+  participant "ReviewQueueStore" as store
+  participant "ToastQueue" as toasts
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ReviewQueueController" as ctrl
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "DecideReviewItemCommandHandler" as handler
+  participant "ReviewItem" as item
+  participant "Listing" as listing
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> page : Select "Approve"
+page -> store : decide(id, Approve)
+store -> ctrl : POST /api/review-queue/{id}/decision {Approve, version}
+ctrl -> ctrl : Admin policy (L2-025)
+ctrl -> handler : Send DecideReviewItemCommand
+handler -> db : Review item and listing
+db --> handler : Loaded
+handler -> item : Decide(Approve, adminId, now) (L2-020 criterion 6)
+alt item is waiting and the version matches
+  handler -> listing : Approve(now), Status = Approved (L2-020 criterion 1)
+  handler -> db : Save with concurrency token
+  db --> handler : Committed
+  handler --> ctrl : DecidedDto
+  ctrl --> store : 200 OK
+  store -> store : Drop the item, select the next
+  store -> toasts : push(success)
+  toasts --> actor : Toast announced, dismisses after 8 s
+else decided by another admin
+  item --> handler : AlreadyDecidedException
+  handler --> ctrl : First decision stands
+  ctrl --> store : 409, code = already_decided (L2-020 criterion 5)
+  store --> page : detail.conflict
+  page --> actor : "This was already decided", "Go to the next item"
+end
+@enduml

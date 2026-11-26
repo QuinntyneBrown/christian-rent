@@ -1,0 +1,45 @@
+@startuml
+title UML sequence behaviour — Carry member-written text
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Member" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "Post form" as form
+  participant "cr-listing-card template" as tpl
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "SecurityHeadersMiddleware" as hdr
+  participant "ListingsController" as ctrl
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "ValidationBehavior" as val
+  participant "Handler" as handler
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> form : Type a title containing <script> markup
+form -> ctrl : POST /api/listings
+ctrl -> val : Send PostListingCommand
+val -> val : Type, length and range (L2-026 criterion 2)
+val -> handler : Valid: the markup is ordinary characters
+handler -> db : Insert through EF Core parameters (L2-026 criterion 2)
+... later, anyone opens Browse ...
+tpl -> ctrl : GET /api/listings
+ctrl --> hdr : JSON response
+hdr --> tpl : Adds Content-Security-Policy, script-src 'self' (L2-026 criterion 3)
+tpl -> tpl : {{ card.title }} sets text content
+tpl --> actor : The markup shown as text; nothing runs (L2-026 criterion 1)
+@enduml

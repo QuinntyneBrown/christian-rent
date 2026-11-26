@@ -1,0 +1,77 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Add photos to a listing
+
+class Photo {
+  +Guid Id
+  +Guid OwnerId
+  +Guid? ListingId
+  +string StorageKey
+  +int Width
+  +int Height
+  +DateTimeOffset UploadedAt
+}
+class PhotoFacts {
+  +PhotoFormat Format
+  +int Width
+  +int Height
+}
+enum PhotoFormat {
+  Jpeg
+  Png
+  WebP
+}
+class PhotoRules {
+  +{static} MaxBytes: 10 MB
+  +{static} MinWidth: 400
+  +{static} MinHeight: 300
+  +{static} MaxSide: 8000
+  +{static} MaxPerListing: 6
+  +{static} Check(facts: PhotoFacts?, length: long): PhotoRefusal?
+}
+interface IPhotoInspector {
+  +Inspect(content: Stream): PhotoFacts?
+}
+interface IPhotoProcessor {
+  +Process(content: Stream): IReadOnlyList<Rendition>
+}
+interface IPhotoStorage {
+  +SaveAsync(key: string, content: Stream): Task
+  +OpenReadAsync(key: string): Task<Stream>
+  +DeleteAsync(key: string): Task
+  +IsReachableAsync(): Task<bool>
+}
+class UploadPhotoCommandHandler {
+  +Handle(command: UploadPhotoCommand): Task<PhotoRefDto>
+}
+class GetPhotoQueryHandler {
+  +Handle(query: GetPhotoQuery): Task<PhotoStreamDto>
+}
+class PhotoUploads <<Angular>> {
+  +add(files: File[]): void
+  +remove(localId: string): void
+  -controllers: Map<string, AbortController>
+  -objectUrls: string[]
+}
+UploadPhotoCommandHandler ..> IPhotoInspector
+UploadPhotoCommandHandler ..> IPhotoProcessor
+UploadPhotoCommandHandler ..> IPhotoStorage
+UploadPhotoCommandHandler ..> PhotoRules
+UploadPhotoCommandHandler --> Photo : creates
+GetPhotoQueryHandler --> Photo : loads
+GetPhotoQueryHandler ..> IPhotoStorage
+IPhotoInspector ..> PhotoFacts
+PhotoFacts --> PhotoFormat
+PhotoRules ..> PhotoFacts
+@enduml

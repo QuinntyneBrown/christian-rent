@@ -1,0 +1,11 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Become a member
+
+Person(person, "Person who is not a member", "Wants to post, message or report")
+Person(admin, "Admin", "Works through the review queue")
+System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for one")
+Rel(person, cr, "Becomes a member of")
+Rel(admin, cr, "Reviews listings, reports and members in")
+@enduml

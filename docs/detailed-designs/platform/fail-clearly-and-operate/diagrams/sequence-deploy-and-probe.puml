@@ -1,0 +1,44 @@
+@startuml
+title UML sequence behaviour — Deploy and probe
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Operator" as actor
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ChristianRent.Cli migrate" as cli
+  participant "ChristianRent.Api" as api
+  participant "Health checks" as health
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+  database "File storage" as files
+  participant "OpenTelemetry" as tel
+end box
+actor -> cli : Run migrate
+cli -> db : Apply pending EF Core migrations (L2-034 criterion 3)
+db --> cli : Schema current
+cli --> actor : Exit code 0
+actor -> api : Start the new version (no migration on start)
+actor -> health : GET /health/live
+health --> actor : 200 alive
+actor -> health : GET /health/ready
+health -> db : CanConnectAsync
+health -> files : IsReachableAsync
+alt both reachable
+  health --> actor : 200, database and file storage healthy (L2-034 criterion 1)
+else one unreachable
+  health --> actor : 503 naming the failed check
+end
+api -> tel : Span, duration and outcome per request, route as template (L2-034 criterion 2)
+@enduml

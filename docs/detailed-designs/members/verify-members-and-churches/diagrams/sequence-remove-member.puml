@@ -1,0 +1,44 @@
+@startuml
+title UML sequence behaviour — Remove a member
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Admin" as actor
+box "Frontend — admin library (lazy)" #E0F2FE
+  participant "ReviewPage" as review
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ReviewQueueController" as ctrl
+  participant "ListingsController" as lctrl
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "DecideReviewItemCommandHandler" as dec
+  participant "Member" as member
+  participant "ListingVisibility" as vis
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> review : Remove a new member, confirm
+review -> ctrl : POST /api/review-queue/{id}/decision
+ctrl -> dec : Send DecideReviewItemCommand(Remove)
+dec -> member : Remove(), Status = Removed
+dec -> db : Save
+ctrl --> review : 200 OK
+... afterwards ...
+lctrl -> vis : CanBeSeenBy(listing of that member, anyone)
+vis --> lctrl : false, poster is not active (L2-018 criterion 4)
+lctrl --> lctrl : Browse omits it; reading it answers not_found
+lctrl -> lctrl : A post or message by that member is refused, code = not_a_member
+@enduml

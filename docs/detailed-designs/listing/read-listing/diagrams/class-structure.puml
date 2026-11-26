@@ -1,0 +1,85 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Read a listing
+
+class Listing {
+  +Guid Id
+  +ListingOffer Offer
+  +ListingKind Kind
+  +string Title
+  +Price? Price
+  +When When
+  +string Area
+  +string? Note
+  +ListingStatus Status
+  +DateTimeOffset CreatedAt
+}
+class ListingPhoto {
+  +Guid PhotoId
+  +int Position
+}
+class Member {
+  +Guid Id
+  +string Name
+  +bool IsVerified
+  +bool IsAdmin
+  +MemberStatus Status
+  +DateTimeOffset JoinedAt
+}
+class Church {
+  +Guid Id
+  +string Name
+  +string City
+  +bool IsVerified
+}
+class ListingVisibility {
+  +{static} CanBeSeenBy(listing: Listing, caller: Member?): bool
+}
+class GetListingQuery {
+  +Guid Id
+}
+class GetListingQueryHandler {
+  +Handle(query: GetListingQuery): Task<ListingDetailDto>
+}
+class ListingDetailDto {
+  +Guid Id
+  +string Title
+  +PriceDto? Price
+  +string When
+  +string Area
+  +string? Note
+  +PhotoRefDto[] Photos
+  +PosterDto Poster
+  +bool IsOwn
+}
+class PosterDto {
+  +string Name
+  +bool IsVerified
+  +int MemberSince
+  +ChurchDto Church
+}
+class ChurchDto {
+  +string Name
+  +bool IsVerified
+}
+Listing "1" *-- "0..6" ListingPhoto
+Listing --> "1" Member : posted by
+Member --> "1" Church : belongs to
+GetListingQueryHandler ..> GetListingQuery : handles
+GetListingQueryHandler ..> ListingVisibility : asks
+GetListingQueryHandler --> Listing : loads
+GetListingQueryHandler ..> ListingDetailDto : returns
+ListingDetailDto *-- PosterDto
+PosterDto *-- ChurchDto
+@enduml

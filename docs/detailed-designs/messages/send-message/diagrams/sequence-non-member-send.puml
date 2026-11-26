@@ -1,0 +1,42 @@
+@startuml
+title UML sequence behaviour — Keep a non-member's message
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Person who is not a member" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "cr-message-box" as box
+  participant "MessageComposer" as composer
+  participant "MemberGate" as gate
+  participant "DraftStore" as drafts
+  participant "JoinDialog (lazy)" as join
+end box
+actor -> box : Write a message and select send
+box -> composer : send
+composer -> gate : requireMember()
+gate -> drafts : save(message draft)
+gate -> join : Open the Join dialog
+join --> actor : "Become a member"
+alt joins
+  actor -> join : Name, church, declaration
+  join --> gate : Member created
+  gate -> drafts : restore()
+  gate --> composer : true
+  composer -> composer : Continue send() with the kept draft (L2-015)
+else chooses "Not now"
+  join --> gate : Dismissed
+  gate --> composer : false
+  composer --> box : Draft still shown, nothing sent
+end
+@enduml

@@ -1,0 +1,74 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Become a member
+
+class Member {
+  +Guid Id
+  +string Name
+  +Guid ChurchId
+  +bool IsVerified
+  +bool IsAdmin
+  +MemberStatus Status
+  +DateTimeOffset JoinedAt
+  +{static} Join(name, church, now): Member
+  +Verify(): void
+  +Remove(): void
+}
+enum MemberStatus {
+  Active
+  Removed
+  Departed
+}
+class Church {
+  +Guid Id
+  +string Name
+  +string City
+  +bool IsVerified
+  +{static} Enter(name, city): Church
+  +Verify(): void
+}
+class JoinCommand {
+  +string Name
+  +Guid? ChurchId
+  +string? NewChurchName
+  +string? NewChurchCity
+  +bool DeclaresChristian
+}
+class JoinCommandValidator {
+  +Validate(command: JoinCommand): ValidationResult
+}
+class JoinCommandHandler {
+  +Handle(command: JoinCommand): Task<MemberDto>
+}
+interface ICurrentMember {
+  +Guid? MemberId
+  +bool IsMember
+  +bool IsAdmin
+}
+class MemberGate <<Angular>> {
+  +requireMember(): Promise<boolean>
+}
+interface Session <<TypeScript>> {
+  +member: Signal<MemberSummary | null>
+  +refresh(): Promise<void>
+}
+Member --> "1" Church : belongs to
+Member --> MemberStatus
+JoinCommandHandler ..> JoinCommand : handles
+JoinCommandValidator ..> JoinCommand : validates
+JoinCommandHandler --> Member : creates
+JoinCommandHandler --> Church : finds or creates
+JoinCommandHandler ..> ICurrentMember
+MemberGate ..> Session : reads
+@enduml

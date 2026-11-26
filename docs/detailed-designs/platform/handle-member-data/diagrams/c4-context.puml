@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Handle what members write and who they are
+
+Person(member, "Member", "Posts listings, sends messages and reports")
+Person(anyone, "Anyone", "Browses and reads listings, signed in or not")
+Person(operator, "Operator", "Deploys and watches the system")
+System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for one")
+System_Ext(otel, "Telemetry backend", "Receives traces, metrics and logs")
+Rel(member, cr, "Posts, messages and reports on")
+Rel(anyone, cr, "Browses and reads listings on")
+Rel(operator, cr, "Deploys and observes")
+Rel(cr, otel, "Sends scrubbed telemetry to")
+@enduml

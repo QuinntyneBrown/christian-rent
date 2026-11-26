@@ -1,0 +1,64 @@
+@startuml
+title UML sequence behaviour — Send a message
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Member" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "cr-message-box" as box
+  participant "MessageComposer" as composer
+  participant "HttpMessagesApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "MessagesController" as ctrl
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "SendMessageCommandHandler" as handler
+  participant "MessagingLimit" as limit
+  participant "Message" as entity
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> box : Write a message, pick dates, select "Message Dan"
+box -> composer : send
+composer -> composer : Validate 1 to 1,000 characters and dates (L2-015)
+composer -> client : send(listingId, draft)
+client -> ctrl : POST /api/listings/{id}/messages
+ctrl -> ctrl : Require a member (L2-025)
+ctrl -> handler : Send SendMessageCommand
+handler -> db : Listing by id
+db --> handler : Listing
+alt listing approved, sender is not its poster
+  handler -> limit : Check(senderId, now) (L2-016 criterion 4)
+  limit --> handler : Under 20 in the hour
+  handler -> entity : Message.Send(...), recipient = poster
+  handler -> db : Save message only, listing unchanged (L2-024)
+  handler --> ctrl : SentMessageDto
+  ctrl --> client : 201 Created
+  client --> composer : Sent
+  composer --> box : state = sent
+  box --> actor : Confirmation replaces the message box (L2-015)
+else removed, waiting or missing listing
+  handler --> ctrl : NotFoundException
+  ctrl --> client : 404, code = not_found (L2-016 criterion 5)
+else sender posted the listing
+  handler --> ctrl : 403, code = own_listing (L2-015 criterion 6)
+else over the limit
+  handler --> ctrl : 429, code = message_limit_reached, retryAt
+  composer --> box : state = limited, text and dates kept
+else network or server failure
+  composer --> box : state = failed, "Try again", text and dates kept
+end
+@enduml

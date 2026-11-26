@@ -1,0 +1,79 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Publish a listing
+
+class PostListingCommand {
+  +Guid ClientRequestId
+  +ListingOffer Offer
+  +ListingKind Kind
+  +string Title
+  +decimal? PriceAmount
+  +PricePeriod? PricePeriod
+  +string? WhenText
+  +DateOnly? StartDate
+  +DateOnly? EndDate
+  +string Area
+  +string? Note
+  +Guid[] PhotoIds
+}
+class PostListingCommandValidator {
+  +Validate(command: PostListingCommand): ValidationResult
+}
+class PostListingCommandHandler {
+  +Handle(command: PostListingCommand): Task<PostedListingDto>
+}
+class PostingLimit {
+  +{static} MaxPerDay: 10
+  +Check(memberId: Guid, now: DateTimeOffset): Task
+}
+class LimitReachedException {
+  +string Code
+  +DateTimeOffset RetryAt
+}
+class Listing {
+  +Guid Id
+  +Guid MemberId
+  +Guid ClientRequestId
+  +ListingStatus Status
+  +DateTimeOffset CreatedAt
+  +{static} Post(member, fields, photos, now): Listing
+  +Approve(now: DateTimeOffset): void
+  +Remove(): void
+}
+class ReviewItem {
+  +Guid Id
+  +ReviewItemKind Kind
+  +Guid SubjectId
+  +DateTimeOffset CreatedAt
+  +{static} ForNewListing(listingId, now): ReviewItem
+}
+enum PricePeriod {
+  Hour
+  Day
+  Week
+  Month
+}
+class PostedListingDto {
+  +Guid Id
+  +string Status
+}
+PostListingCommandHandler ..> PostListingCommand : handles
+PostListingCommandValidator ..> PostListingCommand : validates
+PostListingCommandHandler ..> PostingLimit : checks
+PostingLimit ..> LimitReachedException : raises
+PostListingCommandHandler --> Listing : creates
+PostListingCommandHandler --> ReviewItem : creates
+PostListingCommandHandler ..> PostedListingDto : returns
+PostListingCommand --> PricePeriod
+@enduml

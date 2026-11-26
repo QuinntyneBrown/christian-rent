@@ -1,0 +1,29 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Browse listings
+
+Container_Boundary(spa, "rent application (Angular workspace)") {
+  Component(page, "BrowsePage", "Angular page, lazy route /", "Composes Browse and observes the end of the list")
+  Component(store, "BrowseStore", "Route-scoped signal store", "Holds the load state and the listing window")
+  Component(window, "ListingWindow", "domain/search helper", "Bounded buffer of at most 3 pages")
+  Component(card, "cr-hero, cr-listing-card", "components library", "Headline, posting buttons and cards")
+  Component(client, "HttpListingsApi", "api library, LISTINGS_API", "Typed HTTP client")
+}
+Container_Boundary(api, "ChristianRent backend") {
+  Component(ctrl, "ListingsController", "ASP.NET Core controller", "GET /api/listings, anonymous")
+  Component(handler, "BrowseListingsQueryHandler", "MediatR handler", "Filters approved listings and pages by cursor")
+  Component(val, "BrowseListingsQueryValidator", "FluentValidation", "Refuses a page size above 50")
+  Component(entity, "Listing", "Domain entity", "Status, approval time and card fields")
+}
+ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
+Rel(page, store, "Reads signals, calls loadFirst and loadMore")
+Rel(page, card, "Renders")
+Rel(store, window, "Appends and releases pages")
+Rel(store, client, "browse(query, cursor)")
+Rel(client, ctrl, "GET /api/listings", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends BrowseListingsQuery")
+Rel(handler, val, "Validated by pipeline")
+Rel(handler, entity, "Projects to ListingCardDto")
+Rel(handler, db, "Queries", "IAppDbContext")
+@enduml

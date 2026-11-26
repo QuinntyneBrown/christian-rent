@@ -1,0 +1,31 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Become a member
+
+Container_Boundary(spa, "rent application (Angular workspace)") {
+  Component(gate, "MemberGate", "rent service", "Opens the Join dialog for a non-member")
+  Component(dialog, "JoinDialog", "CDK Dialog, lazy import", "Collects name, church and declaration")
+  Component(session, "Session", "api contract, SESSION token", "The current member as a signal")
+  Component(client, "HttpMembersApi, HttpChurchesApi", "api library", "Typed HTTP clients")
+}
+Container_Boundary(api, "ChristianRent backend") {
+  Component(mctrl, "MembersController", "ASP.NET Core controller", "POST /api/members, GET /api/members/me")
+  Component(cctrl, "ChurchesController", "ASP.NET Core controller", "GET /api/churches")
+  Component(handler, "JoinCommandHandler", "MediatR handler", "Creates member, church and review item")
+  Component(current, "ICurrentMember", "Application interface", "Who the caller is")
+  Component(entity, "Member, Church", "Domain entities", "Unverified when created")
+  Component(item, "ReviewItem", "Domain entity", "Queue entry for the new member")
+}
+ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
+Rel(gate, session, "member()")
+Rel(gate, dialog, "Opens")
+Rel(dialog, client, "list(), join(request)")
+Rel(client, mctrl, "POST /api/members", "JSON/HTTPS")
+Rel(client, cctrl, "GET /api/churches", "JSON/HTTPS")
+Rel(mctrl, handler, "Sends JoinCommand")
+Rel(handler, current, "Reads caller")
+Rel(handler, entity, "Member.Join(...)")
+Rel(handler, item, "ReviewItem.ForNewMember(...)")
+Rel(handler, db, "Saves in one unit of work", "IAppDbContext")
+@enduml
