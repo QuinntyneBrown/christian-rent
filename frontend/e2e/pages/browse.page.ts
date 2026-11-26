@@ -18,4 +18,10 @@ export class BrowsePage {
   async open(): Promise<void> {
     await this.page.goto('/');
   }
+
+  async scrollsSideways(): Promise<boolean> {
+    return this.page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    );
+  }
 }

@@ -1,0 +1,46 @@
+// Logo, from docs/design-system/components/logo.html. The mark and ".rent" keep the brand orange.
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target-min);
+  color: var(--color-fg-default);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.logo:hover {
+  color: var(--color-fg-default);
+}
+
+.logo--inverse {
+  color: var(--color-fg-inverse);
+}
+
+.logo__mark {
+  width: 2.125rem;
+  height: 2.125rem;
+  flex: none;
+}
+
+.logo__tile {
+  fill: var(--color-brand-mark);
+}
+
+.logo__key {
+  fill: var(--color-fg-on-brand-mark);
+}
+
+.wordmark {
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-extrabold);
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-display);
+  letter-spacing: var(--letter-spacing-tight);
+  color: inherit;
+  white-space: nowrap;
+}
+
+.wordmark__tld {
+  color: var(--color-brand-mark);
+}

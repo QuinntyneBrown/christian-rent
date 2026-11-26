@@ -1,0 +1,94 @@
+// Button, from docs/design-system/components/button.html.
+:host {
+  --btn-bg: var(--color-bg-surface);
+  --btn-fg: var(--color-fg-default);
+  --btn-border: var(--color-border-strong);
+  --btn-bg-hover: var(--color-bg-subtle);
+  --btn-bg-active: var(--color-bg-subtle-hover);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height-md);
+  min-width: var(--target-min);
+  padding: 0 var(--space-4);
+  font: var(--text-label);
+  font-size: var(--font-size-md);
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--btn-fg);
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  text-decoration: none;
+  user-select: none;
+  position: relative;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+:host(:hover) {
+  color: var(--btn-fg);
+  background: var(--btn-bg-hover);
+}
+
+:host(:active) {
+  background: var(--btn-bg-active);
+  transform: scale(0.97);
+}
+
+:host(:disabled),
+:host([aria-disabled='true']) {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+:host(:focus-visible) {
+  border-radius: var(--radius-full);
+}
+
+:host(.btn--primary) {
+  --btn-bg: var(--color-accent);
+  --btn-fg: var(--color-fg-on-accent);
+  --btn-border: var(--color-accent);
+  --btn-bg-hover: var(--color-accent-hover);
+  --btn-bg-active: var(--color-accent-active);
+}
+
+:host(.btn--primary:hover) {
+  border-color: var(--color-accent-hover);
+  box-shadow: var(--shadow-1);
+}
+
+:host(.btn--ghost) {
+  --btn-bg: transparent;
+  --btn-border: transparent;
+  --btn-fg: var(--color-fg-default);
+}
+
+:host(.btn--sm) {
+  min-height: var(--control-height-sm);
+  padding-inline: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+:host(.btn--lg) {
+  min-height: var(--control-height-lg);
+  padding-inline: var(--space-6);
+  font-size: var(--font-size-lg);
+}
+
+:host(.btn--icon) {
+  padding: 0;
+  width: var(--control-height-md);
+}
+
+:host(.btn--icon.btn--sm) {
+  width: var(--control-height-sm);
+}

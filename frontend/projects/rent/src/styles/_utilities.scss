@@ -1,0 +1,31 @@
+// Utilities, from docs/design-system/assets/components.css (Layout primitives, Misc).
+.container {
+  width: 100%;
+  max-width: var(--layout-container-max);
+  margin-inline: auto;
+  padding-inline: var(--layout-margin);
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}

@@ -1,9 +1,14 @@
 <header class="site-header" [class.site-header--plain]="plain()">
-  <div class="site-header__inner">
+  <div class="container site-header__inner">
     <cr-logo />
     @if (plain()) {
-      <a class="site-header__close" routerLink="/" aria-label="Close and go back to Browse"
-        ><svg class="site-header__icon" aria-hidden="true" viewBox="0 0 24 24">
+      <a
+        cr-button
+        variant="ghost"
+        [iconOnly]="true"
+        routerLink="/"
+        aria-label="Close and go back to Browse"
+        ><svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
           <path d="M6 6l12 12M18 6 6 18" /></svg
       ></a>
     } @else {
@@ -13,8 +18,8 @@
             member.initials
           }}</span>
         }
-        <a class="site-header__post" routerLink="/post"
-          ><svg class="site-header__icon" aria-hidden="true" viewBox="0 0 24 24">
+        <a cr-button variant="primary" size="sm" routerLink="/post"
+          ><svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
             <path d="M12 5v14M5 12h14" /></svg
           >Post</a
         >

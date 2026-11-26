@@ -1,1 +1,6 @@
-/* You can add global styles to this file, and also import other style files */
+// Global styles are foundations only: tokens, @font-face, reset and utilities (AGENTS.md).
+// Every component reads tokens by role in its own encapsulated stylesheet.
+@use 'styles/fonts';
+@use 'styles/tokens';
+@use 'styles/reset';
+@use 'styles/utilities';

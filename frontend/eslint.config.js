@@ -40,7 +40,7 @@ module.exports = defineConfig([
       ],
       '@angular-eslint/component-selector': [
         'error',
-        { type: 'element', prefix: 'cr', style: 'kebab-case' },
+        { type: ['element', 'attribute'], prefix: 'cr', style: 'kebab-case' },
       ],
       '@angular-eslint/prefer-on-push-component-change-detection': 'error',
       '@angular-eslint/component-max-inline-declarations': [
