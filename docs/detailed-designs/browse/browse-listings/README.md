@@ -67,9 +67,9 @@ the codebase yet; every name below is introduced by this design.
 **Frontend — `api` library**
 
 - **`ListingsApi`** with the token **`LISTINGS_API`**, implemented by `HttpListingsApi` and
-  bound by Browse's lazy route (`browse.routes.ts`). `browse(cursor, signal)` returns a
-  promise of `ListingsPage`; aborting the signal cancels the request. Search-and-filter adds
-  the query.
+  bound by Browse's lazy route (`browse.routes.ts`). `browse(filter, cursor, signal)` returns
+  a promise of `ListingsPage`; aborting the signal cancels the request. The filter is
+  search-and-filter's `ListingsFilter`; plain browsing sends `NO_FILTER`.
 - **`ListingCardView`** — a card in the product's words: `{ href, wanted, tag, title, price,
   place, church, poster, when, photo }`; `components` takes it as a type.
 - **`ListingsPage`** — `{ items: ListingCard[]; nextCursor: string | null; counts }`.
@@ -109,7 +109,8 @@ the codebase yet; every name below is introduced by this design.
   a further page is in flight, `cr-feed-status` shows a spinner and "Loading more listings…"
   in a status after the last card (L2-006, criterion 4); when it failed, "We couldn’t load more
   listings." and "Try again" in an alert (criterion 3). In the failed state the header and the
-  headline stay (L2-033, criterion 6); the search bar and the switch join them in journey 3.
+  headline stay (L2-033, criterion 6), with the search bar, the switch and the kind filter
+  ([search-and-filter-listings](../search-and-filter-listings/README.md)).
 - **Count status** — `BrowsePage` holds a visually hidden `role="status"` line that reads
   "7 listings", "1 listing", "No listings yet", "Loading listings" or "Loading more
   listings", so a screen reader hears each change of the list (L2-001, criterion 10).
@@ -154,8 +155,8 @@ the codebase yet; every name below is introduced by this design.
 - Whether "newest first" counts from when a listing was posted or approved: settled by
   [ADR 0013](../../../adr/0013-browse-paging-and-window.md), which orders by `ApprovedAt`.
 - What Browse shows when For rent, Wanted, Spaces or Things holds nothing and no search term
-  is entered: the mocks draw no such state. The design shows the empty state of
-  [`empty.html`](../../../mocks/pages/browse/empty.html).
+  is entered: settled by [ADR 0015](../../../adr/0015-search-matching-and-browse-query.md), the
+  empty state of [`empty.html`](../../../mocks/pages/browse/empty.html).
 - The database engine: PostgreSQL in development ([ADR 0003](../../../adr/0003-database-engine.md),
   Open for production). The migration adds the index on `(Status, ApprovedAt, Id)` that the
   300 ms at the 95th percentile over 10,000 approved listings needs (L2-030, criterion 1);
@@ -163,8 +164,6 @@ the codebase yet; every name below is introduced by this design.
 - The value of the initial-bundle budget in `angular.json`:
   [ADR 0014](../../../adr/0014-bundle-budgets-after-browse.md). Browse's own code is a lazy
   chunk; the Angular runtime it uses joins the initial chunk, which grows to 309.7 kB raw.
-- Until search-and-filter (journey 3) is built, Browse shows the headline and the list without
-  the search bar and the switch that its mocks draw above the list.
 
 ### Mocks
 

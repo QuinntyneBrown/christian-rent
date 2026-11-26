@@ -52,8 +52,13 @@ endpoint and the same store.
   `AbortController`, and a newer query aborts the one in flight, so an earlier search never
   replaces a later result (L2-003, criterion 3). A query equal to the one shown or awaited is
   ignored. Leaving Browse clears the timer and aborts the request. `counts` holds the counts of
-  the last page, and null while the first page loads or has failed (L2-002, criterion 6). Unit
-  tests advance a fake clock.
+  the last page, and null while the first page loads or has failed (L2-002, criterion 6).
+  `state` is `no-results` when a search finds nothing and `empty` when nothing is found without
+  a term; `term` is the term as the request sent it. Unit tests advance a fake clock.
+- **`PageFocus`** and **`RentTitleStrategy`** (the shell) — a change of the query alone is the
+  same screen: focus stays in the search field or on the control the person used, and the
+  title is not announced again (L2-032, criterion 2;
+  [present-app-shell](../../platform/present-app-shell/README.md)).
 
 **Frontend — `components` library**
 
@@ -90,9 +95,11 @@ endpoint and the same store.
   invariant culture, decomposes to Unicode form D and drops combining marks. `Words(term)`
   truncates to 100 characters, normalizes and splits on white space.
 - **`Listing.SearchText`** — normalized concatenation of title, note and area, set by the
-  entity whenever one of the three is set. A migration adds the column, fills it for the
-  listings already there, enables `pg_trgm` and adds a GIN trigram index on it
-  ([ADR 0015](../../../adr/0015-search-matching-and-browse-query.md)).
+  entity whenever one of the three is set. The migration `SearchListings` adds the column,
+  fills it for the listings already there with `lower(unaccent(...))`, enables `pg_trgm` and
+  adds a GIN trigram index on it
+  ([ADR 0015](../../../adr/0015-search-matching-and-browse-query.md)). The backend builds with
+  ICU, which Unicode normalisation needs.
 - **`BrowseListingsQueryHandler`** — adds one `SearchText.Contains(word)` predicate per word,
   so every word shall match, and the offer and the kind when given. The term reaches the
   database as a parameter (L2-026).
