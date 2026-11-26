@@ -229,6 +229,19 @@
         "danger",
         "stacked"
       ]
+    },
+    {
+      "id": "error-toast",
+      "kind": "notification",
+      "title": "Error toast",
+      "opens_from": "any",
+      "requirements": [
+        "L2-032",
+        "L2-033"
+      ],
+      "states": [
+        "default"
+      ]
     }
   ]
 }

@@ -35,7 +35,10 @@ holds no personal data.
 - **Cancellation** — every store passes an `AbortSignal` or unsubscribes on destroy, so a
   request a person has navigated away from is dropped.
 - **`GlobalErrorHandler`** (`rent`) — an Angular `ErrorHandler` that shows a generic toast
-  for an unexpected client error. It sends nothing to a third party.
+  for an unexpected client error: "Something went wrong", with Reload and Dismiss. The toast
+  sits in `App`'s `toast-region`, is announced, never dismisses itself and shows one at a
+  time. It logs the error to the browser console only and sends nothing to a third party
+  (L2-033, criterion 7).
 - **Unknown address** — `NotFoundPage`; see
   [present-app-shell](../present-app-shell/README.md).
 
@@ -108,6 +111,7 @@ The mocks are the source of truth for the UI of this feature. The states this de
 - [`docs/mocks/pages/admin/loading.html`](../../../mocks/pages/admin/loading.html): skeleton queue
 - [`docs/mocks/pages/admin/error.html`](../../../mocks/pages/admin/error.html): the queue cannot load
 - [`docs/mocks/pages/not-found/default.html`](../../../mocks/pages/not-found/default.html): an unknown address
+- [`docs/mocks/notifications/error-toast/default.html`](../../../mocks/notifications/error-toast/default.html): an unexpected error in the browser
 
 ## Requirements
 
@@ -118,7 +122,7 @@ acceptance criteria in the specification remain authoritative.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-033` | `L1-015` | A waiting screen shall show a loading state in the shape of what will arrive, and none when the request answers within 300 ms. An unreachable backend shall produce a plain message and "Try again". An address that matches no screen shall show "not found" with a way back to Browse. An unhandled backend error shall be a ProblemDetails with no stack trace, recorded with a trace id. |
+| `L2-033` | `L1-015` | A waiting screen shall show a loading state in the shape of what will arrive, and none when the request answers within 300 ms. An unreachable backend shall produce a plain message and "Try again". An unexpected error in the browser shall produce an announced message offering to reload, and nothing shall be sent to a third party. An address that matches no screen shall show "not found" with a way back to Browse. An unhandled backend error shall be a ProblemDetails with no stack trace, recorded with a trace id. |
 | `L2-034` | `L1-015` | The backend's health endpoint shall report liveness and whether the database and file storage are reachable. Every request shall emit a trace, its duration and its outcome through OpenTelemetry. Schema changes shall be applied by a command, never by the API as it starts. A daily backup shall exist from which listings, members, messages and photos can be restored. |
 | `L2-028` | `L1-011` | Only the member's name, church and what is needed to sign in and reach them shall be collected. When a membership is deleted, the member's listings and photos shall no longer be public and their personal data shall be deleted or made anonymous within 30 days. No log, metric or trace shall hold a contact detail, token, message text, query string or request body. |
 | `L2-032` | `L1-014` | Every screen shall meet WCAG 2.2 level AA. Every action shall be completable by keyboard with visible focus. A state shall be carried by text or an announced attribute, never by colour alone. Confirmations and errors shall be announced. Every field shall have a visible label with its error tied to it. Reduced motion shall be honoured, and text at 200% shall lose nothing. "Skip to content" shall be the first control, and a dialog shall hold focus and return it on close. |
