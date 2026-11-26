@@ -2,6 +2,8 @@ using ChristianRent.Application.Abstractions;
 using ChristianRent.Application.Members;
 using ChristianRent.Domain.Listings;
 using ChristianRent.Domain.Review;
+using FluentValidation;
+using FluentValidation.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,6 +27,12 @@ internal sealed class PostListingCommandHandler(IAppDbContext database, ICurrent
         if (existing is not null)
         {
             return new PostListingResult(ToDto(existing), Created: false);
+        }
+
+        // Until journey 7 stores uploads, no photo is the member's own, so any is refused (ADR 0019).
+        if (command.PhotoIds is { Count: > 0 })
+        {
+            throw new ValidationException([new ValidationFailure(nameof(PostListingCommand.PhotoIds), PhotoNotFoundMessage)]);
         }
 
         var now = clock.GetUtcNow();
@@ -51,6 +59,8 @@ internal sealed class PostListingCommandHandler(IAppDbContext database, ICurrent
         await database.SaveChangesAsync(cancellationToken);
         return new PostListingResult(ToDto(listing), Created: true);
     }
+
+    public const string PhotoNotFoundMessage = "A photo was not found. Add it again.";
 
     private static PostedListingDto ToDto(Listing listing) => new(listing.Id, ListingWords.Of(listing.Status));
 }
