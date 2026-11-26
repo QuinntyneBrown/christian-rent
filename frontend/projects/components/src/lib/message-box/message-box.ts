@@ -9,7 +9,7 @@ let nextId = 0;
  * the price with its currency, "Rent for $45 CAD / hour" or "They’ll pay Up to $120 CAD / day"
  * (L2-007, criterion 10; L2-022, criterion 9); the consumer projects what follows. The
  * send-message journey adds the form and its states. With no price there is nothing to show
- * yet (ADR 0015); while the listing loads it is a skeleton in its shape.
+ * yet (ADR 0016); while the listing loads it is a skeleton in its shape.
  */
 @Component({
   selector: 'cr-message-box',

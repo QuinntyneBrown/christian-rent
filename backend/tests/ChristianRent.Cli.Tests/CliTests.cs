@@ -66,7 +66,7 @@ public sealed class CliTests : IDisposable
         Assert.Equal(2, await database.Listings.CountAsync(listing => listing.Status == ListingStatus.WaitingForReview, TestContext.Current.CancellationToken));
         Assert.Contains(await database.Members.ToListAsync(TestContext.Current.CancellationToken), member => member.Name == "Pastor Dan Whitaker");
         // Listing (journey 4): every photo of a listing for rent has its card, gallery and thumb
-        // renditions, and the hall has the three photos of its gallery (ADR 0011, ADR 0015).
+        // renditions, and the hall has the three photos of its gallery (ADR 0011, ADR 0016).
         var keys = approved
             .Where(listing => listing.Offer == ListingOffer.ForRent)
             .SelectMany(listing => listing.Photos)

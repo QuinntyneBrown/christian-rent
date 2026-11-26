@@ -2,7 +2,7 @@ const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 
-/** The spans "Posted …" counts in, largest first, and how long each must have passed (ADR 0015). */
+/** The spans "Posted …" counts in, largest first, and how long each must have passed (ADR 0016). */
 const SPANS: readonly (readonly [unit: string, ms: number, from: number])[] = [
   ['year', 365 * DAY, 365 * DAY],
   ['month', 30 * DAY, 30 * DAY],
@@ -14,7 +14,7 @@ const SPANS: readonly (readonly [unit: string, ms: number, from: number])[] = [
 
 /**
  * How long ago a listing was posted, "Posted 2 days ago" (L2-007, criterion 6): "just now" under
- * a minute, then minutes, hours, days, weeks, months and years, rounded down (ADR 0015). `now`
+ * a minute, then minutes, hours, days, weeks, months and years, rounded down (ADR 0016). `now`
  * is passed in, so the rule needs no clock.
  */
 export function formatAge(postedAt: string, now: Date): string {

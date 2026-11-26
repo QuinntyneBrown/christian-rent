@@ -9,7 +9,7 @@ function before(ms: number): string {
   return new Date(NOW.getTime() - ms).toISOString();
 }
 
-// L2-007 criterion 6; ADR 0015: "Posted 2 days ago", rounded down. One case per row.
+// L2-007 criterion 6; ADR 0016: "Posted 2 days ago", rounded down. One case per row.
 describe('formatAge', () => {
   it.each([
     ['under a minute', 30_000, 'Posted just now'],

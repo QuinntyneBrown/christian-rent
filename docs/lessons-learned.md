@@ -246,7 +246,8 @@ Slices 4.1 to 4.4, finished on Nov 26, 2026.
 - L3 and L20: the visibility check, the arrow keys, the photo's fallback description, the
   church's mark, the abort on leaving, the `not_found` mapping, the 300 ms delay and the
   two-column layout were each removed and their tests seen to fail.
-- L4: every commit followed a green `verify.mjs`; the behaviour specs went from 34 to 51.
+- L4: every commit followed a green `verify.mjs`; the behaviour specs went from 34 to 51, and
+  are 67 with journey 3's after the rebase.
 - L6: `MSBUILDDISABLENODEREUSE=1` held, and no dev server or API was left running.
 - L8: Listing composes ten new components (`cr-back-link`, `cr-listing-toolbar`,
   `cr-listing-layout`, `cr-listing`, `cr-gallery`, `cr-wanted-panel`, `cr-poster`, `cr-avatar`,
@@ -254,8 +255,8 @@ Slices 4.1 to 4.4, finished on Nov 26, 2026.
   writes no design-system class.
 - L9: it slipped once (above); `verify.mjs` caught it.
 - L10: thumbnails are found by their exact names, "Photo 2 of 3".
-- L11: the initial chunk went from 309.7 kB to 310.3 kB, the route entry and the title hook; the
-  budgets of ADR 0014 hold.
+- L11: the initial chunk went from 309.7 kB to 310.3 kB, the route entry and the title hook,
+  and is 313.1 kB with journey 3's; the budgets of ADR 0014 hold.
 - L12: `ListingView` is in `@rent/api` and `toListingView`, `formatAge` and the name helpers in
   `@rent/domain`, each with a test per case.
 - L13: the sweeps gained Listing's seven states and a heap check of opening and leaving a

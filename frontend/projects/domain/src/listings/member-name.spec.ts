@@ -30,7 +30,7 @@ describe('firstNameOf', () => {
   });
 });
 
-// ADR 0015: one of three tints from the initials, the same on every screen.
+// ADR 0016: one of three tints from the initials, the same on every screen.
 describe('avatarTint', () => {
   it.each([
     ['DW', 'sun'],

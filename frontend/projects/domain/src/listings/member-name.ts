@@ -28,7 +28,7 @@ export function firstNameOf(name: string): string {
 
 /**
  * One of the avatar's three tints, from the initials, so a member has the same tint on every
- * screen (ADR 0015).
+ * screen (ADR 0016).
  */
 export function avatarTint(initials: string): AvatarTint {
   const sum = Array.from(initials).reduce((total, letter) => total + letter.codePointAt(0)!, 0);

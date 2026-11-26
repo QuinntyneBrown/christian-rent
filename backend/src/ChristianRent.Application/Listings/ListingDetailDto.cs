@@ -22,7 +22,7 @@ public sealed record ListingDetailDto(
 
 /// <summary>
 /// A photo in the gallery: its <c>gallery</c> rendition, the size of that rendition, its
-/// <c>thumb</c> rendition, and its text alternative when it has one (ADR 0011, ADR 0015).
+/// <c>thumb</c> rendition, and its text alternative when it has one (ADR 0011, ADR 0016).
 /// </summary>
 public sealed record ListingPhotoDto(string Url, string ThumbUrl, int Width, int Height, string? Description);
 

@@ -11,7 +11,7 @@ export const routes: Routes = [
     loadChildren: () => import('./pages/browse/browse.routes'),
   },
   {
-    // The listing's own title replaces this once it has loaded (ADR 0015).
+    // The listing's own title replaces this once it has loaded (ADR 0016).
     path: 'listings/:id',
     title: 'Listing',
     loadChildren: () => import('./pages/listing/listing.routes'),

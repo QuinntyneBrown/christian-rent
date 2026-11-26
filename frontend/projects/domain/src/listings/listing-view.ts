@@ -8,7 +8,7 @@ import { avatarTint, firstNameOf, initialsOf } from './member-name';
 /**
  * What the Listing screen draws for a listing (read-listing design; L2-007, L2-008, L2-022).
  * A listing for rent shows its photos, a wanted one none. A photo nobody has described yet is
- * described by the title and its position (ADR 0015). Member-written text passes through as
+ * described by the title and its position (ADR 0016). Member-written text passes through as
  * text: the screen never renders it as HTML.
  */
 export function toListingView(detail: ListingDetail, now: Date): ListingView {

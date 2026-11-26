@@ -16,7 +16,7 @@ import { Icon } from '../icon/icon';
  * thumbnails. Each thumbnail is a button named by its position, "Photo 2 of 3", reached by Tab
  * and shown by Enter or a tap; the left and right arrows show the photo before or after and move
  * focus with it (L2-007, criteria 3 and 7). The one shown carries `aria-current`, and a polite
- * live region says which it is. One photo shows alone; none shows "No photo yet" (ADR 0015).
+ * live region says which it is. One photo shows alone; none shows "No photo yet" (ADR 0016).
  * The large photo is the screen's largest content, so it loads first.
  */
 @Component({

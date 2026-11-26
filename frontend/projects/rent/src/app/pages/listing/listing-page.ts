@@ -26,7 +26,7 @@ import { ListingStore } from './listing-store';
  * what it is, where and when, its note and who posted it, with the message box's head beside it
  * from 768 px (L2-007, L2-008, L2-031). An address with no listing anyone may see behind it is
  * "not found", which reveals nothing (criterion 4). Once loaded, the document title is the
- * listing's title (ADR 0015). Leaving releases the store, which aborts its request.
+ * listing's title (ADR 0016). Leaving releases the store, which aborts its request.
  */
 @Component({
   selector: 'cr-listing-page',

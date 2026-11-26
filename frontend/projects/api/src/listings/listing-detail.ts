@@ -1,6 +1,6 @@
 import type { ListingKind, ListingOffer, ListingPrice, ListingWhen } from './listing-card';
 
-/** A photo in the gallery: its `gallery` and `thumb` renditions (ADR 0011, ADR 0015). */
+/** A photo in the gallery: its `gallery` and `thumb` renditions (ADR 0011, ADR 0016). */
 export interface ListingDetailPhoto {
   readonly url: string;
   readonly thumbUrl: string;
