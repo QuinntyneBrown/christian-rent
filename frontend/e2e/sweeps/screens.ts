@@ -10,7 +10,9 @@ import {
   page as listingsPage,
   wanted,
 } from '../fixtures/listings';
-import { CHURCHES, answerJoining } from '../fixtures/members';
+import { CHURCHES, answerJoining, answerMember } from '../fixtures/members';
+import { POSTED_ID, answerPosting } from '../fixtures/post';
+import { PostPage } from '../pages/post.page';
 
 /** One screen in one state: what the API answers, and what a person does before it is looked at. */
 export interface Screen {
@@ -211,6 +213,136 @@ export const SCREENS: readonly Screen[] = [
       await page.getByRole('button', { name: 'Post', exact: true }).click();
       await page.locator('#join-church-help').waitFor();
     },
+  },
+  // Post's states (docs/mocks/pages/post/), for a member.
+  { name: 'post-blank', path: '/post', answer: (api) => answerMember(api) },
+  {
+    name: 'post-default',
+    path: '/post',
+    answer: (api) => answerMember(api),
+    then: (page) => new PostPage(page).fillForRent(),
+  },
+  {
+    name: 'post-need',
+    path: '/post?offer=wanted&title=15-passenger%20van%20for%20youth%20camp',
+    answer: (api) => answerMember(api),
+    then: async (page) => {
+      const post = new PostPage(page);
+      await post.price.fill('120');
+      await post.when.fill('Jul 14 to 18, 2026');
+      await post.area.fill('Murrayville, Langley');
+    },
+  },
+  {
+    name: 'post-dates',
+    path: '/post',
+    answer: (api) => answerMember(api),
+    then: async (page) => {
+      const post = new PostPage(page);
+      await post.fillForRent();
+      await post.giveDates.click();
+      await post.from.fill('2026-06-20');
+      await post.to.fill('2026-08-30');
+    },
+  },
+  {
+    name: 'post-invalid',
+    path: '/post',
+    answer: (api) => answerMember(api),
+    then: async (page) => {
+      const post = new PostPage(page);
+      await post.fillForRent();
+      await post.title.fill('PW');
+      await post.price.fill('250000');
+      await post.area.fill('');
+      await post.submit.click();
+      await post.summary.waitFor();
+    },
+  },
+  {
+    name: 'post-submitting',
+    path: '/post',
+    answer: (api) => {
+      answerMember(api);
+      api.hold('POST', '/api/listings');
+      answerPosting(api);
+    },
+    then: async (page) => {
+      const post = new PostPage(page);
+      await post.fillForRent();
+      await post.submit.click();
+      await post.form.and(page.locator('[aria-busy="true"]')).waitFor();
+    },
+  },
+  {
+    name: 'post-success',
+    path: '/post',
+    answer: (api) => {
+      answerMember(api);
+      answerPosting(api);
+    },
+    then: async (page) => {
+      const post = new PostPage(page);
+      await post.fillForRent();
+      await post.submit.click();
+      await post.confirmation.waitFor();
+    },
+  },
+  {
+    name: 'post-success-wanted',
+    path: '/post?offer=wanted&title=15-passenger%20van%20for%20youth%20camp',
+    answer: (api) => {
+      answerMember(api);
+      api.answer('POST', '/api/listings', {
+        status: 201,
+        body: { id: POSTED_ID, status: 'waiting-for-review' },
+      });
+    },
+    then: async (page) => {
+      const post = new PostPage(page);
+      await post.when.fill('Jul 14 to 18, 2026');
+      await post.area.fill('Murrayville, Langley');
+      await post.submit.click();
+      await post.confirmation.waitFor();
+    },
+  },
+  {
+    name: 'post-error',
+    path: '/post',
+    answer: (api) => {
+      answerMember(api);
+      api.refuse('POST', '/api/listings', 503, 'unexpected');
+    },
+    then: async (page) => {
+      const post = new PostPage(page);
+      await post.fillForRent();
+      await post.submit.click();
+      await post.alert.waitFor();
+    },
+  },
+  {
+    name: 'post-limited',
+    path: '/post',
+    answer: (api) => {
+      answerMember(api);
+      api.answer('POST', '/api/listings', {
+        status: 429,
+        body: { status: 429, code: 'post_limit_reached', retryAt: '2026-06-09T16:15:00Z' },
+        headers: { 'content-type': 'application/problem+json' },
+      });
+    },
+    then: async (page) => {
+      const post = new PostPage(page);
+      await post.fillForRent();
+      await post.submit.click();
+      await post.alert.waitFor();
+    },
+  },
+  {
+    name: 'post-join',
+    path: '/post',
+    answer: (api) => answerJoining(api),
+    then: (page) => page.getByRole('dialog').waitFor(),
   },
 ];
 

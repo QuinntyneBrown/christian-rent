@@ -1,6 +1,7 @@
 # 0014. The angular.json budget values after Browse
 
-**Status:** Accepted. Supersedes the values of [0006](0006-bundle-budgets.md); its rules stand.
+**Status:** Accepted; its values are superseded by [0020](0020-bundle-budgets-after-post.md).
+Supersedes the values of [0006](0006-bundle-budgets.md); its rules stand.
 
 ## Context
 

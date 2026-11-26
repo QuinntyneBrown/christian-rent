@@ -8,7 +8,8 @@ import {
   many,
   page as listingsPage,
 } from '../fixtures/listings';
-import { answerJoining } from '../fixtures/members';
+import { answerJoining, answerMember } from '../fixtures/members';
+import { PostPage } from '../pages/post.page';
 import { expect, test } from '../fixtures/test';
 
 // AGENTS.md, Prove it: leaving a screen returns its memory. Enter and leave a screen many times
@@ -167,6 +168,33 @@ test('opening the join dialog and closing it keeps the heap stable', async ({ pa
     await page.getByLabel('Your church').selectOption({ label: 'My church isn’t listed' });
     await page.getByRole('button', { name: 'Not now' }).click();
     await expect(dialog).toHaveCount(0);
+  };
+
+  await roundTrip();
+  const before = await heapAfterGc();
+  for (let round = 0; round < ROUNDS; round++) {
+    await roundTrip();
+  }
+  const after = await heapAfterGc();
+
+  expect(after - before).toBeLessThan(ALLOWED_GROWTH_BYTES);
+});
+
+test('writing a listing on Post and leaving it keeps the heap stable', async ({ page, api }) => {
+  answerMember(api);
+  const heapAfterGc = await heapMeter(page);
+  const post = new PostPage(page);
+  await page.goto('/no-such-page');
+
+  const roundTrip = async () => {
+    await page.evaluate(() => history.pushState({}, '', '/post'));
+    await page.evaluate(() => dispatchEvent(new PopStateEvent('popstate')));
+    await post.fillForRent();
+    await post.giveDates.click();
+    await post.submit.click();
+    await post.summary.waitFor();
+    await leaveForNotFound(page);
+    await expect(post.form).toHaveCount(0);
   };
 
   await roundTrip();
