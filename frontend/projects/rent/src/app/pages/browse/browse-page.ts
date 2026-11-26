@@ -1,7 +1,16 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SESSION } from '@rent/api';
-import { Button, Hero, ListingCard, ListingGrid, SiteHeader } from '@rent/components';
+import {
+  Button,
+  EmptyState,
+  Hero,
+  Icon,
+  ListingCard,
+  ListingGrid,
+  SiteHeader,
+} from '@rent/components';
 import { BrowseStore } from './browse-store';
 
 /**
@@ -11,7 +20,17 @@ import { BrowseStore } from './browse-store';
  */
 @Component({
   selector: 'cr-browse-page',
-  imports: [Button, Hero, ListingCard, ListingGrid, RouterLink, SiteHeader],
+  imports: [
+    Button,
+    EmptyState,
+    Hero,
+    Icon,
+    ListingCard,
+    ListingGrid,
+    NgTemplateOutlet,
+    RouterLink,
+    SiteHeader,
+  ],
   providers: [BrowseStore],
   templateUrl: './browse-page.html',
   styleUrl: './browse-page.scss',
@@ -20,6 +39,8 @@ import { BrowseStore } from './browse-store';
 export class BrowsePage {
   protected readonly member = inject(SESSION).member;
   protected readonly store = inject(BrowseStore);
+  /** Eight skeleton cards: two rows at the widest, enough to fill a phone (L2-033, criterion 1). */
+  protected readonly skeletons = Array.from({ length: 8 });
 
   constructor() {
     void this.store.loadFirst();

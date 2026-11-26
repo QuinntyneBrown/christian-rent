@@ -5,17 +5,54 @@
     accent="church family."
     lead="Halls, rooms, vans and tools, shared between believers near Langley, BC. Or ask for what you need."
   >
-    <a cr-button variant="rent" routerLink="/post" [queryParams]="{ offer: 'for-rent' }"
-      >I have something to rent</a
-    >
-    <a cr-button variant="outline" routerLink="/post" [queryParams]="{ offer: 'wanted' }"
-      >I’m looking for something</a
-    >
+    <ng-container *ngTemplateOutlet="postingButtons" />
   </cr-hero>
   <p class="visually-hidden" role="status" aria-live="polite">{{ store.announcement() }}</p>
-  <cr-listing-grid>
-    @for (card of store.cards(); track card.href; let index = $index) {
-      <li><cr-listing-card [card]="card" [priority]="index < 4" /></li>
+  @switch (store.state()) {
+    @case ('loading') {
+      @if (store.skeleton()) {
+        <cr-listing-grid [busy]="true">
+          @for (placeholder of skeletons; track $index) {
+            <li aria-hidden="true"><cr-listing-card [card]="null" /></li>
+          }
+        </cr-listing-grid>
+      }
     }
-  </cr-listing-grid>
+    @case ('empty') {
+      <cr-empty-state
+        title="Nothing is posted near Langley yet."
+        text="Be the first. Post a space or a thing you can rent out, or ask for what you need."
+      >
+        <ng-container *ngTemplateOutlet="postingButtons" />
+      </cr-empty-state>
+    }
+    @case ('failed') {
+      <cr-empty-state
+        variant="error"
+        title="We couldn’t load the listings."
+        text="Check your connection and try again. Nothing you typed is lost."
+      >
+        <button cr-button variant="primary" type="button" (click)="store.loadFirst()">
+          <cr-icon name="refresh" />Try again
+        </button>
+      </cr-empty-state>
+    }
+    @case ('loaded') {
+      <cr-listing-grid>
+        @for (card of store.cards(); track card.href; let index = $index) {
+          <li><cr-listing-card [card]="card" [priority]="index < 4" /></li>
+        }
+      </cr-listing-grid>
+    }
+  }
 </main>
+
+<!-- The two buttons that lead straight to posting (L2-005), in the headline and the empty state. -->
+<ng-template #postingButtons>
+  <a cr-button variant="rent" routerLink="/post" [queryParams]="{ offer: 'for-rent' }"
+    >I have something to rent</a
+  >
+  <a cr-button variant="outline" routerLink="/post" [queryParams]="{ offer: 'wanted' }"
+    >I’m looking for something</a
+  >
+</ng-template>
