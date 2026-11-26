@@ -35,7 +35,7 @@ store -> ctrl : GET /api/review-queue/{id}
 ctrl -> handler : Send GetReviewItemQuery
 handler -> db : Review item and its subject
 db --> handler : Item with listing, report or member
-handler --> ctrl : ReviewItemDetailDto with AllowedDecisions
+handler --> ctrl : ReviewItemDetailDto, one part by kind
 ctrl --> store : 200 OK
 store --> page : detail
 page --> actor : Detail panel: fields, photos, poster; or reason; or name and church

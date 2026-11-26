@@ -478,6 +478,8 @@ a.listing-card:hover, a.listing-card[data-state="hover"] { transform: translateY
 .review__report { margin-bottom: var(--space-6); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--color-danger-bg); color: var(--color-danger-fg); font: var(--text-body-sm); }
 .review__report strong { font-weight: var(--font-weight-semibold); }
 .review__photo { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius-lg); background: var(--color-bg-surface); }
+.review__photos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); margin: var(--space-2) 0 0; padding: 0; list-style: none; }
+.review__photos img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius-md); background: var(--color-bg-surface); }
 .review__wanted { display: flex; align-items: flex-end; aspect-ratio: 16 / 9; padding: var(--space-8); border-radius: var(--radius-lg); background: var(--color-wanted); color: var(--color-fg-on-wanted); font: var(--text-h1); letter-spacing: var(--letter-spacing-tight); overflow-wrap: anywhere; }
 .review__member { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-8); border-radius: var(--radius-lg); background: var(--color-bg-surface); border: 1px solid var(--color-border-default); }
 .review__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-top: var(--space-6); }

@@ -162,7 +162,13 @@
         "empty",
         "error",
         "forbidden",
-        "long"
+        "long",
+        "photos",
+        "detail-error",
+        "detail-gone",
+        "more-loading",
+        "more-error",
+        "forbidden-signed-out"
       ]
     },
     {

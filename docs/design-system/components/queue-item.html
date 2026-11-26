@@ -76,7 +76,7 @@
       </a></li></ul></td></tr></tbody></table></div>
 </section>
 <section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive behaviour</a></h2>
-<p>The queue is the whole screen under 768 px, a column of at most 448 px beside the detail from 768 px.</p>
+<p>The queue is the whole screen under 768 px, where there is no detail to open: each item is drawn without a button and none is current. From 768 px it is a column of at most 448 px beside the detail, and each item is a button.</p>
 </section>
 <section class="ds-section" id="theming"><h2><a href="#theming">Theming</a></h2>
 <p>Queue item reads only semantic tokens, so it follows the theme with no rule of its own. The colour tokens it reads are <code>--color-fg-muted</code>, <code>--color-bg-subtle</code>, <code>--color-border-default</code>, <code>--color-bg-surface-sunken</code>, <code>--color-wanted</code>, <code>--color-fg-on-wanted</code> and others listed under Tokens. To restyle it, change those tokens; never write a colour in the component.</p><div class="ds-themes"><div data-theme="light"><div class="cluster"><ul class="queue__list" style="flex: 1 1 22rem; padding: 0;"><li><a class="queue-item" href="#overview" data-x="default.html" aria-current="false">
@@ -114,8 +114,8 @@
       </a></li></ul></div></div></div>
 </section>
 <section class="ds-section" id="accessibility"><h2><a href="#accessibility">Accessibility</a></h2>
-<h3>Role and pattern</h3><p>A link in a list; the open item has <code>aria-current="true"</code>.</p>
-<h3>Keyboard</h3><table class="ds-table ds-keys"><thead><tr><th scope="col">Key</th><th scope="col">Action</th></tr></thead><tbody><tr><td><kbd>Tab</kbd> </td><td>Moves through the queue.</td></tr><tr><td><kbd>Enter</kbd> </td><td>Opens the item in the detail panel.</td></tr></tbody></table>
+<h3>Role and pattern</h3><p>From 768 px a <code>&lt;button type="button"&gt;</code> in a list; the open item has <code>aria-current="true"</code>. Under 768 px plain text in a list. The mocks use links only so that their states can be reached.</p>
+<h3>Keyboard</h3><table class="ds-table ds-keys"><thead><tr><th scope="col">Key</th><th scope="col">Action</th></tr></thead><tbody><tr><td><kbd>Tab</kbd> </td><td>Moves through the queue.</td></tr><tr><td><kbd>Enter</kbd> <kbd>Space</kbd> </td><td>Opens the item in the detail panel.</td></tr></tbody></table>
 <h3>Focus</h3><p>The shared focus ring: a 2 px outline in <code>--color-focus-ring</code>, offset 2 px, never removed.</p>
 <h3>Labelling</h3><p>The link reads title, from, age and kind. A cut title keeps its full text for assistive technology.</p>
 <h3>Contrast</h3><div class="ds-pair"><span>Title</span><span class="ds-pair__ratio" data-contrast="--color-fg-default|--color-bg-subtle" data-min="4.5"></span></div><div class="ds-pair"><span>From and age</span><span class="ds-pair__ratio" data-contrast="--color-fg-muted|--color-bg-subtle" data-min="4.5"></span></div>
