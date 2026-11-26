@@ -1,0 +1,20 @@
+// A host page for the behaviour specs only (ADR 0018); it is not product UI.
+.gate-host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+}
+
+.gate-host__draft {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-width: 20rem;
+}
+
+.gate-host__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}

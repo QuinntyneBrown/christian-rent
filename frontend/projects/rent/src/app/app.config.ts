@@ -4,7 +4,6 @@ import {
   inject,
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
-  signal,
 } from '@angular/core';
 import {
   TitleStrategy,
@@ -13,14 +12,12 @@ import {
   withInMemoryScrolling,
 } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
-import { SESSION, type Session, apiErrorInterceptor } from '@rent/api';
+import { HttpMembersApi, MEMBERS_API, SESSION, apiErrorInterceptor } from '@rent/api';
 import { routes } from './app.routes';
+import { AppSession } from './members/app-session';
 import { GlobalErrorHandler } from './shell/global-error-handler';
 import { PageFocus } from './shell/page-focus';
 import { RentTitleStrategy } from './shell/rent-title-strategy';
-
-/** Nobody is signed in until sign-in is designed (ADR 0005). */
-const noSession: Session = { member: signal(null).asReadonly() };
 
 /** The composition root: binds every token the whole app shares. */
 export const appConfig: ApplicationConfig = {
@@ -36,6 +33,12 @@ export const appConfig: ApplicationConfig = {
     RentTitleStrategy,
     { provide: TitleStrategy, useExisting: RentTitleStrategy },
     provideAppInitializer(() => inject(PageFocus).start()),
-    { provide: SESSION, useValue: noSession },
+    // Who is signed in as a member (ADR 0017), asked at start without holding up the screen.
+    { provide: MEMBERS_API, useClass: HttpMembersApi },
+    AppSession,
+    { provide: SESSION, useExisting: AppSession },
+    provideAppInitializer(() => {
+      void inject(SESSION).refresh();
+    }),
   ],
 };

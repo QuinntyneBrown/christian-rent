@@ -9,5 +9,6 @@ export * from './listings/format-when';
 export * from './listings/listing-card-view';
 export * from './listings/listing-view';
 export * from './listings/member-name';
+export * from './members/join-form';
 export * from './search/listing-window';
 export * from './search/browse-query';

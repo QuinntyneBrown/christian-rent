@@ -1,0 +1,14 @@
+<cr-site-header [member]="member()" />
+<main id="main" class="gate-host" tabindex="-1">
+  <h1>Member gate</h1>
+  <label class="gate-host__draft"
+    >Draft
+    <input type="text" name="draft" />
+  </label>
+  <div class="gate-host__actions">
+    <button cr-button type="button" (click)="ask('post')">Post</button>
+    <button cr-button type="button" (click)="ask('message')">Send a message</button>
+    <button cr-button type="button" (click)="ask('report')">Report</button>
+  </div>
+  <p role="status">{{ answer() }}</p>
+</main>
