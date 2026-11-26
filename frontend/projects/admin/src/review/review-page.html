@@ -1,3 +1,32 @@
-<main id="main" class="container" tabindex="-1">
-  <h1 tabindex="-1">Review</h1>
-</main>
+<cr-admin-layout [detailBusy]="store.detailState() === 'loading'">
+  <cr-admin-nav slot="nav" [name]="name()" [waiting]="store.waitingCount()" />
+  <ng-container slot="queue">
+    <cr-queue-header
+      [summary]="summary()"
+      [phoneNote]="
+        store.state() === 'loaded'
+          ? 'Open Admin on a tablet or a computer to see an item’s detail and decide on it.'
+          : null
+      "
+    />
+    <cr-queue-list>
+      @for (item of store.items(); track item.id) {
+        <li>
+          <cr-queue-item
+            [item]="item"
+            [selectable]="wide()"
+            [current]="store.selectedId() === item.id"
+            (chosen)="store.select($event)"
+          />
+        </li>
+      }
+    </cr-queue-list>
+  </ng-container>
+  <ng-container slot="detail">
+    @if (store.detail(); as detail) {
+      <cr-review-detail [view]="detail" />
+    } @else if (store.detailSkeleton()) {
+      <cr-review-detail [view]="null" />
+    }
+  </ng-container>
+</cr-admin-layout>

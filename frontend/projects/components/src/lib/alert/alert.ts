@@ -27,7 +27,8 @@ export type AlertTone = 'info' | 'success' | 'warning' | 'danger';
 })
 export class Alert {
   readonly tone = input<AlertTone>('info');
-  readonly title = input.required<string>();
+  /** The line that carries the tone; null for a note of one sentence. */
+  readonly title = input<string | null>(null);
   readonly text = input<string | null>(null);
   readonly announce = input(false);
   readonly summary = input(false);

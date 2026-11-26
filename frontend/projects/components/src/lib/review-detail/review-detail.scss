@@ -1,0 +1,114 @@
+// The detail panel, from docs/design-system/components/review-detail.html.
+:host {
+  display: block;
+}
+
+.review {
+  max-width: 42rem;
+  margin-inline: auto;
+  padding: var(--space-8);
+}
+
+.review__photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+}
+
+.review__no-photo {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+  color: var(--color-fg-muted);
+}
+
+.review__photos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review__photos img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+
+.review__wanted {
+  display: flex;
+  align-items: flex-end;
+  aspect-ratio: 16 / 9;
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
+  background: var(--color-wanted);
+  color: var(--color-fg-on-wanted);
+  font: var(--text-h1);
+  letter-spacing: var(--letter-spacing-tight);
+  overflow-wrap: anywhere;
+}
+
+.review__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.review__title {
+  font: var(--text-h2);
+  letter-spacing: var(--letter-spacing-tight);
+  overflow-wrap: anywhere;
+}
+
+.review__price {
+  flex: none;
+  font: var(--text-h3);
+  font-variant-numeric: tabular-nums;
+}
+
+.review__note {
+  margin-top: var(--space-3);
+  line-height: var(--line-height-relaxed);
+  overflow-wrap: anywhere;
+}
+
+.review__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-6);
+  margin: var(--space-6) 0 0;
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border-default);
+  font: var(--text-body-sm);
+}
+
+.review__facts dt {
+  color: var(--color-fg-muted);
+}
+
+.review__facts dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin: var(--space-0-5) 0 0;
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.review__title-skeleton {
+  margin-block: var(--space-6) var(--space-3);
+  font-size: var(--font-size-3xl);
+}

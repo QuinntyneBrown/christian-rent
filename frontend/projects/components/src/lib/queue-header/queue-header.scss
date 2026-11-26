@@ -1,0 +1,30 @@
+// The head of the queue, from docs/design-system/assets/components.css.
+:host {
+  display: block;
+}
+
+.queue__header {
+  padding: var(--space-6) var(--space-5) var(--space-4);
+}
+
+.queue__title {
+  font: var(--text-h2);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.queue__summary {
+  margin-top: var(--space-1);
+  font: var(--text-body-sm);
+  color: var(--color-fg-muted);
+}
+
+.phone-only-note {
+  display: block;
+  margin: 0 var(--space-5) var(--space-4);
+}
+
+@media (min-width: 48rem) {
+  .phone-only-note {
+    display: none;
+  }
+}

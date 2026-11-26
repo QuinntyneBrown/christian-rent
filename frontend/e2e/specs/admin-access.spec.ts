@@ -1,12 +1,11 @@
 import { answerNoListings } from '../fixtures/listings';
-import { SARAH_KIM, answerMember } from '../fixtures/members';
+import { answerMember } from '../fixtures/members';
+import { answerAdmin } from '../fixtures/review';
 import { expect, test } from '../fixtures/test';
 import { AdminPage } from '../pages/admin.page';
 import { BrowsePage } from '../pages/browse.page';
 import { ForbiddenPage } from '../pages/forbidden.page';
 import { ScriptsPart } from '../pages/scripts.part';
-
-const NAOMI = { ...SARAH_KIM, name: 'Naomi Friesen', isAdmin: true };
 
 /** The admin screen's selector, which only Admin's own code names. */
 const ADMIN_CODE = 'cr-review-page';
@@ -64,7 +63,7 @@ test.describe('Admin is for admins', () => {
 
   // L2-019 criterion 1. It also proves the check above can see Admin's code.
   test('opens Admin to an admin, with its code', async ({ page, api }) => {
-    answerMember(api, NAOMI);
+    answerAdmin(api);
     const scripts = new ScriptsPart(page);
     const admin = new AdminPage(page);
 

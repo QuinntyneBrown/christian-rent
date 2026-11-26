@@ -10,7 +10,9 @@
 >
   <cr-icon class="alert__icon" [name]="icon()" />
   <div class="alert__body">
-    <p class="alert__title">{{ title() }}</p>
+    @if (title(); as title) {
+      <p class="alert__title">{{ title }}</p>
+    }
     @if (text(); as text) {
       <p class="alert__text">{{ text }}</p>
     }

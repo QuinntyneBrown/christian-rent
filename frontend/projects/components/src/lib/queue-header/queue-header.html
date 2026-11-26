@@ -1,0 +1,7 @@
+<header class="queue__header">
+  <h1 class="queue__title" id="queue-title" tabindex="-1">Review</h1>
+  <p class="queue__summary" [attr.role]="announce() ? 'status' : null">{{ summary() }}</p>
+</header>
+@if (phoneNote(); as note) {
+  <cr-alert class="phone-only-note" [text]="note" />
+}

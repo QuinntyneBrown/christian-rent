@@ -1,0 +1,57 @@
+// Admin's layout, from docs/design-system/assets/components.css.
+:host {
+  display: block;
+}
+
+.admin {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--color-bg-surface-sunken);
+}
+
+.admin__main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.admin__queue {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.admin__detail {
+  display: none;
+  min-width: 0;
+}
+
+@media (min-width: 48rem) {
+  .admin {
+    flex-direction: row;
+    height: 100dvh;
+  }
+
+  .admin__main {
+    flex-direction: row;
+  }
+
+  .admin__queue {
+    flex: none;
+    width: min(40%, var(--layout-queue-width));
+    overflow-y: auto;
+    background: var(--color-bg-surface);
+    border-right: 1px solid var(--color-border-default);
+  }
+
+  .admin__detail {
+    display: block;
+    flex: 1;
+    overflow-y: auto;
+  }
+}

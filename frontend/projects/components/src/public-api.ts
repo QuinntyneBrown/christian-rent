@@ -1,6 +1,8 @@
 /*
  * Public API of @rent/components: presentation components, named as in the design system.
  */
+export * from './lib/admin-layout/admin-layout';
+export * from './lib/admin-nav/admin-nav';
 export * from './lib/alert/alert';
 export * from './lib/avatar/avatar';
 export * from './lib/back-link/back-link';
@@ -28,7 +30,11 @@ export * from './lib/photo-picker/photo-picker';
 export * from './lib/plain-page/plain-page';
 export * from './lib/post-layout/post-layout';
 export * from './lib/poster/poster';
+export * from './lib/queue-header/queue-header';
+export * from './lib/queue-item/queue-item';
+export * from './lib/queue-list/queue-list';
 export * from './lib/radio-group/radio-group';
+export * from './lib/review-detail/review-detail';
 export * from './lib/search-bar/search-bar';
 export * from './lib/segmented/segmented';
 export * from './lib/select/select';
