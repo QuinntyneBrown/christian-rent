@@ -88,17 +88,21 @@ migrations and seed), the test harness and CI. Browse is built (journey 2): appr
 newest first, loaded a page at a time as the list is scrolled, with their photos served from file
 storage. Search and filter is built (journey 3): the search bar, the switch between Everything,
 For rent and Wanted, and the Spaces and Things filter, all kept in the address, and the offer to
-ask for what a search did not find. Becoming a member is built (journey 5): the join dialog and
+ask for what a search did not find. Reading a listing is built (journey 4): its photos, what it
+is, who posted it and their church, each marked when verified. Becoming a member is built (journey 5): the join dialog and
 the gate that opens it, the backend that lists churches, makes a signed-in person an unverified
 member waiting in the review queue, and lets a member leave; sign-in itself is not designed, so
 nobody can sign in yet ([ADR 0017](docs/adr/0017-identifying-a-person-until-sign-in.md)).
+Posting is built (journey 6): Post's sentence, its fields with their rules, the live preview,
+the draft kept in the tab, and the backend that saves a listing as waiting for review, once per
+client request and at most 10 a member in 24 hours; photos come with journey 7.
 
 - The requirements are in `docs/specs/`, the mocks in `docs/mocks/`, the design system in
   `docs/design-system/` and the detailed designs in `docs/detailed-designs/`.
 - The journeys and their slices are in `docs/journeys.md` and `docs/detailed-journeys.md`, with
   **% complete**; the architecture decisions are in `docs/adr/`.
-- What comes next is journey 4, Read a listing: one slice at a time, each with its failing
-  acceptance test first.
+- What comes next is journey 7, Add photos to a listing: one slice at a time, each with its
+  failing acceptance test first.
 
 ## How it works
 

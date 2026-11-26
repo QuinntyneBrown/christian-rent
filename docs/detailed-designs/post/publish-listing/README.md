@@ -31,8 +31,9 @@ The form and its client-side rules are designed in
   request (L2-012, criteria 4 and 5).
 - **`cr-confirmation`** — replaces the form when `submitState` is `sent`. It shows "Sent
   for review", the preview card, "Back to browsing" and "Post another", and no way to edit
-  the listing. It does not say the listing is public (L2-012, criteria 2 and 9). `LiveAnnouncer` announces it. `DraftStore.clear()`
-  then runs.
+  the listing. It does not say the listing is public (L2-012, criteria 2 and 9). It is a live region
+  (`role="status"`), so a screen reader announces it, and focus moves to its title, "Sent for
+  review", the screen's `h1`. `DraftStore.clear()` then runs.
 - **`cr-alert`** — on `failed`, a plain message above the kept form, "Your listing wasn't
   posted." and "We couldn't reach christian.rent. Everything you entered is still here.", whose
   submit button reads "Try again"; on `limited`, a warning, "You've posted 10 listings in the

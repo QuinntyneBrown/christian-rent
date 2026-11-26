@@ -40,6 +40,11 @@ Each journey's entry has three parts:
 | L24 | A request every screen makes at start (such as `GET /api/members/me`) gets a default answer in `ApiFixtures`' constructor, which a spec overrides; L9 at the level of the shared fixture. | 5 |
 | L25 | Generated content (`::before`) is part of an accessible name and description: a decorative sign gets an empty alternative (`content: '⚠' / ''`), and specs check descriptions with `toHaveAccessibleDescription`. | 5 |
 | L26 | Playwright treats `aria-disabled` as not enabled, so a spec proves that a busy control ignores presses with `dispatchEvent('click')`; geometry of an animated panel is measured with reduced motion emulated. | 5 |
+| L27 | Run the production build in every slice's regression checks: `ng serve` applies no budget, so a bundle that breaks one is found late. | 6 |
+| L28 | When a journey first calls lazy code that only a test build used before, compare the build stats: code that was tree-shaken becomes live, and the bundler keeps it in `main` wherever the shell already imports its package statically. | 6 |
+| L29 | The shell imports a library's service (such as the CDK's `LiveAnnouncer`) when it first needs it, so a lazy feature that uses the same entry point keeps its code out of the initial chunks. | 6 |
+| L30 | A page behind a CDK dialog is inert and hidden from the accessibility tree: while the dialog is open a spec reads the page by its text, and its roles only once the dialog has closed. | 6 |
+| L31 | A script that edits source files asserts that each text it replaces is there: Prettier reflows lines between edits, and a replacement that misses is silent. | 6 |
 
 ## Journeys
 
@@ -340,4 +345,72 @@ Slices 5.1 to 5.4, finished on Nov 26, 2026.
   none was run.
 - L16: the church key uses `SearchNormalizer`, with ICU on; its test has accents on both sides.
 - L19: the join specs were run 5 times each, 80 of 80 green.
+
+### 6. Post a listing
+
+Slices 6.1 to 6.5, finished on Nov 26, 2026.
+
+**What slowed it**
+
+- The container again had no .NET SDK, PlantUML or Graphviz; Ubuntu's packages installed them.
+- The designs left the area's source of place names, the draft's lifetime, past dates, the
+  photos field before journey 7, the preview's church (`GET /api/members/me` did not answer it),
+  the preview of a person who is not a member yet, the placeholders and the write limit open.
+  ADR 0019 decides them; L2-011 gained criterion 6, L2-012 criterion 11 and L2-022 criterion 5
+  was made exact, and the mocks behind the join dialog, the invalid price and the dates' summary
+  were redrawn, all before any code (L2).
+- The production build was not run between slices 6.1 and 6.5, because the behaviour specs run
+  on `ng serve`, which applies no budget. At the end it measured 345.9 kB, over the 330 kB error
+  budget (L27). Comparing the stats with `main` showed why: nothing in a production build had
+  called `MemberGate` before, so the join dialog and the CDK's dialog had been tree-shaken; now
+  they are live, and the CDK's focus trap and monitor joined `main` through the title strategy's
+  static import of `LiveAnnouncer` (L28). Importing it when first needed saved 22.7 kB (L29);
+  ADR 0020 sets the budgets for the 8.3 kB that remain.
+- A first acceptance test expected the poster to get `not_found` for their own waiting listing;
+  `ListingVisibility` lets a poster see it, so the test now reads it as someone else.
+- A spec looked for Post's radios by role while the join dialog was open over it and found
+  nothing (L30).
+- An edit script missed a line Prettier had reflowed, so a limited post kept no `retryAt`; the
+  store's unit test caught it (L31).
+- L4 slipped once: slice 6.3 was committed on a unit-test run that did not compile (three specs'
+  members lacked `churchName`). It was amended before anything was pushed.
+
+**New lessons**: L27 to L31 above, and these details for later slices:
+
+- A form's fields can keep their own text (the price as typed, "when" in words and as dates side
+  by side) and be read only when checked and sent; switching a mode then loses nothing.
+- A store that writes its state to `sessionStorage` from an `effect` and reads it back when
+  created survives a dialog and a reload without the dialog's code knowing about it.
+- A summary link to a field moves focus itself and prevents the default: a fragment address would
+  make the router navigate and drop the query.
+- `afterNextRender` in a page's constructor is where a gate that opens a dialog over the page
+  starts, once the page is drawn behind it.
+
+**Earlier lessons applied**
+
+- L1: `main` was fetched first and had not moved.
+- L2: the preview of a person who is not a member yet had no criterion and no mock; the
+  criterion, the mock behind the join dialog and ADR 0019 came first.
+- L3 and L20: the repeated-request lookup, the photo refusal, saving the draft, aborting on leaving
+  and the title's announcement were each removed and only the specs that name them failed.
+- L4: every commit but one followed a green run whose counts were read (see above): 249 backend
+  tests, 434 unit tests and 108 behaviour specs at the end.
+- L6: `MSBUILDDISABLENODEREUSE=1` held; the dev server started for the slices was stopped before
+  `verify.mjs`.
+- L8: Post composes nine new components (`cr-word-toggle`, `cr-sentence`, `cr-line-field`,
+  `cr-date-range`, `cr-textarea`, `cr-photo-picker`, `cr-post-layout`, `cr-confirmation`, and
+  `cr-alert`'s summary), each with its own tests, beside `cr-listing-card`, which became a plain
+  block for a preview, and `cr-icon`, which gained `xl`. The page's own rule is the summary's list.
+- L9 and L24: the member fixture gained `churchName`; Post's specs answer a member, so the gate,
+  added last, changed none of them.
+- L10: the words are radios named "have", "need", "a space" and "a thing", found with
+  `exact: true`.
+- L11: see above; the initial chunks are 323.2 kB.
+- L12: the rules are in `@rent/domain` with a test per case: `validateDraft`, `parsePrice`,
+  `summaryOf`, `draftToCard`, `toPostRequest`, `DraftStore`, `formatRetryAt` and `formatCounter`.
+- L13: the sweeps visit Post's ten states and the join dialog over it, and a heap check writes a
+  listing and leaves Post 20 times; none was run.
+- L17: the prompt and the requirements agreed.
+- L19: every new spec was run 5 times, 130 of 130 green.
+- L26: the busy spec proves the button ignores a press with `dispatchEvent('click')`.
 
