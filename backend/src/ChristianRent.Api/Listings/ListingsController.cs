@@ -24,4 +24,13 @@ public sealed class ListingsController(ISender sender) : ControllerBase
         CancellationToken cancellationToken,
         [FromQuery] int size = BrowseListingsQuery.DefaultSize) =>
         sender.Send(new BrowseListingsQuery(cursor, size, show, q, kind), cancellationToken);
+
+    /// <summary>
+    /// One listing: anyone may read an approved one (L2-007; L2-025, criterion 1). The handler
+    /// answers <c>not_found</c> for anything else, an address that is not an identifier included.
+    /// </summary>
+    [HttpGet("{id}")]
+    [AllowAnonymous]
+    public Task<ListingDetailDto> Get(string id, CancellationToken cancellationToken) =>
+        sender.Send(new GetListingQuery(id), cancellationToken);
 }

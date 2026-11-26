@@ -33,7 +33,9 @@ things open that the Listing screen (journey 4) has to show one way or another:
 - **Renditions.** The large photo is the `gallery` rendition (1600 × 1200) and is loaded first,
   because it is the screen's largest content; each thumbnail is the `thumb` rendition
   (240 × 180) (ADR 0011). `ChristianRent.Cli seed` now writes the `gallery` and `thumb`
-  renditions of the sample photos too.
+  renditions of the sample photos too, and gives the hall the three photos of the mock's
+  gallery. The mocks' photos are 800 px wide, so a sample photo's `gallery` rendition is its
+  800 × 600 card file; its thumb is made once at 240 × 180 and embedded beside it.
 - **Text alternative.** The large photo's `alt` is the photo's description. While nobody can
   write one (journey 7 decides who does), a photo without one is described by the listing's
   title and its position: "Sunlit fellowship hall for 80, photo 2 of 3". Thumbnails keep an empty

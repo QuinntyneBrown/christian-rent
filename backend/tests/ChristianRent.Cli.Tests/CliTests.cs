@@ -14,6 +14,8 @@ public sealed class CliTests : IDisposable
 {
     private readonly ServiceProvider _services;
     private readonly StringWriter _output = new();
+    private static readonly string[] Renditions = ["card", "gallery", "thumb"];
+
     private readonly MemoryPhotoStorage _photos = new();
 
     public CliTests()
@@ -63,11 +65,17 @@ public sealed class CliTests : IDisposable
             approved.Select(listing => listing.Title));
         Assert.Equal(2, await database.Listings.CountAsync(listing => listing.Status == ListingStatus.WaitingForReview, TestContext.Current.CancellationToken));
         Assert.Contains(await database.Members.ToListAsync(TestContext.Current.CancellationToken), member => member.Name == "Pastor Dan Whitaker");
-        var cardKeys = approved
+        // Listing (journey 4): every photo of a listing for rent has its card, gallery and thumb
+        // renditions, and the hall has the three photos of its gallery (ADR 0011, ADR 0015).
+        var keys = approved
             .Where(listing => listing.Offer == ListingOffer.ForRent)
-            .Select(listing => $"{listing.Photos[0].PhotoId:N}/card.jpg");
-        Assert.All(cardKeys, key => Assert.True(_photos.Files.TryGetValue(key, out var bytes) && bytes is [0xFF, 0xD8, ..]));
-        Assert.Contains("Seeded 7 churches, 8 members, 9 listings and 4 photos.", _output.ToString(), StringComparison.Ordinal);
+            .SelectMany(listing => listing.Photos)
+            .SelectMany(photo => Renditions.Select(rendition => $"{photo.PhotoId:N}/{rendition}.jpg"))
+            .ToList();
+        Assert.Equal(18, keys.Count);
+        Assert.All(keys, key => Assert.True(_photos.Files.TryGetValue(key, out var bytes) && bytes is [0xFF, 0xD8, ..], key));
+        Assert.Equal(3, approved.Single(listing => listing.Title == "Sunlit fellowship hall for 80").Photos.Count);
+        Assert.Contains("Seeded 7 churches, 8 members, 9 listings and 6 photos.", _output.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -82,7 +90,7 @@ public sealed class CliTests : IDisposable
         var second = await ChurchesAsync();
         Assert.Equal(first.Select(church => (church.Id, church.Name, church.City, church.IsVerified)), second.Select(church => (church.Id, church.Name, church.City, church.IsVerified)));
         Assert.Contains("Seeded 0 churches, 0 members, 0 listings and 0 photos.", _output.ToString(), StringComparison.Ordinal);
-        Assert.Equal(4, _photos.Saves);
+        Assert.Equal(18, _photos.Saves);
     }
 
     [Theory]
