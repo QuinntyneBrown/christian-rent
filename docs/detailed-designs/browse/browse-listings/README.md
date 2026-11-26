@@ -37,11 +37,14 @@ the codebase yet; every name below is introduced by this design.
   page, and one before the first, which asks again for a released page above it. Before a
   page is released it measures the page's height. The observer is disconnected, and the
   request in flight aborted, through `DestroyRef`.
-- **`BrowseStore`** — route-scoped signal store. It holds `state` (`loading`, `loaded`,
-  `empty`, `failed`), `moreState` (`idle`, `loading`, `failed`, `done`), the `ListingWindow`
-  and the `counts`. `loadFirst()` and `loadMore()` call `LISTINGS_API`. A failed `loadMore()`
-  leaves the window untouched and sets `moreState` to `failed` (L2-006, criterion 3).
-  `moreState` `done` stops further requests (criterion 2).
+- **`BrowseStore`** (`browse-store.ts`) — route-scoped signal store. It holds `state`
+  (`loading`, `loaded`, `empty`, `failed`), `moreState` (`idle`, `loading`, `failed`,
+  `done`), `skeleton`, the `ListingWindow` of `ListingCardView`s, the spacer heights and the
+  count. `loadFirst()` and `loadMore(direction, measure)` call `LISTINGS_API`, one request at
+  a time, each with its own `AbortController`. A failed `loadMore('down')` leaves the window
+  untouched and sets `moreState` to `failed` (L2-006, criterion 3); `done` stops further
+  requests (criterion 2). Leaving Browse aborts the request in flight and clears the skeleton's
+  timer. The store and its states have unit tests on a fake clock.
 
 **Frontend — `domain` library**
 
@@ -51,16 +54,24 @@ the codebase yet; every name below is introduced by this design.
   items. When a fourth page arrives at one end, the slot at the other end is released and
   keeps only its measured height, which a spacer reserves, so the scroll position holds and
   memory stays bounded over 500 listings (L2-030, criterion 4). Scrolling back to a spacer
-  requests that released page again by its cursor. `before()` and `after()` give the spacer
-  heights; `nextRequest('up' | 'down')` gives the cursor to ask for, or none.
-- **`formatPrice`**, **`formatDistance`**, **`formatWhen`** (`domain/listings/`) — pure
-  helpers that produce "$45 / hour", "Free", "Up to $120 / day", "3 km", "Sat, Aug 8, 2026"
-  and "Jul 14 to 18, 2026" (L2-022). Each has a unit test per case.
+  requests that released page again by its cursor. `before` and `after` give the spacer
+  heights; `nextRequest('up' | 'down')` gives the cursor to ask for, or none; `receive()`
+  takes a page and a `measure` function that the page calls just before it releases one.
+- **`formatPrice`**, **`formatDistance`**, **`formatPlace`**, **`formatWhen`**
+  (`domain/listings/`) — pure helpers that produce "$45 / hour", "Free", "Up to $120 / day",
+  "3 km", "Langley · 3 km", "Sat, Aug 8, 2026" and "Jul 14 to 18, 2026" (L2-022). Each has a
+  unit test per case.
+- **`toListingCardView`** (`domain/listings/`) — turns a `ListingCard` into the
+  `ListingCardView` that `cr-listing-card` draws, with every word already written.
 
 **Frontend — `api` library**
 
-- **`ListingsApi`** with the token **`LISTINGS_API`**, implemented by `HttpListingsApi`.
-  `browse(query, cursor, signal)` returns `ListingsPage`.
+- **`ListingsApi`** with the token **`LISTINGS_API`**, implemented by `HttpListingsApi` and
+  bound by Browse's lazy route (`browse.routes.ts`). `browse(cursor, signal)` returns a
+  promise of `ListingsPage`; aborting the signal cancels the request. Search-and-filter adds
+  the query.
+- **`ListingCardView`** — a card in the product's words: `{ href, wanted, tag, title, price,
+  place, church, poster, when, photo }`; `components` takes it as a type.
 - **`ListingsPage`** — `{ items: ListingCard[]; nextCursor: string | null; counts }`.
 - **`ListingCard`** — `{ id, offer, kind, title, price, area, distanceKm, when, posterName,
   churchName, photo }`. `price` is `{ amount, period }` or `null`; `when` is
@@ -71,8 +82,13 @@ the codebase yet; every name below is introduced by this design.
 
 **Frontend — `components` library**
 
-- **`cr-hero`** — the headline and the two buttons. "I have something to rent" links to
-  `/post?offer=for-rent`; "I'm looking for something" links to `/post?offer=wanted` (L2-005).
+- **`cr-hero`** — the headline and the two buttons, which `BrowsePage` projects. "I have
+  something to rent" links to `/post?offer=for-rent`; "I'm looking for something" links to
+  `/post?offer=wanted` (L2-005). The empty state carries the same two buttons.
+- **`cr-listing-grid`** — the `ul.listing-grid` of one, two, three and four columns at 576,
+  768 and 1200 px, whose gutter widens from 992 px (L2-031, criterion 2); `aria-busy` while
+  the skeleton shows.
+- **`cr-tag`** — the kind tag on a photo and the "Wanted · space" tag on a wanted card.
 - **`cr-listing-card`** — one card, a link to `/listings/{id}`. A for-rent card shows the
   first photo through `NgOptimizedImage` with `width`, `height` and a 4:3 box reserved before
   load; cards in the first row set `priority`, the rest load lazily (L2-029, criterion 3). The
@@ -85,14 +101,19 @@ the codebase yet; every name below is introduced by this design.
   "Wanted · space" or "Wanted · thing", the title, when it is needed, the poster's name, the
   price as "Up to $120 / day" when one was given, the area with its distance and the church
   name (criterion 8).
-- **`cr-skeleton`**, **`cr-empty-state`**, **`cr-alert`** — the loading, empty and failed
-  states. The skeleton cards appear 300 ms after the request starts and reserve the card
-  shape (L2-033, criterion 5). While a further page is in flight, a spinner and "Loading more
-  listings…" follow the last card (L2-006, criterion 4). In the failed state the header, the
-  search bar and the switch stay (L2-033, criterion 6).
+- **`cr-skeleton`**, **`cr-empty-state`**, **`cr-feed-status`**, **`cr-spinner`** — the
+  loading, empty and failed states. Eight skeleton cards (`cr-listing-card` with no card)
+  appear 300 ms after the request starts and reserve the card shape (L2-033, criteria 1 and
+  5). The empty state ("Nothing is posted near Langley yet.") offers the two posting buttons
+  (L2-001, criterion 6); the error ("We couldn’t load the listings.") offers "Try again". While
+  a further page is in flight, `cr-feed-status` shows a spinner and "Loading more listings…"
+  in a status after the last card (L2-006, criterion 4); when it failed, "We couldn’t load more
+  listings." and "Try again" in an alert (criterion 3). In the failed state the header and the
+  headline stay (L2-033, criterion 6); the search bar and the switch join them in journey 3.
 - **Count status** — `BrowsePage` holds a visually hidden `role="status"` line that reads
-  "7 listings", "4 listings for rent", "3 wanted listings" or "Loading listings", so a
-  screen reader hears each change of the list (L2-001, criterion 10).
+  "7 listings", "1 listing", "No listings yet", "Loading listings" or "Loading more
+  listings", so a screen reader hears each change of the list (L2-001, criterion 10).
+  Search-and-filter adds "4 listings for rent" and "3 wanted listings".
 
 **Backend**
 
