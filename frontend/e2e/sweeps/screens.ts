@@ -14,8 +14,10 @@ import { CHURCHES, SARAH_KIM, answerJoining, answerMember } from '../fixtures/me
 import { answerSending, refuseSendingAtLimit, sendPath } from '../fixtures/messages';
 import { answerUploads, photoFile } from '../fixtures/photos';
 import { POSTED_ID, answerPosting } from '../fixtures/post';
+import { answerReporting, refuseAsAlreadyReported, reportPath } from '../fixtures/reports';
 import { ListingPage } from '../pages/listing.page';
 import { PostPage } from '../pages/post.page';
+import { ReportDialogPart } from '../pages/report-dialog.part';
 
 /** One screen in one state: what the API answers, and what a person does before it is looked at. */
 export interface Screen {
@@ -24,6 +26,26 @@ export interface Screen {
   readonly answer: (api: ApiFixtures) => void;
   /** What a person does before the screen is looked at; `api` can change an answer midway. */
   readonly then?: (page: Page, api: ApiFixtures) => Promise<void>;
+}
+
+function answerReport(api: ApiFixtures): void {
+  answerMember(api);
+  answerListing(api, hall());
+  answerReporting(api, hall().id);
+}
+
+async function openReport(page: Page): Promise<ReportDialogPart> {
+  await new ListingPage(page).report.click();
+  const dialog = new ReportDialogPart(page);
+  await dialog.title.waitFor();
+  return dialog;
+}
+
+async function sendReport(page: Page): Promise<void> {
+  const dialog = await openReport(page);
+  await dialog.reason('A scam').check();
+  await dialog.note.fill('It asks people to pay a deposit before they have seen the hall.');
+  await dialog.submit.click();
 }
 
 const scrollToEnd = (page: Page) =>
@@ -268,6 +290,67 @@ export const SCREENS: readonly Screen[] = [
     then: async (page) => {
       await writeMessage(page, true);
       await page.locator('.message-box .alert--warning').waitFor();
+    },
+  },
+  // The report dialog's states (docs/mocks/dialogs/report-listing/), over a listing.
+  {
+    name: 'report',
+    path: `/listings/${hall().id}`,
+    answer: answerReport,
+    then: async (page) => {
+      await openReport(page);
+    },
+  },
+  {
+    name: 'report-invalid',
+    path: `/listings/${hall().id}`,
+    answer: answerReport,
+    then: async (page) => {
+      const dialog = await openReport(page);
+      await dialog.submit.click();
+      await dialog.reasonError.waitFor();
+    },
+  },
+  {
+    name: 'report-busy',
+    path: `/listings/${hall().id}`,
+    answer: (api) => {
+      answerReport(api);
+      api.hold('POST', reportPath(hall().id));
+    },
+    then: sendReport,
+  },
+  {
+    name: 'report-failed',
+    path: `/listings/${hall().id}`,
+    answer: (api) => {
+      answerReport(api);
+      api.refuse('POST', reportPath(hall().id), 503, 'unexpected');
+    },
+    then: async (page) => {
+      await sendReport(page);
+      await page.getByRole('alert').waitFor();
+    },
+  },
+  {
+    name: 'report-success',
+    path: `/listings/${hall().id}`,
+    answer: answerReport,
+    then: async (page) => {
+      await sendReport(page);
+      await new ReportDialogPart(page).done.waitFor();
+    },
+  },
+  {
+    name: 'report-already',
+    path: `/listings/${hall().id}`,
+    answer: (api) => {
+      answerReport(api);
+      refuseAsAlreadyReported(api, hall().id, new Date(2026, 5, 6, 12));
+    },
+    then: async (page) => {
+      await sendReport(page);
+      await new ReportDialogPart(page).ok.waitFor();
     },
   },
   // The join dialog's states (docs/mocks/dialogs/join/), over the e2e build's host page.
