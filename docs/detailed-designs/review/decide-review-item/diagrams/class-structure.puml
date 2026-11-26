@@ -35,9 +35,17 @@ class ReviewItem {
   +Decide(decision, adminId, now): void
 }
 class DecideReviewItemCommand {
-  +Guid ItemId
-  +ReviewDecision Decision
+  +string Id
+  +string? Decision
   +int Version
+}
+class DecidedDto {
+  +IReadOnlyList<Guid> ClosedItemIds
+}
+class ReviewItemDecidedException <<Application>> {
+  +string Decision
+  +DateTimeOffset DecidedAt
+  +bool DecidedByYou
 }
 class DecideReviewItemCommandHandler {
   +Handle(command: DecideReviewItemCommand): Task<DecidedDto>
@@ -79,15 +87,18 @@ class ReviewQueueStore <<Angular>> {
   +goToNext(): void
 }
 class ToastQueue <<Angular>> {
-  +toasts: Signal<Toast[]>
-  +push(toast: Toast): void
+  +toasts: Signal<ToastView[]>
+  +push(request: ToastRequest): void
   +dismiss(id: number): void
+  +dismissKey(key: string): void
   +hold(id: number, by, on: boolean): void
 }
 ReviewItem --> ReviewItemKind
 ReviewItem --> ReviewDecision
 ReviewItem ..> AlreadyDecidedException : raises
 DecideReviewItemCommandHandler ..> DecideReviewItemCommand : handles
+DecideReviewItemCommandHandler ..> DecidedDto : answers
+DecideReviewItemCommandHandler ..> ReviewItemDecidedException : 409 already_decided
 DecideReviewItemCommandHandler --> ReviewItem : decides
 DecideReviewItemCommandHandler --> Listing : approves / removes
 DecideReviewItemCommandHandler --> Report : closes

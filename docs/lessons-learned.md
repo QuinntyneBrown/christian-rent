@@ -62,6 +62,9 @@ Each journey's entry has three parts:
 | L46 | A component that does not compile (an unused or missing entry in `imports`) shows in the behaviour specs only as the web server timing out after 4 minutes: build with `npx ng build rent --configuration e2e` first. | 10 |
 | L47 | A design-system component that borrows another block's class cannot be built, since a component styles only its own block: give it its own element in the mock and the design system before building it. | 10 |
 | L48 | On Windows, write editing scripts to a file instead of a long heredoc command, run `verify.mjs` with `MSBUILDDISABLENODEREUSE=1` (`dotnet format` can otherwise time out reaching its build host), and give generated EF Core migrations LF endings. | 10 |
+| L49 | When a change to a paged list aborts what is on its way, cover every direction: a flag that tracks only the next page misses a released page being asked for again. | 11 |
+| L50 | Prove timed behaviour in the browser (a notification that leaves, a look every minute) with `page.clock.install` before the screen opens and `fastForward`; the spec waits for nothing. | 11 |
+| L51 | A spec that checks which controls a screen offers asserts their texts, not how many there are: the journey that adds controls then changes a list a reader can check. | 11 |
 
 ## Journeys
 
@@ -703,3 +706,49 @@ Slices 10.1 to 10.4, finished on Nov 26, 2026, on Windows.
 - L33: the leaving spec observes the detail's request fail.
 - L36 and L37: mutation runs were read from the test counts and kept every import in use.
 
+### 11. Decide a review item
+
+Slices 11.1 to 11.3, finished on Nov 26, 2026, on Windows.
+
+**What slowed it**
+
+- The design left open how a poster is told, what a second decision gets, how many
+  notifications show and how new items reach the screen. L2-020 gained criteria, and the mocks
+  and ADRs 0025 to 0027 came before any code (L2).
+- A new member of `IAppDbContext` broke a test double that implemented it. The shared factory
+  that races two saves now lives in the tests' `Support` folder.
+- Journey 10's specs counted the detail's controls, which the decision bar changed (L51).
+- Reading the store again before finishing found that a decision aborted only a next page on
+  its way, not a released one, and that "Show them" moved focus even when its reading was cut
+  short. Each got a failing test first (L49).
+- A command with several heredocs failed in Git Bash once more (L48).
+
+**New lessons**: L49 to L51 above, and these details for journey 12:
+
+- Approving a new member already verifies them (`Member.Verify()`); their church is not
+  touched. Slice 12.1 is therefore built, and what is left is confirming a church and the marks.
+- Admin has notifications (`ToastQueue`, provided by the page) and a confirmation pattern
+  (`ConfirmRemoveDialog`); reuse them.
+- A removal records a `ListingRemovalNotice` and nothing is sent (ADR 0025), so L2-020
+  criterion 7 is met only as far as the record: the poster is not yet told.
+- An admin can decide their own new-member item (ADR 0027). Admin's notification region and
+  the shell's are separate and can overlap.
+- The initial bundle is 324.29 kB with the warning at 325 kB. Keep new code lazy, and measure
+  after any change to `api` or to a component the shell uses.
+
+**Earlier lessons applied**
+
+- L1: the branch was made from journey 10's, which was not merged yet.
+- L2 and L25: the new states were drawn and given criteria first, and the mock checker passed.
+- L3 and L20: allowing anyone to decide, dropping the concurrency token, sending the wrong
+  decision from "Keep listing" and keeping overlapping rows were each caught by a test.
+- L4 and L45: every commit ran through a script that commits only when `verify.mjs` passes.
+- L12: every word of the buttons, confirmations and notifications is `@rent/domain`, with a
+  test per case.
+- L13: the sweeps visit the confirmations, the decision states and the notifications, and a
+  heap check decides and leaves; none was run.
+- L19: the new specs were run 5 times.
+- L43: the page provides the notifications and the store, which abort a decision and a look
+  for new items, and clear their timers, when the admin leaves.
+- L46: the build ran before the behaviour specs.
+- L48: missed once; editing scripts were otherwise files.

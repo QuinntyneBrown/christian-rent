@@ -25,7 +25,8 @@ The queue and the detail panel are designed in
   `ReviewDetailView.decisions`, written from `ReviewItemDetail.allowedDecisions`: "Approve"
   and "Remove", or "Keep listing" and "Remove" (L2-020, criterion 8), beside "View on site"
   for a report. It emits `decide`. While `deciding` names a decision, that button carries
-  `aria-busy` and every decision button is off (criterion 16). Given a `conflict`, it draws a
+  `aria-busy` and every decision button is off (criterion 16); `off` turns them off while
+  another item's decision is in flight. Given a `conflict`, it draws a
   warning above the item, turns the buttons off, and emits `next` from "Go to the next item"
   (criterion 13). The panel is not shown under 768 px.
 - **`ReviewPage`** — for Remove it opens `ConfirmRemoveDialog`; it calls the store for
@@ -49,7 +50,8 @@ The queue and the detail panel are designed in
     by as many, selects the row that followed the decided one, or the one before, and pushes a success toast that `toDecisionToast` writes;
     no undo is offered (criteria 11 and 15). A selection the admin made meanwhile stays. When
     the rows held run out while more wait, it reads the queue again; with none waiting it
-    shows "All caught up".
+    shows "All caught up". A page on its way, above or below, is aborted: it may have been
+    read before the decision.
   - On `already_decided` it sets `conflict` for that item with the first decision, its time
     and whether it was the admin's own, and pushes a warning toast (criteria 13 and 17).
     `goToNext()` then drops the item.
