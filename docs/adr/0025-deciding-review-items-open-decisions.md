@@ -25,10 +25,11 @@ The decide-review-item design and its mocks leave open what journey 11 has to se
   a departed member's notices with their messages. Removing a member records no notice.
 - **One decision per item, checked twice.** `ReviewItem` gains `Decision`, `DecidedById`,
   `DecidedAt` and `Version`, a concurrency token that every decision changes. The detail
-  carries `version` and the `decisions` its kind allows; `POST /api/review-queue/{id}/decision`
-  takes `{ decision, version }`. A decision already recorded, a stale `version` or a failed
-  token check on save all answer 409 `already_decided` with `decision` and `decidedAt`, and
-  change nothing. A decision the kind does not allow is 409 `decision_not_allowed`. Removing a
+  carries the `decisions` its kind allows; `POST /api/review-queue/{id}/decision` takes
+  `{ decision }`. A decision already recorded, or a save that another admin's decision overtook
+  (the token check fails), answers 409 `already_decided` with `decision` and `decidedAt`, and
+  changes nothing. The client sends no version: only a decision changes one, and the first
+  check already refuses a second decision with what the screen needs to say. A decision the kind does not allow is 409 `decision_not_allowed`. Removing a
   reported listing decides every other waiting item about it (its reports, and a new-listing
   item) as Remove, with the same admin and time.
 - **The screen after a refusal.** The item leaves the queue. The detail stays, with the warning

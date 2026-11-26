@@ -42,7 +42,16 @@ internal sealed class DecideReviewItemCommandHandler(IAppDbContext database, ICu
         var now = clock.GetUtcNow();
         item.Decide(decision, adminId, now);
         await ApplyAsync(item, decision, adminId, now, cancellationToken);
-        await database.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await database.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // Another admin's decision was saved first: it stands, and nothing of this one is.
+            var first = await database.ReviewItems.AsNoTracking().SingleAsync(other => other.Id == id, cancellationToken);
+            throw new AlreadyDecidedException(ReviewWords.Of(first.Decision!.Value), first.DecidedAt!.Value);
+        }
     }
 
     /// <summary>The effect of each decision by kind, as the design's table gives it.</summary>

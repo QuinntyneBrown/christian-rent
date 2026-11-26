@@ -34,13 +34,9 @@ public sealed class ReviewDecisionTests : IDisposable
         var item = ReviewItem.ForNewListing(yard.Id, TestData.At(8, 12));
         await _factory.SeedAsync(TestData.Grace, _naomi, _dan, yard, item);
         using var admin = _factory.CreateSignedInClient("naomi-friesen");
-        var detail = await admin.GetFromJsonAsync<JsonElement>($"/api/review-queue/{item.Id}", TestContext.Current.CancellationToken);
-        Assert.Equal(["approve", "remove"], detail.GetProperty("decisions").EnumerateArray().Select(decision => decision.GetString()));
+        Assert.Equal(["approve", "remove"], await DecisionsAsync(item));
 
-        using var response = await admin.PostAsJsonAsync(
-            $"/api/review-queue/{item.Id}/decision",
-            new { decision = "approve", version = detail.GetProperty("version").GetString() },
-            TestContext.Current.CancellationToken);
+        using var response = await DecideAsync(item, "approve");
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         using var anyone = _factory.CreateHttpsClient();
@@ -172,11 +168,7 @@ public sealed class ReviewDecisionTests : IDisposable
     private async Task<HttpResponseMessage> DecideAsync(ReviewItem item, string decision)
     {
         using var admin = _factory.CreateSignedInClient("naomi-friesen");
-        var detail = await admin.GetFromJsonAsync<JsonElement>($"/api/review-queue/{item.Id}", TestContext.Current.CancellationToken);
-        return await admin.PostAsJsonAsync(
-            $"/api/review-queue/{item.Id}/decision",
-            new { decision, version = detail.GetProperty("version").GetString() },
-            TestContext.Current.CancellationToken);
+        return await admin.PostAsJsonAsync($"/api/review-queue/{item.Id}/decision", new { decision }, TestContext.Current.CancellationToken);
     }
 
     private async Task<List<string?>> DecisionsAsync(ReviewItem item)

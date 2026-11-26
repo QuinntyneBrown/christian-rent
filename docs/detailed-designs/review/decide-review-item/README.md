@@ -33,7 +33,7 @@ The queue and the detail panel are designed in
   it" is off; in `failed` an alert says nothing has changed and the button reads "Try
   again" (criterion 10). It has no input, so Remove takes no reason.
 - **`ReviewQueueStore.decide(id, decision)`** — calls
-  `REVIEW_QUEUE_API.decide(id, decision, version)`. On success it drops the item, lowers
+  `REVIEW_QUEUE_API.decide(id, decision)`. On success it drops the item, lowers
   `waitingCount`, selects the next item and pushes a success toast that names the decision
   and the item; no undo is offered (criterion 11). On `already_decided` it sets
   `detail.conflict` with the other admin's decision and time; the panel shows a warning with
@@ -48,7 +48,7 @@ The queue and the detail panel are designed in
 **Backend**
 
 - **`ReviewQueueController.Decide`** — `POST /api/review-queue/{id}/decision` with
-  `{ decision, version }`, under the `Admin` policy. It sends one
+  `{ decision }`, under the `Admin` policy. It sends one
   `DecideReviewItemCommand`.
 - **`DecideReviewItemCommandHandler`** — loads the item and its subject, calls
   `ReviewItem.Decide(decision, adminId, now)`, applies the effect from the table, and saves
@@ -84,8 +84,8 @@ one case per row, and one test for the refused pairs.
 
 - The poster is told by a `MemberNotice` that `IMemberNotifier` records with the decision; the
   inbox, when designed, shows it.
-- `ReviewItem.Version` is checked against the `version` the detail carried; a stale one, a
-  decision already recorded or a failed token check answer 409 `already_decided`.
+- A decision already recorded, or a save whose `ReviewItem.Version` token check fails because
+  another admin decided first, answers 409 `already_decided`; the request carries no version.
 - At most three toasts show; a fourth drops the oldest that is not a failure.
 - The words after each decision, the confirmation for a new listing and a new member, and new
   items noticed every 60 s while the page is visible (L2-019, criterion 12).

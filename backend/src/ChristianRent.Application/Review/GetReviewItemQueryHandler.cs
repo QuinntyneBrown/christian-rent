@@ -37,14 +37,13 @@ internal sealed class GetReviewItemQueryHandler(IAppDbContext database, ICurrent
         switch (item.Kind)
         {
             case ReviewItemKind.NewListing:
-                return new ReviewItemDetailDto(item.Id, kind, item.Version, decisions, item.CreatedAt, await ListingAsync(item.SubjectId, cancellationToken), null, null);
+                return new ReviewItemDetailDto(item.Id, kind, decisions, item.CreatedAt, await ListingAsync(item.SubjectId, cancellationToken), null, null);
 
             case ReviewItemKind.Report:
                 var report = await database.Reports.AsNoTracking().SingleAsync(report => report.Id == item.SubjectId, cancellationToken);
                 return new ReviewItemDetailDto(
                     item.Id,
                     kind,
-                    item.Version,
                     decisions,
                     item.CreatedAt,
                     await ListingAsync(report.ListingId, cancellationToken),
@@ -52,7 +51,7 @@ internal sealed class GetReviewItemQueryHandler(IAppDbContext database, ICurrent
                     null);
 
             default:
-                return new ReviewItemDetailDto(item.Id, kind, item.Version, decisions, item.CreatedAt, null, null, await MemberAsync(item.SubjectId, cancellationToken));
+                return new ReviewItemDetailDto(item.Id, kind, decisions, item.CreatedAt, null, null, await MemberAsync(item.SubjectId, cancellationToken));
         }
     }
 

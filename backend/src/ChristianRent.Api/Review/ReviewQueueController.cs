@@ -29,16 +29,16 @@ public sealed class ReviewQueueController(ISender sender) : ControllerBase
         sender.Send(new GetReviewItemQuery(id), cancellationToken);
 
     /// <summary>
-    /// Approve, Keep or Remove a waiting item (L2-020), with the version its detail carried; a
-    /// second decision is <c>already_decided</c> (ADR 0025).
+    /// Approve, Keep or Remove a waiting item (L2-020); a second decision is
+    /// <c>already_decided</c> (ADR 0025).
     /// </summary>
     [HttpPost("{id}/decision")]
     public async Task<IActionResult> Decide(string id, [FromBody] DecisionRequest request, CancellationToken cancellationToken)
     {
-        await sender.Send(new DecideReviewItemCommand(id, request.Decision, request.Version), cancellationToken);
+        await sender.Send(new DecideReviewItemCommand(id, request.Decision), cancellationToken);
         return NoContent();
     }
 
     /// <summary>The body of a decision.</summary>
-    public sealed record DecisionRequest(string? Decision, string? Version);
+    public sealed record DecisionRequest(string? Decision);
 }
