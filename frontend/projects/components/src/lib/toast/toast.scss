@@ -1,0 +1,103 @@
+// Toast, from docs/design-system/components/toast.html.
+.toast {
+  position: relative;
+  overflow: hidden;
+  pointer-events: auto;
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-4);
+  background: var(--color-bg-inverse);
+  color: var(--color-fg-inverse);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-3);
+  animation: toast-in var(--duration-base) var(--ease-enter);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+.toast__icon {
+  margin-top: 0.1rem;
+}
+
+.toast--info .toast__icon {
+  color: var(--color-info-icon);
+}
+
+.toast--success .toast__icon {
+  color: var(--color-success-icon);
+}
+
+.toast--warning .toast__icon {
+  color: var(--color-warning-icon);
+}
+
+.toast--danger .toast__icon {
+  color: var(--color-danger-icon);
+}
+
+.toast__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+}
+
+.toast__title {
+  font: var(--text-label);
+}
+
+.toast__text {
+  font: var(--text-body-sm);
+  opacity: 0.9;
+}
+
+.toast__action {
+  align-self: flex-start;
+  min-height: var(--target-min);
+  font: var(--text-label);
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: var(--space-1) 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.toast__close {
+  flex: none;
+  width: var(--target-min);
+  height: var(--target-min);
+  margin: calc(-1 * var(--space-2));
+  display: grid;
+  place-items: center;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.toast__close:hover {
+  opacity: 1;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.toast__close-icon {
+  width: 1rem;
+  height: 1rem;
+}

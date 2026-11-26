@@ -6,7 +6,7 @@
     "start": "ng serve rent",
     "build": "ng build rent",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test rent --watch=false && ng test api --watch=false && ng test domain --watch=false && ng test components --watch=false",
+    "test": "node scripts/unit-tests.mjs",
     "lint": "ng lint && eslint e2e playwright.config.ts eslint.config.js",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

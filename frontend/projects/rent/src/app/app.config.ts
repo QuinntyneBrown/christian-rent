@@ -1,5 +1,6 @@
 import {
   type ApplicationConfig,
+  ErrorHandler,
   inject,
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
@@ -11,8 +12,10 @@ import {
   withComponentInputBinding,
   withInMemoryScrolling,
 } from '@angular/router';
-import { SESSION, type Session } from '@rent/api';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { SESSION, type Session, apiErrorInterceptor } from '@rent/api';
 import { routes } from './app.routes';
+import { GlobalErrorHandler } from './shell/global-error-handler';
 import { PageFocus } from './shell/page-focus';
 import { RentTitleStrategy } from './shell/rent-title-strategy';
 
@@ -28,6 +31,8 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding(),
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled' }),
     ),
+    provideHttpClient(withFetch(), withInterceptors([apiErrorInterceptor])),
+    { provide: ErrorHandler, useClass: GlobalErrorHandler },
     { provide: TitleStrategy, useClass: RentTitleStrategy },
     provideAppInitializer(() => inject(PageFocus).start()),
     { provide: SESSION, useValue: noSession },

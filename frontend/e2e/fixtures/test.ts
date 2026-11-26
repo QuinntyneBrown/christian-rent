@@ -4,6 +4,8 @@ import { ApiFixtures } from './api';
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
 
 interface Fixtures {
+  /** Page errors a spec raises on purpose; any other fails it. */
+  expectedPageErrors: string[];
   api: ApiFixtures;
   guard: void;
 }
@@ -13,11 +15,12 @@ interface Fixtures {
  * error, on a request that leaves localhost, and on an API request no fixture answered.
  */
 export const test = base.extend<Fixtures>({
+  expectedPageErrors: [[], { option: true }],
   api: async ({}, use) => {
     await use(new ApiFixtures());
   },
   guard: [
-    async ({ page, api }, use) => {
+    async ({ page, api, expectedPageErrors }, use) => {
       const pageErrors: string[] = [];
       const offLocalhost: string[] = [];
       page.on('pageerror', (error) => pageErrors.push(error.message));
@@ -38,7 +41,10 @@ export const test = base.extend<Fixtures>({
 
       await use();
 
-      expect(pageErrors, 'page errors').toEqual([]);
+      expect(
+        pageErrors.filter((message) => !expectedPageErrors.includes(message)),
+        'page errors',
+      ).toEqual([]);
       expect(offLocalhost, 'requests off localhost').toEqual([]);
       expect(api.unanswered, 'API requests no fixture answered').toEqual([]);
     },

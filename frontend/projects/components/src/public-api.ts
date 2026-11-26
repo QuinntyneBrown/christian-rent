@@ -5,3 +5,4 @@ export * from './lib/button/button';
 export * from './lib/logo/logo';
 export * from './lib/site-header/site-header';
 export * from './lib/skip-link/skip-link';
+export * from './lib/toast/toast';
