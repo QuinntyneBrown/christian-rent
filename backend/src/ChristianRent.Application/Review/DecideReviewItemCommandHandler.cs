@@ -67,10 +67,25 @@ internal sealed class DecideReviewItemCommandHandler(IAppDbContext database, ICu
                 await RemoveListingAsync(await ListingAsync(reported.ListingId, cancellationToken), item, adminId, now, cancellationToken);
                 break;
 
+            case (ReviewItemKind.NewMember, ReviewDecision.Approve):
+                (await MemberAsync(item.SubjectId, cancellationToken)).Verify();
+                break;
+
+            case (ReviewItemKind.NewMember, ReviewDecision.Remove):
+                (await MemberAsync(item.SubjectId, cancellationToken)).Remove();
+                break;
+
             default:
                 throw new ConflictException("decision_not_allowed");
         }
     }
+
+    /// <summary>
+    /// The member is verified, or removed: a removed member no longer signs in, posts or
+    /// messages, and their listings are not public (L2-018, criterion 4).
+    /// </summary>
+    private Task<Domain.Members.Member> MemberAsync(Guid id, CancellationToken cancellationToken) =>
+        database.Members.SingleAsync(member => member.Id == id, cancellationToken);
 
     private Task<Domain.Listings.Listing> ListingAsync(Guid id, CancellationToken cancellationToken) =>
         database.Listings.SingleAsync(listing => listing.Id == id, cancellationToken);

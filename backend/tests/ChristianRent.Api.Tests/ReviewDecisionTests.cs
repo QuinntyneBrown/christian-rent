@@ -117,6 +117,58 @@ public sealed class ReviewDecisionTests : IDisposable
         Assert.Equal((_dan.Id, bus.Id), (notice.MemberId, notice.ListingId));
     }
 
+    // L2-020 criterion 3; L2-018 criteria 1 and 6: approving a new member verifies them, and not
+    // their church.
+    [Fact]
+    public async Task Approving_a_new_member_verifies_them_and_not_their_church()
+    {
+        var item = ReviewItem.ForNewMember(_alicia.Id, TestData.At(8, 14));
+        await _factory.SeedAsync(TestData.StPauls, _naomi, _alicia, item);
+        Assert.Equal(["approve", "remove"], await DecisionsAsync(item));
+
+        using var response = await DecideAsync(item, "approve");
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        var member = await _factory.ReadAsync(database => database.Members.SingleAsync(member => member.Id == _alicia.Id, TestContext.Current.CancellationToken));
+        var church = await _factory.ReadAsync(database => database.Churches.SingleAsync(church => church.Id == TestData.StPauls.Id, TestContext.Current.CancellationToken));
+        Assert.Equal((true, false), (member.IsVerified, church.IsVerified));
+    }
+
+    // L2-020 criterion 3; L2-018 criterion 4: a removed member can no longer post, and their
+    // listings are no longer public.
+    [Fact]
+    public async Task Removing_a_new_member_stops_them_and_hides_their_listings()
+    {
+        var locker = TestData.Wanted(_alicia, "Storage locker for our food bank", approvedAt: TestData.At(8, 10));
+        var item = ReviewItem.ForNewMember(_alicia.Id, TestData.At(8, 14));
+        await _factory.SeedAsync(TestData.StPauls, _naomi, _alicia, locker, item);
+
+        using var response = await DecideAsync(item, "remove");
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        using var anyone = _factory.CreateHttpsClient();
+        var browse = await anyone.GetFromJsonAsync<JsonElement>("/api/listings", TestContext.Current.CancellationToken);
+        Assert.Empty(browse.GetProperty("items").EnumerateArray());
+        using var alicia = _factory.CreateSignedInClient("alicia-gomez");
+        using var posting = await alicia.PostAsJsonAsync(
+            "/api/listings",
+            new
+            {
+                clientRequestId = Guid.NewGuid(),
+                offer = "wanted",
+                kind = "thing",
+                title = "15-passenger van for youth camp",
+                startDate = "2026-07-14",
+                endDate = "2026-07-18",
+                area = "Murrayville, Langley",
+                photoIds = Array.Empty<Guid>(),
+            },
+            TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.Forbidden, posting.StatusCode);
+        Assert.Equal("not_a_member", (await Problem.ReadAsync(posting)).Code);
+        Assert.Empty(await _factory.ReadAsync(database => database.MemberNotices.ToListAsync(TestContext.Current.CancellationToken)));
+    }
+
     private async Task<HttpResponseMessage> DecideAsync(ReviewItem item, string decision)
     {
         using var admin = _factory.CreateSignedInClient("naomi-friesen");
