@@ -1,8 +1,17 @@
-# christian.rent
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg">
+    <img src="docs/assets/logo.svg" alt="christian.rent" width="444">
+  </picture>
+</p>
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![Angular](https://img.shields.io/badge/Angular-frontend-DD0031.svg)
-![.NET](https://img.shields.io/badge/.NET-backend-512BD4.svg)
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/Angular-frontend-DD0031.svg" alt="Angular">
+  <img src="https://img.shields.io/badge/.NET-backend-512BD4.svg" alt=".NET">
+</p>
+
+# christian.rent
 
 christian.rent is where Christians post spaces and things for rent, or ask for a space or a
 thing to rent. It is **narrow on purpose**: browse, open a listing, message the person who
@@ -180,6 +189,7 @@ christian-rent/
 |---|---|
 | [AGENTS.md](AGENTS.md) | christian.rent's purpose and scope, its design, the architecture rules and the required workflow |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How a change is proposed and made |
+| [docs/journeys.md](docs/journeys.md) | The journeys of the main app and Admin, with effort and % complete |
 | Skills (`.claude/skills/`, `.agents/skills/`) | Requirements, mocks, the design system, detailed designs, estimates, feature prompts, Angular and incremental implementation |
 
 Requirements, mocks, the design system, the detailed designs, the journeys and the architecture
