@@ -180,6 +180,8 @@ public sealed class ReportListingAgainTests : IDisposable
 
             public DbSet<ReviewItem> ReviewItems => Inner.ReviewItems;
 
+            public DbSet<ChristianRent.Domain.Notices.MemberNotice> MemberNotices => Inner.MemberNotices;
+
             public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
             {
                 if (factory.BeforeSave is { } fault)
