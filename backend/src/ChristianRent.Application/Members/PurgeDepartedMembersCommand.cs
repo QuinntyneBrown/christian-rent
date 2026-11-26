@@ -1,6 +1,7 @@
 using ChristianRent.Application.Abstractions;
 using ChristianRent.Application.Listings;
 using ChristianRent.Domain.Members;
+using ChristianRent.Domain.Review;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -10,8 +11,10 @@ namespace ChristianRent.Application.Members;
 /// <summary>
 /// Makes every member who left at least <see cref="AfterDays"/> days ago anonymous, and deletes
 /// their listings and photo files (L2-028, criterion 2; handle-member-data design). The text of
-/// the messages they sent is cleared, and the messages about their listings are deleted. Run daily by
-/// <c>ChristianRent.Cli purge-departed</c>; running it again changes nothing.
+/// the messages they sent is cleared, and the messages about their listings are deleted. The
+/// notes of their reports are cleared, and the reports about their listings are deleted with
+/// their review items (L2-021, criterion 13). Run daily by <c>ChristianRent.Cli purge-departed</c>;
+/// running it again changes nothing.
 /// </summary>
 public sealed record PurgeDepartedMembersCommand(int AfterDays) : IRequest<PurgeResult>;
 
@@ -69,6 +72,23 @@ internal sealed class PurgeDepartedMembersCommandHandler(IAppDbContext database,
                 message.ClearText();
             }
         }
+
+        // A report of theirs stays, so the listing is still reviewed, without what they wrote;
+        // a review item of a report that goes would point at nothing (ADR 0023).
+        var reports = await database.Reports
+            .Where(report => ids.Contains(report.ReporterId) || listingIds.Contains(report.ListingId))
+            .ToListAsync(cancellationToken);
+        var goneReports = reports.Where(report => listingIds.Contains(report.ListingId)).ToList();
+        var goneReportIds = goneReports.Select(report => report.Id).ToList();
+        foreach (var report in reports.Except(goneReports))
+        {
+            report.ClearNote();
+        }
+
+        database.ReviewItems.RemoveRange(await database.ReviewItems
+            .Where(item => item.Kind == ReviewItemKind.Report && goneReportIds.Contains(item.SubjectId))
+            .ToListAsync(cancellationToken));
+        database.Reports.RemoveRange(goneReports);
 
         database.Listings.RemoveRange(listings);
         foreach (var member in departed)

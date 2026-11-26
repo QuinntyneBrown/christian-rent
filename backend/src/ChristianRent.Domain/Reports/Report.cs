@@ -43,4 +43,7 @@ public sealed class Report
     /// </summary>
     public static Report File(Listing listing, Guid reporterId, ReportReason reason, string? note, DateTimeOffset now) =>
         new(Guid.NewGuid(), listing.Id, reporterId, reason, note, now);
+
+    /// <summary>Its reporter has left: what they wrote goes, and the report keeps its place.</summary>
+    public void ClearNote() => Note = null;
 }

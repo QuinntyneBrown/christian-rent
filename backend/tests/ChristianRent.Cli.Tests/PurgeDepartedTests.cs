@@ -5,6 +5,8 @@ using ChristianRent.Domain.Churches;
 using ChristianRent.Domain.Listings;
 using ChristianRent.Domain.Members;
 using ChristianRent.Domain.Messages;
+using ChristianRent.Domain.Reports;
+using ChristianRent.Domain.Review;
 using ChristianRent.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -103,6 +105,43 @@ public sealed class PurgeDepartedTests : IDisposable
         Assert.Equal(string.Empty, cleared.Text);
         Assert.Equal(new DateOnly(2026, 6, 13), cleared.StartDate);
         Assert.Equal("Is it free on Friday?", messages.Single(message => message.Id == fromJosh).Text);
+    }
+
+    // L2-021 criterion 13 (ADR 0023): the note of a departed member's report goes and the report
+    // stays in the review queue; the reports about their listings are deleted with those
+    // listings, and their review items with them; other reports stay as they were.
+    [Fact]
+    public async Task A_departed_members_report_notes_are_cleared_and_the_reports_about_their_listings_deleted()
+    {
+        await SeedAsync();
+        using var services = Services(afterDays: null);
+        var josh = Member.Create(Guid.NewGuid(), "Josh Patel", _grace.Id, isVerified: true, LeftAt.AddYears(-1), "josh-patel");
+        Report byDan, byJosh, aboutDans;
+        using (var scope = services.CreateScope())
+        {
+            var database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var listings = await database.Listings.AsNoTracking().ToListAsync(TestContext.Current.CancellationToken);
+            var dansHall = listings.Single(listing => listing.MemberId == _dan.Id);
+            var ruthsHall = listings.Single(listing => listing.MemberId == _ruth.Id);
+            byDan = Report.File(ruthsHall, _dan.Id, ReportReason.Scam, "Call me on 604-555-0199", LeftAt.AddDays(-1));
+            byJosh = Report.File(ruthsHall, josh.Id, ReportReason.SomethingElse, "The price is wrong.", LeftAt.AddDays(-1));
+            aboutDans = Report.File(dansHall, josh.Id, ReportReason.NotARealListing, null, LeftAt.AddDays(-1));
+            database.AddRange(josh, byDan, byJosh, aboutDans);
+            database.AddRange(new[] { byDan, byJosh, aboutDans }.Select(report => ReviewItem.ForReport(report.Id, report.CreatedAt)));
+            await database.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        _clock.Advance(TimeSpan.FromDays(30));
+        Assert.Equal(0, await CliApp.RunAsync(["purge-departed"], services, _output, TestContext.Current.CancellationToken));
+
+        using var after = services.CreateScope();
+        var store = after.ServiceProvider.GetRequiredService<AppDbContext>();
+        var reports = await store.Reports.AsNoTracking().ToListAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(new[] { byDan.Id, byJosh.Id }.Order(), reports.Select(report => report.Id).Order());
+        Assert.Null(reports.Single(report => report.Id == byDan.Id).Note);
+        Assert.Equal("The price is wrong.", reports.Single(report => report.Id == byJosh.Id).Note);
+        var items = await store.ReviewItems.AsNoTracking().ToListAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(new[] { byDan.Id, byJosh.Id }.Order(), items.Select(item => item.SubjectId).Order());
     }
 
     [Fact]
