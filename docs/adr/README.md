@@ -1,0 +1,23 @@
+# Architecture decision records
+
+One decision per record, numbered in the order they were made. A record is never rewritten
+once accepted: a later record supersedes it, and the earlier one's status says so.
+
+Each record has four parts: **Status** (Proposed, Accepted, Open or Superseded by NNNN),
+**Context**, **Decision** and **Consequences**. An *Open* record names a decision the
+requirements and the designs leave undecided, says what the code does until it is made, and
+lists what would settle it. A departure from a platform's established best practice needs a
+record giving its reason (`AGENTS.md`, *Prefer best practice*).
+
+| # | Decision | Status |
+|---|---|---|
+| [0001](0001-frontend-workspace-and-libraries.md) | The frontend is one Angular workspace: the libraries `api`, `domain` and `components` and the app `rent` | Accepted |
+| [0002](0002-backend-layers-and-cli.md) | The backend is four layers plus `ChristianRent.Cli`, which alone migrates and seeds | Accepted |
+| [0003](0003-database-engine.md) | PostgreSQL for development and the first migration; the production service is open | Open |
+| [0004](0004-file-storage.md) | Photos behind `IPhotoStorage`, on local disk in development; the production product is open | Open |
+| [0005](0005-authentication-seam.md) | An authentication seam that signs nobody in until sign-in is designed | Accepted |
+| [0006](0006-bundle-budgets.md) | The `angular.json` budget values | Accepted |
+| [0007](0007-test-approach.md) | Tests use fixtures, EF Core InMemory and fake clocks, never a real backend, database or sleep | Accepted |
+| [0008](0008-ci-scope.md) | CI runs lint, the builds and one acceptance path per feature, in under 5 minutes | Accepted |
+| [0009](0009-health-endpoints-and-rate-limiter.md) | The health endpoints are anonymous and outside the rate limiter; the limiter reads `TimeProvider` | Accepted |
+| [0010](0010-mediatr-version.md) | MediatR stays on the 12.x line, the last under the Apache 2.0 licence | Accepted |

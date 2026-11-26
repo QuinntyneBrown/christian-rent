@@ -87,8 +87,10 @@ after any change to either store.
 
 **Undecided**
 
-- The database engine, the file storage product and their backup mechanisms:
-  `<TO SUPPLY>`. Until they are chosen, the backup job has no implementation.
+- The database engine in production, the file storage product and their backup mechanisms:
+  `<TO SUPPLY>`. Development uses PostgreSQL ([ADR 0003](../../../adr/0003-database-engine.md))
+  and local disk ([ADR 0004](../../../adr/0004-file-storage.md)). Until production's are
+  chosen, the backup job has no implementation.
 - The backup retention period: `<TO SUPPLY>`.
 - The telemetry backend: `<TO SUPPLY>`; only its OTLP endpoint is a setting.
 - The hosting platform and its deployment pipeline: `<TO SUPPLY>`.

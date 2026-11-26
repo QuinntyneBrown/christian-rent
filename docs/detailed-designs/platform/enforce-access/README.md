@@ -28,13 +28,16 @@ not, known.
    configured site origin, and answers 403 with the code `cross_site_request` on a mismatch
    (criterion 2). The session cookie, when sign-in is designed, is `SameSite=Lax`,
    `Secure` and `HttpOnly`.
-3. **Authentication** — the scheme is `<TO SUPPLY>`.
+3. **Authentication** — until sign-in is designed, one scheme, `NoSignIn`, signs nobody in, so
+   every protected endpoint answers 401 ([ADR 0005](../../../adr/0005-authentication-seam.md)).
+   The sign-in scheme is `<TO SUPPLY>`.
 4. **Rate limiter** — ASP.NET Core `AddRateLimiter` with one global partitioned limiter. The
    partition key is the member identifier, or the remote address for an anonymous caller.
    `GET` and `HEAD` take a token from the `read` window, 120 per minute; every other method
    takes one from the `write` window, 30 per minute. A rejected request is 429 with a
    `Retry-After` header and the code `rate_limited` (criterion 3). The limiter reads time
-   from `TimeProvider`.
+   from `TimeProvider`: each partition is a `TimeProviderFixedWindowLimiter`, and the health
+   endpoints are outside it ([ADR 0009](../../../adr/0009-health-endpoints-and-rate-limiter.md)).
 5. **Authorization** — the fallback policy requires an authenticated caller. `[AllowAnonymous]`
    appears on exactly these actions: `ListingsController.Browse`, `ListingsController.Get`,
    `PhotosController.Get`, and the health endpoints. L2-025, criterion 1 names the first
@@ -91,7 +94,8 @@ adds each setting documents it.
 
 **Undecided**
 
-- The authentication scheme and how a session is kept: `<TO SUPPLY>`.
+- The authentication scheme and how a session is kept: `<TO SUPPLY>`; the seam that stands in
+  for it is [ADR 0005](../../../adr/0005-authentication-seam.md).
 - Where secrets are held in production: `<TO SUPPLY>`.
 - Whether the 120 and 30 per-minute windows are fixed or sliding: the design uses fixed
   windows.
