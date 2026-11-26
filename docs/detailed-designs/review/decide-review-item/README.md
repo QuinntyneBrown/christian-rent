@@ -80,12 +80,15 @@ The queue and the detail panel are designed in
 The acceptance tests decide through the API. The decision table has a direct handler test,
 one case per row, and one test for the refused pairs.
 
-**Undecided**
+**Decided in ADR 0025**
 
-- How the poster is told that a listing was removed: `<TO SUPPLY>`. The Messages inbox and
-  sign-in are not designed, so `IMemberNotifier` has no implementation yet; the first
-  implementation records the notice for later delivery.
-- The largest number of toasts shown at once: `<TO SUPPLY>`.
+- The poster is told by a `MemberNotice` that `IMemberNotifier` records with the decision; the
+  inbox, when designed, shows it.
+- `ReviewItem.Version` is checked against the `version` the detail carried; a stale one, a
+  decision already recorded or a failed token check answer 409 `already_decided`.
+- At most three toasts show; a fourth drops the oldest that is not a failure.
+- The words after each decision, the confirmation for a new listing and a new member, and new
+  items noticed every 60 s while the page is visible (L2-019, criterion 12).
 
 ### Mocks
 
