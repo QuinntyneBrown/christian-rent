@@ -1,0 +1,36 @@
+// Plain page, from docs/design-system/components/empty-state.html. The icon keeps the mocks'
+// empty__icon class, which the plain page shares with the empty state.
+.plain-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  max-width: 32rem;
+  margin-inline: auto;
+  padding-block: var(--space-16) var(--space-20);
+}
+
+.empty__icon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  background: var(--color-accent-subtle);
+  color: var(--color-fg-accent);
+  margin-bottom: var(--space-2);
+}
+
+.plain-page__text {
+  color: var(--color-fg-muted);
+  font: var(--text-body-lg);
+}
+
+.plain-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+  margin-top: var(--space-4);
+}

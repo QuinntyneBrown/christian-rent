@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { SESSION } from '@rent/api';
-import { SiteHeader } from '@rent/components';
+import { Hero, SiteHeader } from '@rent/components';
 
 /**
  * Browse, the home screen. The scaffold renders its header and headline; journey 2 adds the
@@ -8,7 +8,7 @@ import { SiteHeader } from '@rent/components';
  */
 @Component({
   selector: 'cr-browse-page',
-  imports: [SiteHeader],
+  imports: [Hero, SiteHeader],
   templateUrl: './browse-page.html',
   styleUrl: './browse-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

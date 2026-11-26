@@ -21,6 +21,7 @@ Each journey's entry has three parts:
 | L5 | OpenTelemetry span listeners are process-wide: telemetry tests run in their own non-parallel xUnit collection, and await a span through a processor with a timeout that names what did arrive, because a server span can end after the response. | 1 |
 | L6 | In the shared container, MSBuild node reuse and leftover dev servers exhaust memory: set `MSBUILDDISABLENODEREUSE=1` (verify.mjs and CI do) and stop any `ng serve` or API you start. | 1 |
 | L7 | Pin `@playwright/test` to the version of the installed browser, and override `playwright-core` so that tools such as `@axe-core/playwright` use the same one. | 1 |
+| L8 | Before building a screen, map every design-system block it renders to a component in `@rent/components`, built to its full design-system spec (variants, sizes, states), and compose the page from those; a page that writes a design-system class itself is not done. | 1 |
 
 ## Journeys
 
@@ -58,3 +59,11 @@ Slices 1.1 to 1.11, finished on Nov 26, 2026.
   probe controller to the API, so nothing test-shaped ships.
 
 **Earlier lessons applied**: none; this is the first journey.
+
+**Follow-up review**: the first pass hand-coded the "not found" page's plain-page block, Browse's
+headline and the toast region in `rent`, gave `cr-button` 3 of its 10 variants, and drew icons
+as inline SVG (two of the toast's from outside the set, and the error-toast mock too). Each became a
+component in `@rent/components` with its own tests, and the pages now compose them (L8). L4
+slipped once more in that pass: a commit followed a lint failure in a test-only host component,
+and was amended before anything was pushed. Since then every commit follows a green
+`verify.mjs`.

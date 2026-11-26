@@ -77,10 +77,23 @@ Dependency direction: `rent` → `admin`, `components`, `api`, `domain`; `admin`
   `<main id="main" tabindex="-1">` itself, because a bare `#main` would resolve against
   `<base href>` and leave the current route.
 - **`cr-button`** — the design system's Button as an attribute component on a native `<a>` or
-  `<button>` (`a[cr-button]`), whose host carries the mocks' classes (`btn`, `btn--primary`,
-  `btn--sm`, `btn--icon`). Each journey adds the variants its mocks need.
-- **`cr-toast`** — a toast, with a tone, a title, a text, one action and Dismiss; `App`'s
-  `toast-region` holds it (see [fail-clearly-and-operate](../fail-clearly-and-operate/README.md)).
+  `<button>` (`a[cr-button]`), whose host carries the mocks' classes. It has every variant
+  (for rent, wanted, primary, success, danger, outline, secondary, danger quiet, ghost, link),
+  the three sizes, full width, icon only, and busy, which shows a spinner and ignores further
+  presses.
+- **`cr-icon`** — the icon set of `docs/design-system/foundations/iconography.html`, by name, at
+  16, 20 or 24 px. No component or page draws an icon's SVG itself.
+- **`cr-toast`** and **`cr-toast-region`** — a toast, whose tone sets its icon (info, check-circle,
+  alert, x-circle) and its role, and the polite live region it rises into, which `App` renders
+  (see [fail-clearly-and-operate](../fail-clearly-and-operate/README.md)).
+- **`cr-plain-page`** — the plain-page block of Empty and error states: an icon, the screen's
+  `<h1>`, one sentence and the projected ways forward. `NotFoundPage` uses it; Listing's "not
+  found" and "not loaded" and Admin's "forbidden" will too.
+- **`cr-hero`** — the Browse headline: the `<h1>` with its accent line, the lead and the projected
+  buttons that lead to posting. The scaffold's Browse shows the headline; journey 2 adds the lead
+  and the buttons.
+- Pages compose these components and never hand-code a design-system block; global styles hold
+  only the foundations and the layout primitives (`container`, `stack`, `cluster`).
 - Until sign-in is designed, `SESSION` answers `null` and the header shows no initials
   ([ADR 0005](../../../adr/0005-authentication-seam.md)).
 
