@@ -17,7 +17,9 @@
     } @else {
       @for (page of store.pages(); track page.index) {
         @for (item of page.items; track item.id) {
-          <li slot="item" [attr.data-page]="page.index"><cr-queue-item [item]="item" /></li>
+          <li slot="item" [attr.data-page]="page.index">
+            <cr-queue-item [item]="item" [current]="item.id === selected()" />
+          </li>
         }
       }
     }
@@ -42,4 +44,34 @@
       }
     }
   </cr-queue>
+  <div slot="detail">
+    @switch (detail.state()) {
+      @case ('loading') {
+        @if (detail.skeleton()) {
+          <cr-review-detail [view]="null" />
+        }
+      }
+      @case ('loaded') {
+        <cr-review-detail [view]="detail.view()" />
+      }
+      @case ('failed') {
+        <cr-empty-state
+          variant="error"
+          title="We couldn’t load this item."
+          text="Check your connection and try again."
+        >
+          <button cr-button variant="primary" type="button" (click)="detail.retry()">
+            <cr-icon name="refresh" />Try again
+          </button>
+        </cr-empty-state>
+      }
+      @case ('gone') {
+        <cr-empty-state
+          variant="notice"
+          title="This item is no longer waiting."
+          text="Another admin may have decided it, or what it was about has gone."
+        />
+      }
+    }
+  </div>
 </cr-admin-layout>

@@ -56,7 +56,7 @@ export class AdminPage {
     this.detailPhoto = this.detail.locator('img.review__photo');
     this.detailWanted = this.detail.locator('.review__wanted');
     this.detailReport = this.detail.locator('.review__report');
-    this.detailJoined = this.detail.locator('.review__member .text-muted');
+    this.detailJoined = this.detail.locator('.review__joined');
     this.viewOnSite = this.detail.getByRole('link', { name: 'View on site' });
     this.detailSkeleton = this.detail.locator('.skeleton');
     this.detailFailed = this.detail.locator('.empty--error');

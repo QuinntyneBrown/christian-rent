@@ -28,6 +28,7 @@ export * from './reports/report';
 export * from './reports/reports-api';
 export * from './review/http-review-queue-api';
 export * from './review/queue-item-view';
+export * from './review/review-detail-view';
 export * from './review/review-item';
 export * from './review/review-queue-api';
 export * from './state/load-state';

@@ -95,7 +95,9 @@ test.describe('The review queue', () => {
 
   // L2-019 criteria 4 and 10: more than 50 load in pages; the heading says how many are shown.
   test('loads more than 50 in pages and says how many are shown', async ({ page, api }) => {
-    answerQueue(api, manyItems(63));
+    const items = manyItems(63);
+    answerQueue(api, items);
+    answerDetails(api, items);
     const admin = new AdminPage(page);
     await admin.open();
     await expect(admin.items).toHaveCount(50);
@@ -113,7 +115,9 @@ test.describe('The review queue', () => {
 
   // L2-030 criterion 4; ADR 0024: however long the queue, at most 3 pages are held.
   test('holds at most three pages however far it is scrolled', async ({ page, api }) => {
-    answerQueue(api, manyItems(200));
+    const items = manyItems(200);
+    answerQueue(api, items);
+    answerDetails(api, items);
     const admin = new AdminPage(page);
     await admin.open();
 

@@ -78,3 +78,18 @@ export function queueSummary(state: QueueSummaryState, waiting: number, shown: n
         : `${waiting} waiting · oldest first`;
   }
 }
+
+/**
+ * The item the detail panel shows (ADR 0024): the one in the address while it is listed or
+ * already open, otherwise the first item; null when nothing waits.
+ */
+export function selectedItem(
+  requested: string | null,
+  listed: readonly string[],
+  open: string | null,
+): string | null {
+  if (requested !== null && (listed.includes(requested) || requested === open)) {
+    return requested;
+  }
+  return listed[0] ?? null;
+}

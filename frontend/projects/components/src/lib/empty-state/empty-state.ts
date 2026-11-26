@@ -18,8 +18,11 @@ let nextId = 0;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EmptyState {
-  /** `done`: nothing is left to do, with a tick ("All caught up"). */
-  readonly variant = input<'nothing' | 'error' | 'done'>('nothing');
+  /**
+   * `done`: nothing is left to do, with a tick ("All caught up"); `notice`: what was asked for is
+   * no longer there ("This item is no longer waiting.").
+   */
+  readonly variant = input<'nothing' | 'error' | 'done' | 'notice'>('nothing');
   readonly title = input.required<string>();
   readonly text = input.required<string>();
 

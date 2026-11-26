@@ -1,5 +1,5 @@
 import type { ReviewItemSummary } from '@rent/api';
-import { formatWaited, queueSummary, toQueueItemView } from './queue-words';
+import { formatWaited, queueSummary, selectedItem, toQueueItemView } from './queue-words';
 
 const now = new Date('2026-06-08T22:00:00Z');
 
@@ -91,5 +91,19 @@ describe('queueSummary', () => {
     ['loaded', 1, 1, '1 waiting · oldest first'],
   ] as const)('%s with %i waiting and %i shown is "%s"', (state, waiting, shown, words) => {
     expect(queueSummary(state, waiting, shown)).toBe(words);
+  });
+});
+
+// ADR 0024: the address holds the selection; otherwise the first item.
+describe('selectedItem', () => {
+  it.each([
+    [null, ['a', 'b'], null, 'a'],
+    ['b', ['a', 'b'], null, 'b'],
+    ['z', ['a', 'b'], null, 'a'],
+    ['z', ['a', 'b'], 'z', 'z'],
+    [null, [], null, null],
+    ['z', [], null, null],
+  ] as const)('asked for %s among %o with %s open is %s', (requested, listed, open, selected) => {
+    expect(selectedItem(requested, listed, open)).toBe(selected);
   });
 });

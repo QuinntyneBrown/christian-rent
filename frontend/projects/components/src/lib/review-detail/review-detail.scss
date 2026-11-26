@@ -1,0 +1,151 @@
+// The review detail, from docs/design-system/assets/components.css (Admin).
+:host {
+  display: block;
+}
+
+.review {
+  max-width: 42rem;
+  margin-inline: auto;
+  padding: var(--space-8);
+}
+
+.review__report {
+  margin-bottom: var(--space-6);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
+  font: var(--text-body-sm);
+
+  strong {
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
+.review__photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+}
+
+.review__wanted {
+  display: flex;
+  align-items: flex-end;
+  aspect-ratio: 16 / 9;
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
+  background: var(--color-wanted);
+  color: var(--color-fg-on-wanted);
+  font: var(--text-h1);
+  letter-spacing: var(--letter-spacing-tight);
+  overflow-wrap: anywhere;
+}
+
+// As the listing card draws a listing with no photo.
+.review__no-photo {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface-sunken);
+  color: var(--color-fg-muted);
+}
+
+.review__member {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+  border: var(--border-width-hairline) solid var(--color-border-default);
+}
+
+.review__joined {
+  color: var(--color-fg-muted);
+}
+
+.review__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.review__title {
+  font: var(--text-h2);
+  letter-spacing: var(--letter-spacing-tight);
+  overflow-wrap: anywhere;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.review__price {
+  flex: none;
+  font: var(--text-h3);
+  font-variant-numeric: tabular-nums;
+}
+
+.review__kind {
+  margin-top: var(--space-2);
+}
+
+.review__note {
+  margin-top: var(--space-3);
+  line-height: var(--line-height-relaxed);
+  overflow-wrap: anywhere;
+}
+
+.review__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-6);
+  margin: var(--space-6) 0 0;
+  padding-top: var(--space-6);
+  border-top: var(--border-width-hairline) solid var(--color-border-default);
+  font: var(--text-body-sm);
+
+  dt {
+    color: var(--color-fg-muted);
+  }
+
+  dd {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-2);
+    margin: var(--space-0-5) 0 0;
+    font-weight: var(--font-weight-semibold);
+    overflow-wrap: anywhere;
+  }
+}
+
+// The design system's decision bar; journey 11 adds the decisions beside "View on site".
+.review__decisions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+  padding-block: var(--space-4);
+  background: var(--color-bg-surface-sunken);
+}
+
+.review__view {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target-min);
+  margin-left: auto;
+  color: var(--color-fg-muted);
+  font: var(--text-label);
+}

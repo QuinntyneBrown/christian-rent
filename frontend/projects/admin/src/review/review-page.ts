@@ -8,7 +8,11 @@ import {
   computed,
   effect,
   inject,
+  signal,
+  untracked,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
 import { SESSION } from '@rent/api';
 import {
   AdminLayout,
@@ -18,20 +22,29 @@ import {
   Icon,
   Queue,
   QueueItem,
+  ReviewDetail,
 } from '@rent/components';
+import { selectedItem } from '@rent/domain';
+import { map } from 'rxjs';
+import { ReviewDetailStore } from './review-detail-store';
 import { ReviewQueueStore } from './review-queue-store';
+
+/** From this width the detail panel is shown beside the queue (L2-031, criterion 5). */
+const WIDE = '(min-width: 48rem)';
 
 /**
  * Admin (view-review-queue design): the review queue, oldest first, and from 768 px the detail
  * panel beside it. Its route is matched only for an admin (ADR 0024). The items are held in a
  * window of 3 pages: one `IntersectionObserver` watches the first and the last item held, and
- * reaching either asks for the page beyond it. Leaving disconnects the observer, and the store,
- * provided here, aborts its request.
+ * reaching either asks for the page beyond it. The address holds the selection,
+ * `/admin?item={id}`, and the detail is asked for only while the panel is shown, from 768 px
+ * (ADR 0024). Leaving disconnects the observer and the width listener, and the stores, provided
+ * here, abort their requests.
  */
 @Component({
   selector: 'cr-review-page',
-  imports: [AdminLayout, AdminNav, Button, EmptyState, Icon, Queue, QueueItem],
-  providers: [ReviewQueueStore],
+  imports: [AdminLayout, AdminNav, Button, EmptyState, Icon, Queue, QueueItem, ReviewDetail],
+  providers: [ReviewQueueStore, ReviewDetailStore],
   templateUrl: './review-page.html',
   styleUrl: './review-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,6 +52,22 @@ import { ReviewQueueStore } from './review-queue-store';
 export class ReviewPage {
   private readonly member = inject(SESSION).member;
   protected readonly store = inject(ReviewQueueStore);
+  protected readonly detail = inject(ReviewDetailStore);
+
+  private readonly requested = toSignal(
+    inject(ActivatedRoute).queryParamMap.pipe(map((params) => params.get('item'))),
+    { initialValue: null },
+  );
+  /** True while the detail panel is shown. */
+  private readonly wide = signal(false);
+  /** The item the detail panel shows, and the queue marks as current. */
+  protected readonly selected = computed(() =>
+    selectedItem(
+      this.requested(),
+      this.store.items().map((item) => item.id),
+      untracked(this.detail.id),
+    ),
+  );
 
   protected readonly name = computed(() => this.member()?.name ?? '');
   protected readonly headingId = 'queue-title';
@@ -56,6 +85,20 @@ export class ReviewPage {
       this.observer = new IntersectionObserver((entries) => this.reached(entries));
     });
     inject(DestroyRef).onDestroy(() => this.observer?.disconnect());
+    this.watchWidth();
+
+    // Open the selected item while the panel is shown; a phone asks for no detail.
+    effect(() => {
+      const id = this.selected();
+      const wide = this.wide();
+      untracked(() => {
+        if (id === null || !wide) {
+          this.detail.close();
+        } else {
+          void this.detail.open(id);
+        }
+      });
+    });
 
     // Watch the ends of the list whenever the items held change.
     effect(() => {
@@ -67,6 +110,17 @@ export class ReviewPage {
   /** "Try again" after the next page failed. */
   protected loadMore(): void {
     void this.load('down');
+  }
+
+  private watchWidth(): void {
+    if (typeof matchMedia !== 'function') {
+      return;
+    }
+    const query = matchMedia(WIDE);
+    const change = () => this.wide.set(query.matches);
+    change();
+    query.addEventListener('change', change);
+    inject(DestroyRef).onDestroy(() => query.removeEventListener('change', change));
   }
 
   private reached(entries: IntersectionObserverEntry[]): void {

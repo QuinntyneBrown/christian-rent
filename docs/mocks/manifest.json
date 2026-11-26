@@ -162,7 +162,9 @@
         "empty",
         "error",
         "forbidden",
-        "long"
+        "long",
+        "detail-error",
+        "detail-gone"
       ]
     },
     {

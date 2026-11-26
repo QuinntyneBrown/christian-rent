@@ -33,6 +33,7 @@ export * from './lib/poster/poster';
 export * from './lib/queue-item/queue-item';
 export * from './lib/queue/queue';
 export * from './lib/radio-group/radio-group';
+export * from './lib/review-detail/review-detail';
 export * from './lib/search-bar/search-bar';
 export * from './lib/segmented/segmented';
 export * from './lib/select/select';

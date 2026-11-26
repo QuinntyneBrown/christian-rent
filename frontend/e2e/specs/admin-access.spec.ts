@@ -1,6 +1,6 @@
 import { answerNoListings } from '../fixtures/listings';
 import { SARAH_KIM, answerMember } from '../fixtures/members';
-import { answerAdmin, answerQueue } from '../fixtures/review';
+import { answerAdmin, answerDetails, answerQueue } from '../fixtures/review';
 import { anyScriptHolds, recordScripts } from '../fixtures/scripts';
 import { expect, test } from '../fixtures/test';
 import { AdminPage } from '../pages/admin.page';
@@ -64,6 +64,7 @@ test.describe('Admin’s address', () => {
   test('opens Admin for an admin', async ({ page, api }) => {
     answerAdmin(api);
     answerQueue(api);
+    answerDetails(api);
     const scripts = recordScripts(page);
     const admin = new AdminPage(page);
 

@@ -119,6 +119,9 @@ reading and mark each with a note on the page.
    `pages/browse/spaces.html` draws it pressed on Spaces.
 7. **Admin on a phone** shows the queue only, as `AGENTS.md` says; an admin cannot decide there. The
    mock says so on the page.
+   The prototype draws the detail panel loaded or loading only. `pages/admin/detail-error.html`
+   adds the detail that did not load, with "Try again", and `pages/admin/detail-gone.html` the item
+   another admin decided, or whose listing or member has gone, meanwhile (L2-033, criterion 2).
 8. **Offline** has no mock: nothing in the requirements keeps content for use without a connection.
    A failed request is the error state of each screen.
 

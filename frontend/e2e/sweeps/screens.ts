@@ -15,7 +15,16 @@ import { answerSending, refuseSendingAtLimit, sendPath } from '../fixtures/messa
 import { answerUploads, photoFile } from '../fixtures/photos';
 import { POSTED_ID, answerPosting } from '../fixtures/post';
 import { answerReporting, refuseAsAlreadyReported, reportPath } from '../fixtures/reports';
-import { REVIEW_NOW, answerAdmin, answerDetails, answerQueue } from '../fixtures/review';
+import {
+  ALICIA,
+  LOCKER,
+  PARTY_BUS,
+  REVIEW_NOW,
+  YARD,
+  answerAdmin,
+  answerDetails,
+  answerQueue,
+} from '../fixtures/review';
 import { ListingPage } from '../pages/listing.page';
 import { PostPage } from '../pages/post.page';
 import { ReportDialogPart } from '../pages/report-dialog.part';
@@ -615,6 +624,42 @@ export const SCREENS: readonly Screen[] = [
     path: '/admin',
     answer: answerReview,
     then: atReviewNow((page) => page.locator('a.queue-item').first().waitFor()),
+  },
+  {
+    name: 'admin-report',
+    path: `/admin?item=${PARTY_BUS.id}`,
+    answer: answerReview,
+    then: atReviewNow((page) => page.locator('.review__title').waitFor()),
+  },
+  {
+    name: 'admin-new-member',
+    path: `/admin?item=${ALICIA.id}`,
+    answer: answerReview,
+    then: atReviewNow((page) => page.locator('.review__title').waitFor()),
+  },
+  {
+    name: 'admin-wanted',
+    path: `/admin?item=${LOCKER.id}`,
+    answer: answerReview,
+    then: atReviewNow((page) => page.locator('.review__title').waitFor()),
+  },
+  {
+    name: 'admin-detail-error',
+    path: '/admin',
+    answer: (api) => {
+      answerReview(api);
+      api.refuse('GET', `/api/review-queue/${YARD.id}`, 503, 'unexpected');
+    },
+    then: atReviewNow((page) => page.locator('.admin__detail .empty--error').waitFor()),
+  },
+  {
+    name: 'admin-detail-gone',
+    path: '/admin',
+    answer: (api) => {
+      answerReview(api);
+      api.refuse('GET', `/api/review-queue/${YARD.id}`, 404, 'not_found');
+    },
+    then: atReviewNow((page) => page.locator('.admin__detail .empty').waitFor()),
   },
   {
     name: 'admin-loading',

@@ -235,11 +235,39 @@ export const DETAILS: Record<string, unknown> = {
   },
 };
 
-/** Each item's detail, as the backend answers it. */
-export function answerDetails(api: ApiFixtures): void {
-  for (const [id, detail] of Object.entries(DETAILS)) {
-    api.answer('GET', `/api/review-queue/${id}`, { body: detail });
+/**
+ * Each item's detail, as the backend answers it: as drawn for `QUEUE`, and for an item of
+ * `manyItems` a new member of Grace Community Church.
+ */
+export function answerDetails(api: ApiFixtures, items: QueueItemFixture[] = QUEUE): void {
+  for (const item of items) {
+    api.answer('GET', `/api/review-queue/${item.id}`, {
+      body: DETAILS[item.id] ?? memberDetail(item),
+    });
   }
+}
+
+function memberDetail(item: QueueItemFixture): unknown {
+  return {
+    id: item.id,
+    kind: 'new-member',
+    waitingSince: item.waitingSince,
+    listing: null,
+    report: null,
+    member: {
+      name: item.title,
+      joinedAt: item.waitingSince,
+      church: {
+        name: item.who,
+        city: 'Langley',
+        isVerified: true,
+        enteredByThisMember: false,
+        enteredByName: null,
+      },
+      listings: { forRent: 0, wanted: 0, public: 0 },
+      messagesSent: 0,
+    },
+  };
 }
 
 /** Every detail request, as `GET /api/review-queue/{id}`. */
