@@ -30,6 +30,8 @@ export interface ListingDetailFixture {
     church: { name: string; isVerified: boolean };
   };
   isOwn: boolean;
+  /** When the person reading it reported it; null for everyone else. */
+  reportedAt: string | null;
 }
 
 const HOUR = 3_600_000;
@@ -80,6 +82,7 @@ export function hall(overrides: Partial<ListingDetailFixture> = {}): ListingDeta
       church: { name: 'Grace Community Church', isVerified: true },
     },
     isOwn: false,
+    reportedAt: null,
     ...overrides,
   };
 }
@@ -105,6 +108,7 @@ export function van(overrides: Partial<ListingDetailFixture> = {}): ListingDetai
       church: { name: 'New Song Fellowship', isVerified: false },
     },
     isOwn: false,
+    reportedAt: null,
     ...overrides,
   };
 }
@@ -130,6 +134,7 @@ export function office(overrides: Partial<ListingDetailFixture> = {}): ListingDe
       church: { name: 'St. Paul’s Anglican', isVerified: false },
     },
     isOwn: false,
+    reportedAt: null,
     ...overrides,
   };
 }

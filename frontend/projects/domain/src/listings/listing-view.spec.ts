@@ -38,6 +38,7 @@ function hall(overrides: Partial<ListingDetail> = {}): ListingDetail {
       church: { name: 'Grace Community Church', isVerified: false },
     },
     isOwn: false,
+    reportedAt: null,
     ...overrides,
   };
 }
@@ -81,6 +82,7 @@ describe('toListingView', () => {
       messageHeading: 'Message Dan about this listing',
       posterFirstName: 'Dan',
       isOwn: false,
+      reportedAt: null,
       price: { eyebrow: 'Rent for', amount: '$45', unit: 'CAD / hour' },
     });
   });

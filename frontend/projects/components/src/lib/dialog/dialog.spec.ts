@@ -25,6 +25,18 @@ describe('Dialog', () => {
     expect(description?.textContent).toBe('Browsing is open to anyone.');
   });
 
+  it('shows an icon in its head only when it is given one', () => {
+    const plain = render();
+    expect(plain.element.querySelector('.dialog__icon')).toBeNull();
+
+    plain.fixture.componentRef.setInput('icon', 'check');
+    plain.fixture.detectChanges();
+
+    const icon = plain.element.querySelector('.dialog__header > .dialog__icon.dialog__icon--info');
+    expect(icon?.getAttribute('aria-hidden')).toBe('true');
+    expect(icon?.querySelector('cr-icon')).not.toBeNull();
+  });
+
   it('reports Close, unless closing is off while busy', () => {
     const open = render();
     let closes = 0;

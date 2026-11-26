@@ -1,5 +1,12 @@
 import type { Routes } from '@angular/router';
-import { HttpListingsApi, HttpMessagesApi, LISTINGS_API, MESSAGES_API } from '@rent/api';
+import {
+  HttpListingsApi,
+  HttpMessagesApi,
+  HttpReportsApi,
+  LISTINGS_API,
+  MESSAGES_API,
+  REPORTS_API,
+} from '@rent/api';
 import { ListingPage } from './listing-page';
 
 /**
@@ -12,6 +19,7 @@ export default [
     providers: [
       { provide: LISTINGS_API, useClass: HttpListingsApi },
       { provide: MESSAGES_API, useClass: HttpMessagesApi },
+      { provide: REPORTS_API, useClass: HttpReportsApi },
     ],
     component: ListingPage,
   },

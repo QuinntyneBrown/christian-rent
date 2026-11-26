@@ -28,6 +28,7 @@ export * from './lib/photo-picker/photo-picker';
 export * from './lib/plain-page/plain-page';
 export * from './lib/post-layout/post-layout';
 export * from './lib/poster/poster';
+export * from './lib/radio-group/radio-group';
 export * from './lib/search-bar/search-bar';
 export * from './lib/segmented/segmented';
 export * from './lib/select/select';

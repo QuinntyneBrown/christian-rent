@@ -29,6 +29,7 @@ function detail(id: string): ListingDetail {
       church: { name: 'Grace Community Church', isVerified: true },
     },
     isOwn: false,
+    reportedAt: null,
   };
 }
 

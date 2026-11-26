@@ -56,6 +56,8 @@ export interface ListingView {
   readonly posterFirstName: string;
   /** True when the signed-in member posted it: the message box offers no form. */
   readonly isOwn: boolean;
+  /** When the signed-in member reported it, as an ISO instant; null if they have not. */
+  readonly reportedAt: string | null;
   /** Null for a wanted listing that gave no price. */
   readonly price: MessagePriceView | null;
 }
