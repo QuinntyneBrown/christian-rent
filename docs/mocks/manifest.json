@@ -53,6 +53,7 @@
       "states": [
         "default",
         "wanted",
+        "no-price",
         "unverified",
         "own",
         "loading",

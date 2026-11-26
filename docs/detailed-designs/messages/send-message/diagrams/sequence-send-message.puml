@@ -34,14 +34,14 @@ end box
 actor -> box : Write a message, pick dates, select "Message Dan"
 box -> composer : send
 composer -> composer : Validate 1 to 1,000 characters and dates (L2-015)
-composer -> client : send(listingId, draft)
+composer -> client : send(listingId, request)
 client -> ctrl : POST /api/listings/{id}/messages
-ctrl -> ctrl : Require a member (L2-025)
 ctrl -> handler : Send SendMessageCommand
+handler -> handler : Require a member (L2-025)
 handler -> db : Listing by id
 db --> handler : Listing
 alt listing approved, sender is not its poster
-  handler -> limit : Check(senderId, now) (L2-016 criterion 4)
+  handler -> limit : RetryAt(sent in the last hour, now) (L2-016 criterion 4)
   limit --> handler : Under 20 in the hour
   handler -> entity : Message.Send(...), recipient = poster
   handler -> db : Save message only, listing unchanged (L2-024)
@@ -53,11 +53,12 @@ alt listing approved, sender is not its poster
 else removed, waiting or missing listing
   handler --> ctrl : NotFoundException
   ctrl --> client : 404, code = not_found (L2-016 criterion 5)
+  composer --> box : Listing reloads: "This listing isn't here."
 else sender posted the listing
   handler --> ctrl : 403, code = own_listing (L2-015 criterion 6)
 else over the limit
   handler --> ctrl : 429, code = message_limit_reached, retryAt
-  composer --> box : state = limited, text and dates kept
+  composer --> box : state = limited until retryAt, text and dates kept
 else network or server failure
   composer --> box : state = failed, "Try again", text and dates kept
 end

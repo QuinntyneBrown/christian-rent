@@ -4,8 +4,8 @@ Journey 8 of `docs/journeys.md` (Main): Message the person who posted, with date
 
 ## Goal
 
-On the Listing screen, a member writes a message of 1 to 1,000 characters to the person who posted, with start
-and end dates when the listing is for rent, and sends it. A confirmation replaces the message box. A
+On the Listing screen, a member writes a message of 1 to 1,000 characters to the person who posted, with
+optional start and end dates when the listing is for rent, and sends it. A confirmation replaces the message box. A
 non-member is asked to join and keeps their message and dates. A failed send keeps them too. A member's own
 listing shows no message box. The message is private to the two people. Today the Listing screen (journey 4)
 shows the listing with no message box.
@@ -98,6 +98,7 @@ shows the listing with no message box.
 - The mocks for this journey are:
   - `docs/mocks/pages/listing/default.html`
   - `docs/mocks/pages/listing/wanted.html`
+  - `docs/mocks/pages/listing/no-price.html`
   - `docs/mocks/pages/listing/own.html`
   - `docs/mocks/pages/listing/invalid.html`
   - `docs/mocks/pages/listing/submitting.html`
@@ -118,13 +119,14 @@ shows the listing with no message box.
   For this journey these are:
   - How a message reaches the person who posted while the Messages inbox is not designed (it is stored and delivered to that person only; nothing is sent elsewhere).
   - The per-member message limit, if the design leaves it open.
+  ADR 0022 records these and the other points the design left open.
 - Re-render any diagram you change (`python .claude/skills/writing-software-design-documents/scripts/render_puml.py docs/detailed-designs`)
   and commit the `.png` with its `.puml`.
 
 ## Phase 5: Incremental implementation (`implementing-incrementally`, `angular-developer`, test-first)
 - Plan thin vertical slices. A suggestion you may adjust:
   1. Backend: a member sends a message about an approved listing; it is stored for the two people only.
-  2. Backend: validation (1 to 1,000 characters, dates required and ordered for a listing for rent, none for wanted), one test per row.
+  2. Backend: validation (1 to 1,000 characters; dates optional for a listing for rent, both or neither, in order and not in the past; none for wanted), one test per row.
   3. Backend: refusals: non-member, own listing (`own_listing`), hidden or removed listing (revealing nothing), over the limit (429 with Retry-After).
   4. Frontend: send from the default state; submitting then sent; the wanted variant has no dates.
   5. Frontend: invalid, failed and limited states keep the text and dates.
