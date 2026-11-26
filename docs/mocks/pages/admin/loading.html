@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · loading | christian.rent mocks</title>
+<meta name="mock:kind" content="page">
+<meta name="mock:screen" content="admin">
+<meta name="mock:state" content="loading">
+<meta name="mock:requirements" content="L2-018 L2-019 L2-020 L2-031">
+<meta name="description" content="Admin while the queue loads: skeleton rows and a skeleton detail panel.">
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/mock.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="admin">
+  <nav class="admin-nav" aria-label="Admin">
+  <a class="logo logo--inverse" href="../browse/default.html" aria-label="christian.rent home"><svg class="logo__mark" viewBox="0 0 48 48" aria-hidden="true"><rect class="logo__tile" width="48" height="48" rx="14"/><rect class="logo__key" x="21" y="7" width="6" height="34" rx="3"/><rect class="logo__key" x="13" y="14" width="22" height="6" rx="3"/><rect class="logo__key" x="25" y="29" width="8" height="4.5" rx="2.25"/><rect class="logo__key" x="25" y="35.5" width="5.5" height="4.5" rx="2.25"/></svg><span class="wordmark">christian<span class="wordmark__tld">.rent</span></span></a>
+  <p class="admin-nav__label">Admin · Naomi Friesen</p>
+  <ul class="admin-nav__links">
+    <li><a class="admin-nav__link" href="default.html" aria-current="page" aria-label="Review queue"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 13h5l1 3h6l1-3h5M5 5h14l2 8v6H3v-6z"/></svg><span class="admin-nav__text">Review</span></a></li>
+  </ul>
+  <a class="admin-nav__link admin-nav__exit" href="../browse/default.html" aria-label="Back to site"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M10 4H5v16h5M15 8l4 4-4 4M19 12H9"/></svg><span class="admin-nav__text">Back to site</span></a>
+</nav>
+  <main id="main" style="display: contents;" aria-busy="true">
+    <section class="admin__queue" aria-labelledby="queue-title">
+      <header class="queue__header"><h1 class="queue__title" id="queue-title">Review</h1><p class="queue__summary" role="status">Loading the queue…</p></header>
+      <ul class="queue__list"><li aria-hidden="true"><div class="queue-item"><span class="queue-item__thumb skeleton"></span><span class="queue-item__body"><span class="skeleton skeleton--text" style="width: 70%;"></span><span class="skeleton skeleton--text" style="width: 45%;"></span></span></div></li><li aria-hidden="true"><div class="queue-item"><span class="queue-item__thumb skeleton"></span><span class="queue-item__body"><span class="skeleton skeleton--text" style="width: 70%;"></span><span class="skeleton skeleton--text" style="width: 45%;"></span></span></div></li><li aria-hidden="true"><div class="queue-item"><span class="queue-item__thumb skeleton"></span><span class="queue-item__body"><span class="skeleton skeleton--text" style="width: 70%;"></span><span class="skeleton skeleton--text" style="width: 45%;"></span></span></div></li><li aria-hidden="true"><div class="queue-item"><span class="queue-item__thumb skeleton"></span><span class="queue-item__body"><span class="skeleton skeleton--text" style="width: 70%;"></span><span class="skeleton skeleton--text" style="width: 45%;"></span></span></div></li><li aria-hidden="true"><div class="queue-item"><span class="queue-item__thumb skeleton"></span><span class="queue-item__body"><span class="skeleton skeleton--text" style="width: 70%;"></span><span class="skeleton skeleton--text" style="width: 45%;"></span></span></div></li><li aria-hidden="true"><div class="queue-item"><span class="queue-item__thumb skeleton"></span><span class="queue-item__body"><span class="skeleton skeleton--text" style="width: 70%;"></span><span class="skeleton skeleton--text" style="width: 45%;"></span></span></div></li></ul>
+    </section>
+    <section class="admin__detail" aria-hidden="true"><div class="review"><span class="review__photo skeleton"></span><span class="skeleton skeleton--title" style="margin-top: var(--space-6); width: 65%; height: var(--font-size-3xl);"></span><span class="skeleton skeleton--text"></span><span class="skeleton skeleton--text"></span></div></section>
+  </main>
+</div>
+
+<nav class="mock-bar" aria-label="Mock navigation">
+  <a class="mock-bar__home" href="../../index.html" aria-label="All mocks">⌂</a>
+  <span class="mock-bar__screen">Admin</span>
+  <ul class="mock-bar__states"><li><a href="default.html">default</a></li><li><a href="report.html">report</a></li><li><a href="new-member.html">new-member</a></li><li><a href="wanted.html">wanted</a></li><li><a href="decided.html">decided</a></li><li><a href="loading.html" aria-current="page">loading</a></li><li><a href="empty.html">empty</a></li><li><a href="error.html">error</a></li><li><a href="forbidden.html">forbidden</a></li><li><a href="long.html">long</a></li></ul>
+  <button type="button" data-theme-toggle aria-pressed="false">☾ Dark</button>
+  <button type="button" data-chrome-toggle aria-label="Hide mock chrome">×</button>
+</nav>
+<script src="../../assets/mock.js"></script>
+</body>
+</html>

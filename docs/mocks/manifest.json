@@ -1,0 +1,234 @@
+{
+  "project": "christian.rent",
+  "screens": [
+    {
+      "id": "browse",
+      "kind": "page",
+      "title": "Browse",
+      "route": "/",
+      "requirements": [
+        "L2-001",
+        "L2-002",
+        "L2-003",
+        "L2-004",
+        "L2-005",
+        "L2-006",
+        "L2-022",
+        "L2-023",
+        "L2-029",
+        "L2-031",
+        "L2-033"
+      ],
+      "states": [
+        "default",
+        "for-rent",
+        "wanted",
+        "loading",
+        "empty",
+        "error",
+        "no-results",
+        "more-loading",
+        "more-error",
+        "edge"
+      ]
+    },
+    {
+      "id": "listing",
+      "kind": "page",
+      "title": "Listing",
+      "route": "/listings/:id",
+      "requirements": [
+        "L2-007",
+        "L2-008",
+        "L2-015",
+        "L2-016",
+        "L2-021",
+        "L2-022",
+        "L2-024",
+        "L2-031",
+        "L2-033"
+      ],
+      "states": [
+        "default",
+        "wanted",
+        "unverified",
+        "own",
+        "loading",
+        "error",
+        "not-found",
+        "invalid",
+        "submitting",
+        "sent",
+        "failed",
+        "limited"
+      ],
+      "not_applicable": {
+        "empty": "A listing is one item, not a collection; an address with no listing behind it is the not-found state."
+      }
+    },
+    {
+      "id": "post",
+      "kind": "page",
+      "title": "Post",
+      "route": "/post",
+      "requirements": [
+        "L2-009",
+        "L2-010",
+        "L2-011",
+        "L2-012",
+        "L2-013",
+        "L2-014",
+        "L2-022",
+        "L2-031"
+      ],
+      "states": [
+        "default",
+        "blank",
+        "need",
+        "dates",
+        "invalid",
+        "submitting",
+        "success",
+        "success-wanted",
+        "error",
+        "photos-full",
+        "photo-refused",
+        "photo-uploading",
+        "limited"
+      ],
+      "not_applicable": {
+        "loading": "Post asks the backend for nothing before it is shown; the wait while posting is the submitting state.",
+        "empty": "Post is a form, not a collection; the untouched form is the blank state."
+      }
+    },
+    {
+      "id": "not-found",
+      "kind": "page",
+      "title": "Not found",
+      "route": "/**",
+      "requirements": [
+        "L2-033",
+        "L2-007"
+      ],
+      "states": [
+        "default"
+      ],
+      "not_applicable": {
+        "loading": "Nothing is requested for an address that matches no screen.",
+        "empty": "Not a collection.",
+        "error": "This screen is itself the error; it loads nothing that can fail."
+      }
+    },
+    {
+      "id": "brand",
+      "kind": "page",
+      "title": "Brand sheet",
+      "route": "(reference, not a route)",
+      "requirements": [
+        "L2-023"
+      ],
+      "states": [
+        "default"
+      ],
+      "not_applicable": {
+        "loading": "A static reference sheet, not an app screen.",
+        "empty": "A static reference sheet, not an app screen.",
+        "error": "A static reference sheet, not an app screen."
+      }
+    },
+    {
+      "id": "admin",
+      "kind": "page",
+      "title": "Admin",
+      "route": "/admin",
+      "requirements": [
+        "L2-018",
+        "L2-019",
+        "L2-020",
+        "L2-031"
+      ],
+      "states": [
+        "default",
+        "report",
+        "new-member",
+        "wanted",
+        "decided",
+        "loading",
+        "empty",
+        "error",
+        "forbidden",
+        "long"
+      ]
+    },
+    {
+      "id": "report-listing",
+      "kind": "dialog",
+      "title": "Report a listing",
+      "opens_from": "listing",
+      "requirements": [
+        "L2-021"
+      ],
+      "states": [
+        "default",
+        "busy",
+        "invalid",
+        "failed",
+        "success",
+        "already"
+      ]
+    },
+    {
+      "id": "confirm-remove",
+      "kind": "dialog",
+      "title": "Confirm Remove",
+      "opens_from": "admin",
+      "requirements": [
+        "L2-020"
+      ],
+      "states": [
+        "default",
+        "busy",
+        "failed"
+      ],
+      "not_applicable": {
+        "invalid": "The dialog has no input; it only confirms or cancels."
+      }
+    },
+    {
+      "id": "join",
+      "kind": "dialog",
+      "title": "Become a member",
+      "opens_from": "post",
+      "requirements": [
+        "L2-009",
+        "L2-015",
+        "L2-017",
+        "L2-021"
+      ],
+      "states": [
+        "default",
+        "new-church",
+        "busy",
+        "invalid",
+        "failed"
+      ]
+    },
+    {
+      "id": "review-toast",
+      "kind": "notification",
+      "title": "Review toast",
+      "opens_from": "admin",
+      "requirements": [
+        "L2-019",
+        "L2-020"
+      ],
+      "states": [
+        "info",
+        "success",
+        "warning",
+        "danger",
+        "stacked"
+      ]
+    }
+  ]
+}
