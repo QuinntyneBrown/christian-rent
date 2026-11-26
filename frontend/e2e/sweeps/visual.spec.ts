@@ -8,10 +8,13 @@ for (const screen of SCREENS) {
     for (const width of [360, 1280]) {
       test(`${screen.name} looks as the mock draws it, ${colorScheme}, ${width} px`, async ({
         page,
+        api,
       }) => {
         await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
         await page.setViewportSize({ width, height: 800 });
+        screen.answer(api);
         await page.goto(screen.path);
+        await screen.then?.(page);
         await expect(page).toHaveScreenshot(`${screen.name}-${colorScheme}-${width}.png`, {
           fullPage: true,
         });
