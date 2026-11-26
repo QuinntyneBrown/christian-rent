@@ -15,12 +15,13 @@ jobs:
 - **frontend**: `npm ci`, `npm run format:check`, `npm run lint`, `npm run build`, then the
   critical acceptance path of each feature (`npm run e2e:ci`, Playwright specs tagged
   `@critical`, Chromium only).
-- **backend**: `dotnet format --verify-no-changes`, `dotnet build`, then the critical acceptance
-  tests (`dotnet test --filter Category=Critical`).
+- **backend**: `dotnet restore --locked-mode`, `dotnet format --verify-no-changes`,
+  `dotnet build`, then the critical acceptance tests
+  (`dotnet test --filter-trait "Category=Critical"`).
 
-npm and NuGet caches are restored between runs. A flaky or slow check is fixed or removed, never
-retried. `node tools/verify/verify.mjs` runs everything, unit tests included, locally before a
-push.
+npm, NuGet and the Playwright browser are cached between runs. A flaky or slow check is fixed or
+removed, never retried. `node tools/verify/verify.mjs` runs everything, unit tests included,
+locally before a push.
 
 ## Consequences
 

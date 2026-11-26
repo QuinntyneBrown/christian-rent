@@ -56,8 +56,9 @@ Dependency direction: `rent` → `admin`, `components`, `api`, `domain`; `admin`
   header and Admin uses `cr-admin-nav`.
 - **`NotFoundPage`** — "not found" with a link to Browse (L2-033, criterion 3).
 - **`TitleStrategy`** — sets the document title per route, ending in "christian.rent".
-- On navigation, focus moves to the new page's `<h1>`, and `LiveAnnouncer` announces the
-  title (L2-032, criteria 2 and 4).
+- On navigation, focus moves to the new page's `<h1 tabindex="-1">` (`PageFocus`), and
+  `RentTitleStrategy` announces the title with `LiveAnnouncer` (L2-032, criteria 2 and 4). The
+  first load leaves focus alone, so the skip link stays the first control.
 
 **`components` library**
 
@@ -72,7 +73,16 @@ Dependency direction: `rent` → `admin`, `components`, `api`, `domain`; `admin`
   sign-in control, because neither is designed (criterion 5); what it shows a person who is
   not a member waits for sign-in. It has no payment, booking, rating or advert element
   (L2-024).
-- **`cr-skip-link`** — the first focusable element, "Skip to content".
+- **`cr-skip-link`** — the first focusable element, "Skip to content". It moves focus to
+  `<main id="main" tabindex="-1">` itself, because a bare `#main` would resolve against
+  `<base href>` and leave the current route.
+- **`cr-button`** — the design system's Button as an attribute component on a native `<a>` or
+  `<button>` (`a[cr-button]`), whose host carries the mocks' classes (`btn`, `btn--primary`,
+  `btn--sm`, `btn--icon`). Each journey adds the variants its mocks need.
+- **`cr-toast`** — a toast, with a tone, a title, a text, one action and Dismiss; `App`'s
+  `toast-region` holds it (see [fail-clearly-and-operate](../fail-clearly-and-operate/README.md)).
+- Until sign-in is designed, `SESSION` answers `null` and the header shows no initials
+  ([ADR 0005](../../../adr/0005-authentication-seam.md)).
 
 **`domain/listings` formatting** (L2-022)
 
@@ -91,9 +101,10 @@ the product has one language.
 
 **Foundations and responsiveness**
 
-- `rent/src/styles/` holds `tokens.css` (from `docs/design-system/tokens/tokens.css`),
-  `@font-face` rules for the self-hosted Bricolage Grotesque and Instrument Sans with
-  `font-display: swap`, a reset and utilities. Component styles read tokens by role.
+- `rent/src/styles/` holds `_tokens.scss` (copied from `docs/design-system/tokens/tokens.css`,
+  which stays the source), `_fonts.scss` with `@font-face` rules for the self-hosted Bricolage
+  Grotesque and Instrument Sans (`rent/public/fonts/`) with `font-display: swap`, `_reset.scss`
+  and `_utilities.scss`. Component styles read tokens by role.
 - Breakpoints are 576, 768, 992 and 1200 px, mobile first. The listing grid is 1 column
   under 576 px, 2 from 576, 3 from 768 and 4 from 1200; at 992 the gutters widen (L2-031).
 - A dialog is a bottom sheet under 640 px and centred from 640 px (L2-031, criterion 8).

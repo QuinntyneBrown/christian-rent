@@ -61,15 +61,20 @@ holds no personal data.
 
 **Backend — telemetry** (L2-034, criterion 2; L2-028, criterion 3)
 
-- OpenTelemetry tracing and metrics for ASP.NET Core, `HttpClient` and EF Core, and logs
-  through the OpenTelemetry logging provider, exported over OTLP to the endpoint in
-  `OTEL_EXPORTER_OTLP_ENDPOINT`.
+- OpenTelemetry tracing and metrics for ASP.NET Core and `HttpClient`, and logs through the
+  OpenTelemetry logging provider, exported over OTLP to the endpoint in
+  `OTEL_EXPORTER_OTLP_ENDPOINT` when it is set. EF Core's instrumentation is added once it has
+  a stable release (it is in beta); the scrubber already removes database statements. The
+  health endpoints are not traced, and ASP.NET Core's hosting logs, which quote the full URL,
+  are kept out below Warning.
 - Each request produces one server span with `http.route` (the template, such as
   `/api/listings/{id}`), the method, the status code and the duration, and feeds the
   request-duration histogram.
 - **`TelemetryScrubber`** — an OpenTelemetry processor registered before the exporter. It
-  removes `url.query`, `url.full`, request and response headers and bodies, and the
-  database statement text from every span. EF Core is configured without sensitive data
+  removes `url.query`, `url.full`, `url.path` (which holds the values the route template
+  leaves out), the user agent and client address, request and response headers and bodies, the
+  database statement text and any status description from every span; exception events are
+  never recorded. EF Core is configured without sensitive data
   logging. Log messages use structured templates whose arguments are identifiers, counts
   and codes; no template takes a name, a contact detail, a token or message text.
 

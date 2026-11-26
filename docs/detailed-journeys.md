@@ -8,9 +8,9 @@ ATDD*). When a slice finishes, its entry goes in [`lessons-learned.md`](lessons-
 the **% complete** here and in `journeys.md` is updated.
 
 Effort is in days and matches `journeys.md`; a journey's % complete is the share of its slices
-that are done.
+that are done, and the total is weighted by effort.
 
-## 1. Scaffolding (Both) — 5 days — 0% complete
+## 1. Scaffolding (Both) — 5 days — 100% complete
 
 Designs: [present-app-shell](detailed-designs/platform/present-app-shell/README.md),
 [enforce-access](detailed-designs/platform/enforce-access/README.md),
@@ -19,17 +19,17 @@ Designs: [present-app-shell](detailed-designs/platform/present-app-shell/README.
 
 | # | Slice | L2 | Done |
 |---|---|---|---|
-| 1.1 | Frontend workspace, libraries and lint boundaries; the home page shows the christian.rent wordmark | L2-023 | |
-| 1.2 | Foundations (tokens, self-hosted fonts, reset); `cr-logo`, `cr-site-header`, `cr-skip-link`, light and dark, phone to desktop | L2-023, L2-031, L2-032, L2-036 | |
-| 1.3 | `NotFoundPage` for an unknown address, and the `TitleStrategy` | L2-033, L2-036 | |
-| 1.4 | `LoadState<T>`, `GlobalErrorHandler`, `ApiError` and `apiErrorInterceptor` | L2-025, L2-033 | |
-| 1.5 | Backend solution, health endpoints, first acceptance test through the API | L2-034 | |
-| 1.6 | Fallback policy (401 `not_signed_in`); ProblemDetails for validation and unhandled errors | L2-025, L2-026, L2-033 | |
-| 1.7 | HTTPS redirect, HSTS, CSP; cross-site writes refused | L2-026, L2-027 | |
-| 1.8 | Rate limits: 120 reads and 30 writes a minute, 429 with Retry-After | L2-027 | |
-| 1.9 | Telemetry through `TelemetryScrubber` | L2-028, L2-034 | |
-| 1.10 | `ChristianRent.Cli migrate` and `seed` | L2-034 | |
-| 1.11 | `tools/verify/verify.mjs`, CI, the README's commands | — | |
+| 1.1 | Frontend workspace, libraries and lint boundaries; the home page shows the christian.rent wordmark | L2-023 | Yes |
+| 1.2 | Foundations (tokens, self-hosted fonts, reset); `cr-logo`, `cr-site-header`, `cr-skip-link`, light and dark, phone to desktop | L2-023, L2-031, L2-032, L2-036 | Yes |
+| 1.3 | `NotFoundPage` for an unknown address, and the `TitleStrategy` | L2-033, L2-036 | Yes |
+| 1.4 | `LoadState<T>`, `GlobalErrorHandler`, `ApiError` and `apiErrorInterceptor` | L2-025, L2-033 | Yes |
+| 1.5 | Backend solution, health endpoints, first acceptance test through the API | L2-034 | Yes |
+| 1.6 | Fallback policy (401 `not_signed_in`); ProblemDetails for validation and unhandled errors | L2-025, L2-026, L2-033 | Yes |
+| 1.7 | HTTPS redirect, HSTS, CSP; cross-site writes refused | L2-026, L2-027 | Yes |
+| 1.8 | Rate limits: 120 reads and 30 writes a minute, 429 with Retry-After | L2-027 | Yes |
+| 1.9 | Telemetry through `TelemetryScrubber` | L2-028, L2-034 | Yes |
+| 1.10 | `ChristianRent.Cli migrate` and `seed` | L2-034 | Yes |
+| 1.11 | `tools/verify/verify.mjs`, CI, the README's commands | — | Yes |
 
 ## 2. Browse listings (Main) — 4 days — 0% complete
 
@@ -154,4 +154,4 @@ Design: [verify-members-and-churches](detailed-designs/members/verify-members-an
 
 | Journeys | Effort (days) | % complete |
 |---|---|---|
-| 12 | 52 | 0 |
+| 12 | 52 | 10 |

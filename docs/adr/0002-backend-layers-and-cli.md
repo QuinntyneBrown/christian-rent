@@ -20,12 +20,17 @@ not apply migrations as it starts (L2-034, criterion 3); a command must.
   `migrate` applies pending EF Core migrations and `seed` inserts the seed data, which is
   idempotent. `purge-departed` arrives with the member-data journey.
 - Tests: `tests/ChristianRent.Api.Tests` (acceptance tests through the API with
-  `WebApplicationFactory`) and `tests/ChristianRent.Application.Tests` (direct tests of a
-  domain type or handler, one case per row of a rule's table).
+  `WebApplicationFactory`, and direct tests of an API type such as the rate limiter) and
+  `tests/ChristianRent.Cli.Tests` (the CLI's commands). The first slice with a domain or handler
+  rule that has a table of cases adds `tests/ChristianRent.Application.Tests` for its direct
+  tests, one case per row.
+- Tests run on xUnit v3 under the Microsoft Testing Platform (`backend/global.json`), which the
+  .NET 10 SDK's `dotnet test` requires for it.
 - Target framework `net10.0`, nullable reference types on, warnings as errors, and the
   formatting rules in `backend/.editorconfig`, checked by `dotnet format --verify-no-changes`.
 - Central package management (`Directory.Packages.props`) pins every package version in one
-  place.
+  place, and NuGet lock files make every restore reproducible (`dotnet restore --locked-mode`
+  in CI). `dotnet-ef` is a local tool (`backend/dotnet-tools.json`).
 
 ## Consequences
 
