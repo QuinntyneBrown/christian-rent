@@ -31,6 +31,11 @@ export class BrowsePage {
   readonly switch: Locator;
   readonly switchOptions: Locator;
   readonly switchCurrent: Locator;
+  /** A search that found nothing: the term named, the offer to ask for it, Clear search. */
+  readonly noResults: Locator;
+  readonly noResultsTitle: Locator;
+  readonly askFor: Locator;
+  readonly clearSearch: Locator;
   /** The kind filter: All, Spaces and Things, each a toggle button. */
   readonly kindFilter: Locator;
   readonly kindPressed: Locator;
@@ -69,6 +74,10 @@ export class BrowsePage {
     this.switch = this.main.getByRole('navigation', { name: 'Show', exact: true });
     this.switchOptions = this.switch.locator('a.segmented__option');
     this.switchCurrent = this.switch.locator('a.segmented__option[aria-current="true"]');
+    this.noResults = this.main.locator('.no-results');
+    this.noResultsTitle = this.noResults.getByRole('heading', { level: 2 });
+    this.askFor = this.noResults.getByRole('link', { name: /^Ask for “/ });
+    this.clearSearch = this.noResults.getByRole('link', { name: 'Clear search', exact: true });
     this.kindFilter = this.main.getByRole('group', { name: 'Kind', exact: true });
     this.kindPressed = this.kindFilter.locator('button[aria-pressed="true"]');
     this.searchBar = this.main.getByRole('search');

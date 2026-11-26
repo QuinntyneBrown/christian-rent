@@ -135,6 +135,11 @@ export class BrowsePage {
     });
   }
 
+  /** "Clear search": the same choice with no term (L2-004, criterion 3). */
+  protected readonly cleared = computed(() => this.query().withTerm('').toParams());
+  /** What a search that found nothing says; the term is text, never HTML (L2-003, criterion 5). */
+  protected readonly noResultsTitle = computed(() => `Nobody has “${this.store.term()}” yet.`);
+
   /** Typing writes the term to the address; the store waits for typing to pause (L2-003). */
   protected typed(term: string): void {
     this.show(this.query().withTerm(term));

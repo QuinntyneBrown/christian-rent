@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import type { ApiFixtures } from '../fixtures/api';
 import {
+  answerListings,
   answerPhotos,
   cast,
   forRent,
@@ -93,6 +94,21 @@ export const SCREENS: readonly Screen[] = [
       answerPhotos(api);
     },
   },
+  ...(
+    [
+      ['browse-for-rent', '/?show=for-rent'],
+      ['browse-wanted', '/?show=wanted'],
+      ['browse-spaces', '/?kind=space'],
+      ['browse-no-results', '/?q=hot%20air%20balloon'],
+    ] as const
+  ).map(([name, path]): Screen => ({
+    name,
+    path,
+    answer: (api) => {
+      answerListings(api, cast());
+      answerPhotos(api);
+    },
+  })),
   {
     name: 'not-found',
     path: '/no-such-page',

@@ -8,8 +8,11 @@ import {
   toListingCardView,
 } from '@rent/domain';
 
-/** Where the first page is (L2-033). */
-export type BrowseState = 'loading' | 'loaded' | 'empty' | 'failed';
+/**
+ * Where the first page is (L2-033): `empty` when nothing is found without a search term, and
+ * `no-results` when a search finds nothing (L2-004; ADR 0015).
+ */
+export type BrowseState = 'loading' | 'loaded' | 'empty' | 'no-results' | 'failed';
 
 /** Where the next page is (L2-006): none asked, in flight, failed, or none left. */
 export type MoreState = 'idle' | 'loading' | 'failed' | 'done';
@@ -72,6 +75,8 @@ export class BrowseStore {
   readonly counts = this._counts.asReadonly();
   /** The query shown, or awaited. */
   readonly query = this._query.asReadonly();
+  /** The search term as the request sent it, trimmed; empty for none. */
+  readonly term = computed(() => this._query().filter().term);
   /** How many listings the chosen option of the switch holds. */
   private readonly total = computed(() => {
     const counts = this._counts();
@@ -92,6 +97,8 @@ export class BrowseStore {
         return 'Loading listings';
       case 'empty':
         return 'No listings yet';
+      case 'no-results':
+        return `No listings match “${this.term()}”.`;
       case 'failed':
         return 'We couldn’t load the listings.';
       case 'loaded':
@@ -164,7 +171,7 @@ export class BrowseStore {
       const page = await this.api.browse(this._query().filter(), first.cursor, request.signal);
       this.window.receive(first, page.items.map(toListingCardView), page.nextCursor, () => 0);
       this._counts.set(page.counts);
-      this._state.set(page.items.length === 0 ? 'empty' : 'loaded');
+      this._state.set(this.stateOf(page.items.length));
       this.publish();
     } catch (error) {
       this.fail(error, request, () => this._state.set('failed'));
@@ -212,6 +219,13 @@ export class BrowseStore {
         this.request = null;
       }
     }
+  }
+
+  private stateOf(found: number): BrowseState {
+    if (found > 0) {
+      return 'loaded';
+    }
+    return this.term() === '' ? 'empty' : 'no-results';
   }
 
   /** "7 listings", "1 listing for rent", "3 wanted listings", as the mocks word them. */

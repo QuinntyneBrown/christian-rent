@@ -36,6 +36,21 @@
         <ng-container *ngTemplateOutlet="postingButtons" />
       </cr-empty-state>
     }
+    @case ('no-results') {
+      <cr-empty-state
+        [title]="noResultsTitle()"
+        text="Post a request and the people near Langley who can help will see it."
+      >
+        <a
+          cr-button
+          variant="wanted"
+          routerLink="/post"
+          [queryParams]="{ offer: 'wanted', title: store.term() }"
+          >Ask for “{{ store.term() }}”</a
+        >
+        <a cr-button variant="ghost" [routerLink]="[]" [queryParams]="cleared()">Clear search</a>
+      </cr-empty-state>
+    }
     @case ('failed') {
       <cr-empty-state
         variant="error"

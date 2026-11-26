@@ -424,3 +424,39 @@ describe('BrowseStore, while a person types', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 });
+
+describe('BrowseStore, when a search finds nothing', () => {
+  let api: FakeListingsApi;
+  let store: BrowseStore;
+
+  beforeEach(() => {
+    api = new FakeListingsApi();
+    TestBed.configureTestingModule({
+      providers: [BrowseStore, { provide: LISTINGS_API, useValue: api }],
+    });
+    store = TestBed.inject(BrowseStore);
+  });
+
+  // L2-004 criterion 1: the no-results state names the term, as the search sent it.
+  it('is no-results, and announces the term, when a search finds nothing', async () => {
+    store.search(new BrowseQuery().withTerm(' hot air balloon '));
+    api.calls[0]!.resolve(pageOf([]));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(store.state()).toBe('no-results');
+    expect(store.term()).toBe('hot air balloon');
+    expect(store.announcement()).toBe('No listings match “hot air balloon”.');
+  });
+
+  // ADR 0015: with no term, nothing found is the empty state.
+  it('is empty when nothing is found without a term', async () => {
+    store.search(new BrowseQuery().withOffer('wanted'));
+    api.calls[0]!.resolve(pageOf([]));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(store.state()).toBe('empty');
+    expect(store.term()).toBe('');
+  });
+});
