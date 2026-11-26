@@ -126,7 +126,7 @@ export class ReviewQueueStore {
     try {
       const detail = await this.api.item(id, request.signal);
       if (this.detailRequest === request) {
-        this._detail.set(toReviewDetailView(detail));
+        this._detail.set(toReviewDetailView(detail, new Date()));
         this._detailState.set('loaded');
       }
     } catch (error) {

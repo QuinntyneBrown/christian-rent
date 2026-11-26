@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import type { ReviewDetailView } from '@rent/api';
+import { Avatar } from '../avatar/avatar';
 import { Icon } from '../icon/icon';
 import { Skeleton } from '../skeleton/skeleton';
 import { Tag } from '../tag/tag';
@@ -12,7 +14,7 @@ import { Verified } from '../verified/verified';
  */
 @Component({
   selector: 'cr-review-detail',
-  imports: [Icon, Skeleton, Tag, Verified],
+  imports: [Avatar, Icon, RouterLink, Skeleton, Tag, Verified],
   templateUrl: './review-detail.html',
   styleUrl: './review-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
