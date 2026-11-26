@@ -21,10 +21,15 @@ criterion 5).
   Langley"), and "Walnut Grove, Langley · 5 km" once a distance is given.
 - The copy that names the launch area ("near Langley, BC" in Browse's headline and empty state)
   stays as the mocks write it.
+- The search bar shows the launch area alone, "Langley, BC", where the mocks draw "Langley, BC ·
+  within 25 km" (L2-003, criterion 7): no search is limited to a distance until this record is
+  settled, so the bar does not claim one. `cr-search-bar` takes the area and an optional
+  distance, and shows " · within 25 km" once a distance is given.
 
 ## Consequences
 
-- L2-001, criterion 9 is met only once this record is settled; the requirement says so.
+- L2-001, criterion 9 and L2-003, criterion 7 are met only once this record is settled; the
+  requirements say so.
 - What settles this record: how a person's area is set (a choice, the browser's location, a
   member's church), the source of Canadian place names and their coordinates, and how a
   listing's area becomes a point to measure from. The card needs no change then.

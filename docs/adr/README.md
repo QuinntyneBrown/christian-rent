@@ -25,3 +25,4 @@ record giving its reason (`AGENTS.md`, *Prefer best practice*).
 | [0012](0012-area-without-distance.md) | A listing's area is stored as its name and shown without a distance until a person's area is designed | Open |
 | [0013](0013-browse-paging-and-window.md) | Browse orders by approval, pages by a keyset cursor, and keeps a window of 3 pages | Accepted |
 | [0014](0014-bundle-budgets-after-browse.md) | The initial budget after Browse: 315 kB warning, 330 kB error | Accepted |
+| [0015](0015-search-matching-and-browse-query.md) | A search matches every word in a listing's normalised text; Browse's address holds `show`, `kind` and `q` | Accepted |

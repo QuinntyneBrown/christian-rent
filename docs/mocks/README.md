@@ -109,9 +109,11 @@ reading and mark each with a note on the page.
    for it.
 5. **The area and its distance.** The search bar shows "Langley, BC · within 25 km" as text. How a
    person sets their area, and so how "3 km" is measured, is not designed. The mocks draw the
-   distance; until it is designed the product shows the area alone (ADR 0012).
-6. **The Spaces and Things filter** on Browse is in the prototype and the mocks, but no requirement
-   covers it.
+   distance; until it is designed the product shows the area alone (ADR 0012): "Langley" on a
+   card and "Langley, BC" in the search bar.
+6. **The Spaces and Things filter** on Browse is in the prototype and the mocks; L2-035 covers it.
+   Its choice is kept in the address with the switch and the search term (ADR 0015), and
+   `pages/browse/spaces.html` draws it pressed on Spaces.
 7. **Admin on a phone** shows the queue only, as `AGENTS.md` says; an admin cannot decide there. The
    mock says so on the page.
 8. **Offline** has no mock: nothing in the requirements keeps content for use without a connection.
@@ -132,14 +134,14 @@ Legend: ✅ mock exists · ➖ not applicable (reason in manifest) · ❌ missin
 
 ### Pages
 
-| Screen | default | loading | empty | error | for-rent | wanted | no-results | more-loading | more-error | edge | unverified | own | not-found | invalid | submitting | sent | failed | limited | blank | need | dates | success | success-wanted | photos-full | photo-refused | photo-uploading | report | new-member | decided | forbidden | long | Requirements |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Browse (`browse`) | [✅](pages/browse/default.html) | [✅](pages/browse/loading.html) | [✅](pages/browse/empty.html) | [✅](pages/browse/error.html) | [✅](pages/browse/for-rent.html) | [✅](pages/browse/wanted.html) | [✅](pages/browse/no-results.html) | [✅](pages/browse/more-loading.html) | [✅](pages/browse/more-error.html) | [✅](pages/browse/edge.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-001`, `L2-002`, `L2-003`, `L2-004`, `L2-005`, `L2-006`, `L2-022`, `L2-023`, `L2-029`, `L2-031`, `L2-033` |
-| Listing (`listing`) | [✅](pages/listing/default.html) | [✅](pages/listing/loading.html) | ➖ | [✅](pages/listing/error.html) |  | [✅](pages/listing/wanted.html) |  |  |  |  | [✅](pages/listing/unverified.html) | [✅](pages/listing/own.html) | [✅](pages/listing/not-found.html) | [✅](pages/listing/invalid.html) | [✅](pages/listing/submitting.html) | [✅](pages/listing/sent.html) | [✅](pages/listing/failed.html) | [✅](pages/listing/limited.html) |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-007`, `L2-008`, `L2-015`, `L2-016`, `L2-021`, `L2-022`, `L2-024`, `L2-031`, `L2-033` |
-| Post (`post`) | [✅](pages/post/default.html) | ➖ | ➖ | [✅](pages/post/error.html) |  |  |  |  |  |  |  |  |  | [✅](pages/post/invalid.html) | [✅](pages/post/submitting.html) |  |  | [✅](pages/post/limited.html) | [✅](pages/post/blank.html) | [✅](pages/post/need.html) | [✅](pages/post/dates.html) | [✅](pages/post/success.html) | [✅](pages/post/success-wanted.html) | [✅](pages/post/photos-full.html) | [✅](pages/post/photo-refused.html) | [✅](pages/post/photo-uploading.html) |  |  |  |  |  | `L2-009`, `L2-010`, `L2-011`, `L2-012`, `L2-013`, `L2-014`, `L2-022`, `L2-031` |
-| Not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-033`, `L2-007` |
-| Brand sheet (`brand`) | [✅](pages/brand/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-023` |
-| Admin (`admin`) | [✅](pages/admin/default.html) | [✅](pages/admin/loading.html) | [✅](pages/admin/empty.html) | [✅](pages/admin/error.html) |  | [✅](pages/admin/wanted.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/admin/report.html) | [✅](pages/admin/new-member.html) | [✅](pages/admin/decided.html) | [✅](pages/admin/forbidden.html) | [✅](pages/admin/long.html) | `L2-018`, `L2-019`, `L2-020`, `L2-031` |
+| Screen | default | loading | empty | error | for-rent | wanted | spaces | no-results | more-loading | more-error | edge | unverified | own | not-found | invalid | submitting | sent | failed | limited | blank | need | dates | success | success-wanted | photos-full | photo-refused | photo-uploading | report | new-member | decided | forbidden | long | Requirements |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Browse (`browse`) | [✅](pages/browse/default.html) | [✅](pages/browse/loading.html) | [✅](pages/browse/empty.html) | [✅](pages/browse/error.html) | [✅](pages/browse/for-rent.html) | [✅](pages/browse/wanted.html) | [✅](pages/browse/spaces.html) | [✅](pages/browse/no-results.html) | [✅](pages/browse/more-loading.html) | [✅](pages/browse/more-error.html) | [✅](pages/browse/edge.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-001`, `L2-002`, `L2-003`, `L2-004`, `L2-005`, `L2-006`, `L2-022`, `L2-023`, `L2-029`, `L2-031`, `L2-033`, `L2-035` |
+| Listing (`listing`) | [✅](pages/listing/default.html) | [✅](pages/listing/loading.html) | ➖ | [✅](pages/listing/error.html) |  | [✅](pages/listing/wanted.html) |  |  |  |  |  | [✅](pages/listing/unverified.html) | [✅](pages/listing/own.html) | [✅](pages/listing/not-found.html) | [✅](pages/listing/invalid.html) | [✅](pages/listing/submitting.html) | [✅](pages/listing/sent.html) | [✅](pages/listing/failed.html) | [✅](pages/listing/limited.html) |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-007`, `L2-008`, `L2-015`, `L2-016`, `L2-021`, `L2-022`, `L2-024`, `L2-031`, `L2-033` |
+| Post (`post`) | [✅](pages/post/default.html) | ➖ | ➖ | [✅](pages/post/error.html) |  |  |  |  |  |  |  |  |  |  | [✅](pages/post/invalid.html) | [✅](pages/post/submitting.html) |  |  | [✅](pages/post/limited.html) | [✅](pages/post/blank.html) | [✅](pages/post/need.html) | [✅](pages/post/dates.html) | [✅](pages/post/success.html) | [✅](pages/post/success-wanted.html) | [✅](pages/post/photos-full.html) | [✅](pages/post/photo-refused.html) | [✅](pages/post/photo-uploading.html) |  |  |  |  |  | `L2-009`, `L2-010`, `L2-011`, `L2-012`, `L2-013`, `L2-014`, `L2-022`, `L2-031` |
+| Not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-033`, `L2-007` |
+| Brand sheet (`brand`) | [✅](pages/brand/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-023` |
+| Admin (`admin`) | [✅](pages/admin/default.html) | [✅](pages/admin/loading.html) | [✅](pages/admin/empty.html) | [✅](pages/admin/error.html) |  | [✅](pages/admin/wanted.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/admin/report.html) | [✅](pages/admin/new-member.html) | [✅](pages/admin/decided.html) | [✅](pages/admin/forbidden.html) | [✅](pages/admin/long.html) | `L2-018`, `L2-019`, `L2-020`, `L2-031` |
 
 ### Dialogs
 
@@ -151,8 +153,9 @@ Legend: ✅ mock exists · ➖ not applicable (reason in manifest) · ❌ missin
 
 ### Notifications
 
-| Screen | info | success | warning | danger | stacked | Requirements |
-|---|---|---|---|---|---|---|
-| Review toast (`review-toast`) | [✅](notifications/review-toast/info.html) | [✅](notifications/review-toast/success.html) | [✅](notifications/review-toast/warning.html) | [✅](notifications/review-toast/danger.html) | [✅](notifications/review-toast/stacked.html) | `L2-019`, `L2-020` |
+| Screen | info | success | warning | danger | stacked | default | Requirements |
+|---|---|---|---|---|---|---|---|
+| Review toast (`review-toast`) | [✅](notifications/review-toast/info.html) | [✅](notifications/review-toast/success.html) | [✅](notifications/review-toast/warning.html) | [✅](notifications/review-toast/danger.html) | [✅](notifications/review-toast/stacked.html) |  | `L2-019`, `L2-020` |
+| Error toast (`error-toast`) |  |  |  |  |  | [✅](notifications/error-toast/default.html) | `L2-032`, `L2-033` |
 
 <!-- coverage:end -->

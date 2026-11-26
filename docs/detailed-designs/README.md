@@ -145,7 +145,6 @@ The requirements and the mocks leave these undecided. Each design marks where it
 | How a member manages their own listings ("My listings") | read-listing |
 | The Admin control that confirms a church, and the one that removes a member who has left the review queue | verify-members-and-churches |
 | How a person's area is set and a distance measured; the source of Canadian place names | browse-listings, search-and-filter-listings, compose-listing |
-| Whether the choice of Spaces or Things is kept in the address; what Browse shows when a choice holds nothing; whether "newest first" counts from posting or approval | search-and-filter-listings, browse-listings |
 | Who writes the description that is a photo's text alternative | read-listing, add-photos |
 | How the short name in the message box is derived from a member's name | send-message |
 | How Admin learns that new items arrived while the queue is open | view-review-queue |

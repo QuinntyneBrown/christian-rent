@@ -17,11 +17,11 @@ cards, paging and window stay as they are.
 - `BrowseStore.search(query)` debounced (300 ms in the design), cancelling the request it replaces; unit tests on a fake clock.
 - `cr-search-bar` and `cr-segmented` (Everything / For rent / Wanted) with keyboard and screen-reader behaviour from the design system.
 - The for-rent, wanted and no-results states; the no-results offer navigates to `/post` as a wanted listing with the search words.
+- The Spaces / Things filter (`cr-kind-filter`, L2-035), kept in the address as `kind` (ADR 0015).
 
 ### Deferred (not in this run)
 
-- The Spaces / Things filter (`cr-kind-filter`): no requirement covers it yet (open decision). Do not build it unless an L2 requirement is added first.
-- Distance and area search: open decision.
+- Distance and area search: open decision (ADR 0012); the search bar shows the area alone.
 - Post itself: journey 6.
 
 ## Finish the whole feature in one run. Do not stop. (CRITICAL)
@@ -93,7 +93,7 @@ cards, paging and window stay as they are.
 - Fetch and rebase onto `main` first; another session may have pushed to it.
 
 ## Phase 2: Requirements (`engineering-requirements`)
-- The requirements are in `docs/specs/L2.md`: `L2-002`, `L2-003`, `L2-004`, `L2-026`, `L2-030`, `L2-032`. They refine `L1-001`, `L1-011`, `L1-012` and `L1-014` in `docs/specs/L1.md`.
+- The requirements are in `docs/specs/L2.md`: `L2-002`, `L2-003`, `L2-004`, `L2-035`, `L2-026`, `L2-030`, `L2-032`. They refine `L1-001`, `L1-011`, `L1-012` and `L1-014` in `docs/specs/L1.md`.
 - Read their acceptance criteria. If anything you learn below shows a criterion is wrong, missing or
   ambiguous, fix it here first, keeping the house style and the numbering. Add no new behaviour beyond this
   journey.
@@ -104,10 +104,11 @@ cards, paging and window stay as they are.
   - `docs/mocks/pages/browse/for-rent.html`
   - `docs/mocks/pages/browse/wanted.html`
   - `docs/mocks/pages/browse/no-results.html`
+  - `docs/mocks/pages/browse/spaces.html`
 - Check each state you will build exists and is complete (light and dark, phone to desktop, keyboard focus,
   real copy). If a state the design or the criteria need is missing, draw it before any code, add it to
   `docs/mocks/manifest.json`, and note any departure from the prototype in `docs/mocks/README.md`.
-- The components this journey uses are documented in `docs/design-system/components/`: `search-bar.html`, `segmented.html`, `wanted-panel.html`, `empty-state.html`, `listing-card.html`. If a mock
+- The components this journey uses are documented in `docs/design-system/components/`: `search-bar.html`, `segmented.html`, `kind-filter.html`, `wanted-panel.html`, `empty-state.html`, `listing-card.html`. If a mock
   changed, update the design system pages and tokens to match.
 
 ## Phase 4: Detailed design and ADRs (`writing-software-design-documents`)
@@ -116,7 +117,7 @@ cards, paging and window stay as they are.
   decision as an ADR in `docs/adr/` (numbered, in the house style of the existing ADRs) and in the design.
   For this journey these are:
   - How the term is matched (words, case and accents) with the chosen database engine, kept parameterised.
-  - Whether the `kind` parameter stays in `BrowseQuery` while no requirement covers it: record the choice; do not expose it in the UI.
+  - Whether the `kind` parameter is kept in the address (L2-035): ADR 0015 keeps it.
 - Re-render any diagram you change (`python .claude/skills/writing-software-design-documents/scripts/render_puml.py docs/detailed-designs`)
   and commit the `.png` with its `.puml`.
 
