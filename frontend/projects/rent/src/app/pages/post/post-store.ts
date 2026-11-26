@@ -77,6 +77,14 @@ export class PostStore {
     inject(DestroyRef).onDestroy(() => this.abort.abort());
   }
 
+  /**
+   * Asks a person who is not a member to join when Post opens; whatever they answer, Post
+   * stays with what they chose (L2-009, criterion 4; ADR 0019).
+   */
+  async enter(): Promise<void> {
+    await this.gate.requireMember('post');
+  }
+
   /** Applies the choice Browse's address carries (ADR 0019). */
   arrive(offer: string | null | undefined, title: string | null | undefined): void {
     this.current.update((draft) => arriveWith(draft, offer, title));

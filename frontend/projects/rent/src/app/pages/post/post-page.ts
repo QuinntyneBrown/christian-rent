@@ -110,6 +110,7 @@ export class PostPage {
       const title = this.title();
       untracked(() => this.store.arrive(offer, title));
     });
+    afterNextRender(() => void this.store.enter());
   }
 
   protected async submitted(): Promise<void> {
