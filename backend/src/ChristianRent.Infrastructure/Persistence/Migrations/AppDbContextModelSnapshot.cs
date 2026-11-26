@@ -248,6 +248,30 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
                     b.ToTable("messages", (string)null);
                 });
 
+            modelBuilder.Entity("ChristianRent.Domain.Notices.ListingRemovalNotice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("MemberId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ListingId")
+                        .IsUnique();
+
+                    b.HasIndex("MemberId");
+
+                    b.ToTable("listing_removal_notices", (string)null);
+                });
+
             modelBuilder.Entity("ChristianRent.Domain.Reports.Report", b =>
                 {
                     b.Property<Guid>("Id")
@@ -426,6 +450,15 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
                     b.HasOne("ChristianRent.Domain.Members.Member", null)
                         .WithMany()
                         .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChristianRent.Domain.Notices.ListingRemovalNotice", b =>
+                {
+                    b.HasOne("ChristianRent.Domain.Members.Member", null)
+                        .WithMany()
+                        .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

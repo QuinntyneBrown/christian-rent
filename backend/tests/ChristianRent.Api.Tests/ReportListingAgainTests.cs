@@ -10,6 +10,7 @@ using ChristianRent.Domain.Churches;
 using ChristianRent.Domain.Listings;
 using ChristianRent.Domain.Members;
 using ChristianRent.Domain.Messages;
+using ChristianRent.Domain.Notices;
 using ChristianRent.Domain.Reports;
 using ChristianRent.Domain.Review;
 using ChristianRent.Infrastructure.Persistence;
@@ -179,6 +180,8 @@ public sealed class ReportListingAgainTests : IDisposable
             public DbSet<Report> Reports => Inner.Reports;
 
             public DbSet<ReviewItem> ReviewItems => Inner.ReviewItems;
+
+            public DbSet<ListingRemovalNotice> ListingRemovalNotices => Inner.ListingRemovalNotices;
 
             public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
             {

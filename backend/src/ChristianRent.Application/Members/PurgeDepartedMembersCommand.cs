@@ -13,7 +13,8 @@ namespace ChristianRent.Application.Members;
 /// their listings and photo files (L2-028, criterion 2; handle-member-data design). The text of
 /// the messages they sent is cleared, and the messages about their listings are deleted. The
 /// notes of their reports are cleared, and the reports about their listings are deleted with
-/// their review items (L2-021, criterion 13). Run daily by <c>ChristianRent.Cli purge-departed</c>;
+/// their review items (L2-021, criterion 13). The notices that a listing of theirs was removed
+/// go too (ADR 0025). Run daily by <c>ChristianRent.Cli purge-departed</c>;
 /// running it again changes nothing.
 /// </summary>
 public sealed record PurgeDepartedMembersCommand(int AfterDays) : IRequest<PurgeResult>;
@@ -90,6 +91,9 @@ internal sealed class PurgeDepartedMembersCommandHandler(IAppDbContext database,
             .ToListAsync(cancellationToken));
         database.Reports.RemoveRange(goneReports);
 
+        database.ListingRemovalNotices.RemoveRange(await database.ListingRemovalNotices
+            .Where(notice => ids.Contains(notice.MemberId))
+            .ToListAsync(cancellationToken));
         database.Listings.RemoveRange(listings);
         foreach (var member in departed)
         {

@@ -5,6 +5,7 @@ using ChristianRent.Domain.Churches;
 using ChristianRent.Domain.Listings;
 using ChristianRent.Domain.Members;
 using ChristianRent.Domain.Messages;
+using ChristianRent.Domain.Notices;
 using ChristianRent.Domain.Reports;
 using ChristianRent.Domain.Review;
 using ChristianRent.Infrastructure.Persistence;
@@ -142,6 +143,31 @@ public sealed class PurgeDepartedTests : IDisposable
         Assert.Equal("The price is wrong.", reports.Single(report => report.Id == byJosh.Id).Note);
         var items = await store.ReviewItems.AsNoTracking().ToListAsync(TestContext.Current.CancellationToken);
         Assert.Equal(new[] { byDan.Id, byJosh.Id }.Order(), items.Select(item => item.SubjectId).Order());
+    }
+
+    // L2-020 criterion 20 (ADR 0025): the notices recorded for a departed member go with their
+    // data; another member's notice stays.
+    [Fact]
+    public async Task A_departed_members_removal_notices_are_deleted()
+    {
+        await SeedAsync();
+        using var services = Services(afterDays: null);
+        using (var scope = services.CreateScope())
+        {
+            var database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            database.AddRange(
+                ListingRemovalNotice.Record(_dan.Id, Guid.NewGuid(), LeftAt.AddDays(-1)),
+                ListingRemovalNotice.Record(_ruth.Id, Guid.NewGuid(), LeftAt.AddDays(-1)));
+            await database.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        _clock.Advance(TimeSpan.FromDays(30));
+        Assert.Equal(0, await CliApp.RunAsync(["purge-departed"], services, _output, TestContext.Current.CancellationToken));
+
+        using var after = services.CreateScope();
+        var notices = await after.ServiceProvider.GetRequiredService<AppDbContext>().ListingRemovalNotices.AsNoTracking()
+            .ToListAsync(TestContext.Current.CancellationToken);
+        Assert.Equal([_ruth.Id], notices.Select(notice => notice.MemberId));
     }
 
     [Fact]

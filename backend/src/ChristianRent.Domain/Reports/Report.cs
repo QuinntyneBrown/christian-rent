@@ -44,6 +44,9 @@ public sealed class Report
     public static Report File(Listing listing, Guid reporterId, ReportReason reason, string? note, DateTimeOffset now) =>
         new(Guid.NewGuid(), listing.Id, reporterId, reason, note, now);
 
+    /// <summary>An admin has decided it (L2-020, criteria 2 and 7).</summary>
+    public void Close() => Status = ReportStatus.Closed;
+
     /// <summary>Its reporter has left: what they wrote goes, and the report keeps its place.</summary>
     public void ClearNote() => Note = null;
 }

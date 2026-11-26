@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("Default")));
         services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
+        services.AddScoped<IMemberNotifier, RecordedMemberNotifier>();
 
         services.Configure<PhotoStorageOptions>(configuration.GetSection(PhotoStorageOptions.Section));
         services.AddSingleton<IPhotoStorage, LocalDiskPhotoStorage>();
