@@ -20,20 +20,25 @@ The admin's side is designed in
 **Frontend — `rent` application**
 
 - **Report button** — in the `listing-toolbar` of `ListingPage`. It is not shown on the
-  member's own listing. Selecting it calls `MemberGate.requireMember()` (L2-021, criterion
+  member's own listing (L2-021, criterion 10); the handler refuses a report on it with
+  `own_listing`. Selecting it calls `MemberGate.requireMember()` (L2-021, criterion
   5), then imports and opens `ReportListingDialog`.
 - **`ReportListingDialog`** (`rent/src/app/report/`, selector `cr-report-listing-dialog`) —
   CDK dialog with the states `default`, `busy`, `invalid`, `failed`, `success`, `already`.
-  Focus starts on the first reason and stays inside the dialog; Escape and Close return it
-  to the Report button. Under 640 px it is a bottom sheet. Submitting without a reason
-  marks the group invalid. `success` shows a confirmation; `already` says the earlier report
-  is with an admin. Both are announced (L2-032, criterion 4).
+  Its text says "An admin will look at it. {name} is never told who reported." (criterion
+  6). Focus starts on the first reason and stays inside the dialog; Escape and Close return
+  it to the Report button (L2-032, criterion 9). Under 640 px it is a bottom sheet.
+  Submitting without a reason sends nothing and marks the group invalid with "Choose a
+  reason." (criterion 7). In `busy` the button carries `aria-busy`, the fields are read-only
+  and Cancel is off; in `failed` the reason and note stay and the button reads "Try again"
+  (criterion 9). `success` shows a confirmation; `already` says the earlier report, with its
+  date, is with an admin (criterion 8). Both are announced (L2-032, criterion 4).
 - **`ReportsApi`** with the token **`REPORTS_API`** — `report(listingId, { reason, note })`.
   The token is bound by the Listing route.
 
 **Frontend — `components` library**
 
-- **`cr-radio-group`** — the four reasons, one required choice.
+- **`cr-radio-group`** — the four reasons, one choice, labelled "Required".
 - **`cr-textarea`** — the note, with the counter "63 / 500".
 - **`cr-dialog`**, **`cr-confirmation`**, **`cr-alert`**.
 
@@ -54,15 +59,14 @@ The admin's side is designed in
   `Status`: `Open` or `Closed`. A unique index on `(ListingId, ReporterId)` backs the
   one-report rule in a relational database.
 - **Reporter privacy** — `ReporterId` appears in no DTO. `ReportDetailDto`, shown to an
-  admin, holds the reason, the note and the time. `IMemberNotifier.ListingRemovedAsync`
+  admin, holds the reason, the note and the time; the panel reads "by a member" (L2-019,
+  criterion 8). `IMemberNotifier.ListingRemovedAsync`
   takes no report (criterion 4).
 
 The note is stored and rendered as text (L2-026).
 
 **Undecided**
 
-- Whether a member may report their own listing: the mocks hide the button; the handler
-  refuses with `own_listing`.
 - Whether a second report is allowed after the first is closed with Keep: `<TO SUPPLY>`.
   The design allows one report per member and listing, whatever its status.
 
@@ -87,10 +91,10 @@ acceptance criteria in the specification remain authoritative.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-021` | `L1-008` | A member shall be able to report a listing with a reason from a fixed list and an optional note of up to 500 characters. The report shall enter the review queue and the member shall see a confirmation. A second report by the same member on the same listing shall not be created. The member who posted shall never be told who reported. |
-| `L2-025` | `L1-011` | Every endpoint other than browsing, searching and reading an approved listing shall respond 401 without a signed-in member. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
+| `L2-021` | `L1-008` | A member shall be able to report a listing with a reason from a fixed list and an optional note of up to 500 characters. A report with no reason shall not be sent. The report shall enter the review queue and the member shall see a confirmation. A second report by the same member on the same listing shall not be created. The member who posted shall never be told who reported. Report shall not be offered on a member's own listing. |
+| `L2-025` | `L1-011` | Every endpoint other than browsing, searching, reading an approved listing and serving its photos shall respond 401 without a signed-in member. Listing the churches and joining shall not be refused for want of membership. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
 | `L2-026` | `L1-011` | A title, note, message, member name or church name shall be rendered as text wherever it is shown. Every input shall be validated for type, length and range before use, and database access shall be parameterised. Every response shall carry a Content-Security-Policy that allows no inline script and no third-party script. |
-| `L2-032` | `L1-014` | Every screen shall meet WCAG 2.2 level AA. Every action shall be completable by keyboard with visible focus. A state shall be carried by text or an announced attribute, never by colour alone. Confirmations and errors shall be announced. Every field shall have a visible label with its error tied to it. Reduced motion shall be honoured, and text at 200% shall lose nothing. |
+| `L2-032` | `L1-014` | Every screen shall meet WCAG 2.2 level AA. Every action shall be completable by keyboard with visible focus. A state shall be carried by text or an announced attribute, never by colour alone. Confirmations and errors shall be announced. Every field shall have a visible label with its error tied to it. Reduced motion shall be honoured, and text at 200% shall lose nothing. "Skip to content" shall be the first control, and a dialog shall hold focus and return it on close. |
 
 ## Diagrams
 

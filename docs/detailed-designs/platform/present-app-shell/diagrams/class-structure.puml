@@ -37,6 +37,8 @@ class Formatting <<TypeScript module>> {
   +formatDistance(km: number): string
   +formatDate(date: string): string
   +formatDateRange(start: string, end: string): string
+  +formatTime(instant: string): string
+  +formatAge(instant: string, now: Date): string
 }
 interface Session <<TypeScript>> {
   +member: Signal<MemberSummary | null>

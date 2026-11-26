@@ -26,7 +26,8 @@ does, and who may change them. The admin's Approve and Remove buttons are design
   `JoinCommand` or `PostListingCommand` (L2-018, criterion 5).
 - **`Member.Remove()`** — sets `Status = Removed`.
 - **`DecideReviewItemCommandHandler`** — calls `Member.Verify()` on Approve and
-  `Member.Remove()` on Remove for a new-member item; see
+  `Member.Remove()` on Remove for a new-member item. Approve leaves the flag of the member's
+  church unchanged (L2-018, criterion 6); see
   [decide-review-item](../../review/decide-review-item/README.md).
 - **`VerifyChurchCommand`** — `{ ChurchId }`, sent by
   `POST /api/churches/{id}/verification` on `ChurchesController`, restricted to the `Admin`
@@ -51,7 +52,9 @@ does, and who may change them. The admin's Approve and Remove buttons are design
 - **`cr-poster`** — renders `cr-verified` beside the member name when
   `poster.isVerified`, and beside the church name when `poster.church.isVerified`. When a
   flag is false nothing is rendered in its place (L2-008, criterion 4).
-- **`cr-review-detail`** — shows the same marks to the admin.
+- **`cr-review-detail`** — shows the same marks to the admin. For a new member it shows the
+  row "Church status" ("New to christian.rent, entered by this member") and no control for
+  the church (L2-019, criterion 9).
 
 **Undecided**
 
@@ -59,6 +62,8 @@ does, and who may change them. The admin's Approve and Remove buttons are design
   review queue holds listings, reports and new members, and the mocks draw no control
   (mocks open question 4). The endpoint above is the backend half; its screen is
   `<TO SUPPLY>`, and is not built before its mock exists.
+- How an admin removes a member who has left the review queue: `<TO SUPPLY>`. Admin has no
+  screen other than the queue, so `Member.Remove()` is reached only from a new-member item.
 - Whether removing a member also closes the open review items about their listings:
   `<TO SUPPLY>`.
 - Whether a removed member is told, and how: `<TO SUPPLY>`.
@@ -81,9 +86,9 @@ acceptance criteria in the specification remain authoritative.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-008` | `L1-002` | A listing shall show the name of the member who posted it and the name of their church. The member and the church shall each be marked "Verified" with text and an icon only when verified. The member's email address, phone number and street address shall not be in the response. |
-| `L2-018` | `L1-006` | An admin's approval shall make a member verified. An admin's confirmation shall make a church verified for the listings of all its members. The two marks shall be independent. A removed member shall no longer sign in, post or message, and their listings shall no longer be public. The backend shall refuse anyone but an admin who sets a verified mark. |
-| `L2-025` | `L1-011` | Every endpoint other than browsing, searching and reading an approved listing shall respond 401 without a signed-in member. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
+| `L2-008` | `L1-002` | A listing shall show the name of the member who posted it and the name of their church. The member and the church shall each be marked "Verified" with text and an icon only when verified. The member's initials and the year they became a member shall be shown. The member's email address, phone number and street address shall not be in the response. |
+| `L2-018` | `L1-006` | An admin's approval shall make a member verified. An admin's confirmation shall make a church verified for the listings of all its members. The two marks shall be independent, and approving a new member shall not verify their church. A removed member shall no longer sign in, post or message, and their listings shall no longer be public. The backend shall refuse anyone but an admin who sets a verified mark. |
+| `L2-025` | `L1-011` | Every endpoint other than browsing, searching, reading an approved listing and serving its photos shall respond 401 without a signed-in member. Listing the churches and joining shall not be refused for want of membership. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
 
 ## Diagrams
 

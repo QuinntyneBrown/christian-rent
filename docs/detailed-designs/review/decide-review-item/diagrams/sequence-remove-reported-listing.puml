@@ -47,7 +47,7 @@ alt confirms "Remove listing"
   handler --> ctrl : DecidedDto with the closed item ids
   ctrl --> store : 200 OK
   store -> store : Drop every closed item, select the next
-  dialog --> actor : Closed, warning toast
+  dialog --> actor : Closed, success toast names the removal (L2-020 criterion 11)
 else chooses "Keep it" or Escape
   dialog --> page : Closed, nothing changed
 end

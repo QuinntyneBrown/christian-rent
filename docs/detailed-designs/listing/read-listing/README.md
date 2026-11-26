@@ -33,12 +33,18 @@ The message box beside the listing is designed in
 
 **Frontend — `components` library**
 
-- **`cr-gallery`** — one large photo and thumbnails. Thumbnails are buttons; the arrow keys
-  move between them and each photo has a text alternative (L2-007, criterion 3). It shows
-  "Photo 1 of 3". The text alternative is "{title}, photo {n} of {count}", because Post has
-  no field for a member-written alternative.
+- **`cr-gallery`** — one large photo above a row of thumbnails. Thumbnails are buttons; the
+  arrow keys move between them (L2-007, criterion 3). The large photo carries the photo's
+  description as its text alternative. Each thumbnail is named "Photo {n} of {count}", has an
+  empty `alt` and carries `aria-current` when shown. A polite live region reads "Photo 1 of
+  3" (criterion 7).
+- **`listing-toolbar`** — "All listings", a link back to Browse (criterion 8), and the
+  Report button.
+- **`listing-meta`** — the area followed by the distance ("Langley · 3 km"), "when" for a
+  listing for rent, and "Posted 2 days ago" from `formatAge(postedAt)` (criterion 6).
 - **`cr-wanted-panel`** — the head of a wanted listing, with no photo.
-- **`cr-poster`** — avatar, member name, church name and "Member since {year}".
+- **`cr-poster`** — the member's initials, member name, church name and "Member since
+  {year}" (L2-008, criterion 6).
 - **`cr-verified`** — an icon and the word "Verified". `cr-poster` renders one beside the
   member and one beside the church, each only when its flag is true (L2-008).
 - **`cr-tag`** — "For rent · space", "Wanted · thing".
@@ -75,6 +81,8 @@ is one read by primary key with three includes.
 **Undecided**
 
 - How `distanceKm` is measured: `<TO SUPPLY>`.
+- Who writes the description that is a photo's text alternative: `<TO SUPPLY>`. The mocks
+  give each large photo a description, and Post has no field for one.
 - What the poster sees on their own listing beyond "This is your listing": editing and
   taking down are `<TO SUPPLY>` ("My listings" is not designed).
 
@@ -99,14 +107,14 @@ acceptance criteria in the specification remain authoritative.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-007` | `L1-002` | The Listing screen shall show an approved listing's photos (for rent only), title, kind, price, when, area and note. Each photo shall be reachable by touch and keyboard and have a text alternative. A listing that is not approved, is removed or does not exist shall show "not found" to anyone but its poster or an admin. The area shall never be a street address. |
-| `L2-008` | `L1-002` | A listing shall show the name of the member who posted it and the name of their church. The member and the church shall each be marked "Verified" with text and an icon only when verified. The member's email address, phone number and street address shall not be in the response. |
-| `L2-014` | `L1-004` | A photo shall be accepted only when its content is a JPEG, PNG or WebP image of at most 10 MB, at least 400 × 300 px and at most 8,000 px on either side. Embedded metadata shall be removed before storage. Photos shall be served from file storage at a fitted size, never from the database, and a photo of a listing that is not approved shall be served only to its poster or an admin. |
-| `L2-022` | `L1-009` | Prices shall be shown in Canadian dollars with their period, with cents only when not zero. Distances shall be in kilometres. Dates shall write the month as a word. Copy shall use Canadian spelling. An area shall be a place in Canada. |
+| `L2-007` | `L1-002` | The Listing screen shall show an approved listing's photos (for rent only), title, kind, price, when, area with its distance, note and how long ago it was posted. Each photo shall be reachable by touch and keyboard. The large photo shall have a text alternative that describes it, and each thumbnail a name by position. A listing that is not approved, is removed or does not exist shall show "not found" to anyone but its poster or an admin. The area shall never be a street address. "All listings" shall lead back to Browse. |
+| `L2-008` | `L1-002` | A listing shall show the name of the member who posted it and the name of their church. The member and the church shall each be marked "Verified" with text and an icon only when verified. The member's initials and the year they became a member shall be shown. The member's email address, phone number and street address shall not be in the response. |
+| `L2-014` | `L1-004` | A photo shall be accepted only when its content is a JPEG, PNG or WebP image of at most 10 MB, at least 400 × 300 px and at most 8,000 px on either side. A refusal shall name the file and the limits. Embedded metadata shall be removed before storage. Photos shall be served from file storage at a fitted size, never from the database, and a photo of a listing that is not approved shall be served only to its poster or an admin. |
+| `L2-022` | `L1-009` | Prices shall be shown in Canadian dollars with their period, with cents only when not zero and a thousands separator. Distances shall be in kilometres. Dates shall write the month as a word, ranges shall use "to", and times shall be in 12-hour form. Copy shall use Canadian spelling. An area shall be a place in Canada. |
 | `L2-024` | `L1-010` | No screen shall offer a way to pay, take a deposit or enter a card. A listing shall show no booking calendar, review, rating or advert. A message with dates shall not change the listing's availability or reserve anything. |
-| `L2-025` | `L1-011` | Every endpoint other than browsing, searching and reading an approved listing shall respond 401 without a signed-in member. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
-| `L2-031` | `L1-013` | No screen shall be cut off or scroll sideways from 320 px. Browse's columns shall grow at 576, 768, 992 and 1200 px as the mocks draw. From 768 px the message box, the live preview and the Admin detail panel shall sit beside their main column; below it they shall sit under it, and Admin shall show only the queue. Every touch target shall be at least 44 × 44 px. |
-| `L2-033` | `L1-015` | A waiting screen shall show a loading state in the shape of what will arrive. An unreachable backend shall produce a plain message and "Try again". An address that matches no screen shall show "not found" with a way back to Browse. An unhandled backend error shall be a ProblemDetails with no stack trace, recorded with a trace id. |
+| `L2-025` | `L1-011` | Every endpoint other than browsing, searching, reading an approved listing and serving its photos shall respond 401 without a signed-in member. Listing the churches and joining shall not be refused for want of membership. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
+| `L2-031` | `L1-013` | No screen shall be cut off or scroll sideways from 320 px. Browse shall show one column of cards under 576 px, two from 576 px, three from 768 px and four from 1200 px, with wider gutters from 992 px. From 768 px the message box, the live preview and the Admin detail panel shall sit beside their main column; below it they shall sit under it, and Admin shall show only the queue and a note that deciding needs a wider screen. A dialog shall be a bottom sheet under 640 px. Every touch target shall be at least 44 × 44 px. |
+| `L2-033` | `L1-015` | A waiting screen shall show a loading state in the shape of what will arrive, and none when the request answers within 300 ms. An unreachable backend shall produce a plain message and "Try again". An address that matches no screen shall show "not found" with a way back to Browse. An unhandled backend error shall be a ProblemDetails with no stack trace, recorded with a trace id. |
 
 ## Diagrams
 

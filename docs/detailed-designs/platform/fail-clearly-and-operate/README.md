@@ -25,7 +25,7 @@ holds no personal data.
   states (`not-found`, `limited`).
 - **Loading** — `cr-skeleton` in the shape of the cards, the listing or the queue. Nothing
   is drawn for the first 300 ms, which avoids a flash on a fast connection. The container
-  carries `aria-busy` (L2-033, criterion 1).
+  carries `aria-busy` (L2-033, criteria 1 and 5).
 - **Failure** — `cr-empty-state` (error variant) or `cr-alert` shows a plain sentence and
   "Try again", which repeats the same request. No status code, `code` or stack is shown
   (criterion 2). `LiveAnnouncer` announces the failure (L2-032, criterion 4).
@@ -116,10 +116,10 @@ acceptance criteria in the specification remain authoritative.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-033` | `L1-015` | A waiting screen shall show a loading state in the shape of what will arrive. An unreachable backend shall produce a plain message and "Try again". An address that matches no screen shall show "not found" with a way back to Browse. An unhandled backend error shall be a ProblemDetails with no stack trace, recorded with a trace id. |
+| `L2-033` | `L1-015` | A waiting screen shall show a loading state in the shape of what will arrive, and none when the request answers within 300 ms. An unreachable backend shall produce a plain message and "Try again". An address that matches no screen shall show "not found" with a way back to Browse. An unhandled backend error shall be a ProblemDetails with no stack trace, recorded with a trace id. |
 | `L2-034` | `L1-015` | The backend's health endpoint shall report liveness and whether the database and file storage are reachable. Every request shall emit a trace, its duration and its outcome through OpenTelemetry. Schema changes shall be applied by a command, never by the API as it starts. A daily backup shall exist from which listings, members, messages and photos can be restored. |
 | `L2-028` | `L1-011` | Only the member's name, church and what is needed to sign in and reach them shall be collected. When a membership is deleted, the member's listings and photos shall no longer be public and their personal data shall be deleted or made anonymous within 30 days. No log, metric or trace shall hold a contact detail, token, message text, query string or request body. |
-| `L2-032` | `L1-014` | Every screen shall meet WCAG 2.2 level AA. Every action shall be completable by keyboard with visible focus. A state shall be carried by text or an announced attribute, never by colour alone. Confirmations and errors shall be announced. Every field shall have a visible label with its error tied to it. Reduced motion shall be honoured, and text at 200% shall lose nothing. |
+| `L2-032` | `L1-014` | Every screen shall meet WCAG 2.2 level AA. Every action shall be completable by keyboard with visible focus. A state shall be carried by text or an announced attribute, never by colour alone. Confirmations and errors shall be announced. Every field shall have a visible label with its error tied to it. Reduced motion shall be honoured, and text at 200% shall lose nothing. "Skip to content" shall be the first control, and a dialog shall hold focus and return it on close. |
 
 ## Diagrams
 

@@ -24,7 +24,7 @@ The home screen: the list of approved listings, its paging, the switch and the s
 | Feature | L2 requirements |
 |---|---|
 | [Browse listings](browse/browse-listings/README.md) | `L2-001`, `L2-005`, `L2-006`, `L2-022`, `L2-029`, `L2-030`, `L2-031`, `L2-033` |
-| [Search and filter listings](browse/search-and-filter-listings/README.md) | `L2-002`, `L2-003`, `L2-004`, `L2-026`, `L2-030`, `L2-032` |
+| [Search and filter listings](browse/search-and-filter-listings/README.md) | `L2-002`, `L2-003`, `L2-004`, `L2-035`, `L2-026`, `L2-030`, `L2-032` |
 
 ### listing
 
@@ -86,7 +86,7 @@ What every slice shares: access rules, member data, the application shell, failu
 |---|---|
 | [Enforce access and limit abuse](platform/enforce-access/README.md) | `L2-025`, `L2-027` |
 | [Handle what members write and who they are](platform/handle-member-data/README.md) | `L2-026`, `L2-028` |
-| [Present the application shell](platform/present-app-shell/README.md) | `L2-022`, `L2-023`, `L2-024`, `L2-029`, `L2-031`, `L2-032`, `L2-033` |
+| [Present the application shell](platform/present-app-shell/README.md) | `L2-022`, `L2-023`, `L2-036`, `L2-024`, `L2-029`, `L2-031`, `L2-032`, `L2-033` |
 | [Fail clearly and operate in production](platform/fail-clearly-and-operate/README.md) | `L2-033`, `L2-034`, `L2-028`, `L2-032` |
 
 ## Requirement coverage
@@ -129,6 +129,8 @@ Every L2 requirement is realized by at least one feature.
 | `L2-032` | `L1-014` | [search-and-filter-listings](browse/search-and-filter-listings/README.md), [compose-listing](post/compose-listing/README.md), [become-member](members/become-member/README.md), [decide-review-item](review/decide-review-item/README.md), [report-listing](reports/report-listing/README.md), [present-app-shell](platform/present-app-shell/README.md), [fail-clearly-and-operate](platform/fail-clearly-and-operate/README.md) |
 | `L2-033` | `L1-015` | [browse-listings](browse/browse-listings/README.md), [read-listing](listing/read-listing/README.md), [view-review-queue](review/view-review-queue/README.md), [present-app-shell](platform/present-app-shell/README.md), [fail-clearly-and-operate](platform/fail-clearly-and-operate/README.md) |
 | `L2-034` | `L1-015` | [fail-clearly-and-operate](platform/fail-clearly-and-operate/README.md) |
+| `L2-035` | `L1-001` | [search-and-filter-listings](browse/search-and-filter-listings/README.md) |
+| `L2-036` | `L1-001` | [present-app-shell](platform/present-app-shell/README.md) |
 
 ## Open decisions
 
@@ -137,13 +139,16 @@ The requirements and the mocks leave these undecided. Each design marks where it
 | Decision | Affects |
 |---|---|
 | How a member signs in, and how a person is identified before joining | become-member, enforce-access, every member action |
-| Whether `POST /api/members` and `GET /api/churches` are exceptions to `L2-025` criterion 1 | become-member, enforce-access |
+| Whether `POST /api/members` and `GET /api/churches` need an identified person (`L2-025` criterion 5 exempts them from membership only), and where `L2-025` exempts the health endpoints | become-member, enforce-access |
 | Where a member reads messages and replies (the Messages inbox) | send-message, decide-review-item |
 | How a poster is told that their listing was removed | decide-review-item |
 | How a member manages their own listings ("My listings") | read-listing |
-| The Admin control that confirms a church | verify-members-and-churches |
+| The Admin control that confirms a church, and the one that removes a member who has left the review queue | verify-members-and-churches |
 | How a person's area is set and a distance measured; the source of Canadian place names | browse-listings, search-and-filter-listings, compose-listing |
-| Whether the Spaces and Things filter has a requirement | search-and-filter-listings |
+| Whether the choice of Spaces or Things is kept in the address; what Browse shows when a choice holds nothing; whether "newest first" counts from posting or approval | search-and-filter-listings, browse-listings |
+| Who writes the description that is a photo's text alternative | read-listing, add-photos |
+| How the short name in the message box is derived from a member's name | send-message |
+| How Admin learns that new items arrived while the queue is open | view-review-queue |
 | The control that reorders photos (no mock) | add-photos |
 | The database engine, the file storage product, the image library | every backend slice, add-photos |
 | Hosting, the telemetry backend, backups and their retention | fail-clearly-and-operate, handle-member-data |

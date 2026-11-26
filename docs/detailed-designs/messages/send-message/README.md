@@ -24,9 +24,28 @@ this feature covers sending, storing and the rule for who may read.
 - **`cr-message-box`** (`components`) — the panel beside the listing. Inputs: `offer`,
   `price`, `posterFirstName`, `state`, `draft`, `errors`, `retryAt`. Outputs: `draftChange`
   and `send`. For a listing for rent it shows `cr-date-range` and the summary "Sat, Jun 13,
-  2026 · one day"; for a wanted listing it shows no dates (L2-015, criterion 2). It shows
-  the line "No payment happens here" and no payment control (L2-024). In the state `sent` it
-  renders `cr-confirmation` with the message quoted back as text.
+  2026 · one day" (criterion 9); for a wanted listing it shows no dates (L2-015, criterion 2).
+  It shows the line "No payment happens here. You'll agree the details together." and no
+  payment control (L2-024). The offer decides the copy (criterion 8):
+
+  | | For rent | Wanted |
+  |---|---|---|
+  | heading | "Message {name} about this listing" | "Offer to help {name} about this listing" |
+  | price | "Rent for", "$45 CAD / hour" | "They'll pay", "Up to $120 CAD / day" |
+  | button | "Message {name}" | "Offer to help {name}" |
+
+  The message field has `maxlength` 1,000 and a counter "94 / 1,000". By state:
+  - `invalid` — every invalid field carries `aria-invalid`; a summary lists them and takes
+    focus, and each of its links moves focus to its field (criterion 10);
+  - `submitting` — the button carries `aria-busy` and the fields are read-only
+    (criterion 11);
+  - `failed` — an alert says the message was not sent and the button reads "Try again";
+  - `limited` — an alert names when sending reopens and the button is disabled (L2-016,
+    criterion 6);
+  - `sent` — `cr-confirmation` reads "Sent to {name}", says that the person can read the
+    message and reply and that nothing is booked or paid, quotes the dates and the message
+    back as text, and links back to Browse. It does not say where the reply arrives
+    (criterion 12).
 - **`MessageComposer`** (`rent/src/app/listing/`) — service provided by the Listing route.
   It holds `draft: MessageDraft` and `state`: `idle`, `invalid`, `submitting`, `sent`,
   `failed`, `limited`. `send()` validates, asks `MemberGate.requireMember()`, then calls
@@ -79,6 +98,11 @@ or a span.
   `<TO SUPPLY>`.
 - Whether a member may send a second message about the same listing: the requirements set
   no limit other than 20 per hour.
+- How the short name in the copy ("Dan" for "Pastor Dan Whitaker") is derived from a
+  member's name: `<TO SUPPLY>`. `posterFirstName` carries it.
+- Whether dates are required on a message about a listing for rent: the mocks label them
+  neither required nor optional. L2-015, criterion 3 applies "given dates are entered", and
+  the design treats them as optional.
 
 ### Mocks
 
@@ -103,10 +127,10 @@ acceptance criteria in the specification remain authoritative.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-015` | `L1-005` | The Listing screen shall have a message box that sends a message of 1 to 1,000 characters to the person who posted, with start and end dates when the listing is for rent. A confirmation shall replace the message box once sent. A non-member's message and dates shall be kept while they become a member. The message box shall not be offered on a member's own listing. A failed send shall keep the text and dates. |
-| `L2-016` | `L1-005` | Only the member who sent a message and the member who posted the listing shall be able to read it. Neither person's email address or phone number shall be revealed to the other. A twenty-first message in an hour shall be refused with the time sending reopens. A message about a removed listing shall be refused. |
+| `L2-015` | `L1-005` | The Listing screen shall have a message box that sends a message of 1 to 1,000 characters to the person who posted, with start and end dates when the listing is for rent. The box shall name the person who posted, show the price with "CAD" and state that no payment happens here. Invalid fields shall be listed in a summary that takes focus. A confirmation shall replace the message box once sent; it shall quote the message back and shall not say where the reply arrives. A non-member's message and dates shall be kept while they become a member. The message box shall not be offered on a member's own listing. A failed send shall keep the text and dates. |
+| `L2-016` | `L1-005` | Only the member who sent a message and the member who posted the listing shall be able to read it. Neither person's email address or phone number shall be revealed to the other. A twenty-first message in an hour shall be refused with the time sending reopens, and the text and dates shall be kept. A message about a removed listing shall be refused. |
 | `L2-024` | `L1-010` | No screen shall offer a way to pay, take a deposit or enter a card. A listing shall show no booking calendar, review, rating or advert. A message with dates shall not change the listing's availability or reserve anything. |
-| `L2-025` | `L1-011` | Every endpoint other than browsing, searching and reading an approved listing shall respond 401 without a signed-in member. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
+| `L2-025` | `L1-011` | Every endpoint other than browsing, searching, reading an approved listing and serving its photos shall respond 401 without a signed-in member. Listing the churches and joining shall not be refused for want of membership. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
 | `L2-026` | `L1-011` | A title, note, message, member name or church name shall be rendered as text wherever it is shown. Every input shall be validated for type, length and range before use, and database access shall be parameterised. Every response shall carry a Content-Security-Policy that allows no inline script and no third-party script. |
 
 ## Diagrams

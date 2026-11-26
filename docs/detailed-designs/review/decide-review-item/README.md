@@ -23,19 +23,26 @@ The queue and the detail panel are designed in
 
 - **`cr-review-detail`** (`components`) — its `decision-bar` shows the buttons named in
   `ReviewItemDetail.allowedDecisions`: "Approve" and "Remove", or "Keep listing" and
-  "Remove". It emits `decide`. The bar is not shown under 768 px.
+  "Remove" (L2-020, criterion 8). It emits `decide`. The bar is not shown under 768 px.
 - **`ConfirmRemoveDialog`** (`admin`, selector `cr-confirm-remove-dialog`) — CDK dialog
-  opened for Remove (L2-020, criterion 4). It names what is removed and what follows. Focus
-  starts on "Keep it". States: `default`, `busy`, `failed`. It has no input.
+  opened for Remove (L2-020, criterion 4). It names what is removed and what follows: the
+  listing stops being public, every open report on it is closed, the poster is told, and
+  the admin's name and the time are recorded (criterion 9). The same dialog confirms the
+  removal of a new listing and of a new member. Focus starts on "Keep it". States:
+  `default`, `busy`, `failed`. In `busy` the confirm button carries `aria-busy` and "Keep
+  it" is off; in `failed` an alert says nothing has changed and the button reads "Try
+  again" (criterion 10). It has no input, so Remove takes no reason.
 - **`ReviewQueueStore.decide(id, decision)`** — calls
   `REVIEW_QUEUE_API.decide(id, decision, version)`. On success it drops the item, lowers
-  `waitingCount`, selects the next item and pushes a toast. On `already_decided` it sets
+  `waitingCount`, selects the next item and pushes a success toast that names the decision
+  and the item; no undo is offered (criterion 11). On `already_decided` it sets
   `detail.conflict` with the other admin's decision and time; the panel shows a warning with
-  "Go to the next item". On any other failure it keeps the selection and pushes a danger
-  toast with "Try again".
+  "Go to the next item", the decision buttons are disabled, and a warning toast says the
+  decision was not applied (criterion 13). On any other failure it keeps the selection and
+  pushes a danger toast with "Try again", which repeats the same decision (criterion 12).
 - **`ToastQueue`** (`admin`) — route-scoped list of toasts, newest last. A toast dismisses
   itself after 8 s; the timer pauses on hover and focus; a danger toast stays until
-  dismissed. Timers are cleared on dismissal and on destroy. `cr-toast` renders inside a
+  dismissed (L2-020, criterion 14). Timers are cleared on dismissal and on destroy. `cr-toast` renders inside a
   live region so that a screen reader announces each (L2-032, criterion 4).
 
 **Backend**
@@ -78,7 +85,6 @@ one case per row, and one test for the refused pairs.
 - How the poster is told that a listing was removed: `<TO SUPPLY>`. The Messages inbox and
   sign-in are not designed, so `IMemberNotifier` has no implementation yet; the first
   implementation records the notice for later delivery.
-- Whether Remove takes a reason that the poster sees: `<TO SUPPLY>`; the mocks have none.
 - The largest number of toasts shown at once: `<TO SUPPLY>`.
 
 ### Mocks
@@ -92,10 +98,10 @@ The mocks are the source of truth for the UI of this feature. The states this de
 - [`docs/mocks/dialogs/confirm-remove/default.html`](../../../mocks/dialogs/confirm-remove/default.html): the confirmation, focus on "Keep it"
 - [`docs/mocks/dialogs/confirm-remove/busy.html`](../../../mocks/dialogs/confirm-remove/busy.html): the removal is in flight
 - [`docs/mocks/dialogs/confirm-remove/failed.html`](../../../mocks/dialogs/confirm-remove/failed.html): the removal failed
-- [`docs/mocks/notifications/review-toast/success.html`](../../../mocks/notifications/review-toast/success.html): after Approve or Keep
-- [`docs/mocks/notifications/review-toast/warning.html`](../../../mocks/notifications/review-toast/warning.html): after Remove
+- [`docs/mocks/notifications/review-toast/success.html`](../../../mocks/notifications/review-toast/success.html): after Approve, Keep or Remove
+- [`docs/mocks/notifications/review-toast/warning.html`](../../../mocks/notifications/review-toast/warning.html): another admin decided the item first
 - [`docs/mocks/notifications/review-toast/danger.html`](../../../mocks/notifications/review-toast/danger.html): a decision failed; never dismisses itself
-- [`docs/mocks/notifications/review-toast/info.html`](../../../mocks/notifications/review-toast/info.html): information
+- [`docs/mocks/notifications/review-toast/info.html`](../../../mocks/notifications/review-toast/info.html): new items arrived in the queue
 - [`docs/mocks/notifications/review-toast/stacked.html`](../../../mocks/notifications/review-toast/stacked.html): a stack of toasts, newest at the bottom
 
 ## Requirements
@@ -107,11 +113,11 @@ acceptance criteria in the specification remain authoritative.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-018` | `L1-006` | An admin's approval shall make a member verified. An admin's confirmation shall make a church verified for the listings of all its members. The two marks shall be independent. A removed member shall no longer sign in, post or message, and their listings shall no longer be public. The backend shall refuse anyone but an admin who sets a verified mark. |
-| `L2-019` | `L1-007` | Admin shall list new listings, reports and new members, oldest first, each labelled with its kind. Selecting an item shall show a detail panel with everything needed to decide. An empty queue shall show "All caught up". More than 50 items shall load in pages. For a person who is not an admin the backend shall refuse and Admin's code shall not be loaded. |
-| `L2-020` | `L1-007` | An admin shall decide each item: Approve or Remove a new listing, Keep or Remove a reported listing, Approve or Remove a new member. Remove shall ask for confirmation. A second decision on an item shall be refused as already decided. Each decision shall record who made it, on what and when. The member who posted a removed listing shall be told. |
-| `L2-025` | `L1-011` | Every endpoint other than browsing, searching and reading an approved listing shall respond 401 without a signed-in member. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
-| `L2-032` | `L1-014` | Every screen shall meet WCAG 2.2 level AA. Every action shall be completable by keyboard with visible focus. A state shall be carried by text or an announced attribute, never by colour alone. Confirmations and errors shall be announced. Every field shall have a visible label with its error tied to it. Reduced motion shall be honoured, and text at 200% shall lose nothing. |
+| `L2-018` | `L1-006` | An admin's approval shall make a member verified. An admin's confirmation shall make a church verified for the listings of all its members. The two marks shall be independent, and approving a new member shall not verify their church. A removed member shall no longer sign in, post or message, and their listings shall no longer be public. The backend shall refuse anyone but an admin who sets a verified mark. |
+| `L2-019` | `L1-007` | Admin shall list new listings, reports and new members, oldest first, each labelled "New", "Reported" or "New member" with how long it has waited. Selecting an item shall show a detail panel with everything needed to decide. A report's detail shall show the reason and the note and shall not name the reporter. An empty queue shall show "All caught up". More than 50 items shall load in pages. For a person who is not an admin the backend shall refuse and Admin's code shall not be loaded. A notification shall say when new items arrive. |
+| `L2-020` | `L1-007` | An admin shall decide each item: Approve or Remove a new listing, Keep or Remove a reported listing, Approve or Remove a new member. Remove shall ask for confirmation, naming what is removed, with focus on "Keep it". A decided item shall leave the queue with a notification and no undo. A decision that cannot be saved shall stay in the queue with "Try again". A second decision on an item shall be refused as already decided. Each decision shall record who made it, on what and when. The member who posted a removed listing shall be told. |
+| `L2-025` | `L1-011` | Every endpoint other than browsing, searching, reading an approved listing and serving its photos shall respond 401 without a signed-in member. Listing the churches and joining shall not be refused for want of membership. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
+| `L2-032` | `L1-014` | Every screen shall meet WCAG 2.2 level AA. Every action shall be completable by keyboard with visible focus. A state shall be carried by text or an announced attribute, never by colour alone. Confirmations and errors shall be announced. Every field shall have a visible label with its error tied to it. Reduced motion shall be honoured, and text at 200% shall lose nothing. "Skip to content" shall be the first control, and a dialog shall hold focus and return it on close. |
 
 ## Diagrams
 

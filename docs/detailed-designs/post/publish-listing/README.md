@@ -24,16 +24,19 @@ The form and its client-side rules are designed in
 
 - **`PostStore.publish()`** — runs `validate()`, then calls `LISTINGS_API.post(draft)`. The
   store holds `submitState`: `idle`, `submitting`, `sent`, `failed`, `limited`. While
-  `submitting`, the button is `aria-disabled` and shows `cr-spinner`, and a second
-  activation is ignored. The draft's `clientRequestId` is created once with
+  `submitting`, the button carries `aria-busy` and shows `cr-spinner`, the fields are
+  read-only, and a second activation is ignored (criterion 8). The draft's `clientRequestId` is created once with
   `crypto.randomUUID()` and is sent on every attempt, so "Try again" repeats the same
   request (L2-012, criteria 4 and 5).
 - **`cr-confirmation`** — replaces the form when `submitState` is `sent`. It shows "Sent
-  for review", the preview card, "Back to browsing" and "Post another". It does not say the
-  listing is public (L2-012, criterion 2). `LiveAnnouncer` announces it. `DraftStore.clear()`
+  for review", the preview card, "Back to browsing" and "Post another", and no way to edit
+  the listing. It does not say the listing is public (L2-012, criteria 2 and 9). `LiveAnnouncer` announces it. `DraftStore.clear()`
   then runs.
-- **`cr-alert`** — on `failed`, a plain message with "Try again" above the kept form; on
-  `limited`, a warning that names when posting reopens, from `retryAt`.
+- **`cr-alert`** — on `failed`, a plain message above the kept form, whose submit button
+  reads "Try again"; on `limited`, a warning that names when posting reopens, from
+  `retryAt`, with the submit button disabled (criterion 10).
+- **Fine print** — under the submit button Post says "Prices are in CAD. An admin reviews
+  every post before it appears on Browse." (criterion 7).
 - **`HttpListingsApi.post()`** — `POST /api/listings`. It maps a ProblemDetails to
   `ApiError { status, code, retryAt, fields }`.
 
@@ -91,9 +94,9 @@ acceptance criteria in the specification remain authoritative.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-010` | `L1-003` | A listing shall have a title (3 to 80 characters), a price (0 to 100,000, per hour, day, week or month; optional when wanted), when (free text of up to 80 characters or a start and end date), an area, photos (for rent only) and an optional note of up to 1,000 characters. Every invalid field shall be marked at once. The backend shall refuse invalid fields with the same rules. |
-| `L2-012` | `L1-003` | A valid submission shall save the listing as waiting for review, add it to the review queue and show a confirmation that does not say the listing is public. A double submission shall create one listing. A failed request shall keep everything entered and offer "Try again". An eleventh listing in 24 hours shall be refused with the time posting reopens. |
-| `L2-025` | `L1-011` | Every endpoint other than browsing, searching and reading an approved listing shall respond 401 without a signed-in member. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
+| `L2-010` | `L1-003` | A listing shall have a title (3 to 80 characters), a price (0 to 100,000, per hour, day, week or month; optional when wanted and then shown as "Up to"), when (required; free text of up to 80 characters or a start and end date), an area (labelled "Where"), photos (for rent only) and an optional note of up to 1,000 characters. Optional fields shall be labelled "Optional". Every invalid field shall be marked at once, and focus shall move to a summary that lists them. The backend shall refuse invalid fields with the same rules. |
+| `L2-012` | `L1-003` | A valid submission shall save the listing as waiting for review, add it to the review queue and show a confirmation that does not say the listing is public. The confirmation shall read "Sent for review" and offer "Back to browsing" and "Post another". While the listing is sent, the button shall be busy and the fields unchangeable. A double submission shall create one listing. A failed request shall keep everything entered and offer "Try again". An eleventh listing in 24 hours shall be refused with the time posting reopens. |
+| `L2-025` | `L1-011` | Every endpoint other than browsing, searching, reading an approved listing and serving its photos shall respond 401 without a signed-in member. Listing the churches and joining shall not be refused for want of membership. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
 | `L2-026` | `L1-011` | A title, note, message, member name or church name shall be rendered as text wherever it is shown. Every input shall be validated for type, length and range before use, and database access shall be parameterised. Every response shall carry a Content-Security-Policy that allows no inline script and no third-party script. |
 
 ## Diagrams
