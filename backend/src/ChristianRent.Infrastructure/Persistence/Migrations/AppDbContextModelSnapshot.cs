@@ -130,6 +130,35 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
                     b.ToTable("listings", (string)null);
                 });
 
+            modelBuilder.Entity("ChristianRent.Domain.Listings.Photo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Height")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("ListingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("UploadedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("ListingId", "UploadedAt");
+
+                    b.ToTable("photos", (string)null);
+                });
+
             modelBuilder.Entity("ChristianRent.Domain.Members.Member", b =>
                 {
                     b.Property<Guid>("Id")
@@ -261,6 +290,20 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
                     b.Navigation("Photos");
 
                     b.Navigation("Price");
+                });
+
+            modelBuilder.Entity("ChristianRent.Domain.Listings.Photo", b =>
+                {
+                    b.HasOne("ChristianRent.Domain.Listings.Listing", null)
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("ChristianRent.Domain.Members.Member", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ChristianRent.Domain.Members.Member", b =>

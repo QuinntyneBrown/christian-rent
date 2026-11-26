@@ -18,6 +18,8 @@ public interface IAppDbContext
 
     DbSet<Listing> Listings { get; }
 
+    DbSet<Photo> Photos { get; }
+
     DbSet<ReviewItem> ReviewItems { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
