@@ -10,6 +10,6 @@ System_Boundary(cr, "christian.rent") {
   ContainerDb(db, "Database", "Relational, EF Core; engine <TO SUPPLY>", "Listings, members, churches and photo records")
 }
 Rel(anyone, rent, "Types in the search bar on Browse", "HTTPS")
-Rel(rent, api, "Requests the first page of matches 300 ms after typing pauses", "JSON/HTTPS")
-Rel(api, db, "Matches words against approved listings", "EF Core")
+Rel(rent, api, "Requests the first page of matches 300 ms after typing pauses, or at once on Search", "JSON/HTTPS")
+Rel(api, db, "Matches words against approved listings within 25 km of the place", "EF Core")
 @enduml

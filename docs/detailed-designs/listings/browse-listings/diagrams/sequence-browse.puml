@@ -36,10 +36,10 @@ box "Backend — ChristianRent.Infrastructure" #FFF4E5
 end box
 
 actor -> page : Open christian.rent, signed in or not (L2-001 criterion 1)
-page -> page : Read the switch choice and search term from the address\n(L2-002 criteria 1 and 5)
-page -> store : open(SearchQuery)
+page -> page : Read the two switch choices and the search term from the address\n(L2-002 criteria 1, 5 and 7)
+page -> store : open(SearchQuery with the place)
 store -> client : browse(query, no cursor, signal)
-client -> controller : GET /listings?offer&q&pageSize=24
+client -> controller : GET /listings?offer&kind&q&place&pageSize=24
 controller -> validator : Send BrowseListingsQuery
 alt page size above 50
   validator --> controller : Refuse (L2-030 criterion 3)
@@ -49,28 +49,33 @@ alt page size above 50
   page --> actor : Plain message with "Try again"
 else valid query
   validator -> handler : BrowseListingsQuery
-  handler -> db : Select Approved listings for the offer,\nnewest first, one page (L2-001 criterion 2)
-  db --> handler : ListingSummaryDto rows
-  handler --> controller : PageDto with next cursor
+  handler -> db : Select Approved listings within 25 km of the place\nfor the offer and the kind, newest first, one page\n(L2-001 criterion 2, L2-035 criterion 2)
+  db --> handler : ListingSummaryDto rows, each with its distance\nin whole km (L2-035 criterion 3)
+  handler -> db : Count Everything, For rent and Wanted (L2-002 criterion 6)
+  db --> handler : OfferCountsDto
+  handler --> controller : BrowseResultDto with next cursor and counts
   controller --> client : 200 OK
-  client --> store : Page<ListingSummary>
-  store --> page : listings, hasMore
+  client --> store : BrowseResult
+  store --> page : listings, counts, hasMore
+  page --> actor : Header, headline naming the place, the two buttons,\nthe search bar with the place and "25 km"\n(L2-005 criterion 4, L2-035 criteria 1 and 4, L2-036 criterion 1)
   alt at least one listing
-    page --> actor : Cards: photo, title, price, area; a wanted listing\nwith no photo, labelled "Wanted" (L2-001 criteria 3 and 4)
-  else no approved listing
-    page --> actor : Empty state with the two buttons (L2-001 criterion 6)
+    page --> actor : Cards. For rent: photo, "Space" or "Thing", title, price,\narea and distance, church. Wanted: a blue panel reading "Wanted",\nthen member, budget, area and distance, church\n(L2-001 criteria 3, 4, 7 and 8)
+  else nothing to show and no search term
+    page --> actor : The no-results state under the two buttons;\nits button reads "Ask for “it”" (L2-001 criteria 6 and 9)
   end
 end
 == Switch ==
-actor -> page : Select Everything, For rent or Wanted
-page -> page : Write the choice to the address; keep the search term\n(L2-002 criteria 4 and 5)
+actor -> page : Select Everything, For rent or Wanted,\nor All, Spaces or Things
+page -> page : Write the choice to the address; keep the other choice\nand the search term (L2-002 criteria 4, 5 and 7)
 page -> store : open(SearchQuery)
 store -> store : Abort the request in flight; clear the window
 store -> client : browse(query, no cursor, signal)
-client --> store : Page<ListingSummary> (L2-002 criteria 2 and 3)
-store --> page : listings, hasMore
-page --> actor : Listings of the chosen offer
+client --> store : BrowseResult (L2-002 criteria 2, 3 and 7)
+store --> page : listings, counts, hasMore
+page --> actor : Listings of the chosen offer and kind
 == Leading to Post ==
 actor -> page : Select "I have something to rent" or "I'm looking for something"
 page --> actor : Navigate to /post?offer=forRent or /post?offer=wanted\n(L2-005 criteria 2 and 3)
+actor -> page : Select "Post" in the header
+page --> actor : Navigate to /post?offer=forRent (L2-036 criterion 5)
 @enduml

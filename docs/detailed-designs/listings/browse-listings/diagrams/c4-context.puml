@@ -6,5 +6,5 @@ title System Context — Browse listings
 Person(anyone, "Anyone", "A person, signed in or not, looking for a space or a thing to rent, or for a request to answer")
 System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for a space or a thing to rent")
 
-Rel(anyone, cr, "Browses approved listings and switches between Everything, For rent and Wanted on")
+Rel(anyone, cr, "Browses the approved listings within 25 km of a place; switches between Everything, For rent and Wanted, and between All, Spaces and Things on")
 @enduml

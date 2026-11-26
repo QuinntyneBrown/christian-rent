@@ -30,7 +30,7 @@ shell -> focus : focusHeading()
 focus --> actor : Focus on the screen's h1; the screen reader reads its name
 actor -> field : Tab through the fields in screen order (L2-032 criterion 2)
 field --> actor : Visible focus ring; visible label read as the field's name (L2-032 criterion 5)
-actor -> page : Press Enter on the submit button
+actor -> page : Press Enter on the submit button, enabled once the title and the price are filled
 alt a field is invalid
   page -> field : Set error
   field -> field : aria-invalid="true"; aria-describedby points at the error text
@@ -46,6 +46,6 @@ else every field is valid
   focus --> actor : Focus on the confirmation heading
 end
 opt the person asks for reduced motion
-  page --> actor : The change appears with a short fade and no other movement (L2-032 criterion 6)
+  page --> actor : Each change appears at once; nothing animates (L2-032 criterion 6)
 end
 @enduml

@@ -25,7 +25,6 @@ class ReviewItem {
   +Guid Id
   +ReviewItemKind Kind
   +Guid? ListingId
-  +Guid? ReportId
   +Guid? MemberId
   +DateTimeOffset CreatedAt
   +DateTimeOffset? DecidedAt
@@ -70,6 +69,7 @@ class Member {
 class Report {
   +Guid Id
   +Guid ListingId
+  +Guid ReviewItemId
 }
 interface ICurrentMember {
   +Guid MemberId
@@ -97,8 +97,8 @@ ReviewItem "1" *-- "0..1" ReviewDecision : decided by
 ReviewItem --> ReviewItemKind : has
 ReviewDecision --> ReviewOutcome : has
 DecideReviewItemCommand --> ReviewOutcome : has
-ReviewItem "0..1" --> "0..1" Listing : new listing
-ReviewItem "0..1" --> "0..1" Report : report
+ReviewItem "*" --> "0..1" Listing : new or reported listing
+Report "1..*" --> "1" ReviewItem : open reports on one listing
 ReviewItem "0..1" --> "0..1" Member : new member
 Report "*" --> "1" Listing : about
 Listing --> ListingStatus : has

@@ -47,7 +47,8 @@ The slice is not built yet; the parts below are the ones the design introduces.
   content beside an error by accident.
 - **`Skeleton`** (`cr-skeleton`) — presentation component in `components`. It draws a
   placeholder in the shape of what will arrive: a card on Browse, a listing on Listing, a row
-  and a panel on Admin (`L2-033` criterion 1). It reserves the space the content will take, so
+  and a panel on Admin (`L2-033` criterion 1). Under 768 px Admin shows only the review queue,
+  so only the rows are drawn there. It reserves the space the content will take, so
   the layout does not shift when the content replaces it. The region it stands in carries
   `aria-busy="true"` while loading.
 - **`ErrorState`** (`cr-error-state`) — presentation component in `components`. It shows a
@@ -72,7 +73,8 @@ The slice is not built yet; the parts below are the ones the design introduces.
 
 - **`NotFoundPage`** — page in `rent`, loaded lazily by the wildcard route, which is the last
   route in the table. An address that matches no screen shows it, with a link back to Browse
-  (`L2-033` criterion 3). Its code is not in the initial bundle.
+  (`L2-033` criterion 3). Its code is not in the initial bundle. Whether the header of Browse
+  and Listing (`L2-036`) stands above it is `<TO SUPPLY>` until `docs/mocks/` draws the screen.
 - A listing that does not exist or that the caller may not see shows the "not found" state of
   the Listing screen, designed in `docs/detailed-designs/listings/`. Both use the same
   presentation.
@@ -106,9 +108,9 @@ The slice is not built yet; the parts below are the ones the design introduces.
   backend is alive. The report names which dependency failed and gives no connection string,
   host name or error text.
 - Whether the health endpoint is open to a caller who is not signed in is `<TO SUPPLY>`:
-  `L2-025` criterion 1 requires 401 from every endpoint other than browsing, searching and
-  reading an approved listing, and a probe that deploys or restarts the system holds no
-  member's identity.
+  `L2-025` criterion 1 requires 401 from every endpoint other than browsing, searching, reading
+  an approved listing and reading a photo of an approved listing, and a probe that deploys or
+  restarts the system holds no member's identity.
 
 ### Telemetry without personal data
 
@@ -124,6 +126,8 @@ The slice is not built yet; the parts below are the ones the design introduces.
   string, so no search term reaches a trace.
 - **What is never recorded** — no log, metric or span carries a contact detail, a token,
   message text, a query string or a request or response body, as `L2-028` criterion 3 requires.
+  A member's email address, to which christian.rent writes when a message or a reply arrives
+  (`L2-028` criterion 4), is a contact detail and is never recorded.
   The instrumentation is configured to capture no header and no body, and the EF Core
   instrumentation records no statement text or parameter value. A metric's labels are the
   method, the route template and the status code only, so the number of distinct label values
@@ -169,7 +173,10 @@ the health endpoint's route, and the backup schedule. The path of that document 
 `<TO SUPPLY>`.
 
 The layout and states of the loading state, the failed state and the "not found" screen follow
-`docs/mocks/` once drawn, and this design is brought in line with them then.
+`docs/mocks/` once drawn, and this design is brought in line with them then. The Magic Patterns
+prototype draws none of the three: it draws each screen's default state, the empty states of
+Browse and Admin, and the confirmations of Listing and Post. The copy and layout of the three
+are therefore `<TO SUPPLY>` until the mocks draw them.
 
 ## Requirements
 

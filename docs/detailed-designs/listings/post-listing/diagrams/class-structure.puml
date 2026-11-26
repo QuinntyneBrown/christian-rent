@@ -20,11 +20,8 @@ package "Frontend — api library" {
     +kind: ListingKind
     +title: string
     +priceAmount: number | null
-    +pricePeriod: PricePeriod | null
-    +whenText: string | null
-    +whenStart: string | null
-    +whenEnd: string | null
-    +area: string
+    +pricePeriod: PricePeriod
+    +when: string
     +note: string
     +photoIds: string[]
   }
@@ -44,14 +41,14 @@ package "Frontend — api library" {
 package "Frontend — domain library" {
   class ListingDraftRules {
     +{static} validate(draft: ListingDraft): DraftErrors
-    +{static} preview(draft: ListingDraft): ListingSummary
+    +{static} canSubmit(draft: ListingDraft): boolean
+    +{static} preview(draft: ListingDraft, member: SignedInMember): ListingSummary
     +{static} empty(offer: ListingOffer, kind: ListingKind): ListingDraft
   }
   class DraftErrors {
     +title: string | null
     +price: string | null
     +when: string | null
-    +area: string | null
     +note: string | null
     +first(): string | null
   }
@@ -74,9 +71,11 @@ package "Frontend — rent application" {
     +draft: Signal<ListingDraft>
     +errors: Signal<DraftErrors>
     +preview: Signal<ListingSummary>
+    +canSubmit: Signal<boolean>
     +state: Signal<PostState>
     +submit(): void
     +tryAgain(): void
+    +editListing(): void
   }
   enum PostState {
     editing
@@ -92,12 +91,9 @@ package "Backend — Application" {
     +ListingOffer Offer
     +ListingKind Kind
     +string Title
-    +decimal? PriceAmount
-    +PricePeriod? PricePeriod
-    +string? WhenText
-    +DateOnly? WhenStart
-    +DateOnly? WhenEnd
-    +string Area
+    +decimal PriceAmount
+    +PricePeriod PricePeriod
+    +string? When
     +string? Note
     +IReadOnlyList<Guid> PhotoIds
   }
@@ -119,7 +115,9 @@ package "Backend — Domain" {
     +Guid SubmissionId
     +ListingStatus Status
     +DateTimeOffset PostedAt
-    +{static} Post(memberId: Guid, fields: ListingFields, postedAt: DateTimeOffset): Listing
+    +string Area
+    +{static} Post(memberId: Guid, fields: ListingFields, area: string, postedAt: DateTimeOffset): Listing
+    +Change(fields: ListingFields): void
   }
   class ReviewItem {
     +Guid Id
@@ -130,6 +128,7 @@ package "Backend — Domain" {
   enum PricePeriod {
     Hour
     Day
+    Night
     Week
     Month
   }
@@ -153,7 +152,7 @@ PostListingCommandValidator ..> PostListingCommand : validates
 PostListingCommandHandler ..> PostListingCommand : handles
 PostListingCommandHandler ..> PostLimit : asks
 PostListingCommandHandler ..> PostLimitReachedException : throws
-PostListingCommandHandler ..> Listing : creates
+PostListingCommandHandler ..> Listing : creates or changes
 PostListingCommandHandler ..> ReviewItem : creates
 ReviewItem "1" --> "1" Listing : is about
 Listing --> PricePeriod

@@ -73,6 +73,7 @@ package "Backend" {
   class Member {
     +Guid Id
     +string Name
+    +string Email
     +Guid ChurchId
     +bool IsVerified
     +DateTimeOffset JoinedAt

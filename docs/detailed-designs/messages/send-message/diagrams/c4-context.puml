@@ -7,8 +7,11 @@ Person(sender, "Member", "Wants to arrange a rental with the person who posted a
 Person(poster, "Member who posted", "Posted the listing the message is about")
 System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for one")
 System_Ext(signin, "Sign-in", "Identifies the member; mechanism <TO SUPPLY>")
+System_Ext(email, "Email delivery", "Delivers email to a member; product <TO SUPPLY>")
 
 Rel(sender, cr, "Writes and sends a message on Listing using")
-Rel(cr, poster, "Delivers the message to; where it is read is <TO SUPPLY>")
+Rel(cr, poster, "Stores the message for; where it is read is <TO SUPPLY>")
+Rel(cr, email, "Hands the notice that a message arrived to")
+Rel(email, poster, "Emails that a message arrived")
 Rel(cr, signin, "Identifies the signed-in member through")
 @enduml

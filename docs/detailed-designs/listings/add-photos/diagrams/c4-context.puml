@@ -4,7 +4,7 @@ LAYOUT_WITH_LEGEND()
 title System Context — Add photos
 
 Person(member, "Member", "Adds photos to a listing for rent")
-Person(anyone, "Anyone", "Sees the photos of an approved listing")
+Person(anyone, "Anyone", "Sees the photos of an approved listing, signed in or not")
 Person(admin, "Admin", "Sees the photos of a listing in the review queue")
 System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for a space or a thing to rent")
 

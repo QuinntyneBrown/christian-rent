@@ -5,12 +5,12 @@ title Components — Search listings
 
 Person(anyone, "Anyone", "Searches approved listings")
 Container_Boundary(rent, "rent (Angular application and its libraries)") {
-  Component(bar, "SearchBar", "Presentation component", "A labelled search field; emits the term as it is typed")
+  Component(bar, "SearchBar", "Presentation component", "The search field, the place with its radius and a Search button; emits the term as it is typed and a submit")
   Component(page, "BrowsePage", "Page in rent, lazy route", "Passes the term to the store, keeps it in the address, shows the no-results state")
-  Component(store, "BrowseStore", "Service in domain search/", "Debounces 300 ms, cancels the search in flight, ignores a late result")
-  Component(query, "SearchQuery", "Value in domain search/", "The term cut to 100 characters, with the switch choice")
+  Component(store, "BrowseStore", "Service in domain search/", "Debounces 300 ms, searches at once on submit, cancels the search in flight, ignores a late result")
+  Component(query, "SearchQuery", "Value in domain search/", "The term cut to 100 characters, with the two switch choices and the place")
   Component(client, "ListingsApi", "HTTP client in api, LISTINGS_API", "Builds the browse request with the term")
-  Component(empty, "EmptyState", "Presentation component", "Names the term as text and offers to post a wanted listing")
+  Component(empty, "EmptyState", "Presentation component", "Nobody has one of those yet.; a button that names the term as text and offers to post a wanted listing")
 }
 Container_Boundary(api, "ChristianRent.Api") {
   Component(ctrl, "ListingsController", "ASP.NET Core controller", "Browse action, open to anyone")
@@ -22,7 +22,7 @@ ContainerDb(db, "Database", "Relational, EF Core; engine <TO SUPPLY>", "Listings
 
 Rel(anyone, bar, "Types into")
 Rel(bar, page, "Emits the term to")
-Rel(page, store, "search(term)")
+Rel(page, store, "search(term), searchNow(term)")
 Rel(store, query, "Builds")
 Rel(store, client, "Requests matches through")
 Rel(page, empty, "Renders no results with")

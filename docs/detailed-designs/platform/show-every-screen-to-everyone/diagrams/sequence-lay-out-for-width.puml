@@ -30,13 +30,15 @@ end box
 actor -> shell : Open Admin at some viewport width
 shell -> page : Activate the route in main
 page -> css : Apply the page stylesheet
-css --> page : One column under 768 px; two columns from 768 px
+css --> page : Navigation as a top bar under 768 px; as a column beside the queue from 768 px (L2-019 criterion 9)
 page -> viewport : atLeast(md)
 viewport -> viewport : matchMedia("(min-width: 768px)"), listen for change
 viewport --> page : Signal<boolean>
 page -> list : Render the review queue
 alt viewport under 768 px
   page --> actor : Only the queue is shown (L2-031 criterion 5)
+  actor -> list : Select an item
+  list --> actor : No detail opens and nothing can be decided (L2-019 criterion 10)
 else viewport from 768 px
   page -> panel : Render beside the queue with Approve, Keep and Remove
   panel --> actor : Queue and detail panel side by side (L2-031 criterion 5)

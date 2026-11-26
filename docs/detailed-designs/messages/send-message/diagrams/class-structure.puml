@@ -26,7 +26,11 @@ package "Frontend" {
     +code: string
   }
   class MessageDraftRules <<helper, domain>> {
+    +start(offer: ListingOffer, firstName: string): MessageDraft
     +check(draft: MessageDraft, offer: ListingOffer, today: string): FieldErrors
+  }
+  class firstNameOf <<helper, domain>> {
+    +firstNameOf(memberName: string): string
   }
   class DraftStore <<service, domain>> {
     +saveMessage(listingId: string, draft: MessageDraft): void
@@ -34,12 +38,17 @@ package "Frontend" {
   }
   class MessageBox <<component, components>> {
     +offer: ListingOffer
+    +price: number
+    +period: PricePeriod
+    +firstName: string
     +draft: MessageDraft
     +errors: FieldErrors
     +busy: boolean
     +sent: boolean
+    +ownEmail: string
     +draftChange: MessageDraft
     +send: MessageDraft
+    +edit: void
   }
   class ListingPage <<page, rent>>
 }
@@ -67,6 +76,7 @@ package "Backend" {
     +DateOnly? StartDate
     +DateOnly? EndDate
     +DateTimeOffset SentAt
+    +DateTimeOffset? ReadAt
   }
   class Listing {
     +Guid Id
@@ -90,10 +100,14 @@ package "Backend" {
     +Guid MemberId
   }
   interface IAppDbContext
+  interface IMemberMailer {
+    +MessageArrived(recipientId: Guid, listingId: Guid): Task
+  }
 }
 
 ListingPage --> MessageBox : binds
-ListingPage ..> MessageDraftRules : checks with
+ListingPage ..> MessageDraftRules : starts and checks with
+ListingPage ..> firstNameOf : names the person who posted with
 ListingPage ..> DraftStore : keeps draft in
 ListingPage ..> MessagesApi : sends through
 MessagesApi ..> MessageDraft : takes
@@ -104,6 +118,7 @@ SendMessageCommandHandler ..> SendMessageCommand : handles
 SendMessageCommandHandler ..> ICurrentMember : reads sender
 SendMessageCommandHandler ..> IAppDbContext : reads / writes
 SendMessageCommandHandler --> Message : creates
+SendMessageCommandHandler ..> IMemberMailer : tells the recipient
 Message "*" --> "1" Listing : about
 Message "*" --> "1" Member : sender
 Message "*" --> "1" Member : recipient

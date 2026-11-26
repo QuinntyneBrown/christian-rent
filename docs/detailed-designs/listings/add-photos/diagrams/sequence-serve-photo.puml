@@ -33,10 +33,10 @@ box "Backend — ChristianRent.Infrastructure" #FFF4E5
   participant "IPhotoStorage" as storage
 end box
 actor -> page : Open Browse or a listing
-page -> client : url(photoId, card or gallery)
+page -> client : url(photoId, the size of the place)
 client --> page : /photos/id?size
 page -> controller : GET /photos/id?size, from an img element\nwith its space reserved (L2-029 criterion 3)
-controller -> handler : Send GetPhotoQuery
+controller -> handler : Send GetPhotoQuery; no sign-in is asked for\n(L2-025 criterion 1)
 handler -> db : Load the Photo record and its listing's status
 db --> handler : Photo, status; or nothing
 handler -> entity : IsServedTo(memberId, isAdmin, status)
@@ -46,7 +46,7 @@ alt the listing is approved, or the caller posted it, or the caller is an admin
   storage --> handler : The stored copy at that size (L2-014 criterion 4)
   handler --> controller : PhotoContent
   controller --> page : 200 OK, the image
-  page --> actor : The photo, sized to where it appears
+  page --> actor : The photo, cropped to fill its frame:\n4:3 on a card, 16:10 on Listing
 else the listing is not approved, or no such photo
   entity --> handler : false, or no record
   handler --> controller : Not found

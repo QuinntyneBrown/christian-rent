@@ -17,13 +17,13 @@ skinparam package {
 actor "Admin" as actor
 actor "Anyone" as reader
 box "Frontend — admin library" #E0F2FE
-  participant "AdminPage" as page
+  participant "Churches section (<TO SUPPLY>)" as page
 end box
 box "Frontend — rent application" #E0F2FE
   participant "ListingPage" as listingPage
 end box
 box "Frontend — api library" #E0F2FE
-  participant "ReviewQueueApi" as client
+  participant "Admin's contract (<TO SUPPLY>)" as client
   participant "ListingsApi" as listings
 end box
 box "Backend — ChristianRent.Api" #D1FADF
@@ -38,7 +38,7 @@ end box
 box "Backend — ChristianRent.Infrastructure" #FFF4E5
   database "Database" as db
 end box
-actor -> page : Confirm the church a member entered (control <TO SUPPLY>)
+actor -> page : Confirm a pending church under Admin's Churches entry (L2-018 criterion 6; control <TO SUPPLY>)
 page -> client : confirmChurch(churchId)
 client -> controller : POST /churches/{churchId}/confirm
 controller -> controller : Authenticate and apply the admin policy

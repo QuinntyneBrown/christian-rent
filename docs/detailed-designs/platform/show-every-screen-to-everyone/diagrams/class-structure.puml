@@ -14,10 +14,10 @@ skinparam class {
 title Class structure — Show every screen to everyone
 
 enum Breakpoint {
-  sm = 576
+  sm = 640
   md = 768
-  lg = 992
-  xl = 1200
+  lg = 1024
+  xl = 1280
 }
 
 interface Viewport <<api contract, VIEWPORT>> {
@@ -44,6 +44,24 @@ class RouteFocus <<rent service>> {
 }
 
 class AppShell <<cr-shell>> {
+  +showsHeader: Signal<boolean>
+  +unreadCount: Signal<number>
+  +initials: Signal<string>
+}
+
+class Header <<cr-header>> {
+  +unreadCount: input<number>
+  +initials: input<string>
+  +home: output<void>
+  +openMessages: output<void>
+  +openAccount: output<void>
+  +post: output<void>
+}
+
+class Wordmark <<cr-wordmark>> {
+}
+
+interface MessagesApi <<api contract, MESSAGES_API>> {
 }
 
 class FormField <<cr-form-field>> {
@@ -57,7 +75,8 @@ class "Foundations" as Foundations <<SCSS partials>> {
   _tokens.scss: colour, type, space by role
   _reset.scss: :focus-visible ring
   _targets.scss: target($min: 44px)
-  _motion.scss: prefers-reduced-motion
+  _page.scss: page(), 1152 px, margins 16 and 24 px
+  _motion.scss: 120 to 300 ms; none under reduced motion
   _utilities.scss: visually-hidden
 }
 
@@ -69,6 +88,10 @@ Viewport ..> Breakpoint : takes
 MatchMediaViewport ..|> Viewport
 CdkAnnouncer ..|> Announcer
 AppShell ..> RouteFocus : calls after navigation
+AppShell *-- Header : shows on Browse and Listing
+Header *-- Wordmark : holds in the home control
+AppShell ..> MessagesApi : reads the number unread through
+Header ..> Foundations : reads tokens and mixins
 AdminPage ..> Viewport : reads atLeast(md)
 FormField ..> Foundations : reads tokens and mixins
 AppShell ..> Foundations : loads through styles.scss

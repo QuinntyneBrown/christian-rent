@@ -8,7 +8,7 @@ Person(member, "Member", "Not an admin; is refused Admin")
 System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for one")
 System_Ext(signin, "Sign-in", "Identifies the admin; mechanism <TO SUPPLY>")
 
-Rel(admin, cr, "Opens Admin and reads the review queue in")
+Rel(admin, cr, "Opens Admin and reads the review queue, newest first, in")
 Rel(member, cr, "Is refused Admin's address and endpoints by")
 Rel(cr, signin, "Identifies the admin through")
 @enduml

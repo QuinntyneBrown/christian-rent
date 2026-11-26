@@ -37,8 +37,10 @@ box "Backend — ChristianRent.Infrastructure" #FFF4E5
 end box
 actor -> page : Switch the sentence, fill in the fields
 page -> rules : preview(draft)
-rules --> page : Card with a placeholder for each empty field\n(L2-011 criteria 1 to 3)
-actor -> page : Submit
+rules --> page : Card with a placeholder for each empty field:\n"Your listing title" or "What you need", and "$—"\n(L2-011 criteria 1 to 4)
+page -> rules : canSubmit(draft)
+rules --> page : false while the title or the price is empty\n(L2-010 criterion 11)
+actor -> page : Select "Publish listing" or "Post request"
 page -> rules : validate(draft)
 alt a field is invalid
   rules --> page : DraftErrors
@@ -60,7 +62,9 @@ else the draft is valid
     handler -> db : Find a listing of this member with this SubmissionId
     alt the submission already made a listing
       db --> handler : The listing
-      handler --> controller : The same PostedListingDto (L2-012 criterion 4)
+      handler -> entity : Change(fields)
+      handler -> db : Save the change; create nothing
+      handler --> controller : The same PostedListingDto\n(L2-012 criteria 4 and 8)
     else first arrival
       handler -> db : Read PostedAt of this member's listings in the last 24 hours
       db --> handler : Times
@@ -70,7 +74,7 @@ else the draft is valid
         client --> page : ApiError
         page --> actor : Message saying when the member can post again
       else under the limit
-        handler -> entity : Listing.Post(member, fields, now)
+        handler -> entity : Listing.Post(member, fields, area from\nthe member's place, now)
         entity --> handler : Listing, WaitingForReview
         handler -> db : Save the Listing and a ReviewItem of kind NewListing\nin one unit of work (L2-012 criterion 1)
         db --> handler : Commit result
@@ -79,13 +83,19 @@ else the draft is valid
     end
     controller --> client : 201 Created
     client --> page : PostedListing
-    page --> actor : Confirmation: the listing will appear once it has been\nreviewed (L2-012 criterion 2)
+    page --> actor : Confirmation: the card; the listing will appear once it has\nbeen reviewed; the member will be emailed about a message;\n"Back to browsing" and "Edit listing" (L2-012 criteria 2 and 7)
   end
 end
 opt the request fails
   client --> page : ApiError, or no response
   page --> actor : Form kept, photos included; "Try again" (L2-012 criterion 5)
   actor -> page : Select "Try again"
+  page -> client : post(draft with the same submissionId, signal)
+end
+opt the member selects "Edit listing" on the confirmation
+  actor -> page : Select "Edit listing"
+  page --> actor : The form, with everything entered (L2-012 criterion 8)
+  actor -> page : Change a field; select the submit button
   page -> client : post(draft with the same submissionId, signal)
 end
 @enduml

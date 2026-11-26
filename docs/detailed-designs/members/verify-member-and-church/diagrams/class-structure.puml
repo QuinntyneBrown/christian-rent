@@ -55,6 +55,12 @@ class DecideReviewItemCommandHandler {
 class ConfirmChurchCommand {
   +Guid ChurchId
 }
+class RemoveMemberCommand {
+  +Guid MemberId
+}
+class RemoveMemberCommandHandler {
+  +Handle(command: RemoveMemberCommand): Task
+}
 class ConfirmChurchCommandHandler {
   +Handle(command: ConfirmChurchCommand): Task
 }
@@ -80,6 +86,10 @@ DecideReviewItemCommandHandler ..> ICurrentMember : requires admin
 DecideReviewItemCommandHandler --> ReviewItem : loads
 DecideReviewItemCommandHandler --> Member : verifies / removes
 DecideReviewItemCommandHandler --> Listing : removes a removed member's
+RemoveMemberCommandHandler ..> RemoveMemberCommand : handles
+RemoveMemberCommandHandler ..> ICurrentMember : requires admin
+RemoveMemberCommandHandler --> Member : removes
+RemoveMemberCommandHandler --> Listing : removes the member's
 ConfirmChurchCommandHandler ..> ConfirmChurchCommand : handles
 ConfirmChurchCommandHandler ..> ICurrentMember : requires admin
 ConfirmChurchCommandHandler --> Church : verifies

@@ -14,7 +14,7 @@ Container_Boundary(api, "ChristianRent.Api") {
   Component(churches, "ChurchesController", "ASP.NET Core controller", "Sends FindChurchesQuery")
   Component(members, "MembersController", "ASP.NET Core controller", "Sends JoinCommand or LeaveCommand")
   Component(find, "FindChurchesQueryHandler", "MediatR handler", "One page of churches matching a term")
-  Component(join, "JoinCommandHandler", "MediatR handler", "Creates the member, a new church and the review item")
+  Component(join, "JoinCommandHandler", "MediatR handler", "Creates the member, a new church and the New member review item; no item for a church")
   Component(validator, "JoinCommandValidator", "FluentValidation", "Name, church and declaration rules")
   Component(leave, "LeaveCommandHandler", "MediatR handler", "Takes the member's listings out of public view")
   Component(purge, "DeleteLeftMembersCommandHandler", "MediatR handler", "Deletes or makes anonymous within 30 days")

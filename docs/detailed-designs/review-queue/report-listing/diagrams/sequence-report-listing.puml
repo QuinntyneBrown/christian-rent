@@ -35,7 +35,7 @@ end box
 box "Backend — ChristianRent.Infrastructure" #FFF4E5
   database "Database" as db
 end box
-actor -> page : Select Report
+actor -> page : Select Report, the flag icon beside Share (L2-021 criterion 6)
 alt the person is not a member (L2-021 criterion 5)
   page --> actor : Ask to become a member or sign in (<TO SUPPLY>)
 else the person is a member
@@ -52,16 +52,18 @@ else the person is a member
     controller -> validator : Send ReportListingCommand
     validator -> validator : Apply L2-021 criterion 1 again
     validator -> handler : Valid command
-    handler -> db : Load the listing and this member's report on it
-    db --> handler : Listing, and the earlier report if any
+    handler -> db : Load the listing, this member's report on it and the listing's open review item
+    db --> handler : Listing, the earlier report if any, the open item if any
     alt the listing is not approved, was removed or does not exist
       handler --> controller : listing_not_found
     else this member already reported it (L2-021 criterion 3)
       handler --> controller : Success; no second report is created
     else first report
-      handler -> handler : Create Report with listing, reporter, reason and note
-      handler -> handler : Create ReviewItem of kind Report (L2-021 criterion 2)
-      handler -> db : Save both in one unit of work
+      opt the listing has no open review item of kind Report
+        handler -> handler : Create ReviewItem of kind Report (L2-021 criterion 2)
+      end
+      handler -> handler : Create Report with listing, review item, reporter, reason and note
+      handler -> db : Save in one unit of work; the listing stays one item (L2-020 criterion 8)
       db --> handler : Commit result
       handler --> controller : Success
     end
@@ -75,7 +77,8 @@ else the person is a member
   end
 end
 note over controller, db
-  No response to the member who posted the listing, and no response to anyone
-  but an admin, carries the reporter (L2-021 criterion 4).
+  No response to anyone carries the reporter: not to the member who posted
+  the listing, and not to an admin (L2-021 criterion 4, L2-019 criterion 2).
+  The admin sees the number of reports and what the report says.
 end note
 @enduml

@@ -24,7 +24,7 @@ box "Frontend — components library" #E0F2FE
   participant "ListingCard" as card
 end box
 box "Frontend — domain library" #E0F2FE
-  participant "formatPrice / formatWhen" as fmt
+  participant "formatPrice / formatDistance / formatWhen" as fmt
 end box
 box "Frontend — api library" #E0F2FE
   participant "ListingsApi" as client
@@ -40,28 +40,34 @@ box "Backend — ChristianRent Infrastructure" #FFF4E5
 end box
 actor -> shell : Open christian.rent
 shell -> wordmark : Render in the header
-wordmark --> actor : "christian.rent" in lowercase (L2-023 criterion 1)
+alt viewport under 640 px
+  wordmark --> actor : The mark alone, named "christian.rent home" (L2-023 criterion 3)
+else viewport from 640 px
+  wordmark --> actor : The mark and "christian.rent" in lowercase, ".rent" in orange (L2-023 criteria 1 and 2)
+end
 shell -> page : Activate Browse
 page -> client : Request a page of listings
 client -> controller : HTTPS request
 controller -> handler : Send BrowseListingsQuery
-handler -> db : Read approved listings
-db --> handler : Price in CAD, PricePeriod, dates, Area
-handler --> controller : Page of ListingSummary, values unformatted
-controller --> client : JSON: amount, period, ISO dates
+handler -> db : Read approved listings near the place
+db --> handler : Price in whole CAD, PricePeriod, WhenText, Area
+handler --> controller : Page of ListingSummary, values unformatted, each with its distance
+controller --> client : JSON: whole amount, period, distance in km
 client --> page : Page<ListingSummary>
 loop each listing
-  page -> fmt : formatPrice(price, pricePeriod)
-  alt price is 0
-    fmt --> page : "Free"
-  else price is absent on a wanted listing
-    fmt --> page : null, the card shows no price
+  page -> fmt : formatPrice(price, pricePeriod, offer)
+  alt a listing for rent with a price of 0
+    fmt --> page : "Free" (L2-010 criterion 2)
+  else a wanted listing
+    fmt --> page : "Up to $120/day" (L2-010 criterion 4)
   else
-    fmt --> page : "$25 / day", cents only when not zero (L2-022 criterion 1)
+    fmt --> page : "$25/day", whole dollars (L2-022 criterion 1)
   end
-  page -> fmt : formatWhen(whenText, startDate, endDate)
-  fmt --> page : Free text, or dates with the month as a word (L2-022 criterion 3)
-  page -> card : Bind priceText, whenText, area
+  page -> fmt : formatDistance(distanceKm)
+  fmt --> page : "5 km" (L2-022 criterion 2)
+  page -> fmt : formatWhen(whenText)
+  fmt --> page : The member's free text, or null when empty
+  page -> card : Bind priceText, distanceText, whenText, area
 end
-card --> actor : Cards with CAD prices and Canadian spelling (L2-022 criterion 4)
+card --> actor : Cards with CAD prices, areas with distances in km, and Canadian spelling (L2-022 criterion 4)
 @enduml

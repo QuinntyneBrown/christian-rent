@@ -44,6 +44,7 @@ package "Backend" {
   class Report {
     +Guid Id
     +Guid ListingId
+    +Guid ReviewItemId
     +Guid ReporterId
     +ReportReason Reason
     +string? Note
@@ -58,8 +59,9 @@ package "Backend" {
   class ReviewItem {
     +Guid Id
     +ReviewItemKind Kind
-    +Guid? ReportId
+    +Guid? ListingId
     +DateTimeOffset CreatedAt
+    +DateTimeOffset? DecidedAt
   }
   class Listing {
     +Guid Id
@@ -82,9 +84,10 @@ ReportListingCommandValidator ..> ReportListingCommand : validates
 ReportListingCommandHandler ..> ReportListingCommand : handles
 ReportListingCommandHandler ..> ICurrentMember : reads reporter
 ReportListingCommandHandler --> Report : creates
-ReportListingCommandHandler --> ReviewItem : creates
+ReportListingCommandHandler --> ReviewItem : finds open, or creates
 Report "*" --> "1" Listing : about
 Report "*" --> "1" Member : reporter
 Report --> ReportReason : has
-ReviewItem "1" --> "1" Report : queues
+Report "1..*" --> "1" ReviewItem : open reports on one listing
+ReviewItem "*" --> "1" Listing : reported listing
 @enduml

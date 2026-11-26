@@ -73,14 +73,17 @@ The handler for an unhandled error wraps all seven steps; it is designed in
 - **`[AllowAnonymous]`** — written explicitly on the actions anyone may call: browsing and
   searching (`ListingsController`, `BrowseListingsQuery`), reading one listing
   (`ListingsController`, `GetListingQuery`) and reading a photo of an approved listing
-  (`PhotosController`). The attribute is never placed on a controller class, so each open action
-  is visible where it is declared. Two further cases are not settled by `L2-025` criterion 1,
-  which names only browsing, searching and reading an approved listing: whether the health
-  endpoint and the endpoints a person calls while becoming a member (joining, and choosing a
-  church) are open is `<TO SUPPLY>`.
+  (`PhotosController`). These four are the exceptions `L2-025` criterion 1 names. A photo is
+  part of a card on Browse and of the Listing screen, which anyone may open, so a photo of an
+  approved listing is readable without signing in; a photo of a listing that is not approved is
+  served only to its poster or an admin (`L2-014` criterion 5). The attribute is never placed on
+  a controller class, so each open action is visible where it is declared. Two further cases are
+  not settled by `L2-025` criterion 1: whether the health endpoint and the endpoints a person
+  calls while becoming a member (joining, and choosing a church) are open is `<TO SUPPLY>`.
 - **`Admin` policy** — named policy on every action of `ReviewQueueController`. It requires that
   `ICurrentMember.IsAdmin` is true. How a member is made an admin is `<TO SUPPLY>` with
-  sign-in.
+  sign-in. The Reports, Members and Churches entries of Admin's navigation are not designed;
+  the actions behind them take the same policy when they are.
 - **`ICurrentMember`** — port in `ChristianRent.Application` giving the signed-in member's id
   and whether they are an admin. A handler never takes the member's id from the request body or
   the route; it reads it from this port.
@@ -96,6 +99,9 @@ handlers.
 
 - A handler builds its query with the ownership condition inside it: a member's own listings
   and messages, and listings that are approved. It does not load a row and then compare owners.
+- A response holds only what its reader may see. A listing's response never holds the email
+  address of the member who posted it (`L2-008` criterion 5), and an item of the review queue
+  never holds who reported a listing (`L2-019` criterion 2).
 - When the query returns nothing, the handler returns one `Refusal` of kind `NotFound`. A row
   that does not exist and a row that belongs to someone else produce the same refusal, the same
   status 404 and the same `code` (for a listing, `listing_not_found`). The response therefore
@@ -197,10 +203,13 @@ same change that introduces it; the path of that document is `<TO SUPPLY>`.
   `sign_in_required`, with their draft kept by `DraftStore`.
 - **Controls** — a page hides a control the signed-in member may not use. This is convenience.
   The code for Admin is loaded only for an admin, as
-  `docs/detailed-designs/review-queue/work-review-queue/` describes.
+  `docs/detailed-designs/review-queue/work-review-queue/` describes. The header's "Post" button
+  and Browse's two buttons are shown to anyone; a person who is not a member is asked to become
+  one or sign in when Post opens (`L2-009` criterion 4).
 
 Where a refusal appears on a screen, its layout and states follow `docs/mocks/` once drawn, and
-this design is brought in line with them then.
+this design is brought in line with them then. The Magic Patterns prototype draws no refusal;
+the one fact taken from it here is that a photo is part of Browse and Listing.
 
 ## Requirements
 
@@ -209,7 +218,7 @@ level-1 (L1) requirement, cited by identifier.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-025` | `L1-011` | The backend decides what is allowed. Any endpoint other than browsing, searching and reading an approved listing shall respond 401 when called without a signed-in member. The backend shall refuse a member who requests a listing, message or photo that is not theirs to see, or tries to change one that is not theirs, and shall reveal nothing about it. An action sent straight to the backend by someone not allowed shall be refused. A refusal a screen branches on shall be a ProblemDetails with a `code`, and the member shall see a generic message. |
+| `L2-025` | `L1-011` | The backend decides what is allowed. Any endpoint other than browsing, searching, reading an approved listing and reading a photo of an approved listing shall respond 401 when called without a signed-in member. The backend shall refuse a member who requests a listing, message or photo that is not theirs to see, or tries to change one that is not theirs, and shall reveal nothing about it. An action sent straight to the backend by someone not allowed shall be refused. A refusal a screen branches on shall be a ProblemDetails with a `code`, and the member shall see a generic message. |
 | `L2-026` | `L1-011` | What a member writes is data. A title, note, message, member name or church name containing HTML or script shall be rendered as text wherever it is shown. Any input shall be validated for type, length and range before it is used, and database access shall be parameterised. Each response shall carry a Content-Security-Policy that allows no inline script and no third-party script. |
 | `L2-027` | `L1-011` | Transport, sessions and abuse. A request over HTTP shall be redirected to HTTPS, and responses shall carry HSTS. A request that changes data and comes from another site shall be refused. A client that makes more than 120 read requests or 30 write requests in a minute shall be refused with 429 and a Retry-After header. A secret shall come from configuration outside the repository. |
 

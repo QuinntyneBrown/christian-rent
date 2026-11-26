@@ -41,28 +41,35 @@ actor -> bar : Type a search term
 bar -> page : termChange(term)
 page -> store : search(term)
 store -> store : Restart the 300 ms timer (L2-003 criterion 3)
-actor -> bar : Pause for 300 ms
-store -> store : Build SearchQuery: first 100 characters\n(L2-003 criterion 4), keep the switch choice
+alt the person pauses for 300 ms
+  store -> store : The timer ends
+else the person selects "Search"
+  actor -> bar : Select "Search"
+  bar -> page : submit(term)
+  page -> store : searchNow(term)
+  store -> store : Clear the timer (L2-003 criterion 7)
+end
+store -> store : Build SearchQuery: first 100 characters\n(L2-003 criterion 4), keep the two switch choices and the place
 opt an earlier search is in flight
   store -> client : Abort its signal
   store -> store : Discard its result if it still arrives\n(L2-003 criterion 3)
 end
 store -> client : browse(query, no cursor, signal)
 page -> page : Write the term to the address, no reload\n(L2-002 criterion 5)
-client -> controller : GET /listings?q&offer&pageSize=24
+client -> controller : GET /listings?q&offer&kind&place&pageSize=24
 controller -> handler : Send BrowseListingsQuery
 handler -> text : Words(first 100 characters of Term)
 text --> handler : Words without letter case or accents
-handler -> db : Select Approved listings whose SearchText\nholds the words (L2-003 criteria 1 and 2)
+handler -> db : Select Approved listings within 25 km of the place\nwhose SearchText holds the words (L2-003 criteria 1 and 2)
 db --> handler : ListingSummaryDto rows
-handler --> controller : PageDto
+handler --> controller : BrowseResultDto
 controller --> client : 200 OK
-client --> store : Page<ListingSummary>
+client --> store : BrowseResult
 store --> page : listings, query
 alt at least one match
   page --> actor : Matching cards, list updated in place
 else no match
-  page --> actor : No-results state naming the term as text; offer to post\na wanted listing (L2-004 criterion 1, L2-003 criterion 5)
+  page --> actor : "Nobody has one of those yet." and the button\n"Ask for “term”", the term as text\n(L2-004 criteria 1 and 3, L2-003 criterion 5)
   actor -> page : Take the offer
   page --> actor : Navigate to /post?offer=wanted&title=term\n(L2-004 criterion 2)
 end

@@ -29,7 +29,7 @@ end box
 box "Backend — ChristianRent.Api" #D1FADF
   participant "MembersController" as controller
 end box
-actor -> browse : Select "I have something to rent", "I'm looking for something",\nor the no-results offer
+actor -> browse : Select "I have something to rent", "I'm looking for something",\n"Post" in the header, or the no-results offer
 browse -> page : Navigate to /post?offer and, from the offer, title
 page -> drafts : take()
 alt a draft was kept
@@ -41,12 +41,12 @@ else no draft
 end
 page -> members : Ask who is signed in
 members -> controller : Request the signed-in member
-controller --> members : The member, or 401
+controller --> members : The member with their church and place, or 401
 members --> page : Member, or ApiError
 alt a signed-in member
-  page --> actor : The sentence set to "I have" or "I need" (L2-005 criteria 2 and 3,\nL2-004 criterion 2), the fields and the live preview
-  actor -> page : Switch "have" and "need", "a space" and "a thing"
-  page -> page : Change offer or kind; keep the fields filled in;\nhide the photos field for a wanted listing\n(L2-009 criteria 1 and 2)
+  page --> actor : The top bar with the mark and Close (L2-009 criterion 6);\nthe sentence set to "I have" or "I need" (L2-005 criteria 2 and 3,\nL2-036 criterion 5, L2-004 criterion 2); the fields, the live preview\nand "Shown to members within 25 km of" the member's place\n(L2-010 criterion 6)
+  actor -> page : Select a highlighted word: "have" or "need",\n"a space" or "a thing"
+  page -> page : Switch to the other choice (L2-009 criterion 5); keep the\nfields filled in; remove the photos field for a wanted listing\n(L2-009 criteria 1 and 2)
 else not a member
   page -> drafts : save(draft)
   page --> actor : Asked to become a member or sign in (L2-009 criterion 4)

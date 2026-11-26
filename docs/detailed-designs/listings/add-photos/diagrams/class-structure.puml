@@ -62,6 +62,8 @@ package "Frontend — api library" {
     thumbnail
     card
     gallery
+    queueRow
+    reviewDetail
   }
 }
 package "Backend — Application" {

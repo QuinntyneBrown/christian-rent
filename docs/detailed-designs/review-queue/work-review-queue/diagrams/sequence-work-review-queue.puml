@@ -20,6 +20,7 @@ box "Frontend — rent application" #E0F2FE
 end box
 box "Frontend — admin library" #E0F2FE
   participant "AdminPage" as page
+  participant "AdminNav" as nav
   participant "ReviewQueueStore" as store
   participant "ReviewQueueList" as list
   participant "ReviewDetailPanel" as panel
@@ -33,6 +34,7 @@ end box
 box "Backend — ChristianRent.Application and Domain" #ECFDF3
   participant "GetReviewQueueQueryHandler" as queue
   participant "GetReviewItemQueryHandler" as item
+  participant "GetReviewQueueSummaryQueryHandler" as summary
 end box
 box "Backend — ChristianRent.Infrastructure" #FFF4E5
   database "Database" as db
@@ -48,15 +50,25 @@ else the person is an admin
   client -> controller : GET /review-queue?page=1
   controller -> controller : Authenticate and apply the admin policy; refuse anyone else with no queue data
   controller -> queue : Send GetReviewQueueQuery
-  queue -> db : Read open items, oldest first, one page of 50 (L2-019 criteria 1 and 4)
+  queue -> db : Read open items, newest first, one page of 50 (L2-019 criteria 1 and 4)
   db --> queue : Items
   queue --> controller : Page of summaries
   controller --> client : 200
   client --> store : Page<ReviewItemSummary>
+  store -> client : summary()
+  client -> controller : GET /review-queue/summary
+  controller -> summary : Send GetReviewQueueSummaryQuery
+  summary -> db : Count open items and items approved this week; take the median wait
+  db --> summary : Counts and waits
+  summary --> controller : ReviewQueueSummary
+  controller --> client : 200
+  client --> store : ReviewQueueSummary
+  page -> nav : The number waiting, on Review (L2-019 criterion 9)
+  page --> actor : "Review" and the summary line (L2-019 criterion 7)
   alt the queue is empty (L2-019 criterion 3)
-    page --> actor : "All caught up"
+    page --> actor : "All caught up"; only the number approved this week; the detail is blank
   else items wait
-    page -> list : items, each labelled with its kind
+    page -> list : items, each labelled "New", "Reported" or "New member" (L2-019 criteria 1 and 6)
     list --> actor : The review queue
     opt the admin reaches the end of the list and more wait
       list -> page : endReached
@@ -64,19 +76,23 @@ else the person is an admin
       store -> client : list(next page)
       client --> store : The next page; pages far off screen are released
     end
-    actor -> list : Select an item
-    list -> page : select(itemId)
-    page -> store : select(itemId)
-    store -> client : get(itemId)
-    client -> controller : GET /review-queue/{id}
-    controller -> item : Send GetReviewItemQuery
-    item -> db : Read the item and its listing, report or member
-    db --> item : Detail
-    item --> controller : Detail by kind (L2-019 criterion 2)
-    controller --> client : 200, or review_item_not_found
-    client --> store : ReviewItemDetail
-    page -> panel : item
-    panel --> actor : The detail panel, from 768 px (L2-031 criterion 5)
+    alt the viewport is under 768 px (L2-019 criterion 10)
+      actor -> list : Select an item
+      list -> page : select(itemId)
+      page --> actor : No detail opens and nothing can be decided
+    else from 768 px
+      page -> store : select(first item), then each item the admin selects (L2-019 criterion 8)
+      store -> client : get(itemId)
+      client -> controller : GET /review-queue/{id}
+      controller -> item : Send GetReviewItemQuery
+      item -> db : Read the item, its listing, the member who posted, their church and the open reports
+      db --> item : Detail
+      item --> controller : One layout for every kind; report count and words, never the reporter (L2-019 criterion 2)
+      controller --> client : 200, or review_item_not_found
+      client --> store : ReviewItemDetail
+      page -> panel : item
+      panel --> actor : The detail panel beside the queue (L2-031 criterion 5)
+    end
   end
 end
 @enduml

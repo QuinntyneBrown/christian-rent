@@ -5,7 +5,7 @@ title Components — Report a listing
 
 Person(member, "Member", "Reports a listing")
 Container_Boundary(rent, "rent (Angular application and its libraries)") {
-  Component(page, "ListingPage", "Page in rent", "Offers Report and opens the dialog")
+  Component(page, "ListingPage", "Page in rent", "Offers Report, a flag icon beside Share, and opens the dialog")
   Component(dialog, "ReportDialog", "CDK Dialog in rent, imported dynamically", "Fixed reasons, an optional note, the confirmation")
   Component(rules, "ReportRules", "Pure helper in domain", "A reason is chosen; the note holds at most 500 characters")
   Component(client, "ReportsApi", "Contract and HTTP client in api", "report")
@@ -13,9 +13,9 @@ Container_Boundary(rent, "rent (Angular application and its libraries)") {
 Container_Boundary(api, "ChristianRent.Api") {
   Component(ctrl, "ReportsController", "ASP.NET Core controller", "Sends one ReportListingCommand")
   Component(validator, "ReportListingCommandValidator", "FluentValidation", "Reason and note rules")
-  Component(handler, "ReportListingCommandHandler", "MediatR handler", "One report per member per listing; queues it")
-  Component(report, "Report", "Domain entity", "Listing, reporter, reason, note")
-  Component(item, "ReviewItem", "Domain entity", "Of kind Report")
+  Component(handler, "ReportListingCommandHandler", "MediatR handler", "One report per member per listing; one open item per reported listing")
+  Component(report, "Report", "Domain entity", "Listing, review item, reporter, reason, note")
+  Component(item, "ReviewItem", "Domain entity", "Of kind Report; gathers every open report on one listing")
   Component(current, "ICurrentMember", "Application port", "The reporting member")
 }
 ContainerDb(db, "Database", "Relational, engine <TO SUPPLY>", "Listings, reports, review items")
@@ -29,6 +29,6 @@ Rel(ctrl, handler, "Sends ReportListingCommand", "MediatR")
 Rel(validator, handler, "Runs before")
 Rel(handler, current, "Reads the reporter from")
 Rel(handler, report, "Creates")
-Rel(handler, item, "Creates")
+Rel(handler, item, "Finds the open one, or creates")
 Rel(handler, db, "Reads and writes through IAppDbContext", "EF Core")
 @enduml

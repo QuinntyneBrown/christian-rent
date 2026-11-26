@@ -35,7 +35,7 @@ box "Backend — ChristianRent.Infrastructure" #FFF4E5
   participant "IPhotoStorage" as storage
   database "Database" as db
 end box
-actor -> page : Add a photo in PhotoPicker
+actor -> page : Select the "Add" tile in PhotoPicker (L2-013 criterion 6)
 page -> uploads : add(files)
 alt 6 photos are already added
   uploads --> page : Refused
@@ -69,12 +69,16 @@ else fewer than 6
   page --> actor : Thumbnail kept, or a message naming the limit
 end
 opt the member removes or reorders a photo
-  actor -> page : Remove, or move earlier or later
+  actor -> page : Select "Remove photo", or move earlier or later
   page -> uploads : remove(localId) or move(from, to)
   uploads -> uploads : Revoke the object URL of a removed photo
   uploads -> client : discard(photoId) for a removed, uploaded photo
   uploads --> page : photos in the new order
   page --> actor : The preview card follows (L2-013 criterion 2)
+end
+opt the member switches "have" to "need" and back
+  page -> page : Remove the photos field; send no photo id\nfor a wanted listing (L2-009 criterion 1)
+  page --> actor : On "have" again, the same photos (L2-013 criterion 7)
 end
 opt the member leaves Post while a photo is uploading
   page -> uploads : destroy()

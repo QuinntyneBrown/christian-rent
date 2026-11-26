@@ -52,7 +52,7 @@ else within the limit
     page --> actor : Generic message
   else same site, or a read
     xsite -> authz : Pass on
-    alt the action is not marked AllowAnonymous and nobody is signed in
+    alt the action is not browsing, searching, reading an approved listing or reading its photo, and nobody is signed in
       authz --> interceptor : 401 (L2-025 criterion 1)
       interceptor --> page : ApiError, code sign_in_required
       page --> actor : Ask to become a member or sign in

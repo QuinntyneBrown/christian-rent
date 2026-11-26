@@ -11,6 +11,7 @@ and declares that they are a Christian. The church is one already known to chris
 new one entered with its name and city. Without all three the person does not become a member.
 The new member enters the *review queue*, the list an admin works through, and is not verified.
 A member who is not yet verified may post and send a message; their name shows no verified mark.
+christian.rent reaches a member at their email address, which is shown to nobody but the member.
 
 The feature also covers the end of a membership. christian.rent collects only what the product
 uses. When a member asks to leave, their listings and photos stop being public, and their
@@ -31,8 +32,9 @@ runs from the join form in the `rent` application to the database behind `Christ
 **Frontend**
 
 - **Join host** — `<TO SUPPLY>`. The four designed screens are Browse, Listing, Post and Admin,
-  and none of them is a join screen. Whether the join form opens as a CDK Dialog or as a screen
-  of its own is decided when its mock is drawn. Whichever it is, it lives in `rent`, is loaded
+  and none of them is a join screen; the Magic Patterns prototype draws no join or sign-in
+  screen. Whether the join form opens as a CDK Dialog or as a screen of its own is decided when
+  its mock is drawn. Whichever it is, it lives in `rent`, is loaded
   lazily, binds `JoinForm`, and calls `MembersApi` through the `MEMBERS_API` token.
 - **`JoinForm`** — presentation component in `components` (selector `cr-join-form`). It holds
   three fields: the name, the church and the declaration. The church field offers the churches
@@ -72,24 +74,37 @@ person to where they came from.
   church does not exist and with `already_member` when the person is already a member. Otherwise
   it creates a `Church` that is not verified when a new one was entered, a `Member` that is not
   verified, and a `ReviewItem` of kind `NewMember`, and saves the three in one unit of work
-  (`L2-017` criterion 3). Whether a new church that matches the name and city of an existing one
+  (`L2-017` criterion 3). It creates no review item for the church: the review queue holds none
+  (`L2-018` criterion 6). Whether a new church that matches the name and city of an existing one
   is joined to it or stored as a second church is `<TO SUPPLY>`.
-- **`Member`** — domain entity: `Id`, `Name`, `ChurchId`, `IsVerified`, `JoinedAt` and `LeftAt`.
-  It also holds what is needed to sign the member in and to reach them (`L2-028` criterion 1);
-  those fields are `<TO SUPPLY>` with sign-in. No other personal data is collected.
-- **`Church`** — domain entity: `Id`, `Name`, `City` and `IsVerified`.
+- **`Member`** — domain entity: `Id`, `Name`, `Email`, `ChurchId`, `IsVerified`, `JoinedAt` and
+  `LeftAt`. `Email` is the member's email address, the one field that reaches a member: every
+  notice christian.rent writes to a member goes to it, and no response shows it to anyone but
+  that member (`L2-028` criterion 4, `L2-008` criterion 5). Whether the join form asks for the
+  email address or sign-in supplies it is `<TO SUPPLY>` with sign-in, as is what the member signs
+  in with (`L2-028` criterion 1). No other personal data is collected. `JoinedAt` supplies the
+  year shown beside the church on Listing, as "member since 2023" (`L2-008` criterion 6), and
+  how long the member has been a member in the review queue (`L2-019` criterion 2).
+- **`Church`** — domain entity: `Id`, `Name`, `City` and `IsVerified`. A church that is not
+  verified is waiting to be confirmed; an item of its member in the review queue says the church
+  is pending (`L2-018` criterion 6).
 - **`ReviewItem`** — domain entity the review queue lists; here of kind `NewMember`, pointing at
-  the member. An admin decides it in `review-queue/decide-review-item`, and
+  the member and labelled "New member" in the queue (`L2-019` criterion 1). The review queue
+  shows the item through the listing that member posted (`L2-019` criterion 2). What the queue
+  shows for a new member who has posted nothing, which is the case at the moment of joining, is
+  `<TO SUPPLY>`. An admin decides the item in `review-queue/decide-review-item`, and
   `members/verify-member-and-church` describes what that decision does to the member.
 
 A member who is not verified may post and send a message (`L2-017` criterion 4): no handler in
 `listings/post-listing` or `messages/send-message` reads `IsVerified`. A person who is not a
 member is refused by the backend when they post, send a message or report (`L2-017`
-criterion 5): those endpoints require a signed-in member, and only browsing, searching and
-reading an approved listing are marked `[AllowAnonymous]` (`L2-025` criterion 1). `GET /churches`
-and `POST /members` are called by a person who is not yet a member. Whether that person is
-already signed in at that point, or joining creates what they sign in with, is `<TO SUPPLY>`
-with sign-in.
+criterion 5): those endpoints require a signed-in member, and only browsing, searching, reading
+an approved listing and reading a photo of an approved listing are marked `[AllowAnonymous]`
+(`L2-025` criterion 1). `GET /churches` and `POST /members` are called by a person who is not
+yet a member, and `L2-025` criterion 1 names neither among the endpoints open without a
+signed-in member. Whether the two are open to a person who is not yet a member, and whether that
+person is already signed in at that point or joining creates what they sign in with, is
+`<TO SUPPLY>` with sign-in.
 
 **Leaving**
 
@@ -100,18 +115,22 @@ with sign-in.
 - **`DeleteLeftMembersCommandHandler`** — MediatR handler for `DeleteLeftMembersCommand`. For
   each member whose `LeftAt` is set, it deletes the photos of the member's listings through
   `IPhotoStorage` and deletes the member's personal data or makes it anonymous. It shall complete
-  this within 30 days of `LeftAt` (`L2-028` criterion 2). What runs the command on a schedule is
-  `<TO SUPPLY>`. Which data is deleted and which is made anonymous is `<TO SUPPLY>`, as is what
-  becomes of messages the member sent that another member received.
+  this within 30 days of `LeftAt` (`L2-028` criterion 2). The email address is among the
+  personal data it handles. What runs the command on a schedule is `<TO SUPPLY>`. Which data is
+  deleted and which is made anonymous is `<TO SUPPLY>`, as is what becomes of messages the
+  member sent that another member received.
 
-Where a member asks to leave is `<TO SUPPLY>`: no designed screen holds that control.
+Where a member asks to leave is `<TO SUPPLY>`: no designed screen holds that control, and what
+the account control of the header opens is not designed (`L2-036`).
 
 Names from the backend, a member's and a church's, are data and are rendered as text, never as
-HTML (`L2-026` criterion 1). No log, metric or span of this slice carries a name or a contact
-detail (`L2-028` criterion 3).
+HTML (`L2-026` criterion 1). No log, metric or span of this slice carries a name, an email
+address or another contact detail (`L2-028` criterion 3).
 
 The layout and the states of the join form follow `docs/mocks/` once the mocks are drawn, and
-this design is brought in line with them then.
+this design is brought in line with them then. The facts stated here come from the Magic
+Patterns prototype, which draws no join screen: it fixes that a member is reached by email and
+how a new member appears in the review queue, and nothing of the form.
 
 ## Requirements
 
@@ -121,7 +140,7 @@ level-1 (L1) requirement, cited by identifier.
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-017` | `L1-006` | Becoming a member: a person who joins shall give their name and their church and declare that they are a Christian; without all three they shall not become a member. |
-| `L2-028` | `L1-011` | Personal data is kept to a minimum: only what the product uses shall be collected, and the personal data of a member who leaves shall be deleted or made anonymous within 30 days. |
+| `L2-028` | `L1-011` | Personal data is kept to a minimum: only what the product uses shall be collected, namely a member's name, their church and what is needed to sign in and reach them; the personal data of a member who leaves shall be deleted or made anonymous within 30 days; and christian.rent shall write to a member at their email address, which shall be shown to nobody but the member. |
 
 ## Diagrams
 
@@ -154,7 +173,8 @@ what remains.
 ### Class structure
 
 `JoinCommandHandler` creates a `Member`, a `Church` when a new one was entered, and a
-`ReviewItem` of kind `NewMember`. Each `Member` belongs to one `Church`. On the frontend,
+`ReviewItem` of kind `NewMember`. Each `Member` belongs to one `Church` and holds one email
+address. On the frontend,
 `MembersApi` takes a `JoinRequest`, which holds a `NewChurch` only when no existing church was
 picked.
 
@@ -165,7 +185,7 @@ picked.
 The person searches for a church, picks one or enters a new one, declares being a Christian and
 joins. The join host and then the backend refuse an entry that lacks any of the three or exceeds
 a length limit. Otherwise the handler saves the member, not verified, and the review item
-together, and the person returns to where they came from.
+together, with no review item for the church, and the person returns to where they came from.
 
 ![Sequence diagram for becoming a member](diagrams/sequence-join.png)
 

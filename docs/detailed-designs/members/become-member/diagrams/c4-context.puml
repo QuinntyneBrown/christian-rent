@@ -11,6 +11,6 @@ System_Ext(signin, "Sign-in", "Identifies the person; mechanism <TO SUPPLY>")
 
 Rel(person, cr, "Gives a name and a church, and declares being a Christian, using")
 Rel(member, cr, "Asks to leave using")
-Rel(cr, admin, "Shows the new member in the review queue to")
+Rel(cr, admin, "Shows the new member in the review queue, labelled New member, to")
 Rel(cr, signin, "Identifies the person through")
 @enduml

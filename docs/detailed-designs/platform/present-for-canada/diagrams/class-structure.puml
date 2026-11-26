@@ -16,48 +16,64 @@ title Class structure — Present for Canada
 enum PricePeriod {
   Hour
   Day
+  Night
   Week
   Month
 }
 
+enum ListingOffer {
+  ForRent
+  Wanted
+}
+
 class Listing <<Domain entity>> {
-  +decimal? Price
-  +PricePeriod? PricePeriod
+  +int Price
+  +PricePeriod PricePeriod
+  +ListingOffer Offer
   +string? WhenText
-  +DateOnly? StartDate
-  +DateOnly? EndDate
   +string Area
+  +DateTimeOffset PostedAt
 }
 
 interface ICanadianPlaces <<Application port>> {
-  +IsPlaceInCanadaAsync(area: string): Task<bool>
+  +IsPlaceInCanadaAsync(place: string): Task<bool>
 }
 
 class PostListingCommandValidator <<FluentValidation>> {
   +Validate(command: PostListingCommand): ValidationResult
 }
 
+class PostListingCommandHandler <<MediatR handler>> {
+  +Handle(command: PostListingCommand): Task<Result<Guid>>
+}
+
 class ListingSummary <<api type>> {
-  +price: number | null
-  +pricePeriod: PricePeriod | null
+  +offer: ListingOffer
+  +price: number
+  +pricePeriod: PricePeriod
   +whenText: string | null
-  +startDate: string | null
-  +endDate: string | null
   +area: string
+  +distanceKm: number
+}
+
+class PriceWithCurrency <<domain type>> {
+  +amount: string
+  +unit: string
 }
 
 class "domain listings/" as fmt <<pure functions>> {
-  +formatPrice(price: number | null, period: PricePeriod | null): string | null
-  +formatWhen(whenText: string | null, start: string | null, end: string | null): string | null
-  +formatDate(isoDate: string): string
+  +formatPrice(price: number, period: PricePeriod, offer: ListingOffer): string
+  +formatPriceWithCurrency(price: number, period: PricePeriod, offer: ListingOffer): PriceWithCurrency
   +formatDistance(km: number): string
+  +formatDate(isoDate: string): string
+  +formatDay(isoDate: string): string
+  +formatAgo(then: string, now: Date): string
+  +formatWhen(whenText: string | null): string | null
 }
 
 class Wordmark <<cr-wordmark>> {
-  +size: input<'small' | 'regular'>
-}
-
-class AppShell <<cr-shell>> {
+  +text: input<'always' | 'from-sm' | 'from-md' | 'never'>
+  +tone: input<'orange' | 'ink' | 'white'>
 }
 
 class RentTitleStrategy <<TitleStrategy>> {
@@ -66,17 +82,18 @@ class RentTitleStrategy <<TitleStrategy>> {
 
 class ListingCard <<cr-listing-card>> {
   +title: input<string>
-  +priceText: input<string | null>
+  +priceText: input<string>
   +whenText: input<string | null>
   +area: input<string>
+  +distanceText: input<string>
 }
 
 Listing --> PricePeriod : has
-PostListingCommandValidator ..> ICanadianPlaces : asks
-PostListingCommandValidator ..> Listing : guards the fields of
+Listing --> ListingOffer : has
+PostListingCommandValidator ..> Listing : refuses a price with cents for
+PostListingCommandHandler ..> Listing : sets Area from the member's place
 ListingSummary ..> Listing : carries the unformatted values of
 fmt ..> ListingSummary : formats the values of
+fmt ..> PriceWithCurrency : returns
 ListingCard ..> fmt : shows text produced by
-AppShell *-- Wordmark : places in the header
-AppShell ..> RentTitleStrategy : is titled by
 @enduml

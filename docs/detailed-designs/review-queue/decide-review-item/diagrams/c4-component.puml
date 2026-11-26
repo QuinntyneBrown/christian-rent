@@ -5,16 +5,16 @@ title Components — Decide a review item
 
 Person(admin, "Admin", "Decides each item of the review queue")
 Container_Boundary(rent, "rent (Angular application and its libraries)") {
-  Component(panel, "ReviewDetailPanel", "Component in admin", "Shows the buttons its item's kind allows")
+  Component(panel, "ReviewDetailPanel", "Component in admin", "Action bar: Approve or Keep listing, and Remove")
   Component(page, "AdminPage", "Page in admin", "Opens the confirmation, sends the decision")
   Component(dialog, "ConfirmRemoveDialog", "CDK Dialog in admin", "Asks the admin to confirm Remove")
-  Component(store, "ReviewQueueStore", "Service in admin", "Drops a decided item from the queue")
+  Component(store, "ReviewQueueStore", "Service in admin", "Drops a decided item and selects the one that takes its place")
   Component(client, "ReviewQueueApi", "Contract and HTTP client in api", "decide")
 }
 Container_Boundary(api, "ChristianRent.Api") {
   Component(ctrl, "ReviewQueueController", "ASP.NET Core controller", "Admin policy; sends DecideReviewItemCommand")
   Component(handler, "DecideReviewItemCommandHandler", "MediatR handler", "Applies the outcome to the item and its subject")
-  Component(item, "ReviewItem", "Domain entity", "Outcomes allowed per kind; decided once")
+  Component(item, "ReviewItem", "Domain entity", "Outcomes allowed per kind; decided once; gathers the open reports on a listing")
   Component(decision, "ReviewDecision", "Domain entity", "Who decided, on what, when, with which outcome")
   Component(listing, "Listing", "Domain entity", "Approve(), Remove()")
   Component(member, "Member", "Domain entity", "Verify(), Remove()")
@@ -23,7 +23,7 @@ Container_Boundary(api, "ChristianRent.Api") {
 }
 ContainerDb(db, "Database", "Relational, engine <TO SUPPLY>", "Review items, decisions, listings, members")
 
-Rel(admin, panel, "Selects Approve, Keep or Remove in")
+Rel(admin, panel, "Selects Approve, Keep listing or Remove in")
 Rel(panel, page, "Emits the decision to")
 Rel(page, dialog, "Opens for Remove")
 Rel(page, client, "Sends through REVIEW_QUEUE_API")

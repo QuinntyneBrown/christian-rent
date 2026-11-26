@@ -14,8 +14,9 @@ shows a placeholder image.
 A photo is a file from a member's device, so it is treated as untrusted data. The backend
 inspects each photo before it is stored: the file is an image by its content, within the size
 and dimension limits, and its location data and other embedded metadata are removed. Photos are
-kept in file storage and served from there, never from the database. A photo of a listing that
-is not approved is served only to the member who posted it and to an admin.
+kept in file storage and served from there, never from the database. A photo of an approved
+listing is served to anyone, signed in or not. A photo of a listing that is not approved is
+served only to the member who posted it and to an admin.
 
 The terms used below:
 
@@ -23,7 +24,8 @@ The terms used below:
 - **metadata** — data embedded in an image file beside the picture, such as the place it was
   taken
 - **sized copy** — version of a photo stored at a size fitted to where it appears: a thumbnail
-  on Post, a card on Browse, the gallery on Listing
+  on Post, a card on Browse, the gallery on Listing, a row and the detail panel of the review
+  queue
 - **unattached photo** — uploaded photo that belongs to a member and not yet to a listing
 
 Post, where photos are added, is designed in `listings/post-listing`.
@@ -35,14 +37,20 @@ from the `rent` application to file storage.
 
 **Frontend**
 
-- **`PhotoPicker`** — presentation component for the photos field. It shows a thumbnail per
-  photo with its state, and emits `add`, `remove` and `move`. Removing and reordering work by
-  touch and by keyboard; the reorder gesture follows the mocks. It injects nothing.
+- **`PhotoPicker`** — presentation component for the photos field, labelled "Photos". It shows
+  a thumbnail of 128 × 96 px per photo with its state. Each thumbnail has a control named
+  "Remove photo", and a dashed tile that reads "Add" follows the thumbnails (`L2-013`
+  criterion 6). The component emits `add`, `remove` and `move`, and injects nothing. Removing
+  and reordering work by touch and by keyboard. The prototype draws no control to reorder
+  photos; `L2-013` criterion 2 asks for reordering, and how a member reorders is `<TO SUPPLY>`
+  until `docs/mocks/` draws it. The field has no place to describe a photo, so a member never
+  writes a photo's text alternative (`L2-007` criterion 3).
 - **`PhotoUploads`** — service in `domain`'s `listings/`, provided at the Post route. It holds
   at most 6 `PhotoUpload` entries in order, each with a status: `uploading`, `uploaded`,
   `refused` or `failed`. The logic has unit tests with one case per transition.
   - `add(files)` accepts files while fewer than 6 photos are held and refuses the rest, and
-    `PostPage` shows a message (`L2-013` criterion 3). For each accepted file it creates an
+    `PostPage` shows a message (`L2-013` criterion 3). The copy of that message is
+    `<TO SUPPLY>`; the prototype sets no limit. For each accepted file it creates an
     object URL for the thumbnail and an `AbortController`, then uploads through `PhotosApi`
     (`L2-013` criterion 1).
   - `remove(localId)` aborts the upload if it is in flight, revokes the object URL and asks the
@@ -57,14 +65,27 @@ from the `rent` application to file storage.
   `upload(file, signal)` sends `POST /photos` as multipart content. `discard(photoId)` sends
   `DELETE /photos/{id}`. `url(photoId, size)` builds the address of a sized copy.
 - **`PostPage`** — shows the photos field only for a listing for rent, and sends no photo id for
-  a wanted listing (`L2-009` criterion 1). Whether photos already added return when a member
-  switches "need" back to "have" is `<TO SUPPLY>`. A refused photo shows a message naming the
+  a wanted listing (`L2-009` criterion 1). Switching "have" to "need" removes the field and
+  leaves `PhotoUploads` as it is, so the photos are still there when the member switches back
+  (`L2-013` criterion 7). A refused photo shows a message naming the
   limit, written from the refusal's `code` (`L2-014` criterion 2). When posting fails, the
   photos already added stay (`L2-012` criterion 5).
 - **`ListingCard`** and **`PhotoGallery`** — request a photo at the size fitted to them, declare
   its width and height so its space is reserved, and load it lazily below the fold (`L2-029`
   criterion 3). `ListingCard` shows a placeholder image for a listing for rent with no photo
-  (`L2-013` criterion 4).
+  (`L2-013` criterion 4); what the placeholder image is, is `<TO SUPPLY>`.
+- **Where a photo appears** — a photo is cropped to fill its frame in each place.
+
+  | Place | Frame |
+  |-------|-------|
+  | Thumbnail in Post's photos field | 128 × 96 px |
+  | Card on Browse, and the live preview | 4:3 |
+  | Listing | 16:10 |
+  | Row of the review queue | 48 × 48 px |
+  | Detail panel of the review queue | 16:9 |
+
+  The places and their shapes are fixed. The pixel sizes and the format of the sized copies are
+  `<TO SUPPLY>`.
 - **Memory** — the photo upload allocates heavily. Leaving Post returns its memory, and the heap
   is checked for stability across repeated enter and leave when a person asks for that check.
 
@@ -90,8 +111,8 @@ from the `rent` application to file storage.
   test with one case per row. Whether a 300 × 400 px portrait image passes the smallest size is
   `<TO SUPPLY>`. An accepted photo is decoded and encoded again, which drops its location data
   and all other embedded metadata (`L2-014` criterion 3); only the encoded copies are stored,
-  never the uploaded file. The pixel sizes and the format of the sized copies are `<TO SUPPLY>`
-  until the mocks fix where a photo appears.
+  never the uploaded file. The inspector produces one sized copy for each place a photo appears;
+  their pixel sizes and format are `<TO SUPPLY>`, as above.
 - **`IPhotoStorage`** — port in Application: `Save`, `Open` and `Delete` for a photo's sized
   copies. The file storage product behind it is `<TO SUPPLY>`.
 - **`Photo`** — domain entity: id, owner, listing (none while unattached), position, width,
@@ -108,7 +129,9 @@ from the `rent` application to file storage.
 **Backend — serving**
 
 - **`PhotosController`** — its `Get` action answers `GET /photos/{id}?size=`, is marked
-  `[AllowAnonymous]` and sends one `GetPhotoQuery`.
+  `[AllowAnonymous]` and sends one `GetPhotoQuery`. Reading a photo of an approved listing is
+  one of the four things open without a signed-in member (`L2-025` criterion 1), because Browse
+  and Listing show photos to anyone.
 - **`GetPhotoQueryHandler`** — loads the `Photo` record and the status of its listing, asks
   `ICurrentMember` who is calling, and asks `Photo.IsServedTo`. When the answer is yes, it opens
   the sized copy through `IPhotoStorage` and returns it (`L2-014` criterion 4).
@@ -123,7 +146,8 @@ from the `rent` application to file storage.
   removed listing's photos stop being served, is `<TO SUPPLY>`.
 
 The photos field's layout and states, and the sizes at which a photo appears, follow
-`docs/mocks/` once drawn, and this design is brought in line with them then.
+`docs/mocks/` once drawn, and this design is brought in line with them then. The facts stated
+here come from the Magic Patterns prototype.
 
 ## Requirements
 
@@ -132,15 +156,15 @@ level-1 (L1) requirement, cited by identifier.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-013` | `L1-004` | Add photos to a listing for rent. A member shall be able to add up to 6 photos to a listing for rent, each shown as a thumbnail, with the first shown on the card; the member may remove or reorder them, a seventh shall be refused with a message, and an upload in flight shall be cancelled when the member leaves Post. |
-| `L2-014` | `L1-004` | Photos are checked before they are stored. A photo shall be accepted only when it is a JPEG, PNG or WebP image by its content, no larger than 10 MB, at least 400 × 300 px and at most 8,000 px on either side. An accepted photo shall have its location data and other embedded metadata removed, shall be served from file storage and never from the database, and shall not be served for a listing that is not approved to anyone but its poster or an admin. |
+| `L2-013` | `L1-004` | Add photos to a listing for rent. A member shall be able to add up to 6 photos to a listing for rent, each shown as a thumbnail with a "Remove photo" control, with the first shown on the card; the member may remove or reorder them, a seventh shall be refused with a message, an upload in flight shall be cancelled when the member leaves Post, and photos already added shall still be there after "have" is switched to "need" and back. |
+| `L2-014` | `L1-004` | Photos are checked before they are stored. A photo shall be accepted only when it is a JPEG, PNG or WebP image by its content, no larger than 10 MB, at least 400 × 300 px and at most 8,000 px on either side. An accepted photo shall have its location data and other embedded metadata removed, shall be served from file storage at a size fitted to where it appears and never from the database, and shall not be served for a listing that is not approved to anyone but its poster or an admin. |
 
 ## Diagrams
 
 ### System context
 
-A member uploads, reorders and removes photos on christian.rent. Anyone is served the photos of
-approved listings, and an admin the photos of any listing. The slice touches no external system.
+A member uploads, reorders and removes photos on christian.rent. Anyone, signed in or not, is
+served the photos of approved listings, and an admin the photos of any listing. The slice touches no external system.
 
 ![C4 system context for adding photos](diagrams/c4-context.png)
 
@@ -174,14 +198,14 @@ a handler that decides whether the caller is served.
 `PhotoUploads` refuses a seventh photo, and otherwise shows a thumbnail and uploads. The
 inspector refuses a file that is not an image by content or that breaks a limit; an accepted
 photo is stored as sized copies without metadata. Removing, reordering and leaving Post each
-release what the upload acquired.
+release what the upload acquired, and switching "have" to "need" and back keeps the photos.
 
 ![Sequence diagram for adding a photo](diagrams/sequence-add-photo.png)
 
 ### Behaviour — serve a photo
 
-Each photo request reaches `GetPhotoQueryHandler`, which serves the stored copy from file
-storage when the listing is approved or the caller is its poster or an admin, and otherwise
-answers `photo_not_found`.
+Each photo request reaches `GetPhotoQueryHandler` without a sign-in. The handler serves the
+stored copy from file storage when the listing is approved or the caller is its poster or an
+admin, and otherwise answers `photo_not_found`.
 
 ![Sequence diagram for serving a photo](diagrams/sequence-serve-photo.png)

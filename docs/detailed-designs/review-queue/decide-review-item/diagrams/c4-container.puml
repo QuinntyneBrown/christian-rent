@@ -6,7 +6,7 @@ title Containers — Decide a review item
 Person(admin, "Admin", "Decides each item of the review queue")
 System_Ext(signin, "Sign-in", "Mechanism <TO SUPPLY>")
 System_Boundary(cr, "christian.rent") {
-  Container(rent, "rent", "Angular", "Admin's detail panel with Approve, Keep and Remove")
+  Container(rent, "rent", "Angular", "Admin's detail panel with Approve or Keep listing, and Remove, from 768 px")
   Container(api, "ChristianRent.Api", "ASP.NET Core", "Applies one decision per item and records it")
   ContainerDb(db, "Database", "Relational, engine <TO SUPPLY>", "Review items, decisions, listings, members")
 }

@@ -4,13 +4,13 @@ LAYOUT_WITH_LEGEND()
 title System Context — Report a listing
 
 Person(member, "Member", "Reports a listing that does not belong on christian.rent")
-Person(admin, "Admin", "Finds the report in the review queue")
+Person(admin, "Admin", "Finds the reported listing in the review queue; is never shown who reported")
 Person(poster, "Member who posted", "Is never told who reported")
 System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for one")
 System_Ext(signin, "Sign-in", "Identifies the member; mechanism <TO SUPPLY>")
 
 Rel(member, cr, "Reports a listing using")
-Rel(cr, admin, "Shows the report in the review queue to")
+Rel(cr, admin, "Shows how many reports and what the report says to")
 Rel(cr, poster, "Reveals nothing about the reporter to")
 Rel(cr, signin, "Identifies the member through")
 @enduml

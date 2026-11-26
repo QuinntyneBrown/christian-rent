@@ -12,6 +12,6 @@ System_Boundary(cr, "christian.rent") {
 }
 Rel(anyone, rent, "Opens Browse in a browser", "HTTPS")
 Rel(rent, api, "Requests one page of listings at a time, and each card's photo", "JSON/HTTPS")
-Rel(api, db, "Reads approved listings", "EF Core")
+Rel(api, db, "Reads approved listings within 25 km of the place", "EF Core")
 Rel(api, files, "Reads card photos from")
 @enduml

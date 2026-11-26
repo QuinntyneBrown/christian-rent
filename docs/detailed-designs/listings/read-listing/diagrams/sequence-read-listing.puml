@@ -33,21 +33,27 @@ box "Backend — ChristianRent.Infrastructure" #FFF4E5
   database "Database" as db
 end box
 actor -> page : Open /listings/id, from a card or from its address
-page -> client : get(id, signal)
-client -> controller : GET /listings/id
+page -> client : get(id, place, signal)
+client -> controller : GET /listings/id, with the place
 controller -> handler : Send GetListingQuery
-handler -> db : Load the listing with its photo records,\nthe member's name and the church's name
+handler -> db : Load the listing with its photo records, the member's name\nand joining year, and the church's name
 db --> handler : Listing, or nothing
 handler -> current : MemberId, IsAdmin
 current --> handler : The signed-in member, if any
 handler -> entity : IsVisibleTo(memberId, isAdmin)
 alt approved, or the caller posted it, or the caller is an admin
   entity --> handler : true
-  handler -> handler : Project ListingDetailDto: names and verified marks only,\nno email address, phone number or street address\n(L2-008 criterion 5)
+  handler -> handler : Project ListingDetailDto: names and verified marks only,\nno email address, phone number or street address\n(L2-008 criterion 5); distance from the place\nin whole km (L2-035 criterion 3)
   handler --> controller : ListingDetailDto
   controller --> client : 200 OK
   client --> page : ListingDetail
-  page --> actor : Photos, title, space or thing, price, when, area, note\n(L2-007 criteria 1 and 2); who posted and their church,\neach "Verified" when verified (L2-008 criteria 1 to 4)
+  page --> actor : Header; "All listings", Share and Report (L2-007 criterion 7)
+  alt a listing for rent
+    page --> actor : Photos, title, space or thing, when, area and distance,\n"Posted 2 days ago", note (L2-007 criteria 1 and 6)
+  else a wanted listing
+    page --> actor : A blue panel reading "Wanted", space or thing, title\nand when; area and distance, "Posted 2 days ago", note\n(L2-007 criteria 2, 6 and 8)
+  end
+  page --> actor : Who posted: initials, name, church, "member since 2023",\neach "Verified" when verified (L2-008 criteria 1 to 4 and 6);\nthe price at the head of the message box
 else not approved, removed, or does not exist
   entity --> handler : false, or no listing
   handler --> controller : ListingNotFoundException

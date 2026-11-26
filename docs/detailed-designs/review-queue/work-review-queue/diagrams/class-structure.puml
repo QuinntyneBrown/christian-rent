@@ -17,20 +17,29 @@ package "Frontend" {
   interface ReviewQueueApi <<contract, api>> {
     +list(page: number): Page<ReviewItemSummary>
     +get(itemId: string): ReviewItemDetail
+    +summary(): ReviewQueueSummary
   }
   class ReviewItemSummary <<type, api>> {
     +id: string
     +kind: ReviewItemKind
     +title: string
+    +offer: ListingOffer
+    +firstPhotoUrl: string | null
+    +postedBy: string
     +createdAt: string
   }
   class ReviewItemDetail <<type, api>> {
     +id: string
     +kind: ReviewItemKind
-    +listing: ListingDetail | null
-    +reportReason: ReportReason | null
-    +memberName: string | null
-    +churchName: string | null
+    +listing: ListingDetail
+    +memberJoinedAt: string
+    +reportCount: number | null
+    +reportWords: string | null
+  }
+  class ReviewQueueSummary <<type, api>> {
+    +waiting: number
+    +medianWaitMinutes: number | null
+    +approvedThisWeek: number
   }
   class "Page<T>" as Page <<type, api>> {
     +items: T[]
@@ -40,12 +49,17 @@ package "Frontend" {
   class ReviewQueueStore <<service, admin>> {
     +items: Signal<ReviewItemSummary[]>
     +selected: Signal<ReviewItemDetail | null>
+    +summary: Signal<ReviewQueueSummary | null>
     +state: Signal<loading | ready | empty | failed>
     +loadNext(): void
     +select(itemId: string): void
     +remove(itemId: string): void
   }
   class AdminPage <<page, admin>>
+  class AdminNav <<component, admin>> {
+    +waiting: number
+    +current: string
+  }
   class ReviewQueueList <<component, admin>> {
     +items: ReviewItemSummary[]
     +selectedId: string | null
@@ -61,6 +75,7 @@ package "Backend" {
   class ReviewQueueController {
     +List(page: int, pageSize: int): Task<IActionResult>
     +Get(id: Guid): Task<IActionResult>
+    +Summary(): Task<IActionResult>
   }
   class GetReviewQueueQuery {
     +int Page
@@ -71,11 +86,12 @@ package "Backend" {
     +Guid ReviewItemId
   }
   class GetReviewItemQueryHandler
+  class GetReviewQueueSummaryQuery
+  class GetReviewQueueSummaryQueryHandler
   class ReviewItem {
     +Guid Id
     +ReviewItemKind Kind
     +Guid? ListingId
-    +Guid? ReportId
     +Guid? MemberId
     +DateTimeOffset CreatedAt
     +DateTimeOffset? DecidedAt
@@ -86,25 +102,32 @@ package "Backend" {
     NewMember
   }
   class Listing
-  class Report
+  class Report {
+    +Guid ReviewItemId
+  }
   class Member
 }
 
 AdminPage ..> ReviewQueueStore : reads
+AdminPage --> AdminNav : binds
 AdminPage --> ReviewQueueList : binds
 AdminPage --> ReviewDetailPanel : binds
 ReviewQueueStore ..> ReviewQueueApi : loads through
 ReviewQueueApi ..> Page : returns
 ReviewQueueApi ..> ReviewItemSummary : returns
 ReviewQueueApi ..> ReviewItemDetail : returns
+ReviewQueueApi ..> ReviewQueueSummary : returns
 ReviewQueueController ..> GetReviewQueueQuery : sends
 ReviewQueueController ..> GetReviewItemQuery : sends
+ReviewQueueController ..> GetReviewQueueSummaryQuery : sends
+GetReviewQueueSummaryQueryHandler ..> GetReviewQueueSummaryQuery : handles
+GetReviewQueueSummaryQueryHandler --> ReviewItem : reads
 GetReviewQueueQueryHandler ..> GetReviewQueueQuery : handles
 GetReviewItemQueryHandler ..> GetReviewItemQuery : handles
 GetReviewQueueQueryHandler --> ReviewItem : reads
 GetReviewItemQueryHandler --> ReviewItem : reads
 ReviewItem --> ReviewItemKind : has
-ReviewItem "0..1" --> "0..1" Listing : new listing
-ReviewItem "0..1" --> "0..1" Report : report
+ReviewItem "*" --> "0..1" Listing : new or reported listing
+Report "1..*" --> "1" ReviewItem : open reports on one listing
 ReviewItem "0..1" --> "0..1" Member : new member
 @enduml

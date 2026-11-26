@@ -54,8 +54,9 @@ in that order, before any code.
 - **Type:** Bricolage Grotesque for headlines and Instrument Sans for body text.
 - **Phone:** one column. Admin shows only the queue; its detail panel and buttons appear from
   tablet width up.
-- **Tablet and desktop:** Listing puts the message box to the right of the listing, Post puts
-  the live preview beside the form, and Admin puts the detail panel beside the queue.
+- **Tablet and desktop:** from 768 px Admin puts the detail panel beside the queue; from 1024 px
+  Listing puts the message box to the right of the listing and Post puts the live preview beside
+  the form. The breakpoints are the prototype's: 640, 768, 1024 and 1280 px.
 
 Before a screen is built or changed, its states are drawn in `docs/mocks/`. The prototype's
 sample listings (Langley and the Fraser Valley, their prices and their people) are the cast, not

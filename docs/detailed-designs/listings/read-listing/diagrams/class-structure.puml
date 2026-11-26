@@ -19,9 +19,11 @@ package "Frontend — api library" {
     +offer: ListingOffer
     +kind: ListingKind
     +title: string
-    +price: Price | null
-    +when: When | null
+    +price: Price
+    +when: string | null
     +area: string
+    +distanceKm: number
+    +postedAt: string
     +note: string | null
     +photos: PhotoRef[]
     +postedBy: PostedBy
@@ -31,15 +33,11 @@ package "Frontend — api library" {
   }
   class Price {
     +amount: number
-    +period: PricePeriod | null
-  }
-  class When {
-    +text: string | null
-    +start: string | null
-    +end: string | null
+    +period: PricePeriod
   }
   class PostedBy {
     +name: string
+    +memberSince: number
     +verified: boolean
   }
   class ChurchRef {
@@ -53,7 +51,7 @@ package "Frontend — api library" {
     +height: number
   }
   interface ListingsApi {
-    +get(id: string, signal: AbortSignal): Promise<ListingDetail>
+    +get(id: string, place: Place, signal: AbortSignal): Promise<ListingDetail>
   }
   class ApiError {
     +code: string
@@ -69,6 +67,7 @@ package "Frontend — rent application" {
 package "Backend — Application" {
   class GetListingQuery {
     +Guid Id
+    +PlaceRef Place
   }
   class GetListingQueryHandler {
     +Handle(query: GetListingQuery): Task<ListingDetailDto>
@@ -76,7 +75,11 @@ package "Backend — Application" {
   class ListingDetailDto {
     +Guid Id
     +string Title
+    +PriceDto Price
+    +string? When
     +string Area
+    +int DistanceKm
+    +DateTimeOffset PostedAt
     +string? Note
     +PostedByDto PostedBy
     +ChurchRefDto Church
@@ -100,8 +103,10 @@ package "Backend — Domain" {
     +ListingKind Kind
     +ListingStatus Status
     +string Title
+    +string? When
     +string Area
     +string? Note
+    +DateTimeOffset PostedAt
     +IsVisibleTo(memberId: Guid?, isAdmin: bool): bool
   }
   class Photo {
@@ -111,6 +116,7 @@ package "Backend — Domain" {
   class Member {
     +Guid Id
     +string Name
+    +DateTimeOffset JoinedAt
     +bool Verified
   }
   class Church {
@@ -128,7 +134,6 @@ ListingPage ..> ListingsApi : requests
 ListingsApi ..> ListingDetail : returns
 ListingsApi ..> ApiError : refuses with
 ListingDetail *-- Price
-ListingDetail *-- When
 ListingDetail *-- PostedBy
 ListingDetail *-- ChurchRef
 ListingDetail *-- "0..6" PhotoRef

@@ -57,7 +57,7 @@ alt a name, a church or the declaration is missing, or a name is too long (L2-01
 else the entry is valid
   page -> client : join(request)
   client -> controller : POST /members
-  controller -> controller : Identify the person (sign-in <TO SUPPLY>)
+  controller -> controller : Identify the person (sign-in <TO SUPPLY>; whether open to a person not yet a member <TO SUPPLY>)
   controller -> validator : Send JoinCommand
   validator -> validator : Apply L2-017 criteria 1 and 6 again
   validator -> handler : Valid command
@@ -72,7 +72,7 @@ else the entry is valid
       handler -> handler : Create Church, not verified
     end
     handler -> handler : Create Member, not verified (L2-017 criterion 3)
-    handler -> handler : Create ReviewItem of kind NewMember
+    handler -> handler : Create ReviewItem of kind NewMember; none for the church (L2-018 criterion 6)
     handler -> db : Save church, member and review item in one unit of work
     db --> handler : Commit result
     handler --> controller : Member

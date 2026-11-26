@@ -33,7 +33,7 @@ end box
 box "Backend — ChristianRent.Infrastructure" #FFF4E5
   database "Database" as db
 end box
-actor -> panel : Select Approve or Remove on a new member
+actor -> panel : Select Approve or Remove on a "New member" item, shown through the listing that member posted
 panel -> page : decide(item, outcome)
 page -> client : decide(itemId, outcome)
 client -> controller : POST /review-queue/{id}/decision
@@ -47,6 +47,7 @@ else the caller is an admin
   alt Approve (L2-018 criterion 1)
     handler -> member : Verify()
     member --> handler : IsVerified = true
+    handler -> handler : Whether the listing shown is approved as well is <TO SUPPLY>
   else Remove (L2-018 criterion 4)
     handler -> member : Remove(now)
     member --> handler : RemovedAt set; the member can no longer sign in, post or message
@@ -59,9 +60,11 @@ else the caller is an admin
   controller --> client : 200
 end
 client --> page : Result, or ApiError
-page --> actor : The new member leaves the queue
+page --> actor : The item leaves the queue and the item that takes its place is selected (L2-019 criterion 8)
 note over db
   No listing is rewritten on Approve: each listing reads Member.IsVerified
   when it is shown, so the mark appears on all the member's listings.
+  A member approved earlier is removed by RemoveMemberCommandHandler,
+  sent from Admin's Members section (<TO SUPPLY>), with the Remove branch above.
 end note
 @enduml

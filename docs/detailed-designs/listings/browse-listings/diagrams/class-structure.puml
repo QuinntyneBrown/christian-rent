@@ -27,16 +27,29 @@ package "Frontend — api library" {
     +offer: ListingOffer
     +kind: ListingKind
     +title: string
-    +price: Price | null
+    +price: Price
+    +when: string | null
     +area: string
+    +distanceKm: number
+    +churchName: string
+    +postedByName: string | null
     +photo: PhotoRef | null
+  }
+  class OfferCounts {
+    +everything: number
+    +forRent: number
+    +wanted: number
+  }
+  class BrowseResult {
+    +page: Page<ListingSummary>
+    +counts: OfferCounts | null
   }
   class "Page<T>" as Page {
     +items: T[]
     +nextCursor: string | null
   }
   interface ListingsApi {
-    +browse(query: SearchQuery, cursor: string | null, signal: AbortSignal): Promise<Page<ListingSummary>>
+    +browse(query: SearchQuery, cursor: string | null, signal: AbortSignal): Promise<BrowseResult>
   }
   class ApiError {
     +code: string
@@ -46,9 +59,15 @@ package "Frontend — domain library" {
   class SearchQuery {
     +term: string
     +offer: ListingOffer | null
+    +kind: ListingKind | null
+    +place: Place
+  }
+  class Place {
+    +name: string
   }
   class BrowseStore {
     +listings: Signal<ListingSummary[]>
+    +counts: Signal<OfferCounts | null>
     +status: Signal<BrowseStatus>
     +hasMore: Signal<boolean>
     +open(query: SearchQuery): void
@@ -67,13 +86,16 @@ package "Frontend — rent application" {
   class BrowsePage {
     +query: Signal<SearchQuery>
     +selectOffer(offer: ListingOffer | null): void
+    +selectKind(kind: ListingKind | null): void
     +reachEnd(): void
   }
 }
 package "Backend — ChristianRent.Application" {
   class BrowseListingsQuery {
     +ListingOffer? Offer
+    +ListingKind? Kind
     +string? Term
+    +PlaceRef Place
     +string? Cursor
     +int PageSize
   }
@@ -81,16 +103,24 @@ package "Backend — ChristianRent.Application" {
     +Validate(query: BrowseListingsQuery): ValidationResult
   }
   class BrowseListingsQueryHandler {
-    +Handle(query: BrowseListingsQuery): Task<PageDto<ListingSummaryDto>>
+    +Handle(query: BrowseListingsQuery): Task<BrowseResultDto>
   }
   class ListingSummaryDto {
     +Guid Id
     +ListingOffer Offer
     +ListingKind Kind
     +string Title
-    +PriceDto? Price
+    +PriceDto Price
+    +string? When
     +string Area
+    +int DistanceKm
+    +string ChurchName
+    +string? PostedByName
     +PhotoRefDto? Photo
+  }
+  class BrowseResultDto {
+    +PageDto<ListingSummaryDto> Page
+    +OfferCountsDto? Counts
   }
   interface IAppDbContext {
     +Listings: DbSet<Listing>
@@ -104,6 +134,12 @@ package "Backend — ChristianRent.Domain" {
     +ListingStatus Status
     +string Title
     +string Area
+    +string? When
+  }
+  class BrowseRadius {
+    +{static} int Km = 25
+    +{static} DistanceKm(place: PlaceRef, area: string): int
+    +{static} IsWithin(place: PlaceRef, area: string): bool
   }
   enum ListingStatus {
     WaitingForReview
@@ -117,7 +153,11 @@ BrowseStore ..> ListingsApi : requests pages
 BrowseStore ..> SearchQuery
 BrowseStore --> BrowseStatus : has
 BrowseStore o-- "0..*" ListingSummary : windowed buffer
-ListingsApi ..> Page : returns
+ListingsApi ..> BrowseResult : returns
+BrowseResult *-- Page
+BrowseResult *-- OfferCounts
+SearchQuery --> Place : is centred on
+BrowseStore ..> OfferCounts : holds
 ListingsApi ..> ApiError : refuses with
 Page o-- ListingSummary
 ListingSummary --> ListingOffer
@@ -125,7 +165,9 @@ ListingSummary --> ListingKind
 BrowseListingsQueryValidator ..> BrowseListingsQuery : validates
 BrowseListingsQueryHandler ..> BrowseListingsQuery : handles
 BrowseListingsQueryHandler ..> IAppDbContext : reads
-BrowseListingsQueryHandler ..> ListingSummaryDto : returns a page of
+BrowseListingsQueryHandler ..> BrowseResultDto : returns
+BrowseResultDto o-- ListingSummaryDto : a page of
+BrowseListingsQueryHandler ..> BrowseRadius : applies
 IAppDbContext --> Listing
 Listing --> ListingStatus : has
 @enduml
