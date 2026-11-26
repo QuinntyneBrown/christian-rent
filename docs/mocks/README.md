@@ -145,17 +145,24 @@ Legend: ✅ mock exists · ➖ not applicable (reason in manifest) · ❌ missin
 
 ### Dialogs
 
-| Screen | default | busy | invalid | failed | success | already | new-church | Requirements |
-|---|---|---|---|---|---|---|---|---|
-| Report a listing (`report-listing`) | [✅](dialogs/report-listing/default.html) | [✅](dialogs/report-listing/busy.html) | [✅](dialogs/report-listing/invalid.html) | [✅](dialogs/report-listing/failed.html) | [✅](dialogs/report-listing/success.html) | [✅](dialogs/report-listing/already.html) |  | `L2-021` |
-| Confirm Remove (`confirm-remove`) | [✅](dialogs/confirm-remove/default.html) | [✅](dialogs/confirm-remove/busy.html) | ➖ | [✅](dialogs/confirm-remove/failed.html) |  |  |  | `L2-020` |
-| Become a member (`join`) | [✅](dialogs/join/default.html) | [✅](dialogs/join/busy.html) | [✅](dialogs/join/invalid.html) | [✅](dialogs/join/failed.html) |  |  | [✅](dialogs/join/new-church.html) | `L2-009`, `L2-015`, `L2-017`, `L2-021` |
+| Screen | default | busy | invalid | failed | success | already | new-church | churches-failed | Requirements |
+|---|---|---|---|---|---|---|---|---|---|
+| Report a listing (`report-listing`) | [✅](dialogs/report-listing/default.html) | [✅](dialogs/report-listing/busy.html) | [✅](dialogs/report-listing/invalid.html) | [✅](dialogs/report-listing/failed.html) | [✅](dialogs/report-listing/success.html) | [✅](dialogs/report-listing/already.html) |  |  | `L2-021` |
+| Confirm Remove (`confirm-remove`) | [✅](dialogs/confirm-remove/default.html) | [✅](dialogs/confirm-remove/busy.html) | ➖ | [✅](dialogs/confirm-remove/failed.html) |  |  |  |  | `L2-020` |
+| Become a member (`join`) | [✅](dialogs/join/default.html) | [✅](dialogs/join/busy.html) | [✅](dialogs/join/invalid.html) | [✅](dialogs/join/failed.html) |  |  | [✅](dialogs/join/new-church.html) | [✅](dialogs/join/churches-failed.html) | `L2-009`, `L2-015`, `L2-017`, `L2-021` |
 
 ### Notifications
 
 | Screen | info | success | warning | danger | stacked | default | Requirements |
 |---|---|---|---|---|---|---|---|
 | Review toast (`review-toast`) | [✅](notifications/review-toast/info.html) | [✅](notifications/review-toast/success.html) | [✅](notifications/review-toast/warning.html) | [✅](notifications/review-toast/danger.html) | [✅](notifications/review-toast/stacked.html) |  | `L2-019`, `L2-020` |
-| Error toast (`error-toast`) |  |  |  |  |  | [✅](notifications/error-toast/default.html) | `L2-032`, `L2-033` |
+| Error toast (`error-toast`) | ➖ | ➖ | ➖ | ➖ |  | [✅](notifications/error-toast/default.html) | `L2-032`, `L2-033` |
 
 <!-- coverage:end -->
+9. **Joining.** `dialogs/join` asks only for the name, the church and the declaration. Its title names
+   what the person was doing ("Become a member to post", "… to send a message", "… to report"),
+   and `churches-failed.html` draws the church field when the list of churches cannot be loaded
+   (L2-017, criteria 12 and 13; ADR 0018). In the mocks a dialog's title is the page's `h1`, because the
+   page behind it is drawn inert; in the app it is an `h2` over the screen's own `h1`, as the
+   design system's dialog page says. The heading and its description use `dialog__heading` and
+   `dialog__description` rather than inline styles.
