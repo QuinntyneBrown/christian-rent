@@ -3,9 +3,12 @@ import {
   type ApiError,
   LISTINGS_API,
   type ListingCard,
+  type ListingCounts,
   type ListingsApi,
+  type ListingsFilter,
   type ListingsPage,
 } from '@rent/api';
+import { BrowseQuery } from '@rent/domain';
 import { BrowseStore, SKELETON_DELAY_MS } from './browse-store';
 
 const unreachable: ApiError = { status: 0, code: null, retryAt: null, fields: null };
@@ -26,25 +29,32 @@ function card(id: string): ListingCard {
   };
 }
 
-function pageOf(ids: string[], nextCursor: string | null = null): ListingsPage {
-  return {
-    items: ids.map(card),
-    nextCursor,
-    counts: { everything: ids.length, forRent: ids.length, wanted: 0 },
-  };
+function pageOf(
+  ids: string[],
+  nextCursor: string | null = null,
+  counts: ListingCounts = { everything: ids.length, forRent: ids.length, wanted: 0 },
+): ListingsPage {
+  return { items: ids.map(card), nextCursor, counts };
 }
 
 /** A ListingsApi whose answers a test gives one at a time. */
 class FakeListingsApi implements ListingsApi {
   readonly calls: {
+    filter: ListingsFilter;
     cursor: string | null;
     signal: AbortSignal;
     resolve: (page: ListingsPage) => void;
     reject: (error: unknown) => void;
   }[] = [];
 
-  browse(cursor: string | null, signal: AbortSignal): Promise<ListingsPage> {
-    return new Promise((resolve, reject) => this.calls.push({ cursor, signal, resolve, reject }));
+  browse(
+    filter: ListingsFilter,
+    cursor: string | null,
+    signal: AbortSignal,
+  ): Promise<ListingsPage> {
+    return new Promise((resolve, reject) =>
+      this.calls.push({ filter, cursor, signal, resolve, reject }),
+    );
   }
 }
 
@@ -222,5 +232,108 @@ describe('BrowseStore, further down the list', () => {
     TestBed.resetTestingModule();
 
     expect(api.calls[1]!.signal.aborted).toBe(true);
+  });
+});
+
+describe('BrowseStore, narrowed by the switch', () => {
+  let api: FakeListingsApi;
+  let store: BrowseStore;
+  const counts: ListingCounts = { everything: 7, forRent: 4, wanted: 3 };
+
+  beforeEach(() => {
+    api = new FakeListingsApi();
+    TestBed.configureTestingModule({
+      providers: [BrowseStore, { provide: LISTINGS_API, useValue: api }],
+    });
+    store = TestBed.inject(BrowseStore);
+  });
+
+  async function settle(): Promise<void> {
+    await Promise.resolve();
+    await Promise.resolve();
+  }
+
+  // L2-002 criteria 2 and 3.
+  it('asks for the first page of the query’s choice at once', () => {
+    store.search(new BrowseQuery().withOffer('for-rent'));
+
+    expect(api.calls).toHaveLength(1);
+    expect(api.calls[0]!.filter).toEqual({ offer: 'for-rent', kind: null, term: '' });
+    expect(api.calls[0]!.cursor).toBeNull();
+  });
+
+  // L2-002 criterion 6: what each option holds, and nothing while loading or failed.
+  it('holds the counts of the page, and none while it loads or after it failed', async () => {
+    store.search(new BrowseQuery());
+    expect(store.counts()).toBeNull();
+
+    api.calls[0]!.resolve(pageOf(['a'], null, counts));
+    await settle();
+    expect(store.counts()).toEqual(counts);
+
+    store.search(new BrowseQuery().withOffer('wanted'));
+    expect(store.counts()).toBeNull();
+    api.calls[1]!.reject(unreachable);
+    await settle();
+
+    expect(store.state()).toBe('failed');
+    expect(store.counts()).toBeNull();
+  });
+
+  // L2-001 criterion 10, as the mocks word it for each option of the switch.
+  it.each([
+    [new BrowseQuery(), counts, '7 listings'],
+    [new BrowseQuery().withOffer('for-rent'), counts, '4 listings for rent'],
+    [new BrowseQuery().withOffer('for-rent'), { ...counts, forRent: 1 }, '1 listing for rent'],
+    [new BrowseQuery().withOffer('wanted'), counts, '3 wanted listings'],
+    [new BrowseQuery().withOffer('wanted'), { ...counts, wanted: 1 }, '1 wanted listing'],
+  ])('announces %o with %o as “%s”', async (query, pageCounts, announcement) => {
+    store.search(query);
+    api.calls[0]!.resolve(pageOf(['a'], null, pageCounts));
+    await settle();
+
+    expect(store.announcement()).toBe(announcement);
+  });
+
+  // L2-003 criterion 3: a later choice is never replaced by an earlier one.
+  it('aborts the request in flight when the choice changes', async () => {
+    store.search(new BrowseQuery());
+    store.search(new BrowseQuery().withOffer('wanted'));
+
+    expect(api.calls[0]!.signal.aborted).toBe(true);
+    api.calls[1]!.resolve(pageOf(['w'], null, counts));
+    api.calls[0]!.resolve(pageOf(['a'], null, counts));
+    await settle();
+
+    expect(store.cards().map((view) => view.href)).toEqual(['/listings/w']);
+  });
+
+  it('does not ask again for the choice it shows or awaits', () => {
+    store.search(new BrowseQuery().withOffer('wanted'));
+    store.search(new BrowseQuery().withOffer('wanted'));
+
+    expect(api.calls).toHaveLength(1);
+  });
+
+  // L2-006 with L2-002: a further page keeps the choice.
+  it('asks for further pages with the same choice', async () => {
+    store.search(new BrowseQuery().withOffer('wanted'));
+    api.calls[0]!.resolve(pageOf(['a'], 'c2', counts));
+    await settle();
+
+    void store.loadMore('down', () => 0);
+
+    expect(api.calls[1]!.filter.offer).toBe('wanted');
+    expect(api.calls[1]!.cursor).toBe('c2');
+  });
+
+  it('asks again for the choice it shows when Try again is pressed', async () => {
+    store.search(new BrowseQuery().withOffer('wanted'));
+    api.calls[0]!.reject(unreachable);
+    await settle();
+
+    void store.loadFirst();
+
+    expect(api.calls[1]!.filter.offer).toBe('wanted');
   });
 });

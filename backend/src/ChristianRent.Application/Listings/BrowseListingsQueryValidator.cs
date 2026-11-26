@@ -3,8 +3,9 @@ using FluentValidation;
 namespace ChristianRent.Application.Listings;
 
 /// <summary>
-/// A page holds 1 to 50 listings (L2-030, criterion 3), and a cursor is one the API gave
-/// (ADR 0013). Each refusal carries the code a client branches on.
+/// A page holds 1 to 50 listings (L2-030, criterion 3), a cursor is one the API gave
+/// (ADR 0013), and the switch is one of its options (ADR 0015). Each refusal carries the code a
+/// client branches on.
 /// </summary>
 internal sealed class BrowseListingsQueryValidator : AbstractValidator<BrowseListingsQuery>
 {
@@ -19,5 +20,10 @@ internal sealed class BrowseListingsQueryValidator : AbstractValidator<BrowseLis
             .Must(cursor => cursor is null || ListingCursor.TryDecode(cursor, out _))
             .WithErrorCode("cursor_invalid")
             .WithMessage("The cursor is not one this API gave.");
+
+        RuleFor(query => query.Show)
+            .Must(show => show is null || ListingWords.OfferOf(show) is not null)
+            .WithErrorCode("show_invalid")
+            .WithMessage("Show is for-rent or wanted.");
     }
 }

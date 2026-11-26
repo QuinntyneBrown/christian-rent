@@ -7,6 +7,9 @@
   >
     <ng-container *ngTemplateOutlet="postingButtons" />
   </cr-hero>
+  <div class="filters">
+    <cr-segmented label="Show" [options]="switchOptions()" />
+  </div>
   <p class="visually-hidden" role="status" aria-live="polite">{{ store.announcement() }}</p>
   @switch (store.state()) {
     @case ('loading') {

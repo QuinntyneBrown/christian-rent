@@ -14,8 +14,15 @@ internal sealed class BrowseListingsQueryHandler(IAppDbContext database) : IRequ
 {
     public async Task<ListingsPageDto> Handle(BrowseListingsQuery query, CancellationToken cancellationToken)
     {
+        var listings = PublicListings.Of(database);
+        var counted = listings;
+        if (ListingWords.OfferOf(query.Show) is { } offer)
+        {
+            listings = listings.Where(listing => listing.Offer == offer);
+        }
+
         var cards =
-            from listing in PublicListings.Of(database)
+            from listing in listings
             join member in database.Members on listing.MemberId equals member.Id
             join church in database.Churches on member.ChurchId equals church.Id
             select new { listing, member.Name, ChurchName = church.Name };
@@ -76,12 +83,13 @@ internal sealed class BrowseListingsQueryHandler(IAppDbContext database) : IRequ
                     : null))
             .ToList();
 
-        return new ListingsPageDto(items, nextCursor, await CountAsync(cancellationToken));
+        return new ListingsPageDto(items, nextCursor, await CountAsync(counted, cancellationToken));
     }
 
-    private async Task<ListingCountsDto> CountAsync(CancellationToken cancellationToken)
+    /// <summary>What each option of the switch holds, whatever the switch shows (L2-002, criterion 6).</summary>
+    private static async Task<ListingCountsDto> CountAsync(IQueryable<Listing> listings, CancellationToken cancellationToken)
     {
-        var counts = await PublicListings.Of(database)
+        var counts = await listings
             .GroupBy(listing => listing.Offer)
             .Select(group => new { Offer = group.Key, Count = group.Count() })
             .ToListAsync(cancellationToken);

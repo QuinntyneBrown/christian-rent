@@ -165,3 +165,26 @@ export function answerPhotos(api: ApiFixtures): void {
 export function answerNoListings(api: ApiFixtures): void {
   api.answer('GET', '/api/listings', { body: page([]) });
 }
+
+/**
+ * Answers `GET /api/listings` as the API would from `listings`: narrowed by `show`, `kind` and
+ * every word of `q` (in the title, area and note), with the counts for the term and the kind.
+ * The fixture stands in for the backend; the matching rule itself is proved there.
+ */
+export function answerListings(
+  api: ApiFixtures,
+  listings: ListingCardFixture[],
+  notes: Record<string, string> = {},
+): void {
+  api.answer('GET', '/api/listings', (url) => {
+    const show = url.searchParams.get('show');
+    const kind = url.searchParams.get('kind');
+    const words = (url.searchParams.get('q') ?? '').toLowerCase().split(/\s+/).filter(Boolean);
+    const matching = listings.filter((listing) => {
+      const text = `${listing.title} ${notes[listing.title] ?? ''} ${listing.area}`.toLowerCase();
+      return (!kind || listing.kind === kind) && words.every((word) => text.includes(word));
+    });
+    const shown = matching.filter((listing) => !show || listing.offer === show);
+    return { body: page(shown, null, page(matching).counts) };
+  });
+}

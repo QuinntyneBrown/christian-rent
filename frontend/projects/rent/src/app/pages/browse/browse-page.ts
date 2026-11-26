@@ -6,11 +6,13 @@ import {
   ElementRef,
   Injector,
   afterNextRender,
+  computed,
   effect,
   inject,
   viewChild,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SESSION } from '@rent/api';
 import {
   Button,
@@ -20,20 +22,31 @@ import {
   Icon,
   ListingCard,
   ListingGrid,
+  Segmented,
+  type SegmentedOption,
   SiteHeader,
 } from '@rent/components';
+import { type BrowseOffer, BrowseQuery, formatCount } from '@rent/domain';
 import { BrowseStore } from './browse-store';
 
 /** How far beyond the viewport a sentinel starts a request, so a page is there before it is reached. */
 const LOOK_AHEAD = '1200px 0px';
 
+/** The switch's options, in order, with the words each shows. */
+const SWITCH: readonly { offer: BrowseOffer; label: string }[] = [
+  { offer: 'everything', label: 'Everything' },
+  { offer: 'for-rent', label: 'For rent' },
+  { offer: 'wanted', label: 'Wanted' },
+];
+
 /**
- * Browse, the home screen (browse-listings design): the headline with the two buttons that lead
- * to posting, and approved listings, newest first, loaded a page at a time as the person reaches
- * the end of the list (L2-006). One `IntersectionObserver` watches a sentinel above and below the
- * cards; the pages released from memory leave spacers of their height (ADR 0013). Leaving Browse
- * disconnects the observer, and the store aborts its request. Search-and-filter adds the search
- * bar and the switch.
+ * Browse, the home screen (browse-listings and search-and-filter designs): the headline with
+ * the two buttons that lead to posting, the switch, and approved listings, newest first, loaded
+ * a page at a time as the person reaches the end of the list (L2-006). The address is the
+ * single source of the choice: the page reads a `BrowseQuery` from its query parameters and the
+ * store shows it (L2-002, criterion 5; ADR 0015). One `IntersectionObserver` watches a sentinel
+ * above and below the cards; the pages released from memory leave spacers of their height
+ * (ADR 0013). Leaving Browse disconnects the observer, and the store aborts its request.
  */
 @Component({
   selector: 'cr-browse-page',
@@ -47,6 +60,7 @@ const LOOK_AHEAD = '1200px 0px';
     ListingGrid,
     NgTemplateOutlet,
     RouterLink,
+    Segmented,
     SiteHeader,
   ],
   providers: [BrowseStore],
@@ -64,6 +78,29 @@ export class BrowsePage {
   /** Eight skeleton cards: two rows at the widest, enough to fill a phone (L2-033, criterion 1). */
   protected readonly skeletons = Array.from({ length: 8 });
 
+  private readonly params = toSignal(inject(ActivatedRoute).queryParamMap, { requireSync: true });
+  /** The choice the address holds. */
+  protected readonly query = computed(() => BrowseQuery.fromParams(this.params()));
+  /** The switch: each option leads to its choice, with the others kept (L2-002, criterion 4). */
+  protected readonly switchOptions = computed<SegmentedOption[]>(() => {
+    const query = this.query();
+    const counts = this.store.counts();
+    const held: Record<BrowseOffer, number | undefined> = {
+      everything: counts?.everything,
+      'for-rent': counts?.forRent,
+      wanted: counts?.wanted,
+    };
+    return SWITCH.map(({ offer, label }) => {
+      const count = held[offer];
+      return {
+        label,
+        queryParams: query.withOffer(offer).toParams(),
+        current: query.offer === offer,
+        count: count === undefined ? null : formatCount(count),
+      };
+    });
+  });
+
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private readonly injector = inject(Injector);
   private readonly top = viewChild<ElementRef<HTMLElement>>('top');
@@ -71,7 +108,7 @@ export class BrowsePage {
   private observer: IntersectionObserver | null = null;
 
   constructor() {
-    void this.store.loadFirst();
+    effect(() => this.store.search(this.query()));
 
     afterNextRender(() => {
       this.observer = new IntersectionObserver((entries) => this.reached(entries), {

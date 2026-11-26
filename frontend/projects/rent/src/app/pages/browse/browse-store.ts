@@ -1,6 +1,12 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
-import { LISTINGS_API, type ListingCardView, isApiError } from '@rent/api';
-import { ListingWindow, type PageRequest, type WindowPage, toListingCardView } from '@rent/domain';
+import { LISTINGS_API, type ListingCardView, type ListingCounts, isApiError } from '@rent/api';
+import {
+  BrowseQuery,
+  ListingWindow,
+  type PageRequest,
+  type WindowPage,
+  toListingCardView,
+} from '@rent/domain';
 
 /** Where the first page is (L2-033). */
 export type BrowseState = 'loading' | 'loaded' | 'empty' | 'failed';
@@ -18,10 +24,12 @@ export const WINDOW_PAGES = 3;
 export type MeasurePage = (index: number) => number;
 
 /**
- * Browse's state, provided by the page and gone when the person leaves it (browse-listings
- * design). The cards live in a `ListingWindow`, so memory stays bounded however far the list
- * goes (L2-030, criterion 4). Leaving aborts the request in flight and clears the skeleton's
- * timer.
+ * Browse's state, provided by the page and gone when the person leaves it (browse-listings and
+ * search-and-filter designs). The cards live in a `ListingWindow`, so memory stays bounded
+ * however far the list goes (L2-030, criterion 4). `search` shows the listings of a
+ * `BrowseQuery`; a newer query aborts the request of an earlier one, so an earlier answer never
+ * replaces a later one (L2-003, criterion 3). Leaving aborts the request in flight and clears
+ * the timers.
  */
 @Injectable()
 export class BrowseStore {
@@ -34,8 +42,11 @@ export class BrowseStore {
   private readonly _pages = signal<readonly WindowPage<ListingCardView>[]>([]);
   private readonly _before = signal(0);
   private readonly _after = signal(0);
-  private readonly _total = signal(0);
+  private readonly _counts = signal<ListingCounts | null>(null);
+  private readonly _query = signal(new BrowseQuery());
   private request: AbortController | null = null;
+  /** False until the first page has been asked for. */
+  private started = false;
   private skeletonTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly state = this._state.asReadonly();
@@ -50,6 +61,22 @@ export class BrowseStore {
   readonly after = this._after.asReadonly();
   /** True while a page released above the window can be asked for again. */
   readonly hasBefore = computed(() => this._before() > 0);
+  /** What each option of the switch holds; null while the list loads or has failed (L2-002). */
+  readonly counts = this._counts.asReadonly();
+  /** The query shown, or awaited. */
+  readonly query = this._query.asReadonly();
+  /** How many listings the chosen option of the switch holds. */
+  private readonly total = computed(() => {
+    const counts = this._counts();
+    switch (this._query().offer) {
+      case 'everything':
+        return counts?.everything ?? 0;
+      case 'for-rent':
+        return counts?.forRent ?? 0;
+      case 'wanted':
+        return counts?.wanted ?? 0;
+    }
+  });
 
   /** What the status line announces (L2-001, criterion 10; L2-006, criterion 4). */
   readonly announcement = computed(() => {
@@ -68,7 +95,7 @@ export class BrowseStore {
           // The failure is announced by its alert.
           return '';
         }
-        return this._total() === 1 ? '1 listing' : `${this._total()} listings`;
+        return this.counted(this.total());
     }
   });
 
@@ -79,8 +106,23 @@ export class BrowseStore {
     });
   }
 
-  /** Loads the first page; "Try again" calls it too. */
+  /**
+   * Shows the listings of `query`: its first page is asked for at once, and the request of an
+   * earlier query is aborted. A query that sends the request already shown or awaited is not
+   * asked again.
+   */
+  search(query: BrowseQuery): void {
+    const shown = this._query();
+    this._query.set(query);
+    if (this.started && query.equals(shown)) {
+      return;
+    }
+    void this.loadFirst();
+  }
+
+  /** Loads the first page of the query; "Try again" calls it too. */
   async loadFirst(): Promise<void> {
+    this.started = true;
     this.request?.abort();
     const request = new AbortController();
     this.request = request;
@@ -88,14 +130,15 @@ export class BrowseStore {
     this.publish();
     this._state.set('loading');
     this._moreState.set('idle');
+    this._counts.set(null);
     this._skeleton.set(false);
     this.stopSkeletonTimer();
     this.skeletonTimer = setTimeout(() => this._skeleton.set(true), SKELETON_DELAY_MS);
     try {
       const first = this.window.nextRequest('down')!;
-      const page = await this.api.browse(first.cursor, request.signal);
+      const page = await this.api.browse(this._query().filter(), first.cursor, request.signal);
       this.window.receive(first, page.items.map(toListingCardView), page.nextCursor, () => 0);
-      this._total.set(page.counts.everything);
+      this._counts.set(page.counts);
       this._state.set(page.items.length === 0 ? 'empty' : 'loaded');
       this.publish();
     } catch (error) {
@@ -129,9 +172,9 @@ export class BrowseStore {
       this._moreState.set('loading');
     }
     try {
-      const page = await this.api.browse(next.cursor, request.signal);
+      const page = await this.api.browse(this._query().filter(), next.cursor, request.signal);
       this.window.receive(next, page.items.map(toListingCardView), page.nextCursor, measure);
-      this._total.set(page.counts.everything);
+      this._counts.set(page.counts);
       this.publish();
     } catch (error) {
       this.fail(error, request, () => {
@@ -143,6 +186,19 @@ export class BrowseStore {
       if (this.request === request) {
         this.request = null;
       }
+    }
+  }
+
+  /** "7 listings", "1 listing for rent", "3 wanted listings", as the mocks word them. */
+  private counted(total: number): string {
+    const listings = total === 1 ? 'listing' : 'listings';
+    switch (this._query().offer) {
+      case 'everything':
+        return `${total} ${listings}`;
+      case 'for-rent':
+        return `${total} ${listings} for rent`;
+      case 'wanted':
+        return `${total} wanted ${listings}`;
     }
   }
 

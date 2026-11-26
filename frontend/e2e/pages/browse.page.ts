@@ -27,6 +27,10 @@ export class BrowsePage {
   /** What follows the last card while a further page loads, or after it failed. */
   readonly feedStatus: Locator;
   readonly loadMoreAgain: Locator;
+  /** The switch: Everything, For rent and Wanted, each a link with its count. */
+  readonly switch: Locator;
+  readonly switchOptions: Locator;
+  readonly switchCurrent: Locator;
 
   constructor(private readonly page: Page) {
     this.header = new SiteHeaderPart(page);
@@ -54,6 +58,33 @@ export class BrowsePage {
     this.tryAgain = this.error.getByRole('button', { name: 'Try again' });
     this.feedStatus = this.main.locator('.feed-status');
     this.loadMoreAgain = this.feedStatus.getByRole('button', { name: 'Try again' });
+    this.switch = this.main.getByRole('navigation', { name: 'Show', exact: true });
+    this.switchOptions = this.switch.locator('a.segmented__option');
+    this.switchCurrent = this.switch.locator('a.segmented__option[aria-current="true"]');
+  }
+
+  /** The switch's option named `name` ("Everything", "For rent" or "Wanted"). */
+  switchOption(name: 'Everything' | 'For rent' | 'Wanted'): Locator {
+    return this.switchOptions.filter({ hasText: new RegExp(`^${name}\\b`) });
+  }
+
+  /** The count an option of the switch shows, empty while there is none. */
+  switchCount(name: 'Everything' | 'For rent' | 'Wanted'): Locator {
+    return this.switchOption(name).locator('.segmented__count');
+  }
+
+  /** Opens Browse at an address such as `/?show=wanted`, as a reload or a shared link does. */
+  async openAt(address: string): Promise<void> {
+    await this.page.goto(address);
+  }
+
+  /** The address's query, for example `?show=for-rent`. */
+  query(): string {
+    return new URL(this.page.url()).search;
+  }
+
+  async goBack(): Promise<void> {
+    await this.page.goBack();
   }
 
   async open(): Promise<void> {
