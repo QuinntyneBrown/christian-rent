@@ -1,0 +1,55 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Enforce access and limit abuse
+
+interface ICurrentMember {
+  +Guid? MemberId
+  +bool IsMember
+  +bool IsAdmin
+}
+class HttpCurrentMember {
+  +Guid? MemberId
+  +bool IsMember
+  +bool IsAdmin
+}
+class CrossSiteRequestGuard {
+  +InvokeAsync(context: HttpContext): Task
+}
+class ProblemExceptionHandler {
+  +TryHandleAsync(context, exception, token): ValueTask<bool>
+}
+abstract class AppException {
+  +string Code
+  +int Status
+}
+class NotFoundException
+class ForbiddenException
+class ConflictException
+class LimitReachedException {
+  +DateTimeOffset RetryAt
+}
+class ApiError <<TypeScript>> {
+  +status: number
+  +code: string | null
+  +retryAt: string | null
+  +fields: Record<string, string> | null
+}
+ICurrentMember <|.. HttpCurrentMember
+AppException <|-- NotFoundException
+AppException <|-- ForbiddenException
+AppException <|-- ConflictException
+AppException <|-- LimitReachedException
+ProblemExceptionHandler ..> AppException : maps to ProblemDetails
+ApiError ..> ProblemExceptionHandler : mirrors its output
+@enduml

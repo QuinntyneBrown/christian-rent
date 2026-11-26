@@ -1,0 +1,45 @@
+@startuml
+title UML sequence behaviour — Delete a membership
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Member" as actor
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "MembersController" as ctrl
+  participant "ChristianRent.Cli" as cli
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "DeleteMembershipCommandHandler" as del
+  participant "PurgeDepartedMembersCommandHandler" as purge
+  participant "Member" as member
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+  database "File storage" as files
+end box
+actor -> ctrl : DELETE /api/members/me
+ctrl -> del : Send DeleteMembershipCommand
+del -> member : Depart(now), Status = Departed
+del -> db : Save
+del --> ctrl : Done
+ctrl --> actor : 204; listings and photos are no longer public (L2-028)
+... daily ...
+cli -> purge : Send PurgeDepartedMembersCommand
+purge -> db : Members departed longer than the configured days
+db --> purge : Members
+purge -> member : Anonymize()
+purge -> files : Delete the member's photo files
+purge -> db : Delete listings, clear sent message text, save
+purge --> cli : Count purged, within 30 days of leaving (L2-028)
+@enduml

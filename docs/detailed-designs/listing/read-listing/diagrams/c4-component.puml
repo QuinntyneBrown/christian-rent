@@ -1,0 +1,31 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Read a listing
+
+Container_Boundary(spa, "rent application (Angular workspace)") {
+  Component(page, "ListingPage", "Angular page, lazy route /listings/:id", "Lays out the listing and the aside")
+  Component(store, "ListingStore", "Route-scoped signal store", "loading, loaded, not-found, failed")
+  Component(ui, "cr-gallery, cr-wanted-panel, cr-poster, cr-verified", "components library", "Photos, poster and verified marks")
+  Component(client, "HttpListingsApi", "api library, LISTINGS_API", "Typed HTTP client")
+}
+Container_Boundary(api, "ChristianRent backend") {
+  Component(ctrl, "ListingsController", "ASP.NET Core controller", "GET /api/listings/{id}, anonymous")
+  Component(handler, "GetListingQueryHandler", "MediatR handler", "Loads and projects one listing")
+  Component(vis, "ListingVisibility", "Domain service", "Decides who can see a listing")
+  Component(pctrl, "PhotosController", "ASP.NET Core controller", "GET /api/photos/{id}")
+  Component(entity, "Listing, Member, Church", "Domain entities", "Listing, poster and church")
+}
+ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
+ContainerDb(files, "File storage", "<TO SUPPLY>", "Photo renditions")
+Rel(page, store, "Reads state")
+Rel(page, ui, "Renders")
+Rel(store, client, "get(id)")
+Rel(client, ctrl, "GET /api/listings/{id}", "JSON/HTTPS")
+Rel(ui, pctrl, "Loads photo renditions", "HTTPS")
+Rel(ctrl, handler, "Sends GetListingQuery")
+Rel(handler, vis, "CanBeSeenBy(listing, caller)")
+Rel(handler, entity, "Projects to ListingDetailDto")
+Rel(handler, db, "Reads", "IAppDbContext")
+Rel(pctrl, files, "Streams", "IPhotoStorage")
+@enduml

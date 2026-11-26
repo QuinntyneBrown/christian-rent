@@ -1,0 +1,49 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Handle what members write and who they are
+
+class "ValidationBehavior<TRequest, TResponse>" as VB {
+  -validators: IEnumerable<IValidator<TRequest>>
+  +Handle(request, next, token): Task<TResponse>
+}
+class SecurityHeadersMiddleware {
+  +InvokeAsync(context: HttpContext): Task
+}
+class Member {
+  +string Name
+  +MemberStatus Status
+  +DateTimeOffset? DepartedAt
+  +Depart(now): void
+  +Anonymize(): void
+}
+class DeleteMembershipCommandHandler {
+  +Handle(command: DeleteMembershipCommand): Task
+}
+class PurgeDepartedMembersCommand {
+  +int OlderThanDays
+}
+class PurgeDepartedMembersCommandHandler {
+  +Handle(command: PurgeDepartedMembersCommand): Task<int>
+}
+interface IPhotoStorage {
+  +DeleteAsync(key: string): Task
+}
+class DraftStore <<TypeScript>> {
+  +restore(): ListingDraft | null
+}
+DeleteMembershipCommandHandler --> Member : Depart()
+PurgeDepartedMembersCommandHandler ..> PurgeDepartedMembersCommand : handles
+PurgeDepartedMembersCommandHandler --> Member : Anonymize()
+PurgeDepartedMembersCommandHandler ..> IPhotoStorage : deletes files
+@enduml

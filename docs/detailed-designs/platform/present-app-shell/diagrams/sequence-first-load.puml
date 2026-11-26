@@ -1,0 +1,40 @@
+@startuml
+title UML sequence behaviour — First load of Browse
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Anyone" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "Browser" as browser
+  participant "App + Router" as app
+  participant "BrowsePage chunk" as browse
+  participant "ListingPage chunk" as listing
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ChristianRent.Api" as api
+end box
+actor -> browser : Open christian.rent
+browser -> browser : Load index.html, initial bundle, tokens, two preloaded fonts
+browser -> app : Bootstrap zoneless
+app -> browse : Route '' loadComponent
+browse --> actor : Header with the wordmark, headline, skeleton cards (L2-023)
+browse -> api : GET /api/listings?size=24
+api --> browse : First page
+browse --> actor : Cards; first-row photos with priority, space reserved (L2-029)
+note over listing : Not downloaded yet (L2-029 criterion 2)
+actor -> browse : Select a card
+browse -> app : Navigate /listings/{id}
+app -> listing : loadComponent downloads the listing chunk
+listing --> actor : Listing screen, focus on its heading (L2-032)
+@enduml

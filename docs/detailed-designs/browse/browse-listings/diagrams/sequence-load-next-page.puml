@@ -1,0 +1,58 @@
+@startuml
+title UML sequence behaviour — Load the next page
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Anyone" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "BrowsePage" as page
+  participant "BrowseStore" as store
+  participant "ListingWindow" as window
+  participant "HttpListingsApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ListingsController" as ctrl
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "BrowseListingsQueryHandler" as handler
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> page : Scroll to the end of the list
+page -> store : loadMore() from IntersectionObserver
+alt moreState is done
+  store --> page : No request (L2-006 criterion 2)
+else a next cursor exists
+  store -> client : browse(query, nextCursor)
+  client -> ctrl : GET /api/listings?cursor=...&size=24
+  ctrl -> handler : Send BrowseListingsQuery
+  handler -> handler : Refuse Size above 50 (L2-030)
+  handler -> db : Keyset page after cursor
+  db --> handler : Rows
+  handler --> ctrl : ListingsPageDto
+  ctrl --> client : 200 OK
+  alt success
+    client --> store : ListingsPage
+    store -> window : append(page)
+    window -> window : Release farthest page beyond 3 (L2-030)
+    store --> page : cards updated
+    page --> actor : More cards
+  else failure
+    client --> store : ApiError
+    store --> page : moreState = failed, cards kept
+    page --> actor : Message with "Try again" under the list
+  end
+end
+@enduml

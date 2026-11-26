@@ -1,0 +1,29 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Publish a listing
+
+Container_Boundary(spa, "rent application (Angular workspace)") {
+  Component(page, "PostPage", "Angular page", "Shows the form or the confirmation")
+  Component(store, "PostStore", "Route-scoped signal store", "publish(), submitState")
+  Component(client, "HttpListingsApi", "api library, LISTINGS_API", "POST /api/listings")
+}
+Container_Boundary(api, "ChristianRent backend") {
+  Component(ctrl, "ListingsController", "ASP.NET Core controller", "POST /api/listings, member required")
+  Component(val, "PostListingCommandValidator", "FluentValidation", "The field rules of L2-010")
+  Component(handler, "PostListingCommandHandler", "MediatR handler", "Idempotency, limit, create, enqueue")
+  Component(limit, "PostingLimit", "Domain service", "10 listings in 24 hours")
+  Component(entity, "Listing", "Domain entity", "Created as WaitingForReview")
+  Component(item, "ReviewItem", "Domain entity", "Queue entry for the new listing")
+}
+ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
+Rel(page, store, "publish()")
+Rel(store, client, "post(draft)")
+Rel(client, ctrl, "POST /api/listings", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends PostListingCommand")
+Rel(handler, val, "Validated by pipeline")
+Rel(handler, limit, "Check(memberId, now)")
+Rel(handler, entity, "Listing.Post(...)")
+Rel(handler, item, "ReviewItem.ForNewListing(...)")
+Rel(handler, db, "Saves in one unit of work", "IAppDbContext")
+@enduml

@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Fail clearly and operate in production
+
+Person(anyone, "Anyone", "Browses and reads listings, signed in or not")
+Person(operator, "Operator", "Deploys and watches the system")
+System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for one")
+System_Ext(otel, "Telemetry backend", "Receives traces, metrics and logs")
+System_Ext(backup, "Backup store", "Holds daily backups")
+Rel(anyone, cr, "Browses and reads listings on")
+Rel(operator, cr, "Deploys and observes")
+Rel(cr, otel, "Exports telemetry to")
+Rel(cr, backup, "Is backed up to")
+@enduml

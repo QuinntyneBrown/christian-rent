@@ -1,0 +1,72 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Send a message about a listing
+
+class Message {
+  +Guid Id
+  +Guid ListingId
+  +Guid SenderId
+  +Guid RecipientId
+  +string Text
+  +DateOnly? StartDate
+  +DateOnly? EndDate
+  +DateTimeOffset SentAt
+  +{static} Send(listing, sender, text, dates, now): Message
+  +CanBeReadBy(memberId: Guid): bool
+}
+class SendMessageCommand {
+  +Guid ListingId
+  +string Text
+  +DateOnly? StartDate
+  +DateOnly? EndDate
+}
+class SendMessageCommandValidator {
+  +Validate(command: SendMessageCommand): ValidationResult
+}
+class SendMessageCommandHandler {
+  +Handle(command: SendMessageCommand): Task<SentMessageDto>
+}
+class MessagingLimit {
+  +{static} MaxPerHour: 20
+  +Check(senderId: Guid, now: DateTimeOffset): Task
+}
+class MessageDto {
+  +string SenderName
+  +bool SenderIsVerified
+  +string SenderChurchName
+  +bool SenderChurchIsVerified
+  +string ListingTitle
+  +DateOnly? StartDate
+  +DateOnly? EndDate
+  +string Text
+}
+class MessageComposer <<Angular>> {
+  +draft: Signal<MessageDraft>
+  +state: Signal<MessageState>
+  +send(): Promise<void>
+}
+class MessageDraft <<TypeScript>> {
+  +text: string
+  +start: string | null
+  +end: string | null
+}
+SendMessageCommandHandler ..> SendMessageCommand : handles
+SendMessageCommandValidator ..> SendMessageCommand : validates
+SendMessageCommandHandler ..> MessagingLimit : checks
+SendMessageCommandHandler --> Message : creates
+Message --> "1" Listing : about
+Message --> "2" Member : sender, recipient
+MessageDto ..> Message : projects
+MessageComposer *-- MessageDraft
+@enduml

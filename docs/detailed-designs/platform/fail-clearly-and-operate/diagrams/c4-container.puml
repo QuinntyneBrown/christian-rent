@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Fail clearly and operate in production
+
+Person(anyone, "Anyone", "Browses and reads listings, signed in or not")
+Person(operator, "Operator", "Deploys and watches the system")
+System_Boundary(cr, "christian.rent") {
+  Container(spa, "rent application", "Angular, zoneless, lazy routes", "Browse, Listing, Post and Admin screens")
+  Container(api, "ChristianRent.Api", "ASP.NET Core", "Controllers, MediatR handlers and domain rules")
+  ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Listings, members, churches, messages, reports and the review queue")
+  ContainerDb(files, "File storage", "<TO SUPPLY>", "Photo renditions")
+  Container(cli, "ChristianRent.Cli", ".NET console", "migrate, seed and maintenance commands")
+}
+System_Ext(otel, "Telemetry backend", "Receives traces, metrics and logs")
+System_Ext(backup, "Backup store", "Holds daily backups")
+Rel(anyone, spa, "Uses", "HTTPS")
+Rel(operator, api, "Probes health of", "HTTPS")
+Rel(operator, cli, "Runs")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, files, "Stores and streams photos", "IPhotoStorage")
+Rel(cli, db, "Migrates and maintains", "EF Core")
+Rel(api, otel, "Exports telemetry to")
+Rel(api, backup, "Is backed up to")
+@enduml

@@ -1,0 +1,59 @@
+@startuml
+title UML sequence behaviour — Publish a listing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Member" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "PostPage" as page
+  participant "PostStore" as store
+  participant "HttpListingsApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ListingsController" as ctrl
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "PostListingCommandHandler" as handler
+  participant "PostingLimit" as limit
+  participant "Listing" as entity
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> page : Select "Publish listing"
+page -> store : publish()
+store -> store : validate(), submitState = submitting
+store -> client : post(draft with clientRequestId)
+client -> ctrl : POST /api/listings
+ctrl -> ctrl : Require a member (L2-025)
+ctrl -> handler : Send PostListingCommand
+handler -> handler : Validate with the rules of L2-010
+handler -> db : Listing with (MemberId, ClientRequestId)
+alt already posted
+  db --> handler : Existing listing
+  handler --> ctrl : PostedListingDto of the first (L2-012 criterion 4)
+else new
+  handler -> limit : Check(memberId, now) (L2-012 criterion 6)
+  limit --> handler : Under 10 in 24 hours
+  handler -> entity : Listing.Post(...), Status = WaitingForReview
+  handler -> handler : ReviewItem.ForNewListing(...)
+  handler -> db : Save listing and review item in one unit of work
+  db --> handler : Committed
+  handler --> ctrl : PostedListingDto
+end
+ctrl --> client : 201 Created
+client --> store : Posted
+store --> page : submitState = sent
+page --> actor : "Sent for review", not public yet (L2-012 criterion 2)
+@enduml

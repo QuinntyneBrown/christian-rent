@@ -1,0 +1,31 @@
+@startuml
+title UML sequence behaviour — Open an unknown address
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Anyone" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "App + Router" as app
+  participant "NotFoundPage (lazy)" as nf
+  participant "BrowsePage" as browse
+end box
+actor -> app : Open /nothing-here
+app -> app : No route matches; wildcard route
+app -> nf : loadComponent
+nf --> actor : "Not found", wordmark, link to Browse (L2-033)
+actor -> nf : Select "Go to Browse"
+nf -> app : Navigate /
+app -> browse : Render
+browse --> actor : Browse
+@enduml

@@ -1,0 +1,40 @@
+@startuml
+title UML sequence behaviour — Compose with a live preview
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Member" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "PostPage" as page
+  participant "cr-word-toggle" as toggle
+  participant "PostStore" as store
+  participant "draftToCard" as map
+  participant "cr-listing-card" as card
+end box
+actor -> page : Open /post?offer=for-rent
+page -> store : setOffer('for-rent')
+actor -> page : Type title, price, when, where
+page -> store : patch(change)
+store -> map : draftToCard(draft)
+map --> store : ListingCard, placeholders for empty fields (L2-011)
+store --> card : previewCard
+card --> actor : Card as it will appear on Browse
+actor -> toggle : Choose "need" with touch or arrow key (L2-009)
+toggle -> page : valueChange('wanted')
+page -> store : setOffer('wanted')
+store -> store : Clear photos, keep every other field (L2-009)
+store --> page : draft.offer = wanted
+page --> actor : Sentence reads "I need", photos field removed
+store --> card : previewCard with no photo (L2-011)
+@enduml

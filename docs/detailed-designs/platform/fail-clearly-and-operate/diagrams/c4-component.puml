@@ -1,0 +1,30 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Fail clearly and operate in production
+
+Container_Boundary(spa, "rent application (Angular workspace)") {
+  Component(store, "Route-scoped stores", "rent, admin", "Expose LoadState signals")
+  Component(ui, "cr-skeleton, cr-empty-state, cr-alert", "components library", "Loading and failed states")
+  Component(geh, "GlobalErrorHandler", "Angular ErrorHandler", "Generic toast for client errors")
+}
+Container_Boundary(api, "ChristianRent backend") {
+  Component(ueh, "UnhandledExceptionHandler", "IExceptionHandler", "500 ProblemDetails with traceId")
+  Component(health, "Health checks", "ASP.NET Core health checks", "/health/live, /health/ready")
+  Component(tel, "OpenTelemetry + TelemetryScrubber", "Tracing, metrics, logs", "Route templates, no personal data")
+  Component(climig, "migrate, seed", "ChristianRent.Cli commands", "Schema changes outside the API")
+}
+ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
+ContainerDb(files, "File storage", "<TO SUPPLY>", "Photo renditions")
+System_Ext(otel, "Telemetry backend", "Receives traces, metrics and logs")
+System_Ext(backup, "Backup store", "Holds daily backups")
+Rel(store, ui, "Drive")
+Rel(store, ueh, "Receive ProblemDetails from", "JSON/HTTPS")
+Rel(ueh, tel, "Logs with trace id")
+Rel(health, db, "CanConnectAsync", "IAppDbContext")
+Rel(health, files, "IsReachableAsync", "IPhotoStorage")
+Rel(climig, db, "Applies migrations", "EF Core")
+Rel(tel, otel, "Exports", "OTLP")
+Rel(db, backup, "Daily backup")
+Rel(files, backup, "Daily backup")
+@enduml

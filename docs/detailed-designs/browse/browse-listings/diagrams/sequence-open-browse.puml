@@ -1,0 +1,56 @@
+@startuml
+title UML sequence behaviour — Open Browse
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Anyone" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "BrowsePage" as page
+  participant "BrowseStore" as store
+  participant "HttpListingsApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ListingsController" as ctrl
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "BrowseListingsQueryHandler" as handler
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> page : Open christian.rent
+page -> store : loadFirst()
+store -> client : browse(query, cursor = null)
+page -> page : Show skeleton cards after 300 ms (L2-033)
+client -> ctrl : GET /api/listings?size=24
+ctrl -> ctrl : AllowAnonymous (L2-001)
+ctrl -> handler : Send BrowseListingsQuery
+handler -> db : Approved listings, newest first, 25 rows
+db --> handler : Rows
+handler --> ctrl : ListingsPageDto (24 items, nextCursor)
+ctrl --> client : 200 OK
+alt page has items
+  client --> store : ListingsPage
+  store -> store : ListingWindow.append(page)
+  store --> page : state = loaded
+  page --> actor : Cards, photo for rent, "Wanted" in text (L2-001)
+else no approved listing
+  store --> page : state = empty
+  page --> actor : Empty state with the two posting buttons
+else request failed
+  client --> store : ApiError
+  store --> page : state = failed
+  page --> actor : Plain message and "Try again"
+end
+@enduml

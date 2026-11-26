@@ -1,0 +1,154 @@
+# Send a message about a listing
+
+## Overview
+
+A rental on christian.rent is arranged by two people who agree the details together. The
+Listing screen has a message box that sends a message from a member to the member who posted
+the listing. When the listing is for rent the message carries a start and an end date. Once
+the message is sent, a confirmation replaces the message box.
+
+- **message** — text a member sends about one listing, with dates when the listing is for
+  rent
+- **sender** — member who writes the message
+- **recipient** — member who posted the listing
+- **messaging limit** — at most 20 messages per member in any hour
+
+A message is private to the sender and the recipient. Sending one reserves nothing and
+changes nothing on the listing. Where the recipient reads the message is not designed yet;
+this feature covers sending, storing and the rule for who may read.
+
+## Description
+
+**Frontend**
+
+- **`cr-message-box`** (`components`) — the panel beside the listing. Inputs: `offer`,
+  `price`, `posterFirstName`, `state`, `draft`, `errors`, `retryAt`. Outputs: `draftChange`
+  and `send`. For a listing for rent it shows `cr-date-range` and the summary "Sat, Jun 13,
+  2026 · one day"; for a wanted listing it shows no dates (L2-015, criterion 2). It shows
+  the line "No payment happens here" and no payment control (L2-024). In the state `sent` it
+  renders `cr-confirmation` with the message quoted back as text.
+- **`MessageComposer`** (`rent/src/app/listing/`) — service provided by the Listing route.
+  It holds `draft: MessageDraft` and `state`: `idle`, `invalid`, `submitting`, `sent`,
+  `failed`, `limited`. `send()` validates, asks `MemberGate.requireMember()`, then calls
+  `MESSAGES_API.send(listingId, draft)`. On `failed` and `limited` the draft is unchanged
+  (L2-015, criterion 7). `LiveAnnouncer` announces the confirmation.
+- **`MessageDraftValidator`** (`domain/listings/`) — text of 1 to 1,000 characters after
+  trimming; when dates are given, start today or later and end on or after start (L2-015,
+  criteria 3 and 4). "Today" comes from an injected clock.
+- **`DraftStore`** — keeps the message draft in `sessionStorage` under
+  `cr.message.draft.{listingId}` while a non-member joins, and restores it afterwards
+  (L2-015, criterion 5).
+- **`ListingPage`** — does not render `cr-message-box` when `ListingDetail.isOwn` is true;
+  it shows "This is your listing" (L2-015, criterion 6).
+- **`MessagesApi`** with the token **`MESSAGES_API`** — `send(listingId, draft)`.
+
+**Backend**
+
+- **`MessagesController.Send`** — `POST /api/listings/{listingId}/messages`, member
+  required. It sends one `SendMessageCommand` and returns `201 Created` with
+  `SentMessageDto { Id, SentAt }`.
+- **`SendMessageCommand`** — `{ ListingId, Text, StartDate?, EndDate? }`.
+- **`SendMessageCommandValidator`** — the same rules as `MessageDraftValidator`, with the
+  date taken from `TimeProvider`.
+- **`SendMessageCommandHandler`** — in order:
+  1. loads the listing; a listing that is missing, waiting or removed raises
+     `NotFoundException` (`not_found`), so a message about a removed listing is refused
+     (L2-016, criterion 5);
+  2. refuses the listing's own poster with the code `own_listing` (L2-015, criterion 6);
+  3. refuses dates on a wanted listing with `validation_failed`;
+  4. asks `MessagingLimit.Check(senderId, now)`; a twenty-first message in an hour raises
+     `LimitReachedException`, returned as 429 with `message_limit_reached` and `retryAt`
+     (L2-016, criterion 4);
+  5. creates `Message.Send(listing, sender, text, dates, now)` and saves it.
+  The handler writes nothing to the `Listing` (L2-024, criterion 3).
+- **`Message`** — domain entity `{ Id, ListingId, SenderId, RecipientId, Text, StartDate?,
+  EndDate?, SentAt }`. `CanBeReadBy(memberId)` is true for the sender and the recipient only
+  (L2-016, criterion 1). Every query that returns message text applies it.
+- **`MessageDto`** — the shape a reader receives: sender name, sender church, the two
+  verified flags, listing title, dates and text. It has no email address or phone number
+  property (L2-016, criteria 2 and 3).
+
+Message text is stored and rendered as text (L2-026) and never appears in a log, a metric
+or a span.
+
+**Undecided**
+
+- Where the recipient reads a message and how they reply (the Messages inbox):
+  `<TO SUPPLY>`. No read endpoint is built before its design exists.
+- Whether the recipient is notified outside christian.rent, and by which channel:
+  `<TO SUPPLY>`.
+- Whether a member may send a second message about the same listing: the requirements set
+  no limit other than 20 per hour.
+
+### Mocks
+
+The mocks are the source of truth for the UI of this feature. The states this design covers are:
+
+- [`docs/mocks/pages/listing/default.html`](../../../mocks/pages/listing/default.html): the message box with dates
+- [`docs/mocks/pages/listing/wanted.html`](../../../mocks/pages/listing/wanted.html): the message box without dates
+- [`docs/mocks/pages/listing/invalid.html`](../../../mocks/pages/listing/invalid.html): an empty message or wrong dates
+- [`docs/mocks/pages/listing/submitting.html`](../../../mocks/pages/listing/submitting.html): the request is in flight
+- [`docs/mocks/pages/listing/sent.html`](../../../mocks/pages/listing/sent.html): the confirmation that replaces the message box
+- [`docs/mocks/pages/listing/failed.html`](../../../mocks/pages/listing/failed.html): sending failed; text and dates kept
+- [`docs/mocks/pages/listing/limited.html`](../../../mocks/pages/listing/limited.html): the messaging limit, with the time sending reopens
+- [`docs/mocks/pages/listing/own.html`](../../../mocks/pages/listing/own.html): no message box on the poster's own listing
+- [`docs/mocks/dialogs/join/default.html`](../../../mocks/dialogs/join/default.html): the membership prompt
+
+## Requirements
+
+The feature realizes the following level-2 (L2) requirements from
+[`docs/specs/L2.md`](../../../specs/L2.md). Each L2 requirement refines a level-1 (L1)
+requirement, cited by identifier. The table restates each requirement in `shall` form; the
+acceptance criteria in the specification remain authoritative.
+
+| L2 ID | Refines (L1) | Requirement |
+|-------|--------------|-------------|
+| `L2-015` | `L1-005` | The Listing screen shall have a message box that sends a message of 1 to 1,000 characters to the person who posted, with start and end dates when the listing is for rent. A confirmation shall replace the message box once sent. A non-member's message and dates shall be kept while they become a member. The message box shall not be offered on a member's own listing. A failed send shall keep the text and dates. |
+| `L2-016` | `L1-005` | Only the member who sent a message and the member who posted the listing shall be able to read it. Neither person's email address or phone number shall be revealed to the other. A twenty-first message in an hour shall be refused with the time sending reopens. A message about a removed listing shall be refused. |
+| `L2-024` | `L1-010` | No screen shall offer a way to pay, take a deposit or enter a card. A listing shall show no booking calendar, review, rating or advert. A message with dates shall not change the listing's availability or reserve anything. |
+| `L2-025` | `L1-011` | Every endpoint other than browsing, searching and reading an approved listing shall respond 401 without a signed-in member. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
+| `L2-026` | `L1-011` | A title, note, message, member name or church name shall be rendered as text wherever it is shown. Every input shall be validated for type, length and range before use, and database access shall be parameterised. Every response shall carry a Content-Security-Policy that allows no inline script and no third-party script. |
+
+## Diagrams
+
+### System context
+
+The people involved are: member, member who posted. Each reaches the feature through christian.rent, which takes no payment and holds no booking calendar.
+
+![C4 system context for Send a message about a listing](diagrams/c4-context.png)
+
+### Containers
+
+The rent application calls `ChristianRent.Api` over JSON/HTTPS. The API persists state through EF Core.
+
+![C4 container view for Send a message about a listing](diagrams/c4-container.png)
+
+### Components
+
+`cr-message-box` is presentation only; `MessageComposer` owns the draft and the request.
+The handler refuses a hidden, removed or own listing and a sender over the limit before it
+creates the `Message`.
+
+![C4 component view for Send a message about a listing](diagrams/c4-component.png)
+
+### Class structure
+
+`Message` references one listing and two members and owns the rule for who may read it.
+`MessageDto` is the only projection of a message and carries no contact detail.
+
+![Class diagram for Send a message about a listing](diagrams/class-structure.png)
+
+### Behaviour — send a message
+
+The handler refuses a removed listing, the listing's own poster and a sender over the
+limit, then stores the message without touching the listing (`L2-015`, `L2-016`,
+`L2-024`).
+
+![Sequence diagram for send a message](diagrams/sequence-send-message.png)
+
+### Behaviour — keep a non-member's message
+
+A person who is not a member is asked to join; the message and dates are kept in
+`DraftStore` and sent after joining (`L2-015`, criterion 5).
+
+![Sequence diagram for keep a non-member's message](diagrams/sequence-non-member-send.png)

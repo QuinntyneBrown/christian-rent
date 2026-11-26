@@ -1,0 +1,30 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Enforce access and limit abuse
+
+Container_Boundary(spa, "rent application (Angular workspace)") {
+  Component(intc, "apiErrorInterceptor", "api library, HttpInterceptorFn", "Maps ProblemDetails to ApiError")
+  Component(screen, "Stores and pages", "rent, admin", "Branch on ApiError.code")
+  Component(gate, "MemberGate", "rent service", "Handles not_signed_in and not_a_member")
+}
+Container_Boundary(api, "ChristianRent backend") {
+  Component(csrf, "CrossSiteRequestGuard", "ASP.NET Core middleware", "Refuses data-changing requests from another site")
+  Component(rate, "Rate limiter", "ASP.NET Core middleware", "120 reads, 30 writes per client per minute")
+  Component(authz, "Authorization policies", "Fallback policy, Admin policy", "Authenticated by default")
+  Component(ctrl, "Controllers", "ASP.NET Core", "One MediatR request each")
+  Component(handler, "Handlers", "MediatR", "Ownership and business rules")
+  Component(current, "ICurrentMember", "Application interface", "Member id, IsMember, IsAdmin")
+  Component(problem, "ProblemExceptionHandler", "IExceptionHandler", "ProblemDetails with a code")
+}
+Rel(screen, intc, "Receives ApiError from")
+Rel(screen, gate, "requireMember()")
+Rel(intc, csrf, "HTTPS request", "JSON/HTTPS")
+Rel(csrf, rate, "Passes same-site requests")
+Rel(rate, authz, "Passes requests under the limit")
+Rel(authz, ctrl, "Passes allowed callers")
+Rel(ctrl, handler, "Sends one request")
+Rel(handler, current, "Reads the caller")
+Rel(handler, problem, "Raises typed exceptions")
+Rel(problem, intc, "ProblemDetails with code", "JSON/HTTPS")
+@enduml

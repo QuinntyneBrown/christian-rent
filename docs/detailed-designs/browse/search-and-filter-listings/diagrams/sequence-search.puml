@@ -1,0 +1,55 @@
+@startuml
+title UML sequence behaviour — Search while typing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Anyone" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "cr-search-bar" as bar
+  participant "BrowsePage" as page
+  participant "BrowseStore" as store
+  participant "HttpListingsApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ListingsController" as ctrl
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "BrowseListingsQueryHandler" as handler
+  participant "SearchNormalizer" as norm
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> bar : Type "parking"
+bar -> page : termChange
+page -> page : BrowseQuery.withTerm, first 100 characters (L2-003)
+page -> page : Write ?q= to the address (L2-002)
+page -> store : search(query)
+store -> store : debounceTime(300)
+opt an earlier request is in flight
+  store -> client : Unsubscribe, request aborted (L2-003)
+end
+store -> client : browse(query)
+client -> ctrl : GET /api/listings?show=for-rent&q=parking
+ctrl -> handler : Send BrowseListingsQuery
+handler -> norm : Words("parking")
+norm --> handler : ["parking"]
+handler -> db : Approved AND SearchText contains each word, parameterised (L2-026)
+db --> handler : Rows and counts
+handler --> ctrl : ListingsPageDto
+ctrl --> client : 200 OK
+client --> store : ListingsPage
+store --> page : cards and counts
+page --> actor : Matching cards, no page reload
+@enduml

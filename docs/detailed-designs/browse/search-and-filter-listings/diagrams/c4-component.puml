@@ -1,0 +1,29 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Search and filter listings
+
+Container_Boundary(spa, "rent application (Angular workspace)") {
+  Component(page, "BrowsePage", "Angular page", "Derives BrowseQuery from the address")
+  Component(ctl, "cr-search-bar, cr-segmented, cr-kind-filter", "components library", "The three controls")
+  Component(query, "BrowseQuery", "domain/search value", "Parses and serializes show, kind and q")
+  Component(store, "BrowseStore", "Route-scoped signal store", "Debounces 300 ms and cancels earlier searches")
+  Component(client, "HttpListingsApi", "api library, LISTINGS_API", "Typed HTTP client")
+}
+Container_Boundary(api, "ChristianRent backend") {
+  Component(ctrl, "ListingsController", "ASP.NET Core controller", "GET /api/listings, anonymous")
+  Component(handler, "BrowseListingsQueryHandler", "MediatR handler", "Applies offer, kind and each search word")
+  Component(norm, "SearchNormalizer", "Domain service", "Lower-cases and removes accents")
+  Component(entity, "Listing", "Domain entity", "Maintains SearchText")
+}
+ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
+Rel(ctl, page, "Emits changes")
+Rel(page, query, "fromParams / toParams")
+Rel(page, store, "search(query)")
+Rel(store, client, "browse(query)")
+Rel(client, ctrl, "GET /api/listings?show&kind&q", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends BrowseListingsQuery")
+Rel(handler, norm, "Words(term)")
+Rel(entity, norm, "Normalize on change")
+Rel(handler, db, "Parameterised query", "IAppDbContext")
+@enduml
