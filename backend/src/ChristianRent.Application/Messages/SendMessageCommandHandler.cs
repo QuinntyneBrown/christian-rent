@@ -1,7 +1,10 @@
 using ChristianRent.Application.Abstractions;
 using ChristianRent.Application.Errors;
 using ChristianRent.Application.Listings;
+using ChristianRent.Domain.Listings;
 using ChristianRent.Domain.Messages;
+using FluentValidation;
+using FluentValidation.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,10 +31,17 @@ internal sealed class SendMessageCommandHandler(IAppDbContext database, ICurrent
             throw new NotFoundException();
         }
 
+        if (listing.Offer == ListingOffer.Wanted && (command.StartDate is not null || command.EndDate is not null))
+        {
+            throw new ValidationException([new ValidationFailure(nameof(SendMessageCommand.StartDate), DatesOnWantedMessage)]);
+        }
+
         var now = clock.GetUtcNow();
         var message = Message.Send(listing, senderId, MessageText.Clean(command.Text), command.StartDate, command.EndDate, now);
         database.Messages.Add(message);
         await database.SaveChangesAsync(cancellationToken);
         return new SentMessageDto(message.Id, message.SentAt);
     }
+
+    public const string DatesOnWantedMessage = "A message about a wanted listing has no dates.";
 }
