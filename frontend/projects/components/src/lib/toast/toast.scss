@@ -29,6 +29,35 @@
   }
 }
 
+// The time a toast that dismisses itself has left (8 s).
+.toast__progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: currentColor;
+  opacity: 0.4;
+  transform-origin: left;
+  animation: toast-time 8s linear forwards;
+}
+
+.toast--paused .toast__progress {
+  animation-play-state: paused;
+}
+
+@keyframes toast-time {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast__progress {
+    display: none;
+  }
+}
+
 .toast__icon {
   margin-top: 0.1rem;
 }

@@ -70,6 +70,7 @@ export class AdminPage {
   readonly toasts: Locator;
   readonly toastTitles: Locator;
   readonly toastTexts: Locator;
+  readonly dismissToast: Locator;
 
   private readonly facts: Locator;
   private readonly queue: Locator;
@@ -141,6 +142,7 @@ export class AdminPage {
     this.toastRegion = page.locator('cr-review-page .toast-region');
     this.tryDecisionAgain = this.toastRegion.getByRole('button', { name: 'Try again' });
     this.toasts = this.toastRegion.locator('.toast');
+    this.dismissToast = this.toastRegion.getByRole('button', { name: 'Dismiss' });
     this.toastTitles = this.toastRegion.locator('.toast__title');
     this.toastTexts = this.toastRegion.locator('.toast__text');
   }
