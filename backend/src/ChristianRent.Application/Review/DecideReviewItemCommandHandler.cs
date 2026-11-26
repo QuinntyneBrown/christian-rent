@@ -54,6 +54,20 @@ internal sealed class DecideReviewItemCommandHandler(
                 }
 
                 break;
+            case ReviewItemKind.NewMember:
+                var member = await database.Members.SingleAsync(member => member.Id == item.SubjectId, cancellationToken);
+                if (decision == ReviewDecision.Approve)
+                {
+                    member.Verify();
+                }
+                else
+                {
+                    // What waited about them or their listings no longer waits (ADR 0024), and
+                    // their listings are no longer public (L2-018, criterion 4).
+                    member.Remove();
+                }
+
+                break;
         }
 
         await database.SaveChangesAsync(cancellationToken);

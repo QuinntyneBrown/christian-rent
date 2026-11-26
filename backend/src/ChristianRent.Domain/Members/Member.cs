@@ -58,6 +58,9 @@ public sealed class Member
     /// <summary>The operator lets the member work through the review queue (L2-019, criterion 23).</summary>
     public void MakeAdmin() => IsAdmin = true;
 
+    /// <summary>An admin confirms the member; their church is confirmed on its own (L2-018, criterion 6).</summary>
+    public void Verify() => IsVerified = true;
+
     /// <summary>An admin removes the member; their listings stop being public.</summary>
     public void Remove() => Status = MemberStatus.Removed;
 

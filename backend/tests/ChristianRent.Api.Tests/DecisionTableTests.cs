@@ -34,6 +34,8 @@ public sealed class DecisionTableTests : IDisposable
     [InlineData(ReviewItemKind.NewListing, "remove", ListingStatus.Removed, null, null, null, 1)]
     [InlineData(ReviewItemKind.Report, "keep", ListingStatus.Approved, ReportStatus.Closed, null, null, 0)]
     [InlineData(ReviewItemKind.Report, "remove", ListingStatus.Removed, ReportStatus.Closed, null, null, 1)]
+    [InlineData(ReviewItemKind.NewMember, "approve", null, null, true, MemberStatus.Active, 0)]
+    [InlineData(ReviewItemKind.NewMember, "remove", null, null, false, MemberStatus.Removed, 0)]
     public async Task Each_row_of_the_table_has_its_effect(
         ReviewItemKind kind,
         string decision,
