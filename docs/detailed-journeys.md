@@ -102,15 +102,19 @@ Design: [add-photos](detailed-designs/post/add-photos/README.md).
 | 7.5 | Photo picker: add a photo, see it uploading, then in the picker and the preview | L2-013, L2-029 | Yes |
 | 7.6 | Refused, not reached and full states; remove and cancel; object URLs and uploads released on leaving | L2-013, L2-014 | Yes |
 
-## 8. Send a message (Main) — 4 days — 0% complete
+## 8. Send a message (Main) — 4 days — 100% complete
 
-Design: [send-message](detailed-designs/messages/send-message/README.md).
+Design: [send-message](detailed-designs/messages/send-message/README.md). Where a member reads
+a message waits for the Messages inbox, which is not designed (L2-016, criterion 2; ADR 0022).
 
-| # | Slice | L2 |
-|---|---|---|
-| 8.1 | `SendMessageCommand` with validator and handler; not on one's own listing | L2-015, L2-016, L2-025 |
-| 8.2 | `MessageComposer` with dates for a listing for rent, and `MessageDraftValidator` | L2-015, L2-024 |
-| 8.3 | Sent confirmation quoting the message as text; limit reached | L2-016, L2-026 |
+| # | Slice | L2 | Done |
+|---|---|---|---|
+| 8.1 | `SendMessageCommand` and its handler store a `Message` for the sender and the person who posted, and change nothing on the listing | L2-015, L2-016, L2-024, L2-025 | Yes |
+| 8.2 | `SendMessageCommandValidator`: text of 1 to 1,000 characters; optional dates, both, in order and not past; none on a wanted listing | L2-015, L2-026 | Yes |
+| 8.3 | Refusals: a non-member, one's own listing, a listing that is not public, and `MessagingLimit`'s 20 an hour; no text in telemetry; `purge-departed` clears a departed member's messages | L2-015, L2-016, L2-025, L2-028 | Yes |
+| 8.4 | `cr-message-box` and `MessageComposer`: dates for a listing for rent, busy while sending, and "Sent to" quoting the message as text | L2-015, L2-022, L2-024, L2-026 | Yes |
+| 8.5 | Invalid, failed and limited states keep the text and dates; the draft in `sessionStorage`; a listing taken down | L2-015, L2-016, L2-033 | Yes |
+| 8.6 | One's own listing shows no message box; a person who is not a member joins and their message is sent | L2-015, L2-017 | Yes |
 
 ## 9. Report a listing (Main) — 3 days — 0% complete
 

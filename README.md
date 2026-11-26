@@ -98,13 +98,18 @@ the draft kept in the tab, and the backend that saves a listing as waiting for r
 client request and at most 10 a member in 24 hours. Adding photos is built (journey 7): up to 6
 on a listing for rent, each checked by its content, size and sides, stored as renditions without
 its metadata, removable while posting, and deleted after 24 hours if no listing is posted with it
-([ADR 0021](docs/adr/0021-uploading-photos-open-decisions.md)).
+([ADR 0021](docs/adr/0021-uploading-photos-open-decisions.md)). Sending a message is built
+(journey 8): the message box beside a listing, with optional dates when it is for rent, its
+invalid, failed and limited states that keep what was written, and the backend that stores a
+message for the two people, at most 20 a member in an hour. Nobody can read a message yet: the
+Messages inbox is not designed, so a message waits in the database
+([ADR 0022](docs/adr/0022-sending-a-message-open-decisions.md)).
 
 - The requirements are in `docs/specs/`, the mocks in `docs/mocks/`, the design system in
   `docs/design-system/` and the detailed designs in `docs/detailed-designs/`.
 - The journeys and their slices are in `docs/journeys.md` and `docs/detailed-journeys.md`, with
   **% complete**; the architecture decisions are in `docs/adr/`.
-- What comes next is journey 8, Send a message: one slice at a time, each with its failing
+- What comes next is journey 9, Report a listing: one slice at a time, each with its failing
   acceptance test first.
 
 ## How it works

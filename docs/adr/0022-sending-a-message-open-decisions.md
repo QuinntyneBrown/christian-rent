@@ -48,8 +48,9 @@ no mock drew a wanted listing with no price.
 - **The limit.** At most 20 messages per member in any 60 minutes, counted from the messages
   stored. The twenty-first is refused with 429, `message_limit_reached` and `retryAt`: when the
   twentieth most recent is an hour old. The screen writes it as Post writes its own limit,
-  "You can send another today at 3:40 p.m." (ADR 0019), keeps the send button off, and turns it
-  back on by itself at that time. A second message about the same listing is allowed; only the
+  "You can send another at 3:40 p.m." as the limited mock does (and "tomorrow at 12:10 a.m."
+  past midnight; ADR 0019), keeps the send button off, and turns it back on by itself at that
+  time. A second message about the same listing is allowed; only the
   limit bounds it.
 - **Dates are optional.** A message about a listing for rent may give no dates ("When is it
   free?"). When one is given the other must be; the end is on or after the start; and the start
@@ -82,7 +83,7 @@ no mock drew a wanted listing with no price.
   13, 2026 · “Hi Dan, …”"; with no dates, the text alone. Line breaks in the quote are kept.
 - **Errors.** An empty or too-long message says "Write a message of 1 to 1,000 characters.";
   an end before the start, "The end date is before the start date. Choose Jun 13, 2026 or
-  later."; a start in the past, "The start date is in the past. Choose Jun 8, 2026 or later.";
+  later.", with both dates marked as the invalid mock draws them; a start in the past, "The start date is in the past. Choose Jun 8, 2026 or later.";
   one date without the other, "Choose a start and an end date." The summary is titled "1 thing
   needs fixing before this can be sent." or "2 things need …", as Post writes its own, and lists
   the fields in the form's order: the dates, then the message.
