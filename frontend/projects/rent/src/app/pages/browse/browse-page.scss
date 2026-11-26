@@ -1,0 +1,17 @@
+// Browse (browse-listings design). The spacers reserve the height of the pages released from
+// memory, so the scroll position holds (ADR 0013); the host sets their heights.
+:host {
+  display: block;
+}
+
+.browse__spacer--before {
+  block-size: var(--browse-before, 0);
+}
+
+.browse__spacer--after {
+  block-size: var(--browse-after, 0);
+}
+
+.browse__sentinel {
+  block-size: 1px;
+}

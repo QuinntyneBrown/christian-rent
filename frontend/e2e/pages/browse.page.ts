@@ -66,7 +66,9 @@ export class BrowsePage {
 
   cardTitled(title: string): ListingCardPart {
     return new ListingCardPart(
-      this.cards.filter({ has: this.page.getByRole('heading', { level: 2, name: title }) }),
+      this.cards.filter({
+        has: this.page.getByRole('heading', { level: 2, name: title, exact: true }),
+      }),
     );
   }
 

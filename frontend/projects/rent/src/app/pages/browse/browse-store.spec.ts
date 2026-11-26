@@ -131,3 +131,96 @@ describe('BrowseStore', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 });
+
+describe('BrowseStore, further down the list', () => {
+  let api: FakeListingsApi;
+  let store: BrowseStore;
+  const measure = () => 500;
+
+  async function answer(call: number, page: ListingsPage, loading: Promise<void>) {
+    api.calls[call]!.resolve(page);
+    await loading;
+  }
+
+  beforeEach(async () => {
+    api = new FakeListingsApi();
+    TestBed.configureTestingModule({
+      providers: [BrowseStore, { provide: LISTINGS_API, useValue: api }],
+    });
+    store = TestBed.inject(BrowseStore);
+    await answer(0, pageOf(['a1', 'a2'], 'c2'), store.loadFirst());
+  });
+
+  // L2-006 criteria 1 and 4.
+  it('asks for the next page by its cursor, announcing the wait', async () => {
+    const loading = store.loadMore('down', measure);
+
+    expect(api.calls[1]!.cursor).toBe('c2');
+    expect(store.moreState()).toBe('loading');
+    expect(store.announcement()).toBe('Loading more listings');
+
+    await answer(1, pageOf(['b1'], null), loading);
+
+    expect(store.cards().map((card) => card.href)).toEqual([
+      '/listings/a1',
+      '/listings/a2',
+      '/listings/b1',
+    ]);
+    expect(store.moreState()).toBe('done');
+  });
+
+  // L2-006 criterion 2.
+  it('asks for nothing after the last page, and one page at a time', async () => {
+    void store.loadMore('down', measure);
+    void store.loadMore('down', measure);
+    expect(api.calls).toHaveLength(2);
+
+    await answer(1, pageOf(['b1'], null), Promise.resolve());
+    await store.loadMore('down', measure);
+
+    expect(api.calls).toHaveLength(2);
+  });
+
+  // L2-006 criterion 3.
+  it('keeps the listings shown when the next page fails, and tries again', async () => {
+    const failing = store.loadMore('down', measure);
+    api.calls[1]!.reject(unreachable);
+    await failing;
+
+    expect(store.moreState()).toBe('failed');
+    expect(store.cards()).toHaveLength(2);
+
+    const retrying = store.loadMore('down', measure);
+    await answer(2, pageOf(['b1'], null), retrying);
+
+    expect(store.cards()).toHaveLength(3);
+    expect(store.moreState()).toBe('done');
+  });
+
+  // L2-030 criterion 4.
+  it('holds three pages and reserves the height of those it released', async () => {
+    for (let n = 2; n <= 4; n++) {
+      const loading = store.loadMore('down', measure);
+      await answer(n - 1, pageOf([`p${n}`], `c${n + 1}`), loading);
+    }
+
+    expect(store.pages().map((page) => page.index)).toEqual([1, 2, 3]);
+    expect(store.before()).toBe(500);
+    expect(store.hasBefore()).toBe(true);
+
+    const up = store.loadMore('up', measure);
+    expect(api.calls[4]!.cursor).toBeNull();
+    await answer(4, pageOf(['a1', 'a2'], 'c2'), up);
+
+    expect(store.pages().map((page) => page.index)).toEqual([0, 1, 2]);
+    expect(store.after()).toBe(500);
+  });
+
+  it('aborts the next page when Browse is left', () => {
+    void store.loadMore('down', measure);
+
+    TestBed.resetTestingModule();
+
+    expect(api.calls[1]!.signal.aborted).toBe(true);
+  });
+});

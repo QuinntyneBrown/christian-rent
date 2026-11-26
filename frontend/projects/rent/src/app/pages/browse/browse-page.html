@@ -38,11 +38,31 @@
       </cr-empty-state>
     }
     @case ('loaded') {
+      <div class="browse__spacer browse__spacer--before" aria-hidden="true"></div>
+      <div #top class="browse__sentinel" aria-hidden="true"></div>
       <cr-listing-grid>
-        @for (card of store.cards(); track card.href; let index = $index) {
-          <li><cr-listing-card [card]="card" [priority]="index < 4" /></li>
+        @for (page of store.pages(); track page.index) {
+          @for (card of page.items; track card.href; let index = $index) {
+            <li [attr.data-page]="page.index">
+              <cr-listing-card [card]="card" [priority]="page.index === 0 && index < 4" />
+            </li>
+          }
         }
       </cr-listing-grid>
+      @switch (store.moreState()) {
+        @case ('loading') {
+          <cr-feed-status state="loading" text="Loading more listings…" />
+        }
+        @case ('failed') {
+          <cr-feed-status
+            state="failed"
+            text="We couldn’t load more listings."
+            (action)="loadMore()"
+          />
+        }
+      }
+      <div #bottom class="browse__sentinel" aria-hidden="true"></div>
+      <div class="browse__spacer browse__spacer--after" aria-hidden="true"></div>
     }
   }
 </main>

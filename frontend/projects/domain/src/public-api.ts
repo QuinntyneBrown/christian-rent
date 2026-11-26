@@ -5,3 +5,4 @@ export * from './listings/format-place';
 export * from './listings/format-price';
 export * from './listings/format-when';
 export * from './listings/listing-card-view';
+export * from './search/listing-window';
