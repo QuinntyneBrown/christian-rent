@@ -29,6 +29,7 @@ function toSummary(member: Member): MemberSummary {
     id: member.id,
     name: member.name,
     initials: initialsOf(member.name),
+    churchName: member.churchName,
     isAdmin: member.isAdmin,
     isVerified: member.isVerified,
   };

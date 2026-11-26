@@ -5,7 +5,13 @@ import { HttpChurchesApi } from './http-churches-api';
 import { HttpMembersApi } from './http-members-api';
 import type { JoinRequest, Member } from './member';
 
-const sarah: Member = { id: 'm1', name: 'Sarah Kim', isVerified: false, isAdmin: false };
+const sarah: Member = {
+  id: 'm1',
+  name: 'Sarah Kim',
+  churchName: 'Grace Community Church',
+  isVerified: false,
+  isAdmin: false,
+};
 
 // become-member design; ADR 0017.
 describe('HttpMembersApi and HttpChurchesApi', () => {

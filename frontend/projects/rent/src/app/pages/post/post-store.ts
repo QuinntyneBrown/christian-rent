@@ -1,11 +1,12 @@
 import { DOCUMENT } from '@angular/common';
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import type { ListingKind, ListingOffer } from '@rent/api';
+import { type ListingKind, type ListingOffer, SESSION } from '@rent/api';
 import {
   DRAFT_LIMITS,
   DraftStore,
   type ListingDraft,
   arriveWith,
+  draftToCard,
   formatCounter,
   formatWhen,
   newDraft,
@@ -24,6 +25,7 @@ import {
  */
 @Injectable()
 export class PostStore {
+  private readonly session = inject(SESSION);
   private readonly drafts = new DraftStore(sessionStorageOf(inject(DOCUMENT)));
   private readonly current = signal<ListingDraft>(
     this.drafts.restore() ?? newDraft(crypto.randomUUID()),
@@ -38,6 +40,8 @@ export class PostStore {
   readonly noteCounter = computed(() =>
     formatCounter(this.current().note.length, DRAFT_LIMITS.note),
   );
+  /** The card the preview draws, following every change (L2-011). */
+  readonly previewCard = computed(() => draftToCard(this.current(), this.session.member()));
   /** The dates in words once both are chosen in order (L2-022, criterion 7). */
   readonly datesInWords = computed(() => {
     const { startDate, endDate } = this.current();
