@@ -3,6 +3,10 @@
     <ProjectReference Include="..\ChristianRent.Application\ChristianRent.Application.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <!-- The card renditions of the sample listings' photos (ADR 0011), written by ChristianRent.Cli seed. -->
+    <EmbeddedResource Include="Seeding\Photos\*.jpg" />
+  </ItemGroup>
+  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">

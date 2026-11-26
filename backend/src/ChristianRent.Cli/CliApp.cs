@@ -1,3 +1,4 @@
+using ChristianRent.Application.Abstractions;
 using ChristianRent.Infrastructure.Persistence;
 using ChristianRent.Infrastructure.Seeding;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +15,7 @@ public static class CliApp
     public const string Usage = """
         Usage: ChristianRent.Cli <migrate|seed>
           migrate  Apply the pending EF Core migrations to the database in ConnectionStrings:Default.
-          seed     Enter the sample data of the mocks' cast. Safe to run again: it changes nothing twice.
+          seed     Enter the sample data of the mocks' cast and its photos. Safe to run again: it changes nothing twice.
         """;
 
     public static async Task<int> RunAsync(string[] args, IServiceProvider services, TextWriter output, CancellationToken cancellationToken)
@@ -31,8 +32,10 @@ public static class CliApp
                 return 0;
 
             case ["seed"]:
-                var entered = await SampleData.SeedAsync(database, cancellationToken);
-                await output.WriteLineAsync($"Seeded {entered} churches.");
+                var photos = scope.ServiceProvider.GetRequiredService<IPhotoStorage>();
+                var entered = await SampleData.SeedAsync(database, photos, cancellationToken);
+                await output.WriteLineAsync(
+                    $"Seeded {entered.Churches} churches, {entered.Members} members, {entered.Listings} listings and {entered.Photos} photos.");
                 return 0;
 
             default:

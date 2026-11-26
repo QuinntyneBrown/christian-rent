@@ -1,3 +1,5 @@
+using ChristianRent.Application.Abstractions;
+using ChristianRent.Domain.Listings;
 using ChristianRent.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,12 +14,14 @@ public sealed class CliTests : IDisposable
 {
     private readonly ServiceProvider _services;
     private readonly StringWriter _output = new();
+    private readonly MemoryPhotoStorage _photos = new();
 
     public CliTests()
     {
         var databaseName = $"christian-rent-cli-{Guid.NewGuid()}";
         _services = new ServiceCollection()
             .AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase(databaseName))
+            .AddSingleton<IPhotoStorage>(_photos)
             .BuildServiceProvider();
     }
 
@@ -40,6 +44,32 @@ public sealed class CliTests : IDisposable
         Assert.Contains("Seeded 7 churches", _output.ToString(), StringComparison.Ordinal);
     }
 
+    // Browse (journey 2): the seven approved listings of the mocks, two waiting in the review
+    // queue, the members who posted them, and the card photo of each listing for rent.
+    [Fact]
+    public async Task Seed_enters_the_cast_of_Browse()
+    {
+        await CliApp.RunAsync(["seed"], _services, _output, TestContext.Current.CancellationToken);
+
+        using var scope = _services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var approved = await database.Listings.AsNoTracking()
+            .Where(listing => listing.Status == ListingStatus.Approved)
+            .OrderByDescending(listing => listing.ApprovedAt)
+            .ToListAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(
+            ["Quiet guest room, month to month", "Small office for weekly counselling", "15-passenger van for youth camp",
+             "Sunlit fellowship hall for 80", "120 white folding chairs", "Pressure washer and drill kit", "Vintage camper for mission trips"],
+            approved.Select(listing => listing.Title));
+        Assert.Equal(2, await database.Listings.CountAsync(listing => listing.Status == ListingStatus.WaitingForReview, TestContext.Current.CancellationToken));
+        Assert.Contains(await database.Members.ToListAsync(TestContext.Current.CancellationToken), member => member.Name == "Pastor Dan Whitaker");
+        var cardKeys = approved
+            .Where(listing => listing.Offer == ListingOffer.ForRent)
+            .Select(listing => $"{listing.Photos[0].PhotoId:N}/card.jpg");
+        Assert.All(cardKeys, key => Assert.True(_photos.Files.TryGetValue(key, out var bytes) && bytes is [0xFF, 0xD8, ..]));
+        Assert.Contains("Seeded 7 churches, 8 members, 9 listings and 4 photos.", _output.ToString(), StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task Seeding_twice_changes_nothing()
     {
@@ -51,7 +81,8 @@ public sealed class CliTests : IDisposable
         Assert.Equal(0, exitCode);
         var second = await ChurchesAsync();
         Assert.Equal(first.Select(church => (church.Id, church.Name, church.City, church.IsVerified)), second.Select(church => (church.Id, church.Name, church.City, church.IsVerified)));
-        Assert.Contains("Seeded 0 churches", _output.ToString(), StringComparison.Ordinal);
+        Assert.Contains("Seeded 0 churches, 0 members, 0 listings and 0 photos.", _output.ToString(), StringComparison.Ordinal);
+        Assert.Equal(4, _photos.Saves);
     }
 
     [Theory]

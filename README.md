@@ -141,7 +141,7 @@ the repository; set it in your environment or with `dotnet user-secrets`:
 cd backend
 export ConnectionStrings__Default="Host=localhost;Database=christian_rent;Username=rent;Password=<yours>"
 dotnet run --project src/ChristianRent.Cli -- migrate   # apply the schema; the API never does
-dotnet run --project src/ChristianRent.Cli -- seed      # the mocks' sample churches; safe to repeat
+dotnet run --project src/ChristianRent.Cli -- seed      # the mocks' cast: churches, members, listings, photos; safe to repeat
 dotnet run --project src/ChristianRent.Api              # http://localhost:5080/health/ready
 ```
 
@@ -174,7 +174,7 @@ variables, `:` is written `__`.
 | Setting | Secret | What it is |
 |---|---|---|
 | `ConnectionStrings:Default` | yes | The PostgreSQL connection string, read by the API and `ChristianRent.Cli` ([ADR 0003](docs/adr/0003-database-engine.md)) |
-| `PhotoStorage:RootPath` | no | Where photos are kept on disk; default `App_Data/photos` under the content root ([ADR 0004](docs/adr/0004-file-storage.md)). The production storage product is not chosen |
+| `PhotoStorage:RootPath` | no | Where photo renditions are kept on disk, as `{photoId}/{rendition}.jpg`; default `App_Data/photos` under the content root ([ADR 0004](docs/adr/0004-file-storage.md), [ADR 0011](docs/adr/0011-photo-renditions-and-serving.md)). The production storage product is not chosen |
 | `Site:Origin` | no | The origin the frontend is served from, e.g. `https://christian.rent`; a write from any other origin is refused |
 | `HTTPS_PORT` | no | The public HTTPS port the API redirects HTTP to, usually `443` |
 | `ForwardedHeaders:KnownProxies` | no | The addresses of the reverse proxies whose `X-Forwarded-*` headers are trusted |
