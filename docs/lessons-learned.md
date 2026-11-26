@@ -154,6 +154,11 @@ Slices 3.1 to 3.4, finished on Nov 26, 2026.
   written in the same step as their code and passed at once, so they were not seen to fail
   first; each slice's acceptance spec was. The store's tests and `cr-kind-filter`'s were seen
   to fail before their code.
+- CI's backend job failed on `dotnet format`: its SDK (10.0.404, by `rollForward:
+  latestFeature`) reports an unused `using System.Diagnostics;` in `TelemetryTests.cs` that the
+  container's SDK (10.0.115) does not. It had turned `main` red since journey 2's merge; this
+  journey removed it. A green local `verify.mjs` does not prove CI's analyzers agree when the
+  SDKs differ, so read CI's result before calling a journey done.
 - `check_mocks.py` reports four errors for `error-toast`, which has no info, success, warning
   or danger state; they come from journey 1's mock and were left for that screen's owner.
 
