@@ -88,9 +88,10 @@ is a line of text (L2-024).
 **Frontend — `api` library**
 
 - **`ListingsApi.get(id, signal)`** returns **`ListingDetail`**: `{ id, offer, kind, title,
-  price, when, area, distanceKm, note, postedAt, photos, poster, isOwn }`. Each photo is
+  price, when, area, distanceKm, note, postedAt, photos, poster, isOwn, reportedAt }`. Each photo is
   `{ url, thumbUrl, width, height, description }`; `poster` is
-  `{ name, isVerified, memberSince, church: { name, isVerified } }`.
+  `{ name, isVerified, memberSince, church: { name, isVerified } }`. `reportedAt` is when the
+  caller reported this listing, and null for everyone else (ADR 0023).
 - **`ListingView`** — what `cr-listing` and `cr-message-box` draw, every word already written.
 
 **Backend**

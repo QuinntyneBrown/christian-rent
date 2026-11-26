@@ -32,11 +32,11 @@ class Report {
   +DateTimeOffset CreatedAt
   +ReportStatus Status
   +{static} File(listing, reporter, reason, note, now): Report
-  +Close(): void
+  +ClearNote(): void
 }
 class ReportListingCommand {
-  +Guid ListingId
-  +ReportReason Reason
+  +string ListingId
+  +string? Reason
   +string? Note
 }
 class ReportListingCommandValidator {
@@ -46,6 +46,9 @@ class ReportListingCommandHandler {
   +Handle(command: ReportListingCommand): Task<ReportedDto>
 }
 class AlreadyReportedException {
+  +DateTimeOffset ReportedAt
+}
+class ReportedDto {
   +DateTimeOffset ReportedAt
 }
 class ReportDetailDto {
@@ -62,4 +65,5 @@ ReportListingCommandValidator ..> ReportListingCommand : validates
 ReportListingCommandHandler --> Report : creates
 ReportListingCommandHandler ..> AlreadyReportedException : raises
 ReportDetailDto ..> Report : projects without reporter
+ReportListingCommandHandler ..> ReportedDto : returns
 @enduml

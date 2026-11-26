@@ -32,6 +32,7 @@ box "Backend — ChristianRent.Infrastructure" #FFF4E5
 end box
 actor -> page : Select "Report"
 page -> page : MemberGate.requireMember() (L2-021 criterion 5)
+note over page, dialog : When the Listing read said reportedAt, the dialog opens in "already"\nand sends nothing (L2-021 criterion 8)
 page -> dialog : Open, focus on the first reason
 actor -> dialog : Choose a reason, add a note, "Send report"
 dialog -> dialog : Require a reason, note up to 500 (L2-021 criterion 1)
@@ -44,14 +45,17 @@ alt first report
   handler -> report : Report.File(...)
   handler -> handler : ReviewItem.ForReport(...)
   handler -> db : Save report and review item (L2-021 criterion 2)
-  handler --> ctrl : ReportedDto
+  handler --> ctrl : ReportedDto { reportedAt }
   ctrl --> client : 201 Created
   client --> dialog : Reported
   dialog --> actor : Confirmation, announced
 else already reported by this member
   handler --> ctrl : AlreadyReportedException
-  ctrl --> client : 409, code = already_reported (L2-021 criterion 3)
+  ctrl --> client : 409, code = already_reported, reportedAt (L2-021 criterion 3)
   dialog --> actor : "already" state with the date of the first report
+else the listing is no longer public, or is the member's own
+  ctrl --> client : not_found or own_listing
+  dialog --> page : Close; read the listing again (L2-021 criterion 12)
 else failure
   dialog --> actor : "failed" state, reason and note kept, "Try again"
 end
