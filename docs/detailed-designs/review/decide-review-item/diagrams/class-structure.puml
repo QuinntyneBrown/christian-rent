@@ -31,7 +31,7 @@ class ReviewItem {
   +Guid? DecidedBy
   +DateTimeOffset? DecidedAt
   +int Version
-  +Allows(decision: ReviewDecision): bool
+  {static} +AllowedDecisions(kind): ReviewDecision[]
   +Decide(decision, adminId, now): void
 }
 class DecideReviewItemCommand {
@@ -45,7 +45,15 @@ class DecideReviewItemCommandHandler {
 class AlreadyDecidedException {
   +ReviewDecision Decision
   +DateTimeOffset DecidedAt
+  +Guid DecidedBy
 }
+class ListingRemovalNotice {
+  +Guid Id
+  +Guid MemberId
+  +Guid ListingId
+  +DateTimeOffset CreatedAt
+}
+class RecordedMemberNotifier
 class Listing {
   +ListingStatus Status
   +DateTimeOffset? ApprovedAt
@@ -63,10 +71,18 @@ class Member {
 interface IMemberNotifier {
   +ListingRemovedAsync(memberId: Guid, listingId: Guid): Task
 }
+class GetReviewArrivalsQuery {
+  +string? Since
+}
+class ReviewQueueStore <<Angular>> {
+  +decide(decision): Promise<DecisionOutcome>
+  +goToNext(): void
+}
 class ToastQueue <<Angular>> {
   +toasts: Signal<Toast[]>
   +push(toast: Toast): void
-  +dismiss(id: string): void
+  +dismiss(id: number): void
+  +hold(id: number, by, on: boolean): void
 }
 ReviewItem --> ReviewItemKind
 ReviewItem --> ReviewDecision
@@ -77,4 +93,7 @@ DecideReviewItemCommandHandler --> Listing : approves / removes
 DecideReviewItemCommandHandler --> Report : closes
 DecideReviewItemCommandHandler --> Member : verifies / removes
 DecideReviewItemCommandHandler ..> IMemberNotifier
+RecordedMemberNotifier ..|> IMemberNotifier
+RecordedMemberNotifier --> ListingRemovalNotice : records
+ReviewQueueStore --> ToastQueue : pushes
 @enduml

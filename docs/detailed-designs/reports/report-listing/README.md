@@ -40,7 +40,8 @@ The admin's side is designed in
   `aria-busy`, the reasons are disabled, the note is read-only, Cancel and Close are off and
   Escape does nothing; in `failed` the reason and note stay and the button reads "Try again"
   (criterion 9). `success` shows "Thanks. Your report was sent." with "Done"; `already` says
-  the earlier report, with its date, is with an admin (criterion 8), with "OK, close". In
+  that the member reported it, with the date, and nothing of what an admin decided
+  (criterion 8; [ADR 0027](../../../adr/0027-deciding-a-review-item-open-decisions.md)), with "OK, close". In
   `success` and `already` focus moves to that button, and a status line in the dialog
   announces the title and the text (L2-032, criterion 4). When the listing was reported
   before it is selected, the dialog opens in `already` and sends nothing. Its code loads only

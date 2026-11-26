@@ -2,7 +2,8 @@
 
 **Status:** Accepted. Uses the gate and the dialog's title of
 [0018](0018-joining-open-decisions.md) and adds to the Listing read of
-[0016](0016-listing-screen-open-decisions.md).
+[0016](0016-listing-screen-open-decisions.md). The wording of "already reported" is superseded by
+[0027](0027-deciding-a-review-item-open-decisions.md).
 
 ## Context
 

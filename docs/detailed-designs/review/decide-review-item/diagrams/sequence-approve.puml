@@ -32,7 +32,7 @@ box "Backend — ChristianRent.Infrastructure" #FFF4E5
   database "Database" as db
 end box
 actor -> page : Select "Approve"
-page -> store : decide(id, Approve)
+page -> store : decide(Approve)
 store -> ctrl : POST /api/review-queue/{id}/decision {Approve, version}
 ctrl -> ctrl : Admin policy (L2-025)
 ctrl -> handler : Send DecideReviewItemCommand
@@ -43,16 +43,17 @@ alt item is waiting and the version matches
   handler -> listing : Approve(now), Status = Approved (L2-020 criterion 1)
   handler -> db : Save with concurrency token
   db --> handler : Committed
-  handler --> ctrl : DecidedDto
+  handler --> ctrl : DecidedDto with the closed item ids
   ctrl --> store : 200 OK
   store -> store : Drop the item, select the next
   store -> toasts : push(success)
   toasts --> actor : Toast announced, dismisses after 8 s
-else decided by another admin
+else decided before, found on reading or by the token
   item --> handler : AlreadyDecidedException
   handler --> ctrl : First decision stands
   ctrl --> store : 409, code = already_decided (L2-020 criterion 5)
-  store --> page : detail.conflict
+  store -> toasts : push(warning)
+  store --> page : conflict
   page --> actor : "This was already decided", "Go to the next item"
 end
 @enduml
