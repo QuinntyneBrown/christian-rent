@@ -70,12 +70,17 @@ class ReviewItemDetailDto {
 }
 class ReviewQueueStore <<Angular>> {
   +state: Signal<QueueState>
-  +items: Signal<ReviewItemSummary[]>
-  +waitingCount: Signal<number>
-  +detail: Signal<ReviewItemDetail | null>
-  +load(): void
-  +loadMore(): void
-  +select(id: string): void
+  +items: Signal<QueueItemView[]>
+  +waiting: Signal<number | null>
+  +load(): Promise<void>
+  +loadMore(direction, measure): Promise<void>
+}
+class ReviewDetailStore <<Angular>> {
+  +state: Signal<DetailState>
+  +view: Signal<ReviewDetailView | null>
+  +open(id: string): Promise<void>
+  +retry(): Promise<void>
+  +close(): void
 }
 ReviewItem --> ReviewItemKind
 GetReviewQueueQueryHandler ..> GetReviewQueueQuery : handles
@@ -85,5 +90,6 @@ ReviewQueuePageDto *-- "0..50" ReviewItemSummaryDto
 GetReviewItemQueryHandler --> ReviewItem : reads
 GetReviewItemQueryHandler ..> ReviewItemDetailDto : returns
 ReviewQueueStore ..> ReviewQueuePageDto : receives
+ReviewDetailStore ..> ReviewItemDetailDto : receives
 GetReviewItemQueryHandler --> Church : reads who entered it
 @enduml

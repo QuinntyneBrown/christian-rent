@@ -56,6 +56,10 @@ Each journey's entry has three parts:
 | L40 | Before the first run of the checks on a new machine, check that the files are checked out with LF, that `DOTNET_ROOT` (if set) holds the runtimes the SDK's tools need, and that scripts start `npx` through a shell on Windows. | 9 |
 | L41 | Follow each criterion about a later visit ("told so on selecting it again") through the whole data path: if a reload loses what the screen knew, the read has to carry it, for that caller only. | 9 |
 | L42 | A dialog tells its page what it has done as soon as it knows, and keeps the close result for what only closing means: Escape and navigation close it with no result. | 9 |
+| L43 | Run Prettier only on what `npm run format:check` covers, from `frontend/`; run on `docs/` it reflows the mocks and design-system pages, which are not Prettier's to format. | 10 |
+| L44 | On Windows, stopping the shell that ran `ng serve` can leave its Node process holding the port, and a new server then fails at once; check the port is free before reading any spec result. | 10 |
+| L45 | When a screen gains a request that depends on the viewport (a detail shown only from 768 px), the specs that open it at the default width need its answer too; a fixture that also answers generated items keeps them short (L9). | 10 |
+| L46 | A script that splices a template between two markers searches for the end marker after the start: a block's class can appear earlier, in its loading branch, and the splice duplicates the template. | 10 |
 
 ## Journeys
 
@@ -638,3 +642,59 @@ Slices 9.1 and 9.2, finished on Nov 26, 2026, on Windows.
   each was then proved by mutation (L20). A script that runs a command with Python's
   `shell=True` on Windows runs `cmd.exe`, where `NAME=value command` runs nothing; set the
   environment in the calling shell, and read the test counts (L36).
+
+### 10. View the review queue
+
+Slices 10.1 to 10.4, finished on Nov 26, 2026, on Windows, stacked on journey 9's branch.
+
+**What slowed it**
+
+- Bash here-documents holding curly quotes ("’", "“") failed to parse, more than once; files with
+  copy went through the editor's write instead, and short edits through Python scripts that
+  assert each replacement (L31).
+- The design system's `review` block styles another block (`.review .tag`) and the mocks use a
+  utility (`.text-muted`) and the listing card's element (`listing-card__no-photo`) inside it.
+  Encapsulated styles cannot do that, so the detail gained its own elements (`review__kind`,
+  `review__joined`, `review__no-photo`), recorded in the design-system page.
+- The prototype draws the detail loaded or loading only. A detail that failed and an item that is
+  no longer waiting were drawn first, as `detail-error` and `detail-gone` (L2).
+- Prettier, run once over `docs/`, reflowed every mock; they were checked out again (L43). A dev
+  server stopped by its shell kept port 4200, so the next one failed silently and the specs
+  read the old build (L44).
+- Opening the first item's detail on a desktop made three specs that only list the queue fail on
+  an unanswered request (L45).
+
+**New lessons**: L43 to L46 above, and these details for later slices:
+
+- L2-019 criterion 12 (new items while the queue is open) is slice 11.4: it needs the review
+  toast and `ToastQueue`, which journey 11 builds (ADR 0024).
+- `cr-decision-bar` holds "View on site" and projects its buttons; journey 11 puts Approve,
+  Keep and Remove in it. `ReviewDetailStore` is the place for a decision's request.
+- `cr-empty-state` has four variants: `nothing` (Browse's no results), `error`, `done` ("All
+  caught up") and `notice` ("This item is no longer waiting.").
+- An admin is made with `ChristianRent.Cli grant-admin <sign-in-id>`; the seed's cast has none.
+
+**Earlier lessons applied**
+
+- L2: the two missing detail states were drawn, listed in the manifest and noted in the mocks'
+  README before their code.
+- L3 and L20: on the backend, listing every item and not recording who entered a church each
+  failed only the test that names it; on the frontend, a guard that lets members through, a
+  window of 99 pages, a detail asked for at any width and a detail request not aborted each
+  failed only their spec.
+- L4: every slice's commit followed a run of the checks, and the last of `verify.mjs` (196.8 s).
+- L8: Admin is composed of `cr-admin-layout`, `cr-admin-nav`, `cr-queue`, `cr-queue-item`,
+  `cr-review-detail`, `cr-decision-bar` and `cr-empty-state`; the page writes no design-system
+  class.
+- L11 and L27: the production build ran in every frontend slice; the initial total went from
+  323.24 kB to 323.67 kB (the guard, the forbidden route and `Session.ready`). Admin is its own
+  chunk, loaded only for an admin. No budget changed.
+- L12: the queue's and the detail's words, the selection and the dates are `@rent/domain`, with a
+  test per case.
+- L13: the sweeps visit Admin's queue, loading, empty, error, forbidden and detail states; none
+  was run.
+- L19: the new specs were run 5 times before each commit.
+- L33: the selection spec observes the earlier detail request fail with `net::ERR_ABORTED`;
+  before it did, removing the abort alone passed.
+- L38: the Admin specs and sweeps fix the clock on the mocks' today, 3 p.m. on Jun 8, 2026.
+- L40: dotnet ran with `MSBUILDDISABLENODEREUSE=1`, and the checkout stayed LF.

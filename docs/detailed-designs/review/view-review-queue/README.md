@@ -40,19 +40,25 @@ A new library, loaded only for an admin. Its place in the dependency direction i
 `AGENTS.md` and the ESLint boundaries.
 
 - **`ADMIN_ROUTES`** — one route whose `providers` bind `REVIEW_QUEUE_API` to
-  `HttpReviewQueueApi` and provide `ReviewQueueStore` and `ToastQueue`, so their code and
-  state stay out of the initial bundle and go when the admin leaves.
+  `HttpReviewQueueApi`, so its code stays out of the initial bundle. `ReviewPage` provides
+  `ReviewQueueStore` and `ReviewDetailStore`, so their state goes when the admin leaves.
+  Journey 11 adds `ToastQueue` with the review toast.
 - **`ReviewPage`** (selector `cr-review-page`) — lays out `cr-admin-nav`, the queue and the
   detail panel with the `admin` block. Under 768 px it shows the queue and a note that
   deciding needs a wider screen; from 768 px the detail panel sits beside the queue
   (L2-031, criteria 5 and 7). The heading "Review" carries "4 waiting · oldest first", and
   "· showing 50" when more wait than are loaded (L2-019, criteria 6 and 10).
 - **`ReviewQueueStore`** — `state` (`loading`, `loaded`, `empty`, `failed`), `items`,
-  `waitingCount`, `selectedId`, `detail`. It loads pages of 50 by cursor as the list end is
-  reached, and keeps at most 3 pages in a `ListingWindow`, with a sentinel above and below the
-  list. `select(id)` loads the detail and aborts the previous detail request. The address holds
-  the selection, `/admin?item={id}`; with none, the first item is selected. The detail is asked
-  for only from 768 px, where it is shown (ADR 0024).
+  `waiting`, `more`, `summary`. It loads pages of 50 by cursor as either end of the list is
+  reached (one `IntersectionObserver` in `ReviewPage` watches the first and the last item held),
+  and keeps at most 3 pages in a `ListingWindow`.
+- **`ReviewDetailStore`** — `state` (`idle`, `loading`, `loaded`, `failed`, `gone`) and the
+  `view`. `open(id)` loads the detail and aborts the previous detail request; `not_found` is
+  "This item is no longer waiting." The address holds the selection, `/admin?item={id}`;
+  `selectedItem` (`@rent/domain`) picks it, or the first item. `ReviewPage` opens it only
+  while `matchMedia('(min-width: 48rem)')` matches, where the panel is shown (ADR 0024).
+- **`@rent/domain` `review/`** — `toQueueItemView`, `queueSummary`, `formatWaited`,
+  `selectedItem`, and `toReviewDetailView` with the words of ADR 0024.
 
 **Frontend — `components` library**
 
@@ -63,8 +69,13 @@ A new library, loaded only for an admin. Its place in the dependency direction i
   text: "New", "Reported", "New member" (L2-019, criterion 6). The selected item carries
   `aria-current`. A long title is cut with an ellipsis and keeps its full text for assistive
   technology.
-- **`cr-review-detail`** — the detail panel; its content differs by kind.
-- **`cr-empty-state`** — "All caught up" (L2-019, criterion 3), and the failed state.
+- **`cr-queue`** — the heading "Review" and its summary, the phone note, the projected items
+  and "Loading more items…" or its failure.
+- **`cr-review-detail`** — the detail panel; its content differs by kind. Null draws it in
+  its shape while it loads.
+- **`cr-decision-bar`** — "View on site" for a public listing; journey 11 adds the decisions.
+- **`cr-empty-state`** — "All caught up" (`done`, L2-019, criterion 3), the failed state
+  (`error`), and the item no longer waiting (`notice`).
 
 **Backend**
 
@@ -108,6 +119,8 @@ The mocks are the source of truth for the UI of this feature. The states this de
 
 - [`docs/mocks/pages/admin/default.html`](../../../mocks/pages/admin/default.html): the queue with a new listing selected
 - [`docs/mocks/pages/admin/report.html`](../../../mocks/pages/admin/report.html): a report's detail
+- [`docs/mocks/pages/admin/detail-error.html`](../../../mocks/pages/admin/detail-error.html): the detail that did not load
+- [`docs/mocks/pages/admin/detail-gone.html`](../../../mocks/pages/admin/detail-gone.html): the item no longer waiting
 - [`docs/mocks/pages/admin/new-member.html`](../../../mocks/pages/admin/new-member.html): a new member's detail
 - [`docs/mocks/pages/admin/wanted.html`](../../../mocks/pages/admin/wanted.html): a new wanted listing's detail
 - [`docs/mocks/pages/admin/loading.html`](../../../mocks/pages/admin/loading.html): skeleton rows and panel

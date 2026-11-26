@@ -1,0 +1,6 @@
+<div class="decision-bar">
+  <ng-content />
+  @if (viewUrl(); as url) {
+    <a class="decision-bar__view" [routerLink]="url">View on site <cr-icon name="external" /></a>
+  }
+</div>

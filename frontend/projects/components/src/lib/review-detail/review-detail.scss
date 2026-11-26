@@ -126,26 +126,3 @@
     overflow-wrap: anywhere;
   }
 }
-
-// The design system's decision bar; journey 11 adds the decisions beside "View on site".
-.review__decisions {
-  position: sticky;
-  bottom: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-3);
-  margin-top: var(--space-8);
-  padding-block: var(--space-4);
-  background: var(--color-bg-surface-sunken);
-}
-
-.review__view {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: var(--target-min);
-  margin-left: auto;
-  color: var(--color-fg-muted);
-  font: var(--text-label);
-}

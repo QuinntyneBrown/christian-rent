@@ -58,9 +58,7 @@
     }
     <ng-container *ngTemplateOutlet="facts; context: { $implicit: view_.facts }" />
     @if (view_.siteUrl; as siteUrl) {
-      <div class="review__decisions">
-        <a class="review__view" [routerLink]="siteUrl">View on site <cr-icon name="external" /></a>
-      </div>
+      <cr-decision-bar [viewUrl]="siteUrl" />
     }
   </div>
 }

@@ -126,16 +126,17 @@ decides a report in journeys 10 and 11.
 | 9.1 | `ReportListingCommand` adds a report to the review queue, with its refusals; already reported, told only to the reporter by the Listing read; `purge-departed` and reports | L2-021, L2-025, L2-026, L2-028 | Yes |
 | 9.2 | `ReportListingDialog` with its reasons and note, invalid, busy, failed and already states, announced confirmation, and the join dialog first for a person who is not a member | L2-021, L2-032 | Yes |
 
-## 10. View the review queue (Admin) — 4 days — 0% complete
+## 10. View the review queue (Admin) — 4 days — 100% complete
 
-Design: [view-review-queue](detailed-designs/review/view-review-queue/README.md).
+Design: [view-review-queue](detailed-designs/review/view-review-queue/README.md). L2-019
+criterion 12, new items while the queue is open, is slice 11.4, with the review toast (ADR 0024).
 
-| # | Slice | L2 |
-|---|---|---|
-| 10.1 | `GET /api/review-queue`, oldest first, admin only | L2-019, L2-025, L2-030 |
-| 10.2 | The `admin` library, `adminGuard` and `ForbiddenPage` | L2-019, L2-025 |
-| 10.3 | `ReviewPage` with the queue, its loading, error and "All caught up" states | L2-019, L2-033 |
-| 10.4 | The detail panel from 768 px; the queue only, with a note, below it | L2-031 |
+| # | Slice | L2 | Done |
+|---|---|---|---|
+| 10.1 | `GET /api/review-queue` and `/{id}`, oldest first, admin only, pages of 50; `grant-admin` | L2-019, L2-025, L2-030 | Yes |
+| 10.2 | The `admin` library, `adminGuard` and `ForbiddenPage` | L2-019, L2-025 | Yes |
+| 10.3 | `ReviewPage` with the queue, its loading, error and "All caught up" states, held in 3 pages | L2-019, L2-030, L2-033 | Yes |
+| 10.4 | The detail panel from 768 px, by kind, with its failed and gone states; the queue only, with a note, below it | L2-019, L2-031, L2-033 | Yes |
 
 ## 11. Decide a review item (Admin) — 4 days — 0% complete
 
@@ -146,6 +147,7 @@ Design: [decide-review-item](detailed-designs/review/decide-review-item/README.m
 | 11.1 | `DecideReviewItemCommand`: Approve, Keep, Remove, by item kind | L2-019, L2-020 |
 | 11.2 | Approve, Keep and Remove in the detail panel; `ConfirmRemoveDialog` | L2-020, L2-032 |
 | 11.3 | Toasts after a decision, announced, with `ToastQueue` | L2-032 |
+| 11.4 | New items while the queue is open: "2 new items are waiting" with "Show them" | L2-019 |
 
 ## 12. Verify members and churches (Admin) — 3 days — 0% complete
 
@@ -161,4 +163,4 @@ Design: [verify-members-and-churches](detailed-designs/members/verify-members-an
 
 | Journeys | Effort (days) | % complete |
 |---|---|---|
-| 12 | 52 | 79 |
+| 12 | 52 | 87 |

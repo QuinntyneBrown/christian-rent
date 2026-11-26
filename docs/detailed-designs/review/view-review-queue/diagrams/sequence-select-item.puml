@@ -17,7 +17,7 @@ skinparam package {
 actor "Admin" as actor
 box "Frontend — admin library (lazy)" #E0F2FE
   participant "ReviewPage" as page
-  participant "ReviewQueueStore" as store
+  participant "ReviewDetailStore" as store
 end box
 box "Backend — ChristianRent.Api" #D1FADF
   participant "ReviewQueueController" as ctrl
@@ -28,8 +28,8 @@ end box
 box "Backend — ChristianRent.Infrastructure" #FFF4E5
   database "Database" as db
 end box
-actor -> page : Select a queue row
-page -> store : select(id)
+actor -> page : Select a queue row (link to /admin?item={id})
+page -> store : open(id), from 768 px only
 store -> store : Abort the previous detail request
 store -> ctrl : GET /api/review-queue/{id}
 ctrl -> handler : Send GetReviewItemQuery

@@ -10,7 +10,8 @@ Container_Boundary(spa, "rent application (Angular workspace)") {
 }
 Container_Boundary(admlib, "admin library (lazy chunk)") {
   Component(page, "ReviewPage", "Angular page", "Queue beside the detail panel")
-  Component(store, "ReviewQueueStore", "Route-scoped signal store", "Pages of 50, selection, detail")
+  Component(store, "ReviewQueueStore", "Page-scoped signal store", "Pages of 50, 3 held")
+  Component(dstore, "ReviewDetailStore", "Page-scoped signal store", "The selected item's detail")
   Component(client, "HttpReviewQueueApi", "REVIEW_QUEUE_API, bound by the route", "Typed HTTP client")
 }
 Container_Boundary(api, "ChristianRent backend") {
@@ -23,9 +24,11 @@ ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
 ContainerDb(files, "File storage", "<TO SUPPLY>", "Photo renditions")
 Rel(guard, page, "Lets the router load @rent/admin")
 Rel(guard, forbid, "Falls through to")
-Rel(page, store, "Reads state, select(id)")
+Rel(page, store, "Reads the queue, loadMore()")
+Rel(page, dstore, "open(id) from 768 px")
 Rel(page, ui, "Renders")
-Rel(store, client, "queue(cursor), item(id)")
+Rel(store, client, "page(cursor)")
+Rel(dstore, client, "item(id)")
 Rel(client, ctrl, "GET /api/review-queue", "JSON/HTTPS")
 Rel(ctrl, list, "Sends GetReviewQueueQuery")
 Rel(ctrl, det, "Sends GetReviewItemQuery")

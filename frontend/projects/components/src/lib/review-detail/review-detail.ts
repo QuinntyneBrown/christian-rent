@@ -1,8 +1,8 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import type { ReviewDetailView } from '@rent/api';
 import { Avatar } from '../avatar/avatar';
+import { DecisionBar } from '../decision-bar/decision-bar';
 import { Icon } from '../icon/icon';
 import { Skeleton } from '../skeleton/skeleton';
 import { Tag } from '../tag/tag';
@@ -16,7 +16,7 @@ import { Verified } from '../verified/verified';
  */
 @Component({
   selector: 'cr-review-detail',
-  imports: [Avatar, Icon, NgTemplateOutlet, RouterLink, Skeleton, Tag, Verified],
+  imports: [Avatar, DecisionBar, Icon, NgTemplateOutlet, Skeleton, Tag, Verified],
   templateUrl: './review-detail.html',
   styleUrl: './review-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

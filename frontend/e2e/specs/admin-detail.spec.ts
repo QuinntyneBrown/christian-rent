@@ -110,15 +110,19 @@ test.describe('An item’s detail', () => {
     await expect(admin.detail.getByRole('button')).toHaveCount(0);
   });
 
-  // ADR 0024: the selection is in the address, and a newer one wins over a slower answer.
+  // ADR 0024: the selection is in the address, and a newer one aborts the request before it (L2-030).
   test('opens the item an admin selects, whatever answered before', async ({ page, api }) => {
     const release = api.hold('GET', `/api/review-queue/${YARD.id}`);
     const admin = new AdminPage(page);
     await admin.open();
     await expect(admin.detailSkeleton.first()).toBeVisible();
+    const aborted = page.waitForEvent('requestfailed', (request) =>
+      request.url().endsWith(`/api/review-queue/${YARD.id}`),
+    );
 
     await admin.item(LOCKER.title).click();
     await expect(admin.detailTitle).toHaveText(LOCKER.title);
+    expect((await aborted).failure()?.errorText).toBe('net::ERR_ABORTED');
     release();
 
     await expect(page).toHaveURL(`/admin?item=${LOCKER.id}`);

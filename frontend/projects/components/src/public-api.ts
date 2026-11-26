@@ -10,6 +10,7 @@ export * from './lib/button/button';
 export * from './lib/checkbox/checkbox';
 export * from './lib/confirmation/confirmation';
 export * from './lib/date-range/date-range';
+export * from './lib/decision-bar/decision-bar';
 export * from './lib/dialog/dialog';
 export * from './lib/empty-state/empty-state';
 export * from './lib/feed-status/feed-status';
