@@ -1,4 +1,17 @@
-// Post composes its blocks from @rent/components; it adds no rule of its own.
+// Post composes its blocks from @rent/components. Its own rule is the list of the summary's
+// links, which it projects into cr-alert (the forms pattern's error summary).
 :host {
   display: block;
+}
+
+.summary {
+  margin: 0;
+  padding-left: var(--space-5);
+  list-style: disc;
+}
+
+.summary a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }

@@ -44,12 +44,15 @@ changes data. Sending the draft is designed in
 
 **Frontend — `domain` library**
 
-- **`ListingDraft`** — `{ offer, kind, title, priceAmount, pricePeriod, when, area, note,
-  photos, clientRequestId }`. `when` is `{ mode: 'text'; text }` or
-  `{ mode: 'dates'; start; end }`. A new draft has the kind `thing` and "when" in the mode
-  `text` (L2-009, criterion 6; L2-010, criterion 10).
-- **`ListingDraftValidator`** (`domain/listings/`) — pure function from a draft to
-  `DraftErrors`. Its rules are the table below, with one unit test per row.
+- **`ListingDraft`** (`domain/listings/listing-draft.ts`) — `{ offer, kind, title, price,
+  pricePeriod, whenMode, whenText, startDate, endDate, area, note, photoIds, clientRequestId }`.
+  Every field is kept as typed: `price` is the text typed, read by `parsePrice`, and "when"
+  keeps its words and its dates while `whenMode` (`text` or `dates`) says which is used, so
+  switching back loses nothing. A new draft has the kind `thing`, the period `day` and "when"
+  in the mode `text` (L2-009, criterion 6; L2-010, criterion 10).
+- **`ListingDraftValidator`** (`validateDraft`, `domain/listings/draft-validator.ts`) — pure
+  function from a draft to `DraftErrors`, each a message and a summary entry; `summaryOf`
+  lists the entries in the form's order. Its rules are the table below, with one unit test per row.
 - **`draftToCard`** (`domain/listings/draft-card.ts`) — maps a draft and the member to the
   `ListingCardView` that `cr-listing-card` draws, with no address. An empty title, price or area becomes
   the placeholder "Your listing title", "Price" or "Your area", never "undefined" and never

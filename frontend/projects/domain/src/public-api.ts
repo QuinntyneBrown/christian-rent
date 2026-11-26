@@ -1,6 +1,7 @@
 /*
  * Public API of @rent/domain: the rules the browser applies itself.
  */
+export * from './listings/draft-validator';
 export * from './listings/format-age';
 export * from './listings/format-count';
 export * from './listings/format-place';
@@ -14,3 +15,4 @@ export * from './listings/post-copy';
 export * from './members/join-form';
 export * from './search/listing-window';
 export * from './search/browse-query';
+export * from './storage/draft-store';

@@ -17,33 +17,29 @@ class ListingDraft <<TypeScript>> {
   +offer: 'for-rent' | 'wanted'
   +kind: 'space' | 'thing'
   +title: string
-  +priceAmount: number | null
+  +price: string
   +pricePeriod: 'hour' | 'day' | 'week' | 'month'
-  +when: WhenText | WhenDates
+  +whenMode: 'text' | 'dates'
+  +whenText: string
+  +startDate: string
+  +endDate: string
   +area: string
   +note: string
-  +photos: DraftPhoto[]
+  +photoIds: string[]
   +clientRequestId: string
 }
-class WhenText <<TypeScript>> {
-  +mode: 'text'
-  +text: string
-}
-class WhenDates <<TypeScript>> {
-  +mode: 'dates'
-  +start: string
-  +end: string
-}
 class DraftErrors <<TypeScript>> {
-  +title?: string
-  +price?: string
-  +when?: string
-  +area?: string
-  +note?: string
+  +title?: DraftError
+  +price?: DraftError
+  +whenText?: DraftError
+  +startDate?: DraftError
+  +endDate?: DraftError
+  +area?: DraftError
+  +note?: DraftError
 }
 class ListingDraftValidator <<TypeScript>> {
-  +validate(draft: ListingDraft): DraftErrors
-  +firstInvalid(errors: DraftErrors): FieldName | null
+  +validateDraft(draft: ListingDraft): DraftErrors
+  +summaryOf(errors: DraftErrors): SummaryEntry[]
 }
 class PostStore <<Angular>> {
   +draft: Signal<ListingDraft>
@@ -52,7 +48,7 @@ class PostStore <<Angular>> {
   +setOffer(offer): void
   +setKind(kind): void
   +patch(change: Partial<ListingDraft>): void
-  +validate(): FieldName | null
+  +check(): boolean
 }
 class DraftStore <<TypeScript>> {
   +save(draft: ListingDraft): void
@@ -65,8 +61,6 @@ class MemberGate <<Angular>> {
 PostStore *-- ListingDraft
 PostStore *-- DraftErrors
 PostStore ..> ListingDraftValidator : uses
-ListingDraft *-- WhenText
-ListingDraft *-- WhenDates
 PostStore ..> DraftStore : saves on change / restores / clears
 PostStore ..> MemberGate : requireMember('post') on entry and before publishing
 DraftStore ..> ListingDraft

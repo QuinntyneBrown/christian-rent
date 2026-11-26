@@ -1,18 +1,54 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import type { ListingKind, ListingOffer } from '@rent/api';
-import { type ListingDraft, arriveWith, newDraft, postCopy, withOffer } from '@rent/domain';
+import {
+  DRAFT_LIMITS,
+  DraftStore,
+  type ListingDraft,
+  arriveWith,
+  formatCounter,
+  formatWhen,
+  newDraft,
+  postCopy,
+  summaryOf,
+  validateDraft,
+  withOffer,
+} from '@rent/domain';
 
 /**
- * Post's state, scoped to its route (compose-listing design): the draft and the copy that
- * follows its offer. Switching the offer or the kind keeps every field (L2-009, criteria 1
- * and 2).
+ * Post's state, scoped to its route (compose-listing design): the draft, its errors once the
+ * member has submitted, and the copy that follows its offer. Switching the offer or the kind
+ * keeps every field (L2-009, criteria 1 and 2). The draft is written to `sessionStorage` on
+ * every change and read back when Post opens, so it survives the join dialog and a reload
+ * (ADR 0019).
  */
 @Injectable()
 export class PostStore {
-  private readonly current = signal<ListingDraft>(newDraft(crypto.randomUUID()));
+  private readonly drafts = new DraftStore(sessionStorageOf(inject(DOCUMENT)));
+  private readonly current = signal<ListingDraft>(
+    this.drafts.restore() ?? newDraft(crypto.randomUUID()),
+  );
+  /** Set once the member submits; from then on errors follow every change. */
+  private readonly checked = signal(false);
 
   readonly draft = this.current.asReadonly();
   readonly copy = computed(() => postCopy(this.current().offer));
+  readonly errors = computed(() => (this.checked() ? validateDraft(this.current()) : {}));
+  readonly summary = computed(() => summaryOf(this.errors()));
+  readonly noteCounter = computed(() =>
+    formatCounter(this.current().note.length, DRAFT_LIMITS.note),
+  );
+  /** The dates in words once both are chosen in order (L2-022, criterion 7). */
+  readonly datesInWords = computed(() => {
+    const { startDate, endDate } = this.current();
+    return startDate && endDate && endDate >= startDate
+      ? formatWhen({ text: null, start: startDate, end: endDate })
+      : null;
+  });
+
+  constructor() {
+    effect(() => this.drafts.save(this.current()));
+  }
 
   /** Applies the choice Browse's address carries (ADR 0019). */
   arrive(offer: string | null | undefined, title: string | null | undefined): void {
@@ -29,5 +65,20 @@ export class PostStore {
 
   patch(change: Partial<Omit<ListingDraft, 'offer' | 'clientRequestId' | 'photoIds'>>): void {
     this.current.update((draft) => ({ ...draft, ...change }));
+  }
+
+  /** Checks every field at once; true when the draft can be sent (L2-010, criterion 8). */
+  check(): boolean {
+    this.checked.set(true);
+    return this.summary().length === 0;
+  }
+}
+
+/** The tab's `sessionStorage`, or null where the browser refuses it. */
+function sessionStorageOf(document: Document): Storage | null {
+  try {
+    return document.defaultView?.sessionStorage ?? null;
+  } catch {
+    return null;
   }
 }

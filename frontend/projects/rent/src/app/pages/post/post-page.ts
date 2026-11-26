@@ -1,13 +1,17 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  Injector,
+  afterNextRender,
   effect,
   inject,
   input,
   untracked,
+  viewChild,
 } from '@angular/core';
 import type { PricePeriod } from '@rent/api';
 import {
+  Alert,
   Button,
   DateRange,
   FieldRow,
@@ -19,8 +23,19 @@ import {
   Textarea,
   type WordOption,
 } from '@rent/components';
-import { DRAFT_LIMITS } from '@rent/domain';
+import { DRAFT_LIMITS, type DraftField, summaryTitle } from '@rent/domain';
 import { PostStore } from './post-store';
+
+/** The id of each field's input, which the summary's links move focus to. */
+const FIELD_IDS: Record<DraftField, string> = {
+  title: 'post-title',
+  price: 'post-price',
+  whenText: 'post-when',
+  startDate: 'post-dates-start',
+  endDate: 'post-dates-end',
+  area: 'post-area',
+  note: 'post-note',
+};
 
 const PERIODS: readonly WordOption[] = [
   { value: 'hour', label: 'per hour' },
@@ -33,11 +48,14 @@ const PERIODS: readonly WordOption[] = [
  * Post, at `/post` (compose-listing and publish-listing designs): the sentence whose words
  * choose the offer and the kind, the fields, and the live preview beside them from 768 px
  * (L2-009, L2-010, L2-011, L2-031). Browse's `offer` and `title` set it (L2-004, L2-005). The
- * header is the plain one, with a close button and no Post (L2-036, criterion 3).
+ * header is the plain one, with a close button and no Post (L2-036, criterion 3). A submission
+ * with invalid fields marks them all, and focus moves to the summary, whose links move focus to
+ * their fields (L2-010, criterion 8).
  */
 @Component({
   selector: 'cr-post-page',
   imports: [
+    Alert,
     Button,
     DateRange,
     FieldRow,
@@ -62,6 +80,11 @@ export class PostPage {
   protected readonly store = inject(PostStore);
   protected readonly periods = PERIODS;
   protected readonly limits = DRAFT_LIMITS;
+  protected readonly fieldIds = FIELD_IDS;
+  protected readonly summaryTitle = summaryTitle;
+
+  private readonly summary = viewChild(Alert);
+  private readonly injector = inject(Injector);
 
   constructor() {
     effect(() => {
@@ -69,6 +92,18 @@ export class PostPage {
       const title = this.title();
       untracked(() => this.store.arrive(offer, title));
     });
+  }
+
+  protected submitted(): void {
+    if (!this.store.check()) {
+      afterNextRender(() => this.summary()?.focus(), { injector: this.injector });
+    }
+  }
+
+  /** A summary link moves focus to its field, without changing the address. */
+  protected focusField(event: Event, field: DraftField): void {
+    event.preventDefault();
+    document.getElementById(FIELD_IDS[field])?.focus();
   }
 
   protected periodChosen(period: string): void {
