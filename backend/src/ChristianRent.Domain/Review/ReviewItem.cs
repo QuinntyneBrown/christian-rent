@@ -2,7 +2,10 @@ namespace ChristianRent.Domain.Review;
 
 /// <summary>
 /// One entry of the review queue, pointing at its subject by <see cref="Kind"/> and
-/// <see cref="SubjectId"/> (view-review-queue design). Journeys 10 and 11 add the decision.
+/// <see cref="SubjectId"/> (view-review-queue design). It waits until an admin decides it once;
+/// the decision, who made it and when stay recorded, and the item is never deleted (L2-020,
+/// criterion 6). <see cref="Version"/> changes with the decision, so a second admin's is refused
+/// (ADR 0025).
 /// </summary>
 public sealed class ReviewItem
 {
@@ -12,6 +15,7 @@ public sealed class ReviewItem
         Kind = kind;
         SubjectId = subjectId;
         CreatedAt = createdAt;
+        Version = Guid.NewGuid();
     }
 
     public Guid Id { get; private set; }
@@ -22,6 +26,46 @@ public sealed class ReviewItem
     public Guid SubjectId { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
+
+    public ReviewDecision? Decision { get; private set; }
+
+    /// <summary>The admin who decided it.</summary>
+    public Guid? DecidedById { get; private set; }
+
+    public DateTimeOffset? DecidedAt { get; private set; }
+
+    /// <summary>A concurrency token: every decision changes it (ADR 0025).</summary>
+    public Guid Version { get; private set; }
+
+    /// <summary>
+    /// What its kind allows (L2-020, criterion 8): Keep or Remove for a report, Approve or Remove
+    /// for a new listing and a new member.
+    /// </summary>
+    public IReadOnlyList<ReviewDecision> Decisions => Kind == ReviewItemKind.Report
+        ? [ReviewDecision.Keep, ReviewDecision.Remove]
+        : [ReviewDecision.Approve, ReviewDecision.Remove];
+
+    /// <summary>
+    /// Records the decision with the admin and the time. A second decision is refused and the
+    /// first stands (L2-020, criterion 5); the caller checks <see cref="Decisions"/> first.
+    /// </summary>
+    public void Decide(ReviewDecision decision, Guid adminId, DateTimeOffset now)
+    {
+        if (Decision is { } made)
+        {
+            throw new ReviewItemAlreadyDecidedException(made, DecidedAt!.Value);
+        }
+
+        if (!Decisions.Contains(decision))
+        {
+            throw new ArgumentOutOfRangeException(nameof(decision), decision, "The item's kind does not allow this decision.");
+        }
+
+        Decision = decision;
+        DecidedById = adminId;
+        DecidedAt = now;
+        Version = Guid.NewGuid();
+    }
 
     /// <summary>A new listing waits for an admin to approve it (L2-012, criterion 1).</summary>
     public static ReviewItem ForNewListing(Guid listingId, DateTimeOffset now) =>

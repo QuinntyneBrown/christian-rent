@@ -5,11 +5,14 @@ namespace ChristianRent.Application.Review;
 /// <summary>
 /// One item of the review queue with everything needed to decide it (L2-019, criterion 2). It
 /// holds <c>Listing</c> for a new listing and a report, <c>Report</c> for a report, and
-/// <c>Member</c> for a new member; the others are null.
+/// <c>Member</c> for a new member; the others are null. <c>Version</c> goes back with the
+/// decision, and <c>Decisions</c> are those its kind allows (ADR 0025; L2-020, criterion 8).
 /// </summary>
 public sealed record ReviewItemDetailDto(
     Guid Id,
     string Kind,
+    Guid Version,
+    IReadOnlyList<string> Decisions,
     DateTimeOffset WaitingSince,
     ReviewListingDto? Listing,
     ReviewReportDto? Report,

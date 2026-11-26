@@ -33,23 +33,26 @@ internal sealed class GetReviewItemQueryHandler(IAppDbContext database, ICurrent
             ?? throw new NotFoundException();
 
         var kind = ReviewWords.Of(item.Kind);
+        var decisions = item.Decisions.Select(ReviewWords.Of).ToList();
         switch (item.Kind)
         {
             case ReviewItemKind.NewListing:
-                return new ReviewItemDetailDto(item.Id, kind, item.CreatedAt, await ListingAsync(item.SubjectId, cancellationToken), null, null);
+                return new ReviewItemDetailDto(item.Id, kind, item.Version, decisions, item.CreatedAt, await ListingAsync(item.SubjectId, cancellationToken), null, null);
 
             case ReviewItemKind.Report:
                 var report = await database.Reports.AsNoTracking().SingleAsync(report => report.Id == item.SubjectId, cancellationToken);
                 return new ReviewItemDetailDto(
                     item.Id,
                     kind,
+                    item.Version,
+                    decisions,
                     item.CreatedAt,
                     await ListingAsync(report.ListingId, cancellationToken),
                     new ReviewReportDto(ReportWords.Of(report.Reason), report.Note, report.CreatedAt),
                     null);
 
             default:
-                return new ReviewItemDetailDto(item.Id, kind, item.CreatedAt, null, null, await MemberAsync(item.SubjectId, cancellationToken));
+                return new ReviewItemDetailDto(item.Id, kind, item.Version, decisions, item.CreatedAt, null, null, await MemberAsync(item.SubjectId, cancellationToken));
         }
     }
 

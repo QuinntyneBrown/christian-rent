@@ -14,6 +14,13 @@ internal sealed class ReviewItemConfiguration : IEntityTypeConfiguration<ReviewI
         builder.Property(item => item.Kind).HasConversion<string>().HasMaxLength(16).IsRequired();
         builder.Property(item => item.SubjectId).IsRequired();
         builder.Property(item => item.CreatedAt).IsRequired();
+        builder.Property(item => item.Decision).HasConversion<string>().HasMaxLength(16);
+        builder.Property(item => item.DecidedById);
+        builder.Property(item => item.DecidedAt);
+
+        // Of two admins deciding the same item, the second's save fails (ADR 0025).
+        builder.Property(item => item.Version).IsConcurrencyToken();
+        builder.Ignore(item => item.Decisions);
 
         // The queue is read oldest first (L2-019, criterion 1).
         builder.HasIndex(item => item.CreatedAt);

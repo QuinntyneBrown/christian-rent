@@ -12,4 +12,21 @@ public static class ReviewWords
         ReviewItemKind.NewMember => "new-member",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
     };
+
+    public static string Of(ReviewDecision decision) => decision switch
+    {
+        ReviewDecision.Approve => "approve",
+        ReviewDecision.Keep => "keep",
+        ReviewDecision.Remove => "remove",
+        _ => throw new ArgumentOutOfRangeException(nameof(decision), decision, null),
+    };
+
+    /// <summary>The decision a client names, if it is one.</summary>
+    public static ReviewDecision? DecisionOf(string? word) => word switch
+    {
+        "approve" => ReviewDecision.Approve,
+        "keep" => ReviewDecision.Keep,
+        "remove" => ReviewDecision.Remove,
+        _ => null,
+    };
 }

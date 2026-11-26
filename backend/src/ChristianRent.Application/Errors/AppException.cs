@@ -24,7 +24,18 @@ public sealed class AlreadyReportedException(DateTimeOffset reportedAt) : AppExc
     public DateTimeOffset ReportedAt { get; } = reportedAt;
 }
 
-/// <summary>The action was already taken (already_decided, decision_not_allowed).</summary>
+/// <summary>
+/// Another admin decided the item first, as <see cref="Decision"/> at <see cref="DecidedAt"/>;
+/// this decision changed nothing (L2-020, criteria 5 and 13; ADR 0025).
+/// </summary>
+public sealed class AlreadyDecidedException(string decision, DateTimeOffset decidedAt) : AppException("already_decided", "Conflict.")
+{
+    public string Decision { get; } = decision;
+
+    public DateTimeOffset DecidedAt { get; } = decidedAt;
+}
+
+/// <summary>The action was already taken, or is not one this thing allows (decision_not_allowed).</summary>
 public sealed class ConflictException(string code) : AppException(code, "Conflict.");
 
 /// <summary>A limit is reached until <see cref="RetryAt"/> (post_limit_reached, message_limit_reached).</summary>
