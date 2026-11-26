@@ -1,5 +1,6 @@
 using ChristianRent.Application.Abstractions;
 using ChristianRent.Application.Errors;
+using ChristianRent.Domain.Churches;
 using ChristianRent.Domain.Members;
 using ChristianRent.Domain.Review;
 using MediatR;
@@ -19,14 +20,35 @@ internal sealed class JoinCommandHandler(IAppDbContext database, ICurrentMember 
         var signInId = caller.SignInId ?? throw new ForbiddenException("not_a_member");
         var now = clock.GetUtcNow();
 
-        var church = await database.Churches.FirstOrDefaultAsync(church => church.Id == command.ChurchId, cancellationToken)
-            ?? throw new NotFoundException();
-
+        var church = await ChurchOfAsync(command, cancellationToken);
         var member = Member.Join(signInId, MemberText.Clean(command.Name), church.Id, now);
         database.Members.Add(member);
         database.ReviewItems.Add(ReviewItem.ForNewMember(member.Id, now));
         await database.SaveChangesAsync(cancellationToken);
         return new JoinResult(ToDto(member), Created: true);
+    }
+
+    /// <summary>The chosen church, or the new one: an existing church when its key matches (ADR 0018).</summary>
+    private async Task<Church> ChurchOfAsync(JoinCommand command, CancellationToken cancellationToken)
+    {
+        if (command.ChurchId is { } id)
+        {
+            return await database.Churches.FirstOrDefaultAsync(church => church.Id == id, cancellationToken)
+                ?? throw new NotFoundException();
+        }
+
+        var name = MemberText.Clean(command.NewChurchName);
+        var city = MemberText.Clean(command.NewChurchCity);
+        var key = ChurchMatch.KeyOf(name, city);
+        var existing = await database.Churches.FirstOrDefaultAsync(church => church.MatchKey == key, cancellationToken);
+        if (existing is not null)
+        {
+            return existing;
+        }
+
+        var entered = Church.Enter(name, city);
+        database.Churches.Add(entered);
+        return entered;
     }
 
     internal static MemberDto ToDto(Member member) => new(member.Id, member.Name, member.IsVerified, member.IsAdmin);

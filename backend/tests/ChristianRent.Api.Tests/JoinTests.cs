@@ -55,6 +55,51 @@ public sealed class JoinTests : IDisposable
         Assert.Equal(_factory.Clock.GetUtcNow(), item.CreatedAt);
     }
 
+    // L2-017 criterion 2: a person whose church is not listed enters it with its name and city;
+    // it is a new church, not verified, entered as typed but trimmed.
+    [Fact]
+    public async Task A_person_joins_with_a_new_church_that_is_not_verified()
+    {
+        await _factory.SeedAsync(TestData.Grace);
+        using var client = _factory.CreateSignedInClient("sarah-kim");
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/members",
+            new { name = "Sarah Kim", newChurchName = "  Fort Langley Evangelical Free ", newChurchCity = "Fort Langley", declaresChristian = true },
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        using var scope = _factory.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var church = await database.Churches.SingleAsync(church => church.Id != TestData.Grace.Id, TestContext.Current.CancellationToken);
+        Assert.Equal("Fort Langley Evangelical Free", church.Name);
+        Assert.Equal("Fort Langley", church.City);
+        Assert.False(church.IsVerified);
+        var member = await database.Members.SingleAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(church.Id, member.ChurchId);
+    }
+
+    // L2-017 criterion 15 (ADR 0018): a new church that matches an existing one apart from
+    // capitals, accents and spacing is that church.
+    [Fact]
+    public async Task A_new_church_matching_an_existing_one_reuses_it()
+    {
+        await _factory.SeedAsync(TestData.StPauls);
+        using var client = _factory.CreateSignedInClient("alicia-gomez");
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/members",
+            new { name = "Dr. Alicia Gomez", newChurchName = " st. paul’s   ANGLICAN", newChurchCity = "fort langley ", declaresChristian = true },
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        using var scope = _factory.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var church = await database.Churches.SingleAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(TestData.StPauls.Id, church.Id);
+        Assert.Equal(TestData.StPauls.Id, (await database.Members.SingleAsync(TestContext.Current.CancellationToken)).ChurchId);
+    }
+
     // become-member design: once joined, the same person is answered as that member.
     [Fact]
     public async Task A_member_is_answered_who_they_are()

@@ -36,14 +36,19 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsVerified")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("MatchKey")
+                        .IsRequired()
+                        .HasMaxLength(181)
+                        .HasColumnType("character varying(181)");
+
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name", "City")
+                    b.HasIndex("MatchKey")
                         .IsUnique();
 
                     b.ToTable("churches", (string)null);
