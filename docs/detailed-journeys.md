@@ -95,10 +95,12 @@ Design: [add-photos](detailed-designs/post/add-photos/README.md).
 
 | # | Slice | L2 |
 |---|---|---|
-| 7.1 | `UploadPhotoCommand` with `PhotoRules` and `IPhotoInspector`; refusals by code | L2-014, L2-025 |
-| 7.2 | `IPhotoProcessor` renditions stored through `IPhotoStorage`; `GetPhotoQuery` | L2-014, L2-029 |
-| 7.3 | Photo picker: add up to six, choose the card photo, remove; object URLs released | L2-013 |
-| 7.4 | Upload in progress, refused file, full state | L2-013, L2-014 |
+| 7.1 | `UploadPhotoCommand` with `PhotoRules`, `IPhotoInspector` and `IPhotoProcessor`: renditions without metadata stored through `IPhotoStorage` | L2-014, L2-025 |
+| 7.2 | Refusals by type, size and dimensions, each with its code; a person who is not a member is refused | L2-014, L2-025 |
+| 7.3 | `GetPhotoQuery` serves a photo to its uploader, its poster or an admin; `DeletePhotoCommand` for one's own unattached photo | L2-014, L2-025 |
+| 7.4 | `PostListingCommand` attaches the member's own photos in order; `purge-photos` deletes unattached ones after 24 hours | L2-013, L2-014, L2-025 |
+| 7.5 | Photo picker: add a photo, see it uploading, then in the picker and the preview | L2-013, L2-029 |
+| 7.6 | Refused, not reached and full states; remove and cancel; object URLs and uploads released on leaving | L2-013, L2-014 |
 
 ## 8. Send a message (Main) — 4 days — 0% complete
 

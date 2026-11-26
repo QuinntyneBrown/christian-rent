@@ -134,14 +134,14 @@ Legend: ✅ mock exists · ➖ not applicable (reason in manifest) · ❌ missin
 
 ### Pages
 
-| Screen | default | loading | empty | error | for-rent | wanted | spaces | no-results | more-loading | more-error | edge | unverified | own | not-found | invalid | submitting | sent | failed | limited | blank | need | dates | success | success-wanted | photos-full | photo-refused | photo-uploading | report | new-member | decided | forbidden | long | Requirements |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Browse (`browse`) | [✅](pages/browse/default.html) | [✅](pages/browse/loading.html) | [✅](pages/browse/empty.html) | [✅](pages/browse/error.html) | [✅](pages/browse/for-rent.html) | [✅](pages/browse/wanted.html) | [✅](pages/browse/spaces.html) | [✅](pages/browse/no-results.html) | [✅](pages/browse/more-loading.html) | [✅](pages/browse/more-error.html) | [✅](pages/browse/edge.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-001`, `L2-002`, `L2-003`, `L2-004`, `L2-005`, `L2-006`, `L2-022`, `L2-023`, `L2-029`, `L2-031`, `L2-033`, `L2-035` |
-| Listing (`listing`) | [✅](pages/listing/default.html) | [✅](pages/listing/loading.html) | ➖ | [✅](pages/listing/error.html) |  | [✅](pages/listing/wanted.html) |  |  |  |  | [✅](pages/listing/edge.html) | [✅](pages/listing/unverified.html) | [✅](pages/listing/own.html) | [✅](pages/listing/not-found.html) | [✅](pages/listing/invalid.html) | [✅](pages/listing/submitting.html) | [✅](pages/listing/sent.html) | [✅](pages/listing/failed.html) | [✅](pages/listing/limited.html) |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-007`, `L2-008`, `L2-015`, `L2-016`, `L2-021`, `L2-022`, `L2-024`, `L2-031`, `L2-033` |
-| Post (`post`) | [✅](pages/post/default.html) | ➖ | ➖ | [✅](pages/post/error.html) |  |  |  |  |  |  |  |  |  |  | [✅](pages/post/invalid.html) | [✅](pages/post/submitting.html) |  |  | [✅](pages/post/limited.html) | [✅](pages/post/blank.html) | [✅](pages/post/need.html) | [✅](pages/post/dates.html) | [✅](pages/post/success.html) | [✅](pages/post/success-wanted.html) | [✅](pages/post/photos-full.html) | [✅](pages/post/photo-refused.html) | [✅](pages/post/photo-uploading.html) |  |  |  |  |  | `L2-009`, `L2-010`, `L2-011`, `L2-012`, `L2-013`, `L2-014`, `L2-022`, `L2-031` |
-| Not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-033`, `L2-007` |
-| Brand sheet (`brand`) | [✅](pages/brand/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-023` |
-| Admin (`admin`) | [✅](pages/admin/default.html) | [✅](pages/admin/loading.html) | [✅](pages/admin/empty.html) | [✅](pages/admin/error.html) |  | [✅](pages/admin/wanted.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/admin/report.html) | [✅](pages/admin/new-member.html) | [✅](pages/admin/decided.html) | [✅](pages/admin/forbidden.html) | [✅](pages/admin/long.html) | `L2-018`, `L2-019`, `L2-020`, `L2-031` |
+| Screen | default | loading | empty | error | for-rent | wanted | spaces | no-results | more-loading | more-error | edge | unverified | own | not-found | invalid | submitting | sent | failed | limited | blank | need | dates | success | success-wanted | photos-full | photo-refused | photo-failed | photo-uploading | report | new-member | decided | forbidden | long | Requirements |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Browse (`browse`) | [✅](pages/browse/default.html) | [✅](pages/browse/loading.html) | [✅](pages/browse/empty.html) | [✅](pages/browse/error.html) | [✅](pages/browse/for-rent.html) | [✅](pages/browse/wanted.html) | [✅](pages/browse/spaces.html) | [✅](pages/browse/no-results.html) | [✅](pages/browse/more-loading.html) | [✅](pages/browse/more-error.html) | [✅](pages/browse/edge.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-001`, `L2-002`, `L2-003`, `L2-004`, `L2-005`, `L2-006`, `L2-022`, `L2-023`, `L2-029`, `L2-031`, `L2-033`, `L2-035` |
+| Listing (`listing`) | [✅](pages/listing/default.html) | [✅](pages/listing/loading.html) | ➖ | [✅](pages/listing/error.html) |  | [✅](pages/listing/wanted.html) |  |  |  |  | [✅](pages/listing/edge.html) | [✅](pages/listing/unverified.html) | [✅](pages/listing/own.html) | [✅](pages/listing/not-found.html) | [✅](pages/listing/invalid.html) | [✅](pages/listing/submitting.html) | [✅](pages/listing/sent.html) | [✅](pages/listing/failed.html) | [✅](pages/listing/limited.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-007`, `L2-008`, `L2-015`, `L2-016`, `L2-021`, `L2-022`, `L2-024`, `L2-031`, `L2-033` |
+| Post (`post`) | [✅](pages/post/default.html) | ➖ | ➖ | [✅](pages/post/error.html) |  |  |  |  |  |  |  |  |  |  | [✅](pages/post/invalid.html) | [✅](pages/post/submitting.html) |  |  | [✅](pages/post/limited.html) | [✅](pages/post/blank.html) | [✅](pages/post/need.html) | [✅](pages/post/dates.html) | [✅](pages/post/success.html) | [✅](pages/post/success-wanted.html) | [✅](pages/post/photos-full.html) | [✅](pages/post/photo-refused.html) | [✅](pages/post/photo-failed.html) | [✅](pages/post/photo-uploading.html) |  |  |  |  |  | `L2-009`, `L2-010`, `L2-011`, `L2-012`, `L2-013`, `L2-014`, `L2-022`, `L2-031` |
+| Not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-033`, `L2-007` |
+| Brand sheet (`brand`) | [✅](pages/brand/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-023` |
+| Admin (`admin`) | [✅](pages/admin/default.html) | [✅](pages/admin/loading.html) | [✅](pages/admin/empty.html) | [✅](pages/admin/error.html) |  | [✅](pages/admin/wanted.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/admin/report.html) | [✅](pages/admin/new-member.html) | [✅](pages/admin/decided.html) | [✅](pages/admin/forbidden.html) | [✅](pages/admin/long.html) | `L2-018`, `L2-019`, `L2-020`, `L2-031` |
 
 ### Dialogs
 
@@ -171,5 +171,12 @@ Legend: ✅ mock exists · ➖ not applicable (reason in manifest) · ❌ missin
    person who is not a member yet shows "Your church" (and "Your name" when wanted), since they
    have no church until they join. The preview formats a price as Browse does, so the invalid
    state draws "$250,000", and the dates state reads its range as a card does, "Jun 20 to Aug
-   30, 2026" (L2-022). Until journey 7 builds uploading, the photos field's Add button is
-   disabled in the app; the mocks draw the field as it will be.
+   30, 2026" (L2-022).
+11. **Photos.** A photo is added one at a time, and the photos stay in the order they were added:
+   the prototype draws no control to reorder them, so none is built until one is drawn (an open
+   decision, ADR 0021). The count is of the photos added; one still uploading is not counted
+   until it is in. `photo-failed.html` draws what the prototype leaves out: a photo that could not be
+   uploaded because christian.rent could not be reached is named, with the advice to try adding
+   it again, where a refused one is named with the limits (L2-013, criterion 8). A photo's
+   description is an open decision (ADR 0016), so an uploaded photo's text alternative is its
+   position, "Photo 1".

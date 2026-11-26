@@ -157,8 +157,8 @@ The backend applies the same rules when the draft is published; see
 - The area is free text with its hint; no list of Canadian place names is consulted yet, and
   an admin reviews every listing before it is public (L2-022, criterion 5).
 - A start date in the past is not refused; only the order of the two dates is.
-- Until journey 7 builds uploading, the photos field shows "0 of 6" and its Add button is
-  disabled.
+- The photos field and its uploads are designed in [add-photos](../add-photos/README.md)
+  (ADR 0021); journey 6 drew it with "0 of 6" and Add disabled until journey 7 built uploading.
 
 ### Mocks
 

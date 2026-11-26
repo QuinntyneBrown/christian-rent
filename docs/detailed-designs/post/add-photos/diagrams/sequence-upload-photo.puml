@@ -39,7 +39,8 @@ uploads --> picker : Thumbnail from an object URL, state = uploading
 uploads -> client : upload(file, AbortSignal)
 client -> ctrl : POST /api/photos
 ctrl -> handler : Send UploadPhotoCommand
-handler -> insp : Inspect(content)
+handler -> rules : Check(length), before anything is read
+handler -> insp : Inspect(content), the header only
 insp --> handler : PhotoFacts or none
 handler -> rules : Check(facts, length) (L2-014 criteria 1 and 2)
 alt accepted
@@ -50,12 +51,13 @@ alt accepted
   handler --> ctrl : PhotoRefDto
   ctrl --> client : 201 Created
   client --> uploads : PhotoRef
-  uploads --> picker : state = ready, first is "On the card"
+  uploads -> uploads : revoke the object URL
+  uploads --> picker : thumbnail = thumb rendition, first is "On the card"
 else refused
-  handler --> ctrl : PhotoRefusedException
-  ctrl --> client : 422, code = photo_too_small
+  handler --> ctrl : ValidationException with the rule's code
+  ctrl --> client : 400, code = photo_too_small
   client --> uploads : ApiError
-  uploads --> picker : state = refused, message names the limit
+  uploads --> picker : photo dropped, message names the file and the limits
 end
 opt member leaves Post while uploading
   uploads -> client : abort(), revoke object URLs (L2-013 criterion 5)

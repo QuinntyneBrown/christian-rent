@@ -8,8 +8,8 @@ Person(anyone, "Anyone", "Browses and reads listings, signed in or not")
 System_Boundary(cr, "christian.rent") {
   Container(spa, "rent application", "Angular, zoneless, lazy routes", "Browse, Listing, Post and Admin screens")
   Container(api, "ChristianRent.Api", "ASP.NET Core", "Controllers, MediatR handlers and domain rules")
-  ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Listings, members, churches, messages, reports and the review queue")
-  ContainerDb(files, "File storage", "<TO SUPPLY>", "Photo renditions")
+  ContainerDb(db, "Database", "EF Core; PostgreSQL (ADR 0003)", "Listings, members, churches, messages, reports and the review queue")
+  ContainerDb(files, "File storage", "Local disk in development; product open (ADR 0004)", "Photo renditions")
 }
 Rel(member, spa, "Uses", "HTTPS")
 Rel(anyone, spa, "Uses", "HTTPS")

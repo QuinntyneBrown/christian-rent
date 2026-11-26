@@ -73,9 +73,9 @@ The form and its client-side rules are designed in
   3. asks `PostingLimit.Check(memberId, now)`; when 10 listings exist in the last 24 hours
      it raises `LimitReachedException` with `RetryAt`, returned as 429 with the code
      `post_limit_reached` (criterion 6);
-  4. loads the photos named by `PhotoIds` and refuses any that the member does not own; until
-     journey 7 stores uploads, every identifier is refused with `validation_failed` on
-     `photoIds` (ADR 0019);
+  4. loads the photos named by `PhotoIds` and refuses, with `validation_failed` on `photoIds`,
+     any that is not the member's own photo that no listing names, and any named twice; the
+     rest are attached in order, the first on the card (ADR 0021);
   5. calls `Listing.Post(...)`, which creates the listing with `Status = WaitingForReview`;
   6. adds `ReviewItem.ForNewListing(listing.Id, now)`;
   7. saves both in one `SaveChangesAsync` (criterion 1).

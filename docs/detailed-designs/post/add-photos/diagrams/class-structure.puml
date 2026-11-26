@@ -17,10 +17,10 @@ class Photo {
   +Guid Id
   +Guid OwnerId
   +Guid? ListingId
-  +string StorageKey
   +int Width
   +int Height
   +DateTimeOffset UploadedAt
+  +AttachTo(listingId: Guid): void
 }
 class PhotoFacts {
   +PhotoFormat Format
@@ -31,6 +31,7 @@ enum PhotoFormat {
   Jpeg
   Png
   WebP
+  Other
 }
 class PhotoRules {
   +{static} MaxBytes: 10 MB
@@ -38,7 +39,8 @@ class PhotoRules {
   +{static} MinHeight: 300
   +{static} MaxSide: 8000
   +{static} MaxPerListing: 6
-  +{static} Check(facts: PhotoFacts?, length: long): PhotoRefusal?
+  +{static} KeepUnattached: 24 h
+  +{static} Check(length: long, facts: PhotoFacts?): string?
 }
 interface IPhotoInspector {
   +Inspect(content: Stream): PhotoFacts?
@@ -48,29 +50,44 @@ interface IPhotoProcessor {
 }
 interface IPhotoStorage {
   +SaveAsync(key: string, content: Stream): Task
-  +OpenReadAsync(key: string): Task<Stream>
+  +OpenReadAsync(key: string): Task<Stream?>
   +DeleteAsync(key: string): Task
   +IsReachableAsync(): Task<bool>
 }
+class ImageSharpPhotoInspector
+class ImageSharpPhotoProcessor
 class UploadPhotoCommandHandler {
   +Handle(command: UploadPhotoCommand): Task<PhotoRefDto>
 }
+class DeletePhotoCommandHandler {
+  +Handle(command: DeletePhotoCommand): Task
+}
+class PurgeUnattachedPhotosCommandHandler {
+  +Handle(command: PurgeUnattachedPhotosCommand): Task<int>
+}
 class GetPhotoQueryHandler {
-  +Handle(query: GetPhotoQuery): Task<PhotoStreamDto>
+  +Handle(query: GetPhotoQuery): Task<PhotoFile>
 }
 class PhotoUploads <<Angular>> {
-  +add(files: File[]): void
-  +remove(localId: string): void
+  +uploading: Signal<UploadingPhoto[]>
+  +add(file: File): void
+  +remove(position: number): void
   -controllers: Map<string, AbortController>
-  -objectUrls: string[]
+  -objectUrls: Map<string, string>
 }
 UploadPhotoCommandHandler ..> IPhotoInspector
 UploadPhotoCommandHandler ..> IPhotoProcessor
 UploadPhotoCommandHandler ..> IPhotoStorage
 UploadPhotoCommandHandler ..> PhotoRules
 UploadPhotoCommandHandler --> Photo : creates
+DeletePhotoCommandHandler --> Photo : deletes own unattached
+DeletePhotoCommandHandler ..> IPhotoStorage
+PurgeUnattachedPhotosCommandHandler --> Photo : deletes after 24 h
+PurgeUnattachedPhotosCommandHandler ..> IPhotoStorage
 GetPhotoQueryHandler --> Photo : loads
 GetPhotoQueryHandler ..> IPhotoStorage
+ImageSharpPhotoInspector ..|> IPhotoInspector
+ImageSharpPhotoProcessor ..|> IPhotoProcessor
 IPhotoInspector ..> PhotoFacts
 PhotoFacts --> PhotoFormat
 PhotoRules ..> PhotoFacts
