@@ -20,6 +20,14 @@ public static class TestData
     public static Member Member(string name, Church church, Guid? id = null, bool isVerified = true, int joinedIn = 2026, string? signInId = null) =>
         Domain.Members.Member.Create(id ?? Guid.NewGuid(), name, church.Id, isVerified, new DateTimeOffset(joinedIn, 1, 5, 9, 0, 0, TimeSpan.Zero), signInId);
 
+    /// <summary>An admin who signs in as <paramref name="signInId"/> (ADR 0024).</summary>
+    public static Member Admin(string name, string signInId)
+    {
+        var admin = Member(name, Grace, signInId: signInId);
+        admin.GrantAdmin();
+        return admin;
+    }
+
     /// <summary>A listing for rent with one photo, approved at <paramref name="approvedAt"/> when given.</summary>
     public static Listing ForRent(Member poster, string title, DateTimeOffset? approvedAt, Price? price = null, string area = "Langley", Guid? photoId = null)
     {

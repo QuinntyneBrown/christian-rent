@@ -167,6 +167,7 @@ dotnet run --project src/ChristianRent.Cli -- migrate   # apply the schema; the 
 dotnet run --project src/ChristianRent.Cli -- seed      # the mocks' cast: churches, members, listings, photos; safe to repeat
 dotnet run --project src/ChristianRent.Cli -- purge-departed   # daily: anonymise members who left and clear the messages and report notes they wrote; safe to repeat
 dotnet run --project src/ChristianRent.Cli -- purge-photos     # hourly: delete photos no posted listing names after 24 hours (ADR 0021); safe to repeat
+dotnet run --project src/ChristianRent.Cli -- grant-admin <sign-in-id>  # make that member an admin, who reviews the queue at /admin (ADR 0024); safe to repeat
 dotnet run --project src/ChristianRent.Api              # http://localhost:5080/health/ready
 ```
 
@@ -237,7 +238,7 @@ christian-rent/
 │   ├── src/ChristianRent.Application/ MediatR handlers, validators, contracts
 │   ├── src/ChristianRent.Infrastructure/ EF Core, migrations, storage, identity, seed
 │   ├── src/ChristianRent.Api/         Controllers, middleware, error handlers, telemetry, health
-│   ├── src/ChristianRent.Cli/         migrate, seed, purge-departed and purge-photos
+│   ├── src/ChristianRent.Cli/         migrate, seed, purge-departed, purge-photos and grant-admin
 │   └── tests/                         Acceptance tests through the API, and the CLI's tests
 ├── docs/
 │   ├── journeys.md                  The journeys, by value added, with % complete

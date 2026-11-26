@@ -30,6 +30,12 @@ public sealed class Church
 
     public bool IsVerified { get; private set; }
 
+    /// <summary>
+    /// The member who entered the church when joining; null for a church entered by seed data
+    /// (ADR 0024). Only an admin is told who it was.
+    /// </summary>
+    public Guid? EnteredById { get; private set; }
+
     /// <summary>A church with a known identifier, as seed data and tests enter them.</summary>
     public static Church Create(Guid id, string name, string city, bool isVerified) =>
         new(id, name, city, isVerified);
@@ -37,4 +43,7 @@ public sealed class Church
     /// <summary>A member enters their church; an admin has not confirmed it yet.</summary>
     public static Church Enter(string name, string city) =>
         new(Guid.NewGuid(), name, city, isVerified: false);
+
+    /// <summary>Records who entered the church; the first member to enter it stays (ADR 0024).</summary>
+    public void RecordEnteredBy(Guid memberId) => EnteredById ??= memberId;
 }

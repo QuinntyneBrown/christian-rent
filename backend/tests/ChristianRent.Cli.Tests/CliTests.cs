@@ -101,7 +101,7 @@ public sealed class CliTests : IDisposable
         var exitCode = await CliApp.RunAsync(args, _services, _output, TestContext.Current.CancellationToken);
 
         Assert.Equal(2, exitCode);
-        Assert.Contains("Usage: ChristianRent.Cli <migrate|seed|purge-departed|purge-photos>", _output.ToString(), StringComparison.Ordinal);
+        Assert.Contains("Usage: ChristianRent.Cli <migrate|seed|purge-departed|purge-photos|grant-admin>", _output.ToString(), StringComparison.Ordinal);
     }
 
     private async Task<List<Domain.Churches.Church>> ChurchesAsync()

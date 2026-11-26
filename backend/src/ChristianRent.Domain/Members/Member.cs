@@ -55,6 +55,12 @@ public sealed class Member
     /// <summary>When the purge made the departed member anonymous; null until then.</summary>
     public DateTimeOffset? AnonymizedAt { get; private set; }
 
+    /// <summary>
+    /// An operator makes the member an admin with <c>grant-admin</c>; nothing else does
+    /// (ADR 0024).
+    /// </summary>
+    public void GrantAdmin() => IsAdmin = true;
+
     /// <summary>An admin removes the member; their listings stop being public.</summary>
     public void Remove() => Status = MemberStatus.Removed;
 

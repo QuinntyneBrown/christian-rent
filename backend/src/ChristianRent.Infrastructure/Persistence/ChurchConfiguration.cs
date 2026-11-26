@@ -16,5 +16,9 @@ internal sealed class ChurchConfiguration : IEntityTypeConfiguration<Church>
         builder.Property(church => church.IsVerified).IsRequired();
         builder.Property(church => church.MatchKey).HasMaxLength(ChurchMatch.MaxKeyLength).IsRequired();
         builder.HasIndex(church => church.MatchKey).IsUnique();
+
+        // Who entered it, for the admin (ADR 0024). No foreign key: the church is saved with the
+        // member who enters it, and a key each way would make that save circular.
+        builder.Property(church => church.EnteredById);
     }
 }

@@ -14,4 +14,14 @@ public static class ReportWords
         "other" => ReportReason.SomethingElse,
         _ => null,
     };
+
+    /// <summary>The word for a reason, as <see cref="ReasonOf"/> reads it.</summary>
+    public static string Of(ReportReason reason) => reason switch
+    {
+        ReportReason.NotARealListing => "fake",
+        ReportReason.Inappropriate => "inappropriate",
+        ReportReason.Scam => "scam",
+        ReportReason.SomethingElse => "other",
+        _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
+    };
 }

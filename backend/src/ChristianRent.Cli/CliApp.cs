@@ -1,6 +1,7 @@
 using ChristianRent.Application.Abstractions;
 using ChristianRent.Application.Members;
 using ChristianRent.Application.Photos;
+using ChristianRent.Domain.Members;
 using ChristianRent.Infrastructure.Persistence;
 using ChristianRent.Infrastructure.Seeding;
 using FluentValidation;
@@ -18,13 +19,16 @@ namespace ChristianRent.Cli;
 public static class CliApp
 {
     public const string Usage = """
-        Usage: ChristianRent.Cli <migrate|seed|purge-departed|purge-photos>
+        Usage: ChristianRent.Cli <migrate|seed|purge-departed|purge-photos|grant-admin>
           migrate         Apply the pending EF Core migrations to the database in ConnectionStrings:Default.
           seed            Enter the sample data of the mocks' cast and its photos. Safe to run again: it changes nothing twice.
           purge-departed  Make members who left Members:PurgeAfterDays (at most 30) days ago anonymous, and delete
                           their listings and photos. Run it daily. Safe to run again: it changes nothing twice.
           purge-photos    Delete the photos no posted listing names that were uploaded 24 hours ago or more, and
                           their files. Run it hourly. Safe to run again: it changes nothing twice.
+          grant-admin <sign-in-id>
+                          Make the active member who signs in as <sign-in-id> an admin, who reviews the queue.
+                          Safe to run again: it changes nothing twice.
         """;
 
     public static async Task<int> RunAsync(string[] args, IServiceProvider services, TextWriter output, CancellationToken cancellationToken)
@@ -67,6 +71,20 @@ public static class CliApp
                 var deleted = await scope.ServiceProvider.GetRequiredService<ISender>()
                     .Send(new PurgeUnattachedPhotosCommand(), cancellationToken);
                 await output.WriteLineAsync($"Deleted {deleted} unattached photos.");
+                return 0;
+
+            case ["grant-admin", var signInId]:
+                var member = await database.Members
+                    .FirstOrDefaultAsync(member => member.SignInId == signInId && member.Status == MemberStatus.Active, cancellationToken);
+                if (member is null)
+                {
+                    await output.WriteLineAsync($"No active member signs in as {signInId}; nothing changed.");
+                    return 1;
+                }
+
+                member.GrantAdmin();
+                await database.SaveChangesAsync(cancellationToken);
+                await output.WriteLineAsync($"{member.Name} is an admin.");
                 return 0;
 
             default:

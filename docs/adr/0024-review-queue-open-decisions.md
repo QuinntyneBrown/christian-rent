@@ -74,7 +74,8 @@ The view-review-queue design and its mocks leave open what journey 10 has to set
 ## Consequences
 
 - An admin exists only after an operator runs `grant-admin` with that person's sign-in
-  identifier; the operations guide documents it with the other commands.
-- A migration adds `churches.entered_by_id`; existing churches have none.
+  identifier; the README documents it with the other commands.
+- A migration adds the column `EnteredById` to `churches`, with no foreign key, so that a
+  church and the member who enters it are saved together; existing churches have none.
 - Admin's chunk is never part of a non-admin's download, which a behaviour spec checks.
 - A phone that opens Admin asks for the queue and never for a detail.
