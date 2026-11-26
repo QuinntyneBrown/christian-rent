@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Fail clearly and operate
+
+Person(person, "Anyone, member or admin", "Uses christian.rent in a browser")
+Person(operator, "Operator", "Deploys and watches the system")
+System_Ext(otel, "Telemetry backend", "Product <TO SUPPLY>")
+System_Ext(backup, "Backup", "Mechanism <TO SUPPLY>")
+System_Boundary(cr, "christian.rent") {
+  Container(rent, "rent", "Angular", "Shows loading states, the unreachable-backend message with Try again, and the not-found screen")
+  Container(api, "ChristianRent.Api", "ASP.NET Core", "Answers an unhandled error with a ProblemDetails and a trace id; reports health; emits telemetry")
+  Container(cli, "ChristianRent.Cli", ".NET console", "Applies migrations and seed data by command")
+  ContainerDb(db, "Database", "Relational, engine <TO SUPPLY>", "Listings, members, messages")
+  ContainerDb(files, "File storage", "Product <TO SUPPLY>", "Photos")
+}
+Rel(person, rent, "Uses", "HTTPS")
+Rel(rent, api, "Calls", "JSON/HTTPS")
+Rel(operator, api, "Calls the health endpoint of", "HTTPS")
+Rel(operator, cli, "Runs migrate at each deployment")
+Rel(api, db, "Reads and writes; never migrates", "EF Core")
+Rel(api, files, "Reads and writes photos in")
+Rel(cli, db, "Applies migrations to", "EF Core")
+Rel(api, otel, "Emits traces, metrics and logs to", "OTLP")
+Rel(db, backup, "Is copied each day to")
+Rel(files, backup, "Is copied each day to")
+@enduml

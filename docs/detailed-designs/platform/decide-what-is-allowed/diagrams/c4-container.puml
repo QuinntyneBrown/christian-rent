@@ -1,0 +1,21 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Decide what is allowed
+
+Person(person, "Anyone, member or admin", "Uses christian.rent in a browser")
+System_Ext(signin, "Sign-in", "Mechanism <TO SUPPLY>")
+System_Ext(secrets, "Deployment configuration", "Secrets outside the repository; product <TO SUPPLY>")
+System_Boundary(cr, "christian.rent") {
+  Container(rent, "rent", "Angular", "Shows or hides controls for convenience; renders everything a member writes as text; maps a refusal code to a generic message")
+  Container(api, "ChristianRent.Api", "ASP.NET Core", "Enforces HTTPS, rate limits, cross-site refusal, authentication, policies, validation and ownership")
+  ContainerDb(db, "Database", "Relational, engine <TO SUPPLY>", "Reached only through parameterised queries")
+  ContainerDb(files, "File storage", "Product <TO SUPPLY>", "Holds photos")
+}
+Rel(person, rent, "Uses", "HTTPS")
+Rel(rent, api, "Calls", "JSON/HTTPS")
+Rel(api, signin, "Identifies the caller through")
+Rel(api, secrets, "Reads secrets at start from", "IConfiguration")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, files, "Serves photos a caller may see from")
+@enduml

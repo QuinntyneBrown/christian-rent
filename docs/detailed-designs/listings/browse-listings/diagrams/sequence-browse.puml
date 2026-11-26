@@ -1,0 +1,76 @@
+@startuml
+title UML sequence behaviour — Browse listings
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Anyone" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "BrowsePage" as page
+end box
+box "Frontend — domain library" #E0F2FE
+  participant "BrowseStore" as store
+end box
+box "Frontend — api library" #E0F2FE
+  participant "ListingsApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ListingsController" as controller
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "BrowseListingsQueryValidator" as validator
+  participant "BrowseListingsQueryHandler" as handler
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+
+actor -> page : Open christian.rent, signed in or not (L2-001 criterion 1)
+page -> page : Read the switch choice and search term from the address\n(L2-002 criteria 1 and 5)
+page -> store : open(SearchQuery)
+store -> client : browse(query, no cursor, signal)
+client -> controller : GET /listings?offer&q&pageSize=24
+controller -> validator : Send BrowseListingsQuery
+alt page size above 50
+  validator --> controller : Refuse (L2-030 criterion 3)
+  controller --> client : ProblemDetails, code page_size_too_large
+  client --> store : ApiError
+  store --> page : status failed
+  page --> actor : Plain message with "Try again"
+else valid query
+  validator -> handler : BrowseListingsQuery
+  handler -> db : Select Approved listings for the offer,\nnewest first, one page (L2-001 criterion 2)
+  db --> handler : ListingSummaryDto rows
+  handler --> controller : PageDto with next cursor
+  controller --> client : 200 OK
+  client --> store : Page<ListingSummary>
+  store --> page : listings, hasMore
+  alt at least one listing
+    page --> actor : Cards: photo, title, price, area; a wanted listing\nwith no photo, labelled "Wanted" (L2-001 criteria 3 and 4)
+  else no approved listing
+    page --> actor : Empty state with the two buttons (L2-001 criterion 6)
+  end
+end
+== Switch ==
+actor -> page : Select Everything, For rent or Wanted
+page -> page : Write the choice to the address; keep the search term\n(L2-002 criteria 4 and 5)
+page -> store : open(SearchQuery)
+store -> store : Abort the request in flight; clear the window
+store -> client : browse(query, no cursor, signal)
+client --> store : Page<ListingSummary> (L2-002 criteria 2 and 3)
+store --> page : listings, hasMore
+page --> actor : Listings of the chosen offer
+== Leading to Post ==
+actor -> page : Select "I have something to rent" or "I'm looking for something"
+page --> actor : Navigate to /post?offer=forRent or /post?offer=wanted\n(L2-005 criteria 2 and 3)
+@enduml

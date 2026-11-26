@@ -1,0 +1,34 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Search listings
+
+Person(anyone, "Anyone", "Searches approved listings")
+Container_Boundary(rent, "rent (Angular application and its libraries)") {
+  Component(bar, "SearchBar", "Presentation component", "A labelled search field; emits the term as it is typed")
+  Component(page, "BrowsePage", "Page in rent, lazy route", "Passes the term to the store, keeps it in the address, shows the no-results state")
+  Component(store, "BrowseStore", "Service in domain search/", "Debounces 300 ms, cancels the search in flight, ignores a late result")
+  Component(query, "SearchQuery", "Value in domain search/", "The term cut to 100 characters, with the switch choice")
+  Component(client, "ListingsApi", "HTTP client in api, LISTINGS_API", "Builds the browse request with the term")
+  Component(empty, "EmptyState", "Presentation component", "Names the term as text and offers to post a wanted listing")
+}
+Container_Boundary(api, "ChristianRent.Api") {
+  Component(ctrl, "ListingsController", "ASP.NET Core controller", "Browse action, open to anyone")
+  Component(handler, "BrowseListingsQueryHandler", "MediatR handler", "Cuts the term to 100 characters and matches its words")
+  Component(text, "SearchText", "Domain value", "Folds letter case and accents the same way for a listing and for a term")
+  Component(entity, "Listing", "Domain entity", "Keeps the folded text of its title, note and area")
+}
+ContainerDb(db, "Database", "Relational, EF Core; engine <TO SUPPLY>", "Listings with their folded search text")
+
+Rel(anyone, bar, "Types into")
+Rel(bar, page, "Emits the term to")
+Rel(page, store, "search(term)")
+Rel(store, query, "Builds")
+Rel(store, client, "Requests matches through")
+Rel(page, empty, "Renders no results with")
+Rel(client, ctrl, "GET /listings?q", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends BrowseListingsQuery", "MediatR")
+Rel(handler, text, "Folds the term with")
+Rel(entity, text, "Folds title, note and area with")
+Rel(handler, db, "Reads through IAppDbContext", "EF Core")
+@enduml

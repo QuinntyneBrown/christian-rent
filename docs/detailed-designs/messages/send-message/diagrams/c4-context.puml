@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Send a message
+
+Person(sender, "Member", "Wants to arrange a rental with the person who posted a listing")
+Person(poster, "Member who posted", "Posted the listing the message is about")
+System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for one")
+System_Ext(signin, "Sign-in", "Identifies the member; mechanism <TO SUPPLY>")
+
+Rel(sender, cr, "Writes and sends a message on Listing using")
+Rel(cr, poster, "Delivers the message to; where it is read is <TO SUPPLY>")
+Rel(cr, signin, "Identifies the signed-in member through")
+@enduml

@@ -1,0 +1,82 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Present for Canada
+
+enum PricePeriod {
+  Hour
+  Day
+  Week
+  Month
+}
+
+class Listing <<Domain entity>> {
+  +decimal? Price
+  +PricePeriod? PricePeriod
+  +string? WhenText
+  +DateOnly? StartDate
+  +DateOnly? EndDate
+  +string Area
+}
+
+interface ICanadianPlaces <<Application port>> {
+  +IsPlaceInCanadaAsync(area: string): Task<bool>
+}
+
+class PostListingCommandValidator <<FluentValidation>> {
+  +Validate(command: PostListingCommand): ValidationResult
+}
+
+class ListingSummary <<api type>> {
+  +price: number | null
+  +pricePeriod: PricePeriod | null
+  +whenText: string | null
+  +startDate: string | null
+  +endDate: string | null
+  +area: string
+}
+
+class "domain listings/" as fmt <<pure functions>> {
+  +formatPrice(price: number | null, period: PricePeriod | null): string | null
+  +formatWhen(whenText: string | null, start: string | null, end: string | null): string | null
+  +formatDate(isoDate: string): string
+  +formatDistance(km: number): string
+}
+
+class Wordmark <<cr-wordmark>> {
+  +size: input<'small' | 'regular'>
+}
+
+class AppShell <<cr-shell>> {
+}
+
+class RentTitleStrategy <<TitleStrategy>> {
+  +updateTitle(snapshot: RouterStateSnapshot): void
+}
+
+class ListingCard <<cr-listing-card>> {
+  +title: input<string>
+  +priceText: input<string | null>
+  +whenText: input<string | null>
+  +area: input<string>
+}
+
+Listing --> PricePeriod : has
+PostListingCommandValidator ..> ICanadianPlaces : asks
+PostListingCommandValidator ..> Listing : guards the fields of
+ListingSummary ..> Listing : carries the unformatted values of
+fmt ..> ListingSummary : formats the values of
+ListingCard ..> fmt : shows text produced by
+AppShell *-- Wordmark : places in the header
+AppShell ..> RentTitleStrategy : is titled by
+@enduml

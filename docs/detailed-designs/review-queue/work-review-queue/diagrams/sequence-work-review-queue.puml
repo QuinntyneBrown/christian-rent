@@ -1,0 +1,82 @@
+@startuml
+title UML sequence behaviour — Work through the review queue
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Admin" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "adminCanMatch" as guard
+end box
+box "Frontend — admin library" #E0F2FE
+  participant "AdminPage" as page
+  participant "ReviewQueueStore" as store
+  participant "ReviewQueueList" as list
+  participant "ReviewDetailPanel" as panel
+end box
+box "Frontend — api library" #E0F2FE
+  participant "ReviewQueueApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ReviewQueueController" as controller
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "GetReviewQueueQueryHandler" as queue
+  participant "GetReviewItemQueryHandler" as item
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> guard : Open Admin's address
+guard -> guard : Learn whether the person is an admin (<TO SUPPLY>)
+alt the person is not an admin (L2-019 criterion 5)
+  guard --> actor : The route does not match; Admin's code is not loaded; "not found" is shown
+else the person is an admin
+  guard -> page : Load the admin library and create AdminPage
+  page -> store : loadNext()
+  store -> client : list(page 1)
+  client -> controller : GET /review-queue?page=1
+  controller -> controller : Authenticate and apply the admin policy; refuse anyone else with no queue data
+  controller -> queue : Send GetReviewQueueQuery
+  queue -> db : Read open items, oldest first, one page of 50 (L2-019 criteria 1 and 4)
+  db --> queue : Items
+  queue --> controller : Page of summaries
+  controller --> client : 200
+  client --> store : Page<ReviewItemSummary>
+  alt the queue is empty (L2-019 criterion 3)
+    page --> actor : "All caught up"
+  else items wait
+    page -> list : items, each labelled with its kind
+    list --> actor : The review queue
+    opt the admin reaches the end of the list and more wait
+      list -> page : endReached
+      page -> store : loadNext()
+      store -> client : list(next page)
+      client --> store : The next page; pages far off screen are released
+    end
+    actor -> list : Select an item
+    list -> page : select(itemId)
+    page -> store : select(itemId)
+    store -> client : get(itemId)
+    client -> controller : GET /review-queue/{id}
+    controller -> item : Send GetReviewItemQuery
+    item -> db : Read the item and its listing, report or member
+    db --> item : Detail
+    item --> controller : Detail by kind (L2-019 criterion 2)
+    controller --> client : 200, or review_item_not_found
+    client --> store : ReviewItemDetail
+    page -> panel : item
+    panel --> actor : The detail panel, from 768 px (L2-031 criterion 5)
+  end
+end
+@enduml

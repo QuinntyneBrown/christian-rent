@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Become a member
+
+Person(person, "Person who is not a member", "Wants to post, send a message or report")
+Person(member, "Member", "May ask to leave")
+Person(admin, "Admin", "Works through the review queue")
+System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for one")
+System_Ext(signin, "Sign-in", "Identifies the person; mechanism <TO SUPPLY>")
+
+Rel(person, cr, "Gives a name and a church, and declares being a Christian, using")
+Rel(member, cr, "Asks to leave using")
+Rel(cr, admin, "Shows the new member in the review queue to")
+Rel(cr, signin, "Identifies the person through")
+@enduml

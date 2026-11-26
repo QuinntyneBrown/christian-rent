@@ -1,0 +1,81 @@
+@startuml
+title UML sequence behaviour — Report a listing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Member" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "ListingPage" as page
+  participant "ReportDialog" as dialog
+end box
+box "Frontend — domain library" #E0F2FE
+  participant "ReportRules" as rules
+end box
+box "Frontend — api library" #E0F2FE
+  participant "ReportsApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ReportsController" as controller
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "ReportListingCommandValidator" as validator
+  participant "ReportListingCommandHandler" as handler
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> page : Select Report
+alt the person is not a member (L2-021 criterion 5)
+  page --> actor : Ask to become a member or sign in (<TO SUPPLY>)
+else the person is a member
+  page -> dialog : Import and open
+  actor -> dialog : Choose one of the four reasons, add a note if wanted (L2-021 criterion 1)
+  dialog -> rules : check(request)
+  rules --> dialog : Field errors, or none
+  alt no reason, or a note over 500 characters
+    dialog --> actor : Mark the field with its reason
+  else the entry is valid
+    dialog -> client : report(listingId, request)
+    client -> controller : POST /listings/{listingId}/reports
+    controller -> controller : Authenticate; 401 without a signed-in member (L2-025 criterion 1)
+    controller -> validator : Send ReportListingCommand
+    validator -> validator : Apply L2-021 criterion 1 again
+    validator -> handler : Valid command
+    handler -> db : Load the listing and this member's report on it
+    db --> handler : Listing, and the earlier report if any
+    alt the listing is not approved, was removed or does not exist
+      handler --> controller : listing_not_found
+    else this member already reported it (L2-021 criterion 3)
+      handler --> controller : Success; no second report is created
+    else first report
+      handler -> handler : Create Report with listing, reporter, reason and note
+      handler -> handler : Create ReviewItem of kind Report (L2-021 criterion 2)
+      handler -> db : Save both in one unit of work
+      db --> handler : Commit result
+      handler --> controller : Success
+    end
+    controller --> client : 204, or ProblemDetails with a code
+    client --> dialog : Done, or ApiError
+    alt done
+      dialog --> actor : A confirmation (L2-021 criterion 2)
+    else refused or failed
+      dialog --> actor : Keep the reason and note, show a generic message and "Try again"
+    end
+  end
+end
+note over controller, db
+  No response to the member who posted the listing, and no response to anyone
+  but an admin, carries the reporter (L2-021 criterion 4).
+end note
+@enduml

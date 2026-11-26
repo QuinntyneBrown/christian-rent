@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Show every screen to everyone
+
+Person(touch, "Person on a phone", "Uses christian.rent by touch at a narrow width")
+Person(keyboard, "Person using a keyboard", "Completes every action without a pointer")
+Person(reader, "Person using a screen reader", "Hears names, states, confirmations and errors")
+System(cr, "christian.rent", "Browse, Listing, Post and Admin at every width, meeting WCAG 2.2 level AA")
+
+Rel(touch, cr, "Taps targets of at least 44 x 44 px in")
+Rel(keyboard, cr, "Moves a visible focus through")
+Rel(reader, cr, "Hears states and announcements from")
+@enduml

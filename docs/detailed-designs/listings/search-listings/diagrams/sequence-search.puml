@@ -1,0 +1,69 @@
+@startuml
+title UML sequence behaviour — Search listings
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Anyone" as actor
+box "Frontend — components library" #E0F2FE
+  participant "SearchBar" as bar
+end box
+box "Frontend — rent application" #E0F2FE
+  participant "BrowsePage" as page
+end box
+box "Frontend — domain library" #E0F2FE
+  participant "BrowseStore" as store
+end box
+box "Frontend — api library" #E0F2FE
+  participant "ListingsApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ListingsController" as controller
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "BrowseListingsQueryHandler" as handler
+  participant "SearchText" as text
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> bar : Type a search term
+bar -> page : termChange(term)
+page -> store : search(term)
+store -> store : Restart the 300 ms timer (L2-003 criterion 3)
+actor -> bar : Pause for 300 ms
+store -> store : Build SearchQuery: first 100 characters\n(L2-003 criterion 4), keep the switch choice
+opt an earlier search is in flight
+  store -> client : Abort its signal
+  store -> store : Discard its result if it still arrives\n(L2-003 criterion 3)
+end
+store -> client : browse(query, no cursor, signal)
+page -> page : Write the term to the address, no reload\n(L2-002 criterion 5)
+client -> controller : GET /listings?q&offer&pageSize=24
+controller -> handler : Send BrowseListingsQuery
+handler -> text : Words(first 100 characters of Term)
+text --> handler : Words without letter case or accents
+handler -> db : Select Approved listings whose SearchText\nholds the words (L2-003 criteria 1 and 2)
+db --> handler : ListingSummaryDto rows
+handler --> controller : PageDto
+controller --> client : 200 OK
+client --> store : Page<ListingSummary>
+store --> page : listings, query
+alt at least one match
+  page --> actor : Matching cards, list updated in place
+else no match
+  page --> actor : No-results state naming the term as text; offer to post\na wanted listing (L2-004 criterion 1, L2-003 criterion 5)
+  actor -> page : Take the offer
+  page --> actor : Navigate to /post?offer=wanted&title=term\n(L2-004 criterion 2)
+end
+@enduml

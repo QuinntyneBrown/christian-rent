@@ -1,0 +1,11 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Show every screen to everyone
+
+Person(person, "Anyone, member or admin", "By touch, by keyboard or with a screen reader, at any width from 320 px")
+System_Boundary(cr, "christian.rent") {
+  Container(rent, "rent", "Angular", "Lays every screen out by viewport width in its stylesheets and exposes names, states and announcements to assistive technology")
+}
+Rel(person, rent, "Uses", "HTTPS")
+@enduml

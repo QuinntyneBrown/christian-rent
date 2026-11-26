@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Work through the review queue
+
+Person(admin, "Admin", "Works through the review queue")
+System_Ext(signin, "Sign-in", "Mechanism <TO SUPPLY>")
+System_Boundary(cr, "christian.rent") {
+  Container(rent, "rent", "Angular", "Admin screen, in a lazy library loaded only for an admin")
+  Container(api, "ChristianRent.Api", "ASP.NET Core", "Returns the queue and an item's detail to an admin only")
+  ContainerDb(db, "Database", "Relational, engine <TO SUPPLY>", "Review items, listings, reports, members, churches")
+  Container(files, "File storage", "Product <TO SUPPLY>", "Photos of the listings under review")
+}
+Rel(admin, rent, "Uses Admin", "HTTPS")
+Rel(rent, api, "Reads a page of the queue and an item's detail", "JSON/HTTPS")
+Rel(rent, files, "Loads a listing's photos, served to an admin", "HTTPS")
+Rel(api, db, "Reads", "EF Core")
+Rel(api, signin, "Identifies the admin through")
+@enduml

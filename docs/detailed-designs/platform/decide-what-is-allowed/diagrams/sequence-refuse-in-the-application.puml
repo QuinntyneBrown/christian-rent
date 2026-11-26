@@ -1,0 +1,73 @@
+@startuml
+title UML sequence behaviour — Refuse in the application and show a generic message
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Member" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "Page" as page
+end box
+box "Frontend — domain library" #E0F2FE
+  participant "errorMessageFor" as messages
+end box
+box "Frontend — api library" #E0F2FE
+  participant "apiErrorInterceptor" as interceptor
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "Controller" as controller
+  participant "RefusalWriter" as writer
+end box
+box "Backend — ChristianRent Application and Domain" #ECFDF3
+  participant "ValidationBehavior" as validation
+  participant "Handler" as handler
+  participant "ICurrentMember" as current
+end box
+box "Backend — ChristianRent Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> page : Submit, or open an address
+page -> interceptor : Request through a contract
+interceptor -> controller : HTTPS request, already past the pipeline
+controller -> validation : Send one MediatR request
+validation -> validation : Validate type, length and range (L2-026 criterion 2)
+alt the input is invalid
+  validation --> controller : Refusal, kind Invalid, with field errors
+  controller -> writer : Write the refusal
+  writer --> interceptor : 400 ProblemDetails, code validation_failed
+  interceptor --> page : ApiError with fieldErrors
+  page --> actor : Each invalid field says why
+else the input is valid
+  validation -> handler : Pass the request on
+  handler -> current : Who is calling
+  current --> handler : MemberId, IsAdmin
+  handler -> db : Parameterised query filtered to what the caller may see
+  db --> handler : Row, or nothing
+  alt nothing is found, or it is not the caller's to see or change
+    handler --> controller : Refusal, kind NotFound, the same for both cases (L2-025 criterion 2)
+    controller -> writer : Write the refusal
+    writer --> interceptor : 404 ProblemDetails with a code (L2-025 criterion 4)
+    interceptor --> page : ApiError with code
+    page -> messages : errorMessageFor(code)
+    messages --> page : Generic text
+    page --> actor : "Not found" state; nothing about the item is revealed
+  else the caller may
+    handler -> db : Save changes in one unit of work
+    db --> handler : Commit result
+    handler --> controller : Typed result
+    controller --> interceptor : HTTP response
+    interceptor --> page : Typed result
+    page --> actor : Member-written text rendered as text (L2-026 criterion 1)
+  end
+end
+@enduml

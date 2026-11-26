@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Search listings
+
+Person(anyone, "Anyone", "Searches approved listings, signed in or not")
+System_Boundary(cr, "christian.rent") {
+  Container(rent, "rent", "Angular", "The four screens: Browse, Listing, Post and Admin")
+  Container(api, "ChristianRent.Api", "ASP.NET Core", "Listings, photos, search, messages, members and the review queue")
+  ContainerDb(db, "Database", "Relational, EF Core; engine <TO SUPPLY>", "Listings, members, churches and photo records")
+}
+Rel(anyone, rent, "Types in the search bar on Browse", "HTTPS")
+Rel(rent, api, "Requests the first page of matches 300 ms after typing pauses", "JSON/HTTPS")
+Rel(api, db, "Matches words against approved listings", "EF Core")
+@enduml

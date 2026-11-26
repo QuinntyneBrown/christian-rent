@@ -1,0 +1,72 @@
+@startuml
+title UML sequence behaviour — Pass a request through the pipeline
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Anyone, member or admin" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "Page" as page
+end box
+box "Frontend — api library" #E0F2FE
+  participant "API client" as client
+  participant "apiErrorInterceptor" as interceptor
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "HTTPS redirection and HSTS" as https
+  participant "SecurityHeadersMiddleware" as headers
+  participant "RateLimitPolicy" as limiter
+  participant "CrossSiteRequestMiddleware" as xsite
+  participant "Authentication and authorization" as authz
+  participant "Controller" as controller
+end box
+actor -> page : Act on a screen
+page -> client : Call a contract method
+client -> interceptor : Send the request
+interceptor -> https : Request
+alt the request arrived over HTTP
+  https --> interceptor : Redirect to HTTPS (L2-027 criterion 1)
+end
+https -> headers : Pass on
+headers -> headers : Register Content-Security-Policy for the response (L2-026 criterion 3)
+headers -> limiter : Pass on
+alt more than 120 reads or 30 writes in the minute for this client
+  limiter --> interceptor : 429, Retry-After, code rate_limited (L2-027 criterion 3)
+  interceptor --> page : ApiError with retryAfterSeconds
+  page --> actor : Generic message saying when to try again
+else within the limit
+  limiter -> xsite : Pass on
+  alt the request changes data and comes from another site
+    xsite --> interceptor : 403, code cross_site_request (L2-027 criterion 2)
+    interceptor --> page : ApiError
+    page --> actor : Generic message
+  else same site, or a read
+    xsite -> authz : Pass on
+    alt the action is not marked AllowAnonymous and nobody is signed in
+      authz --> interceptor : 401 (L2-025 criterion 1)
+      interceptor --> page : ApiError, code sign_in_required
+      page --> actor : Ask to become a member or sign in
+    else the action is for an admin and the caller is not one
+      authz --> interceptor : 403, no queue data (L2-025 criterion 3)
+      interceptor --> page : ApiError
+      page --> actor : Generic message
+    else allowed to reach the action
+      authz -> controller : Invoke the action
+      controller --> interceptor : Response with HSTS and Content-Security-Policy
+      interceptor --> client : Typed result
+      client --> page : Result
+      page --> actor : Show the result
+    end
+  end
+end
+@enduml

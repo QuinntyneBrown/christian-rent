@@ -1,0 +1,73 @@
+@startuml
+title UML sequence behaviour — Load more listings in a bounded window
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Anyone" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "BrowsePage" as page
+end box
+box "Frontend — domain library" #E0F2FE
+  participant "BrowseStore" as store
+end box
+box "Frontend — api library" #E0F2FE
+  participant "ListingsApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ListingsController" as controller
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "BrowseListingsQueryValidator" as validator
+  participant "BrowseListingsQueryHandler" as handler
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+
+actor -> page : Scroll to the end of the list
+page -> store : loadMore()
+alt the last page has loaded
+  store --> page : No request (L2-006 criterion 2)
+else a further page exists
+  store -> client : browse(query, nextCursor, signal)
+  client -> controller : GET /listings?offer&q&cursor&pageSize=24
+  controller -> validator : Send BrowseListingsQuery
+  validator -> handler : BrowseListingsQuery
+  handler -> db : Select the page after the cursor
+  alt the page loads
+    db --> handler : ListingSummaryDto rows
+    handler --> controller : PageDto with next cursor
+    controller --> client : 200 OK
+    client --> store : Page<ListingSummary>
+    store -> store : Append the page (L2-006 criterion 1)
+    store -> store : Release the pages furthest from the viewport;\nkeep their cursors (L2-030 criterion 4)
+    store --> page : listings, hasMore
+    page --> actor : More cards; reserved space where pages were released
+  else the page fails
+    controller --> client : ProblemDetails, or no response
+    client --> store : ApiError
+    store --> page : status failed; listings already shown stay\n(L2-006 criterion 3)
+    page --> actor : Message with "Try again"
+    actor -> page : Select "Try again"
+    page -> store : retry()
+  end
+end
+opt scrolling back to a released page
+  page -> store : restoreEarlier()
+  store -> client : browse(query, kept cursor, signal)
+  client --> store : Page<ListingSummary>
+  store -> store : Restore the page; release the furthest page at the other end
+  store --> page : listings
+end
+@enduml

@@ -1,0 +1,160 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Post a listing
+
+package "Frontend — api library" {
+  class ListingDraft {
+    +submissionId: string
+    +offer: ListingOffer
+    +kind: ListingKind
+    +title: string
+    +priceAmount: number | null
+    +pricePeriod: PricePeriod | null
+    +whenText: string | null
+    +whenStart: string | null
+    +whenEnd: string | null
+    +area: string
+    +note: string
+    +photoIds: string[]
+  }
+  class PostedListing {
+    +id: string
+    +status: ListingStatus
+  }
+  interface ListingsApi {
+    +post(draft: ListingDraft, signal: AbortSignal): Promise<PostedListing>
+  }
+  class ApiError {
+    +code: string
+    +fields: Record<string, string> | null
+    +retryAt: string | null
+  }
+}
+package "Frontend — domain library" {
+  class ListingDraftRules {
+    +{static} validate(draft: ListingDraft): DraftErrors
+    +{static} preview(draft: ListingDraft): ListingSummary
+    +{static} empty(offer: ListingOffer, kind: ListingKind): ListingDraft
+  }
+  class DraftErrors {
+    +title: string | null
+    +price: string | null
+    +when: string | null
+    +area: string | null
+    +note: string | null
+    +first(): string | null
+  }
+  class DraftStore {
+    +save(draft: ListingDraft): void
+    +take(): ListingDraft | null
+  }
+}
+package "Frontend — components library" {
+  class PostSentence {
+    +offer: model<ListingOffer>
+    +kind: model<ListingKind>
+  }
+  class ListingCard {
+    +listing: input<ListingSummary>
+  }
+}
+package "Frontend — rent application" {
+  class PostPage {
+    +draft: Signal<ListingDraft>
+    +errors: Signal<DraftErrors>
+    +preview: Signal<ListingSummary>
+    +state: Signal<PostState>
+    +submit(): void
+    +tryAgain(): void
+  }
+  enum PostState {
+    editing
+    posting
+    failed
+    limitReached
+    posted
+  }
+}
+package "Backend — Application" {
+  class PostListingCommand {
+    +Guid SubmissionId
+    +ListingOffer Offer
+    +ListingKind Kind
+    +string Title
+    +decimal? PriceAmount
+    +PricePeriod? PricePeriod
+    +string? WhenText
+    +DateOnly? WhenStart
+    +DateOnly? WhenEnd
+    +string Area
+    +string? Note
+    +IReadOnlyList<Guid> PhotoIds
+  }
+  class PostListingCommandValidator {
+    +Validate(command: PostListingCommand): ValidationResult
+  }
+  class PostListingCommandHandler {
+    +Handle(command: PostListingCommand): Task<PostedListingDto>
+  }
+  class PostLimitReachedException {
+    +string Code = "post_limit_reached"
+    +DateTimeOffset RetryAt
+  }
+}
+package "Backend — Domain" {
+  class Listing {
+    +Guid Id
+    +Guid MemberId
+    +Guid SubmissionId
+    +ListingStatus Status
+    +DateTimeOffset PostedAt
+    +{static} Post(memberId: Guid, fields: ListingFields, postedAt: DateTimeOffset): Listing
+  }
+  class ReviewItem {
+    +Guid Id
+    +ReviewItemKind Kind
+    +Guid ListingId
+    +DateTimeOffset EnteredAt
+  }
+  enum PricePeriod {
+    Hour
+    Day
+    Week
+    Month
+  }
+  class PostLimit {
+    +{static} int Listings = 10
+    +{static} TimeSpan Window = 24 h
+    +{static} RetryAt(postedAt: IReadOnlyList<DateTimeOffset>): DateTimeOffset?
+  }
+}
+PostPage --> PostState : has
+PostPage ..> ListingDraftRules : validates and previews
+PostPage ..> DraftStore : saves and restores
+PostPage ..> ListingsApi : posts
+PostPage ..> PostSentence
+PostPage ..> ListingCard : preview
+ListingDraftRules ..> DraftErrors : returns
+ListingDraftRules ..> ListingDraft
+ListingsApi ..> PostedListing : returns
+ListingsApi ..> ApiError : refuses with
+PostListingCommandValidator ..> PostListingCommand : validates
+PostListingCommandHandler ..> PostListingCommand : handles
+PostListingCommandHandler ..> PostLimit : asks
+PostListingCommandHandler ..> PostLimitReachedException : throws
+PostListingCommandHandler ..> Listing : creates
+PostListingCommandHandler ..> ReviewItem : creates
+ReviewItem "1" --> "1" Listing : is about
+Listing --> PricePeriod
+@enduml

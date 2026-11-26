@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Verify a member and a church
+
+Person(admin, "Admin", "Confirms members and churches")
+Person(anyone, "Anyone", "Reads listings and sees the verified marks")
+Person(member, "Member", "Is approved or removed")
+System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for one")
+System_Ext(signin, "Sign-in", "Identifies the admin and refuses a removed member; mechanism <TO SUPPLY>")
+
+Rel(admin, cr, "Approves or removes a member and confirms a church using")
+Rel(anyone, cr, "Sees the verified marks on listings in")
+Rel(cr, member, "Marks as verified, or removes")
+Rel(cr, signin, "Identifies the admin through")
+@enduml

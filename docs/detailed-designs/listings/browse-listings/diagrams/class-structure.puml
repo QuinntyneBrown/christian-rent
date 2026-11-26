@@ -1,0 +1,131 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Browse listings
+
+package "Frontend — api library" {
+  enum ListingOffer {
+    forRent
+    wanted
+  }
+  enum ListingKind {
+    space
+    thing
+  }
+  class ListingSummary {
+    +id: string
+    +offer: ListingOffer
+    +kind: ListingKind
+    +title: string
+    +price: Price | null
+    +area: string
+    +photo: PhotoRef | null
+  }
+  class "Page<T>" as Page {
+    +items: T[]
+    +nextCursor: string | null
+  }
+  interface ListingsApi {
+    +browse(query: SearchQuery, cursor: string | null, signal: AbortSignal): Promise<Page<ListingSummary>>
+  }
+  class ApiError {
+    +code: string
+  }
+}
+package "Frontend — domain library" {
+  class SearchQuery {
+    +term: string
+    +offer: ListingOffer | null
+  }
+  class BrowseStore {
+    +listings: Signal<ListingSummary[]>
+    +status: Signal<BrowseStatus>
+    +hasMore: Signal<boolean>
+    +open(query: SearchQuery): void
+    +loadMore(): void
+    +restoreEarlier(): void
+    +retry(): void
+  }
+  enum BrowseStatus {
+    loading
+    loaded
+    loadingMore
+    failed
+  }
+}
+package "Frontend — rent application" {
+  class BrowsePage {
+    +query: Signal<SearchQuery>
+    +selectOffer(offer: ListingOffer | null): void
+    +reachEnd(): void
+  }
+}
+package "Backend — ChristianRent.Application" {
+  class BrowseListingsQuery {
+    +ListingOffer? Offer
+    +string? Term
+    +string? Cursor
+    +int PageSize
+  }
+  class BrowseListingsQueryValidator {
+    +Validate(query: BrowseListingsQuery): ValidationResult
+  }
+  class BrowseListingsQueryHandler {
+    +Handle(query: BrowseListingsQuery): Task<PageDto<ListingSummaryDto>>
+  }
+  class ListingSummaryDto {
+    +Guid Id
+    +ListingOffer Offer
+    +ListingKind Kind
+    +string Title
+    +PriceDto? Price
+    +string Area
+    +PhotoRefDto? Photo
+  }
+  interface IAppDbContext {
+    +Listings: DbSet<Listing>
+  }
+}
+package "Backend — ChristianRent.Domain" {
+  class Listing {
+    +Guid Id
+    +ListingOffer Offer
+    +ListingKind Kind
+    +ListingStatus Status
+    +string Title
+    +string Area
+  }
+  enum ListingStatus {
+    WaitingForReview
+    Approved
+    Removed
+  }
+}
+BrowsePage --> BrowseStore : provides and reads
+BrowsePage ..> SearchQuery : builds from the address
+BrowseStore ..> ListingsApi : requests pages
+BrowseStore ..> SearchQuery
+BrowseStore --> BrowseStatus : has
+BrowseStore o-- "0..*" ListingSummary : windowed buffer
+ListingsApi ..> Page : returns
+ListingsApi ..> ApiError : refuses with
+Page o-- ListingSummary
+ListingSummary --> ListingOffer
+ListingSummary --> ListingKind
+BrowseListingsQueryValidator ..> BrowseListingsQuery : validates
+BrowseListingsQueryHandler ..> BrowseListingsQuery : handles
+BrowseListingsQueryHandler ..> IAppDbContext : reads
+BrowseListingsQueryHandler ..> ListingSummaryDto : returns a page of
+IAppDbContext --> Listing
+Listing --> ListingStatus : has
+@enduml

@@ -1,0 +1,38 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Post a listing
+
+Person(member, "Member", "Posts a listing")
+Container_Boundary(rent, "rent (Angular application and its libraries)") {
+  Component(page, "PostPage", "Page in rent, lazy route", "Holds the draft, shows the errors, the preview and the confirmation")
+  Component(sentence, "PostSentence", "Presentation component", "The sentence I have / need a space / a thing to rent out; each highlighted word is a control")
+  Component(card, "ListingCard", "Presentation component", "The live preview, as the card appears on Browse")
+  Component(rules, "ListingDraftRules", "Rules in domain listings/", "Validates a draft field by field; builds the preview")
+  Component(drafts, "DraftStore", "Service in domain storage/", "Keeps the draft for the return from sign-in")
+  Component(client, "ListingsApi", "HTTP client in api, LISTINGS_API", "Posts a ListingDraft")
+}
+Container_Boundary(api, "ChristianRent.Api") {
+  Component(ctrl, "ListingsController", "ASP.NET Core controller", "Post action, signed-in members only; sends one MediatR request")
+  Component(validator, "PostListingCommandValidator", "FluentValidation validator", "The same field rules as ListingDraftRules")
+  Component(handler, "PostListingCommandHandler", "MediatR handler", "Applies the post limit, answers a repeated submission, saves")
+  Component(entity, "Listing", "Domain entity", "Created as WaitingForReview")
+  Component(item, "ReviewItem", "Domain entity", "Kind NewListing; the listing's place in the review queue")
+  Component(current, "ICurrentMember / TimeProvider", "Application ports", "Who is posting, and the current time")
+}
+ContainerDb(db, "Database", "Relational, EF Core; engine <TO SUPPLY>", "Listings and review items")
+
+Rel(member, page, "Opens /post, fills in, submits")
+Rel(page, sentence, "Binds offer and kind to")
+Rel(page, card, "Renders the preview with")
+Rel(page, rules, "Validates and previews with")
+Rel(page, drafts, "Saves and restores the draft through")
+Rel(page, client, "post(draft)")
+Rel(client, ctrl, "POST /listings", "JSON/HTTPS")
+Rel(ctrl, validator, "Sends PostListingCommand", "MediatR")
+Rel(validator, handler, "Passes a valid command to")
+Rel(handler, current, "Reads the member and the time from")
+Rel(handler, entity, "Creates")
+Rel(handler, item, "Creates")
+Rel(handler, db, "Saves through IAppDbContext", "EF Core")
+@enduml

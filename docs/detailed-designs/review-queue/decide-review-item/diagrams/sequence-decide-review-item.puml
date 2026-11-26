@@ -1,0 +1,89 @@
+@startuml
+title UML sequence behaviour — Decide a review item
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Admin" as actor
+box "Frontend — admin library" #E0F2FE
+  participant "ReviewDetailPanel" as panel
+  participant "AdminPage" as page
+  participant "ConfirmRemoveDialog" as dialog
+  participant "ReviewQueueStore" as store
+end box
+box "Frontend — api library" #E0F2FE
+  participant "ReviewQueueApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ReviewQueueController" as controller
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "DecideReviewItemCommandHandler" as handler
+  participant "ReviewItem" as item
+  participant "Listing or Member" as subject
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> panel : Select Approve, Keep or Remove
+panel -> page : decide(outcome)
+opt Remove (L2-020 criterion 4)
+  page -> dialog : Open
+  dialog --> actor : Ask to confirm
+  actor -> dialog : Confirm, or cancel and change nothing
+  dialog --> page : Confirmed
+end
+page -> client : decide(itemId, outcome)
+client -> controller : POST /review-queue/{id}/decision
+controller -> controller : Authenticate and apply the admin policy
+controller -> handler : Send DecideReviewItemCommand
+handler -> db : Load the item and its listing, report or member
+db --> handler : Current state
+alt the item does not exist
+  handler --> controller : review_item_not_found
+else the item is already decided (L2-020 criterion 5)
+  handler --> controller : review_item_already_decided; the first decision stands
+else the outcome is not one the item's kind allows
+  handler --> controller : outcome_not_allowed
+else allowed
+  handler -> item : Decide(outcome, admin, now)
+  item --> handler : ReviewDecision: who, on what, when (L2-020 criterion 6)
+  alt new listing (L2-020 criterion 1)
+    handler -> subject : Listing.Approve(), or Listing.Remove()
+  else report (L2-020 criterion 2)
+    handler -> subject : Keep: nothing. Remove: Listing.Remove()
+    handler -> item : On Remove, decide every other open report on the listing
+  else new member (L2-020 criterion 3)
+    handler -> subject : Member.Verify(), or Member.Remove() and Listing.Remove() on each listing
+  end
+  opt a listing was removed (L2-020 criterion 7)
+    handler -> handler : Tell the member who posted it (channel <TO SUPPLY>)
+  end
+  handler -> db : Save in one unit of work, guarded by the item's concurrency token
+  alt another admin's decision was saved first (L2-020 criterion 5)
+    db --> handler : Concurrency conflict
+    handler --> controller : review_item_already_decided; nothing of this decision is saved
+  else saved
+    db --> handler : Commit result
+    handler --> controller : Decided
+  end
+end
+controller --> client : 200, or ProblemDetails with a code
+client --> page : Result, or ApiError
+alt decided, or already decided
+  page -> store : remove(itemId)
+  page --> actor : The item leaves the queue; an already decided item says so
+else failed
+  page --> actor : The item stays, with a generic message and "Try again"
+end
+@enduml

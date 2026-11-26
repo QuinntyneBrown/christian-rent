@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Verify a member and a church
+
+Person(admin, "Admin", "Confirms members and churches")
+Person(anyone, "Anyone", "Reads listings")
+System_Ext(signin, "Sign-in", "Mechanism <TO SUPPLY>")
+System_Boundary(cr, "christian.rent") {
+  Container(rent, "rent", "Angular", "Admin, loaded only for an admin; Listing shows the marks")
+  Container(api, "ChristianRent.Api", "ASP.NET Core", "Sets the marks for an admin only; reads them into each listing")
+  ContainerDb(db, "Database", "Relational, engine <TO SUPPLY>", "Members, churches, listings, review items")
+}
+Rel(admin, rent, "Uses Admin", "HTTPS")
+Rel(anyone, rent, "Uses Browse and Listing", "HTTPS")
+Rel(rent, api, "Decides a new member, confirms a church, reads listings", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, signin, "Identifies the admin through")
+@enduml

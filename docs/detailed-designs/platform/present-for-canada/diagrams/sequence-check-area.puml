@@ -1,0 +1,58 @@
+@startuml
+title UML sequence behaviour — Check that an area is a place in Canada
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Member" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "PostPage" as page
+end box
+box "Frontend — domain library" #E0F2FE
+  participant "ListingDraftRules" as rules
+end box
+box "Frontend — api library" #E0F2FE
+  participant "ListingsApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ListingsController" as controller
+end box
+box "Backend — ChristianRent Application and Domain" #ECFDF3
+  participant "PostListingCommandValidator" as validator
+  participant "ICanadianPlaces" as places
+  participant "PostListingCommandHandler" as handler
+end box
+actor -> page : Enter an area and submit
+page -> rules : Check the draft
+rules --> page : Area is present
+page -> client : Post the ListingDraft
+client -> controller : HTTPS request
+controller -> controller : Authenticate the signed-in member
+controller -> validator : Send PostListingCommand through the validation step
+validator -> places : IsPlaceInCanadaAsync(area)
+note right of places : How the check is made is <TO SUPPLY>
+alt the area is not a place in Canada
+  places --> validator : false
+  validator --> controller : Refusal for the area field
+  controller --> client : ProblemDetails, code area_not_in_canada (L2-022 criterion 5)
+  client --> page : ApiError with code
+  page --> actor : Area field says why; nothing typed is lost
+else the area is a place in Canada
+  places --> validator : true
+  validator -> handler : Pass PostListingCommand on
+  handler --> controller : Listing saved as waiting for review
+  controller --> client : HTTP response
+  client --> page : Posted listing
+  page --> actor : Confirmation
+end
+@enduml

@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Read a listing
+
+Person(anyone, "Anyone", "Reads one listing, signed in or not")
+System_Boundary(cr, "christian.rent") {
+  Container(rent, "rent", "Angular", "The four screens: Browse, Listing, Post and Admin")
+  Container(api, "ChristianRent.Api", "ASP.NET Core", "Listings, photos, search, messages, members and the review queue")
+  ContainerDb(db, "Database", "Relational, EF Core; engine <TO SUPPLY>", "Listings, members, churches and photo records")
+  Container(files, "File storage", "Product <TO SUPPLY>", "Photo files at each stored size")
+}
+Rel(anyone, rent, "Opens the Listing screen", "HTTPS")
+Rel(rent, api, "Requests one listing, and each of its photos", "JSON/HTTPS")
+Rel(api, db, "Reads the listing, who posted it and their church", "EF Core")
+Rel(api, files, "Reads the listing's photos from")
+@enduml

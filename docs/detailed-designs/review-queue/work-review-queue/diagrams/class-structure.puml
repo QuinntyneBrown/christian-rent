@@ -1,0 +1,110 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Work through the review queue
+
+package "Frontend" {
+  interface ReviewQueueApi <<contract, api>> {
+    +list(page: number): Page<ReviewItemSummary>
+    +get(itemId: string): ReviewItemDetail
+  }
+  class ReviewItemSummary <<type, api>> {
+    +id: string
+    +kind: ReviewItemKind
+    +title: string
+    +createdAt: string
+  }
+  class ReviewItemDetail <<type, api>> {
+    +id: string
+    +kind: ReviewItemKind
+    +listing: ListingDetail | null
+    +reportReason: ReportReason | null
+    +memberName: string | null
+    +churchName: string | null
+  }
+  class "Page<T>" as Page <<type, api>> {
+    +items: T[]
+    +page: number
+    +hasMore: boolean
+  }
+  class ReviewQueueStore <<service, admin>> {
+    +items: Signal<ReviewItemSummary[]>
+    +selected: Signal<ReviewItemDetail | null>
+    +state: Signal<loading | ready | empty | failed>
+    +loadNext(): void
+    +select(itemId: string): void
+    +remove(itemId: string): void
+  }
+  class AdminPage <<page, admin>>
+  class ReviewQueueList <<component, admin>> {
+    +items: ReviewItemSummary[]
+    +selectedId: string | null
+    +select: string
+    +endReached: void
+  }
+  class ReviewDetailPanel <<component, admin>> {
+    +item: ReviewItemDetail | null
+  }
+}
+
+package "Backend" {
+  class ReviewQueueController {
+    +List(page: int, pageSize: int): Task<IActionResult>
+    +Get(id: Guid): Task<IActionResult>
+  }
+  class GetReviewQueueQuery {
+    +int Page
+    +int PageSize
+  }
+  class GetReviewQueueQueryHandler
+  class GetReviewItemQuery {
+    +Guid ReviewItemId
+  }
+  class GetReviewItemQueryHandler
+  class ReviewItem {
+    +Guid Id
+    +ReviewItemKind Kind
+    +Guid? ListingId
+    +Guid? ReportId
+    +Guid? MemberId
+    +DateTimeOffset CreatedAt
+    +DateTimeOffset? DecidedAt
+  }
+  enum ReviewItemKind {
+    NewListing
+    Report
+    NewMember
+  }
+  class Listing
+  class Report
+  class Member
+}
+
+AdminPage ..> ReviewQueueStore : reads
+AdminPage --> ReviewQueueList : binds
+AdminPage --> ReviewDetailPanel : binds
+ReviewQueueStore ..> ReviewQueueApi : loads through
+ReviewQueueApi ..> Page : returns
+ReviewQueueApi ..> ReviewItemSummary : returns
+ReviewQueueApi ..> ReviewItemDetail : returns
+ReviewQueueController ..> GetReviewQueueQuery : sends
+ReviewQueueController ..> GetReviewItemQuery : sends
+GetReviewQueueQueryHandler ..> GetReviewQueueQuery : handles
+GetReviewItemQueryHandler ..> GetReviewItemQuery : handles
+GetReviewQueueQueryHandler --> ReviewItem : reads
+GetReviewItemQueryHandler --> ReviewItem : reads
+ReviewItem --> ReviewItemKind : has
+ReviewItem "0..1" --> "0..1" Listing : new listing
+ReviewItem "0..1" --> "0..1" Report : report
+ReviewItem "0..1" --> "0..1" Member : new member
+@enduml

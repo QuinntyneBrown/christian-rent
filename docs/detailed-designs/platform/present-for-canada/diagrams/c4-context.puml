@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Present for Canada
+
+Person(anyone, "Anyone", "Browses and reads listings, signed in or not")
+Person(member, "Member", "Posts a listing and enters its price, when and area")
+System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for one")
+
+Rel(anyone, cr, "Reads prices in CAD, dates with the month as a word and Canadian spelling in")
+Rel(member, cr, "Enters an area that is a place in Canada in")
+@enduml

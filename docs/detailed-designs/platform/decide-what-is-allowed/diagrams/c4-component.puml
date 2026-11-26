@@ -1,0 +1,35 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Decide what is allowed
+
+Container_Boundary(rent, "rent and its libraries") {
+  Component(page, "Pages", "Angular components, rent", "Branch on ApiError.code and show a generic message")
+  Component(interceptor, "apiErrorInterceptor", "HTTP interceptor, api", "Turns a failed response into an ApiError with its code")
+  Component(messages, "errorMessageFor", "Pure function, domain", "Maps a code to the generic text a member sees")
+}
+Container_Boundary(api, "ChristianRent.Api") {
+  Component(https, "HTTPS redirection and HSTS", "ASP.NET Core middleware", "Redirects HTTP and adds Strict-Transport-Security")
+  Component(headers, "SecurityHeadersMiddleware", "Middleware, Api", "Adds the Content-Security-Policy to every response")
+  Component(limiter, "RateLimitPolicy", "ASP.NET Core rate limiter, Api", "120 reads and 30 writes a minute per client; 429 with Retry-After")
+  Component(xsite, "CrossSiteRequestMiddleware", "Middleware, Api", "Refuses a request that changes data and comes from another site")
+  Component(authz, "Fallback policy and Admin policy", "ASP.NET Core authorization", "401 unless the action is marked AllowAnonymous")
+  Component(ctrl, "Controllers", "ASP.NET Core controllers", "Check nothing; send one MediatR request")
+  Component(validation, "ValidationBehavior", "MediatR pipeline behaviour, Application", "Runs the request's validator before its handler")
+  Component(handler, "Handlers", "MediatR handlers, Application", "Apply ownership through ICurrentMember; return a Refusal")
+  Component(current, "ICurrentMember", "Port, Application", "The signed-in member and whether they are an admin")
+  Component(writer, "RefusalWriter", "Api", "Writes a Refusal as ProblemDetails with a code")
+}
+Rel(page, interceptor, "Receives ApiError from")
+Rel(page, messages, "Looks up the text for a code in")
+Rel(interceptor, https, "Sends requests through", "HTTPS")
+Rel(https, headers, "Passes to")
+Rel(headers, limiter, "Passes to")
+Rel(limiter, xsite, "Passes to")
+Rel(xsite, authz, "Passes to")
+Rel(authz, ctrl, "Admits to")
+Rel(ctrl, validation, "Sends one request through")
+Rel(validation, handler, "Passes a valid request to")
+Rel(handler, current, "Asks who is calling")
+Rel(ctrl, writer, "Hands a Refusal to")
+@enduml

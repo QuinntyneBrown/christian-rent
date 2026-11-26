@@ -1,0 +1,76 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Show every screen to everyone
+
+enum Breakpoint {
+  sm = 576
+  md = 768
+  lg = 992
+  xl = 1200
+}
+
+interface Viewport <<api contract, VIEWPORT>> {
+  +atLeast(breakpoint: Breakpoint): Signal<boolean>
+  +reducedMotion: Signal<boolean>
+}
+
+class MatchMediaViewport <<rent>> {
+  -queries: Map<Breakpoint, MediaQueryList>
+  +atLeast(breakpoint: Breakpoint): Signal<boolean>
+  +reducedMotion: Signal<boolean>
+}
+
+interface Announcer <<api contract, ANNOUNCER>> {
+  +announce(text: string, politeness: 'polite' | 'assertive'): void
+}
+
+class CdkAnnouncer <<rent>> {
+  +announce(text: string, politeness: 'polite' | 'assertive'): void
+}
+
+class RouteFocus <<rent service>> {
+  +focusHeading(): void
+}
+
+class AppShell <<cr-shell>> {
+}
+
+class FormField <<cr-form-field>> {
+  +label: input<string>
+  +error: input<string | null>
+  +hint: input<string | null>
+}
+
+class "Foundations" as Foundations <<SCSS partials>> {
+  _breakpoints.scss: from($breakpoint)
+  _tokens.scss: colour, type, space by role
+  _reset.scss: :focus-visible ring
+  _targets.scss: target($min: 44px)
+  _motion.scss: prefers-reduced-motion
+  _utilities.scss: visually-hidden
+}
+
+class AdminPage <<admin library>> {
+  +showsDetailPanel: Signal<boolean>
+}
+
+Viewport ..> Breakpoint : takes
+MatchMediaViewport ..|> Viewport
+CdkAnnouncer ..|> Announcer
+AppShell ..> RouteFocus : calls after navigation
+AdminPage ..> Viewport : reads atLeast(md)
+FormField ..> Foundations : reads tokens and mixins
+AppShell ..> Foundations : loads through styles.scss
+Foundations ..> Breakpoint : holds the same four widths
+@enduml

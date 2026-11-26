@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Decide what is allowed
+
+Person(anyone, "Anyone", "Browses, searches and reads approved listings without signing in")
+Person(member, "Member", "Posts, sends messages and reports once signed in")
+Person(admin, "Admin", "Works through the review queue")
+System(cr, "christian.rent", "Decides on the backend what each person may do")
+System_Ext(signin, "Sign-in", "Identifies the signed-in member; mechanism <TO SUPPLY>")
+System_Ext(secrets, "Deployment configuration", "Holds keys, connection strings and tokens outside the repository; product <TO SUPPLY>")
+
+Rel(anyone, cr, "Reads approved listings in")
+Rel(member, cr, "Changes only their own listings and messages in")
+Rel(admin, cr, "Reviews in")
+Rel(cr, signin, "Identifies each caller through")
+Rel(cr, secrets, "Reads its secrets from")
+@enduml

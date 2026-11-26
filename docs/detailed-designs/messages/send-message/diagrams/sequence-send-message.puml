@@ -1,0 +1,85 @@
+@startuml
+title UML sequence behaviour — Send a message
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Member" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "ListingPage" as page
+end box
+box "Frontend — components library" #E0F2FE
+  participant "MessageBox" as box
+end box
+box "Frontend — domain library" #E0F2FE
+  participant "MessageDraftRules" as rules
+  participant "DraftStore" as drafts
+end box
+box "Frontend — api library" #E0F2FE
+  participant "MessagesApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "MessagesController" as controller
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "SendMessageCommandValidator" as validator
+  participant "SendMessageCommandHandler" as handler
+  participant "Message" as entity
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> box : Write a message, with dates on a listing for rent (L2-015 criterion 2)
+box -> page : send(draft)
+page -> rules : check(draft, offer, today)
+rules --> page : Field errors, or none
+alt the draft breaks a rule (L2-015 criteria 3 and 4)
+  page --> box : Mark each invalid field, keep the text and dates
+else the person is not a member (L2-015 criterion 5)
+  page -> drafts : saveMessage(listingId, draft)
+  page --> actor : Ask to become a member or sign in (<TO SUPPLY>)
+  actor -> page : Return to Listing
+  page -> drafts : takeMessage(listingId)
+  drafts --> page : The kept message and dates
+else the draft is valid and the member is signed in
+  page -> client : send(listingId, draft)
+  client -> controller : POST /listings/{listingId}/messages
+  controller -> controller : Authenticate; 401 without a signed-in member (L2-025 criterion 1)
+  controller -> validator : Send SendMessageCommand
+  validator -> validator : Apply L2-015 criteria 3 and 4 again
+  validator -> handler : Valid command
+  handler -> db : Load the listing and count the sender's messages in the last hour
+  db --> handler : Listing and count
+  alt the listing is not approved or was removed (L2-016 criterion 5)
+    handler --> controller : listing_not_found
+  else the listing is the sender's own (L2-015 criterion 6)
+    handler --> controller : own_listing
+  else 20 messages sent in the last hour (L2-016 criterion 4)
+    handler --> controller : message_limit_reached, with the time sending opens again
+  else allowed
+    handler -> entity : Create with sender, recipient, listing, text and dates
+    entity --> handler : Message
+    handler -> db : Save the message only; the listing is not changed (L2-024 criterion 3)
+    db --> handler : Commit result
+    handler --> controller : Sent message
+  end
+  controller --> client : 201, or ProblemDetails with a code
+  client --> page : Sent message, or ApiError
+  alt sent
+    page --> box : sent = true
+    box --> actor : A confirmation replaces the message box (L2-015 criterion 1)
+  else refused or failed (L2-015 criterion 7)
+    page --> box : Keep the text and dates, show a generic message and "Try again"
+  end
+end
+@enduml

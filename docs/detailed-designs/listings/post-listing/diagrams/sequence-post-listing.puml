@@ -1,0 +1,91 @@
+@startuml
+title UML sequence behaviour — Post a listing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Member" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "PostPage" as page
+end box
+box "Frontend — domain library" #E0F2FE
+  participant "ListingDraftRules" as rules
+end box
+box "Frontend — api library" #E0F2FE
+  participant "ListingsApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ListingsController" as controller
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "PostListingCommandValidator" as validator
+  participant "PostListingCommandHandler" as handler
+  participant "Listing" as entity
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> page : Switch the sentence, fill in the fields
+page -> rules : preview(draft)
+rules --> page : Card with a placeholder for each empty field\n(L2-011 criteria 1 to 3)
+actor -> page : Submit
+page -> rules : validate(draft)
+alt a field is invalid
+  rules --> page : DraftErrors
+  page --> actor : Every invalid field marked, focus on the first,\nnothing typed is lost (L2-010 criterion 8)
+else the draft is valid
+  rules --> page : No error
+  page -> page : state posting; submit button disabled
+  page -> client : post(draft with submissionId, signal)
+  client -> controller : POST /listings
+  controller -> controller : Authenticate; refuse 401 without a signed-in member\n(L2-025 criterion 1)
+  controller -> validator : Send PostListingCommand
+  alt the command breaks a field rule
+    validator --> controller : Refuse with the same rules (L2-010 criterion 9)
+    controller --> client : 400 ProblemDetails, code validation_failed, field codes
+    client --> page : ApiError
+    page --> actor : The named fields marked
+  else valid command
+    validator -> handler : PostListingCommand
+    handler -> db : Find a listing of this member with this SubmissionId
+    alt the submission already made a listing
+      db --> handler : The listing
+      handler --> controller : The same PostedListingDto (L2-012 criterion 4)
+    else first arrival
+      handler -> db : Read PostedAt of this member's listings in the last 24 hours
+      db --> handler : Times
+      alt 10 listings in 24 hours
+        handler --> controller : PostLimitReachedException (L2-012 criterion 6)
+        controller --> client : 429 ProblemDetails, code post_limit_reached, retryAt
+        client --> page : ApiError
+        page --> actor : Message saying when the member can post again
+      else under the limit
+        handler -> entity : Listing.Post(member, fields, now)
+        entity --> handler : Listing, WaitingForReview
+        handler -> db : Save the Listing and a ReviewItem of kind NewListing\nin one unit of work (L2-012 criterion 1)
+        db --> handler : Commit result
+        handler --> controller : PostedListingDto
+      end
+    end
+    controller --> client : 201 Created
+    client --> page : PostedListing
+    page --> actor : Confirmation: the listing will appear once it has been\nreviewed (L2-012 criterion 2)
+  end
+end
+opt the request fails
+  client --> page : ApiError, or no response
+  page --> actor : Form kept, photos included; "Try again" (L2-012 criterion 5)
+  actor -> page : Select "Try again"
+  page -> client : post(draft with the same submissionId, signal)
+end
+@enduml

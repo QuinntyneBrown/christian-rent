@@ -1,0 +1,120 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Become a member
+
+package "Frontend" {
+  class JoinRequest <<type, api>> {
+    +name: string
+    +churchId: string | null
+    +newChurch: NewChurch | null
+    +declaresChristian: boolean
+  }
+  class NewChurch <<type, api>> {
+    +name: string
+    +city: string
+  }
+  class ChurchSummary <<type, api>> {
+    +id: string
+    +name: string
+    +city: string
+  }
+  interface MembersApi <<contract, api>> {
+    +findChurches(term: string): Page<ChurchSummary>
+    +join(request: JoinRequest): void
+    +leave(): void
+  }
+  class MemberRules <<helper, domain>> {
+    +check(request: JoinRequest): FieldErrors
+  }
+  class JoinForm <<component, components>> {
+    +churches: ChurchSummary[]
+    +errors: FieldErrors
+    +busy: boolean
+    +churchSearch: string
+    +join: JoinRequest
+  }
+}
+
+package "Backend" {
+  class JoinCommand {
+    +string Name
+    +Guid? ChurchId
+    +string? NewChurchName
+    +string? NewChurchCity
+    +bool DeclaresChristian
+  }
+  class JoinCommandValidator
+  class JoinCommandHandler {
+    +Handle(command: JoinCommand): Task<MemberDto>
+  }
+  class FindChurchesQuery {
+    +string Term
+    +int Page
+  }
+  class LeaveCommand
+  class LeaveCommandHandler {
+    +Handle(command: LeaveCommand): Task
+  }
+  class DeleteLeftMembersCommand
+  class DeleteLeftMembersCommandHandler {
+    +Handle(command: DeleteLeftMembersCommand): Task
+  }
+  class Member {
+    +Guid Id
+    +string Name
+    +Guid ChurchId
+    +bool IsVerified
+    +DateTimeOffset JoinedAt
+    +DateTimeOffset? LeftAt
+    +Leave(at: DateTimeOffset): void
+  }
+  class Church {
+    +Guid Id
+    +string Name
+    +string City
+    +bool IsVerified
+  }
+  class ReviewItem {
+    +Guid Id
+    +ReviewItemKind Kind
+    +Guid? MemberId
+    +DateTimeOffset CreatedAt
+  }
+  enum ReviewItemKind {
+    NewListing
+    Report
+    NewMember
+  }
+  interface IPhotoStorage
+}
+
+MembersApi ..> JoinRequest : takes
+MembersApi ..> ChurchSummary : returns
+JoinRequest o-- NewChurch
+JoinForm ..> JoinRequest : emits
+MemberRules ..> JoinRequest : checks
+JoinCommandValidator ..> JoinCommand : validates
+JoinCommandHandler ..> JoinCommand : handles
+JoinCommandHandler --> Member : creates
+JoinCommandHandler --> Church : creates when new
+JoinCommandHandler --> ReviewItem : creates
+LeaveCommandHandler ..> LeaveCommand : handles
+LeaveCommandHandler --> Member : marks as left
+DeleteLeftMembersCommandHandler ..> DeleteLeftMembersCommand : handles
+DeleteLeftMembersCommandHandler ..> IPhotoStorage : deletes photos
+DeleteLeftMembersCommandHandler --> Member : deletes or makes anonymous
+Member "*" --> "1" Church : belongs to
+ReviewItem "0..1" --> "1" Member : new member
+ReviewItem --> ReviewItemKind : has
+@enduml

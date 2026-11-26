@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Present for Canada
+
+Person(anyone, "Anyone", "Browses and reads listings")
+Person(member, "Member", "Posts a listing")
+System_Boundary(cr, "christian.rent") {
+  Container(rent, "rent", "Angular", "Formats prices, distances and dates for Canada and shows the wordmark on every screen")
+  Container(api, "ChristianRent.Api", "ASP.NET Core", "Returns amounts, periods and dates unformatted; checks that an area is a place in Canada")
+  ContainerDb(db, "Database", "Relational, engine <TO SUPPLY>", "Holds each listing's price in CAD, its period, its dates and its area")
+}
+Rel(anyone, rent, "Uses", "HTTPS")
+Rel(member, rent, "Uses", "HTTPS")
+Rel(rent, api, "Reads listings from and posts listings to", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+@enduml

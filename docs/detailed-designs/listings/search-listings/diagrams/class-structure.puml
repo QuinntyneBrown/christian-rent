@@ -1,0 +1,89 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Search listings
+
+package "Frontend — components library" {
+  class SearchBar {
+    +term: input<string>
+    +termChange: output<string>
+  }
+  class EmptyState {
+    +heading: input<string>
+    +actionLabel: input<string>
+    +action: output<void>
+  }
+}
+package "Frontend — rent application" {
+  class BrowsePage {
+    +query: Signal<SearchQuery>
+    +onTerm(term: string): void
+    +postWanted(): void
+  }
+}
+package "Frontend — domain library" {
+  class SearchQuery {
+    +term: string
+    +offer: ListingOffer | null
+    +{static} MAX_TERM_LENGTH: 100
+    +{static} of(term: string, offer: ListingOffer | null): SearchQuery
+  }
+  class BrowseStore {
+    +{static} DEBOUNCE_MS: 300
+    +listings: Signal<ListingSummary[]>
+    +status: Signal<BrowseStatus>
+    +query: Signal<SearchQuery>
+    +search(term: string): void
+    +open(query: SearchQuery): void
+  }
+}
+package "Frontend — api library" {
+  interface ListingsApi {
+    +browse(query: SearchQuery, cursor: string | null, signal: AbortSignal): Promise<Page<ListingSummary>>
+  }
+}
+package "Backend — Application" {
+  class BrowseListingsQuery {
+    +ListingOffer? Offer
+    +string? Term
+    +string? Cursor
+    +int PageSize
+  }
+  class BrowseListingsQueryHandler {
+    +Handle(query: BrowseListingsQuery): Task<PageDto<ListingSummaryDto>>
+  }
+}
+package "Backend — Domain" {
+  class SearchText {
+    +{static} int MaxTermLength = 100
+    +{static} Fold(text: string): string
+    +{static} Words(term: string): IReadOnlyList<string>
+  }
+  class Listing {
+    +string Title
+    +string? Note
+    +string Area
+    +string SearchText
+    +ListingStatus Status
+  }
+}
+SearchBar ..> BrowsePage : termChange
+BrowsePage --> BrowseStore : reads
+BrowsePage ..> EmptyState : renders no results
+BrowseStore --> SearchQuery : holds
+BrowseStore ..> ListingsApi : requests
+BrowseListingsQueryHandler ..> BrowseListingsQuery : handles
+BrowseListingsQueryHandler ..> SearchText : folds the term
+BrowseListingsQueryHandler ..> Listing : matches SearchText
+Listing ..> SearchText : folds on save
+@enduml

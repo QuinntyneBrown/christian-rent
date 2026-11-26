@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Post a listing
+
+Person(member, "Member", "A Christian who has something to rent out, or who is looking for something")
+Person(admin, "Admin", "Reviews each new listing before it is public")
+System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for a space or a thing to rent")
+
+Rel(member, cr, "Posts a listing for rent or a wanted listing on")
+Rel(cr, admin, "Puts the new listing in the review queue of")
+@enduml

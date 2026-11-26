@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Read a listing
+
+Person(anyone, "Anyone", "A person, signed in or not, who opens one listing")
+Person(member, "Member who posted", "Opens their own listing before it is approved")
+Person(admin, "Admin", "Opens a listing that is not approved")
+System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for a space or a thing to rent")
+
+Rel(anyone, cr, "Reads one approved listing on")
+Rel(member, cr, "Reads their own listing on")
+Rel(admin, cr, "Reads any listing on")
+@enduml

@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Present for Canada
+
+Container_Boundary(rent, "rent and its libraries") {
+  Component(shell, "AppShell", "Angular component, rent", "Frames every screen and places the wordmark in its header")
+  Component(title, "RentTitleStrategy", "TitleStrategy, rent", "Writes every document title with the lowercase name")
+  Component(wordmark, "Wordmark", "Presentation component, components", "Renders christian.rent in lowercase with .rent in orange")
+  Component(card, "ListingCard", "Presentation component, components", "Shows a price, an area and when as text it is given")
+  Component(fmt, "formatPrice, formatWhen, formatDate, formatDistance", "Pure functions, domain listings/", "Turn an amount, a period, a date and a distance into the text Canada reads")
+  Component(listingsApi, "ListingsApi", "HTTP client, api", "Carries amounts, periods and ISO dates")
+}
+Container_Boundary(api, "ChristianRent.Api") {
+  Component(ctrl, "ListingsController", "ASP.NET Core controller", "Sends one MediatR request per action")
+  Component(validator, "PostListingCommandValidator", "FluentValidation validator, Application", "Refuses an area that is not a place in Canada")
+  Component(places, "ICanadianPlaces", "Port, Application", "Says whether an area is a place in Canada; implementation <TO SUPPLY>")
+  Component(listing, "Listing", "Domain entity", "Holds Price in CAD, PricePeriod, dates and Area")
+}
+Rel(shell, wordmark, "Places in the header")
+Rel(shell, title, "Is titled by")
+Rel(card, fmt, "Receives text formatted by, through its page")
+Rel(listingsApi, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, validator, "Sends PostListingCommand, validated by")
+Rel(validator, places, "Asks")
+Rel(validator, listing, "Guards the fields of")
+@enduml

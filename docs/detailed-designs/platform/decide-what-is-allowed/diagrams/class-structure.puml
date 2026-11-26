@@ -1,0 +1,96 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Decide what is allowed
+
+enum RefusalKind {
+  Invalid
+  NotFound
+  NotAllowed
+  Conflict
+  LimitReached
+}
+
+class Refusal <<Application>> {
+  +string Code
+  +RefusalKind Kind
+  +IReadOnlyDictionary<string, string[]> FieldErrors
+  +DateTimeOffset? RetryAt
+}
+
+class "Result<T>" as Result <<Application>> {
+  +T? Value
+  +Refusal? Refusal
+  +bool IsRefused
+}
+
+interface ICurrentMember <<Application port>> {
+  +Guid? MemberId
+  +bool IsSignedIn
+  +bool IsAdmin
+}
+
+class "ValidationBehavior<TRequest, TResponse>" as ValidationBehavior <<MediatR pipeline behaviour>> {
+  +Handle(request: TRequest, next: RequestHandlerDelegate<TResponse>): Task<TResponse>
+}
+
+class RefusalWriter <<Api>> {
+  +ToActionResult(refusal: Refusal): IActionResult
+}
+
+class SecurityHeadersMiddleware <<Api middleware>> {
+  +InvokeAsync(context: HttpContext): Task
+}
+
+class CrossSiteRequestMiddleware <<Api middleware>> {
+  +InvokeAsync(context: HttpContext): Task
+}
+
+class RateLimitPolicy <<Api>> {
+  +int ReadsPerMinute = 120
+  +int WritesPerMinute = 30
+  +PartitionFor(context: HttpContext): RateLimitPartition<string>
+  +OnRejected(context: OnRejectedContext): ValueTask
+}
+
+class SecurityOptions <<Api options>> {
+  +string[] OwnOrigins
+  +string PhotoOrigin
+}
+
+class ApiError <<api type>> {
+  +code: string
+  +status: number
+  +fieldErrors: Record<string, string[]>
+  +retryAfterSeconds: number | null
+  +traceId: string | null
+}
+
+class apiErrorInterceptor <<HttpInterceptorFn, api>> {
+  +intercept(request, next): Observable<HttpEvent>
+}
+
+class errorMessageFor <<pure function, domain>> {
+  +errorMessageFor(code: string): string
+}
+
+Refusal --> RefusalKind : has
+Result --> Refusal : carries
+ValidationBehavior ..> Refusal : returns Invalid
+RefusalWriter ..> Refusal : writes as ProblemDetails
+RateLimitPolicy ..> ICurrentMember : may partition by
+CrossSiteRequestMiddleware ..> SecurityOptions : reads OwnOrigins
+SecurityHeadersMiddleware ..> SecurityOptions : reads PhotoOrigin
+apiErrorInterceptor ..> ApiError : builds from ProblemDetails
+errorMessageFor ..> ApiError : reads code
+@enduml

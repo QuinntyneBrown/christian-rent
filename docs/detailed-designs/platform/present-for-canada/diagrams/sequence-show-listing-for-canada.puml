@@ -1,0 +1,67 @@
+@startuml
+title UML sequence behaviour — Show a listing presented for Canada
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Anyone" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "AppShell" as shell
+  participant "BrowsePage" as page
+end box
+box "Frontend — components library" #E0F2FE
+  participant "Wordmark" as wordmark
+  participant "ListingCard" as card
+end box
+box "Frontend — domain library" #E0F2FE
+  participant "formatPrice / formatWhen" as fmt
+end box
+box "Frontend — api library" #E0F2FE
+  participant "ListingsApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ListingsController" as controller
+end box
+box "Backend — ChristianRent Application and Domain" #ECFDF3
+  participant "BrowseListingsQueryHandler" as handler
+end box
+box "Backend — ChristianRent Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> shell : Open christian.rent
+shell -> wordmark : Render in the header
+wordmark --> actor : "christian.rent" in lowercase (L2-023 criterion 1)
+shell -> page : Activate Browse
+page -> client : Request a page of listings
+client -> controller : HTTPS request
+controller -> handler : Send BrowseListingsQuery
+handler -> db : Read approved listings
+db --> handler : Price in CAD, PricePeriod, dates, Area
+handler --> controller : Page of ListingSummary, values unformatted
+controller --> client : JSON: amount, period, ISO dates
+client --> page : Page<ListingSummary>
+loop each listing
+  page -> fmt : formatPrice(price, pricePeriod)
+  alt price is 0
+    fmt --> page : "Free"
+  else price is absent on a wanted listing
+    fmt --> page : null, the card shows no price
+  else
+    fmt --> page : "$25 / day", cents only when not zero (L2-022 criterion 1)
+  end
+  page -> fmt : formatWhen(whenText, startDate, endDate)
+  fmt --> page : Free text, or dates with the month as a word (L2-022 criterion 3)
+  page -> card : Bind priceText, whenText, area
+end
+card --> actor : Cards with CAD prices and Canadian spelling (L2-022 criterion 4)
+@enduml

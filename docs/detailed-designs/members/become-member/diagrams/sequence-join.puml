@@ -1,0 +1,84 @@
+@startuml
+title UML sequence behaviour — Become a member
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Person who is not a member" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "Join host (<TO SUPPLY>)" as page
+end box
+box "Frontend — components library" #E0F2FE
+  participant "JoinForm" as form
+end box
+box "Frontend — domain library" #E0F2FE
+  participant "MemberRules" as rules
+end box
+box "Frontend — api library" #E0F2FE
+  participant "MembersApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ChurchesController" as churches
+  participant "MembersController" as controller
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "JoinCommandValidator" as validator
+  participant "JoinCommandHandler" as handler
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> form : Enter a name and type a church name
+form -> page : churchSearch(term)
+page -> client : findChurches(term)
+client -> churches : GET /churches?search=term
+churches -> db : FindChurchesQuery reads one page of churches
+db --> churches : Churches
+churches --> client : Page of ChurchSummary
+client --> page : Churches
+page --> form : Churches to pick from
+actor -> form : Pick a church or enter a new one with its name and city (L2-017 criterion 2)
+actor -> form : Declare being a Christian, select join
+form -> page : join(request)
+page -> rules : check(request)
+rules --> page : Field errors, or none
+alt a name, a church or the declaration is missing, or a name is too long (L2-017 criteria 1 and 6)
+  page --> form : Mark each invalid field with its reason
+else the entry is valid
+  page -> client : join(request)
+  client -> controller : POST /members
+  controller -> controller : Identify the person (sign-in <TO SUPPLY>)
+  controller -> validator : Send JoinCommand
+  validator -> validator : Apply L2-017 criteria 1 and 6 again
+  validator -> handler : Valid command
+  handler -> db : Load the picked church, check the person is not already a member
+  db --> handler : Church, or none
+  alt the picked church does not exist
+    handler --> controller : church_not_found
+  else the person is already a member
+    handler --> controller : already_member
+  else allowed
+    opt a new church was entered
+      handler -> handler : Create Church, not verified
+    end
+    handler -> handler : Create Member, not verified (L2-017 criterion 3)
+    handler -> handler : Create ReviewItem of kind NewMember
+    handler -> db : Save church, member and review item in one unit of work
+    db --> handler : Commit result
+    handler --> controller : Member
+  end
+  controller --> client : 201, or ProblemDetails with a code
+  client --> page : Member, or ApiError
+  page --> actor : Return to Post or Listing with what was entered kept (L2-009 criterion 4, L2-015 criterion 5)
+end
+@enduml

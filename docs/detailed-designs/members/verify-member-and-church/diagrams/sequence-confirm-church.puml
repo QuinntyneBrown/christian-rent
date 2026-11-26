@@ -1,0 +1,75 @@
+@startuml
+title UML sequence behaviour — Confirm a church
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Admin" as actor
+actor "Anyone" as reader
+box "Frontend — admin library" #E0F2FE
+  participant "AdminPage" as page
+end box
+box "Frontend — rent application" #E0F2FE
+  participant "ListingPage" as listingPage
+end box
+box "Frontend — api library" #E0F2FE
+  participant "ReviewQueueApi" as client
+  participant "ListingsApi" as listings
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ChurchesController" as controller
+  participant "ListingsController" as listingsController
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "ConfirmChurchCommandHandler" as handler
+  participant "Church" as church
+  participant "GetListingQueryHandler" as read
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> page : Confirm the church a member entered (control <TO SUPPLY>)
+page -> client : confirmChurch(churchId)
+client -> controller : POST /churches/{churchId}/confirm
+controller -> controller : Authenticate and apply the admin policy
+alt the caller is not an admin (L2-018 criterion 5)
+  controller --> client : 401 or 403, nothing changed
+else the caller is an admin
+  controller -> handler : Send ConfirmChurchCommand
+  handler -> db : Load the church
+  db --> handler : Church, or none
+  alt the church does not exist
+    handler --> controller : church_not_found
+  else found
+    handler -> church : Verify()
+    church --> handler : IsVerified = true
+    handler -> db : Save the church only
+    db --> handler : Commit result
+    handler --> controller : Confirmed
+  end
+  controller --> client : 200, or ProblemDetails with a code
+end
+client --> page : Result, or ApiError
+page --> actor : The church shows as verified
+== Later, any listing of any member of the church (L2-018 criteria 2 and 3) ==
+reader -> listingPage : Open a listing
+listingPage -> listings : get(listingId)
+listings -> listingsController : GET /listings/{listingId}
+listingsController -> read : Send GetListingQuery
+read -> db : Read the listing with Member.IsVerified and Church.IsVerified
+db --> read : Listing, member mark, church mark
+read --> listingsController : ListingDetail with the two marks, each on its own
+listingsController --> listings : 200
+listings --> listingPage : ListingDetail
+listingPage --> reader : VerifiedMark beside the church, and beside the member only when the member is verified
+@enduml

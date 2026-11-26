@@ -1,0 +1,61 @@
+@startuml
+title UML sequence behaviour — Read a listing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Anyone" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "ListingPage" as page
+end box
+box "Frontend — api library" #E0F2FE
+  participant "ListingsApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ListingsController" as controller
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "GetListingQueryHandler" as handler
+  participant "ICurrentMember" as current
+  participant "Listing" as entity
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> page : Open /listings/id, from a card or from its address
+page -> client : get(id, signal)
+client -> controller : GET /listings/id
+controller -> handler : Send GetListingQuery
+handler -> db : Load the listing with its photo records,\nthe member's name and the church's name
+db --> handler : Listing, or nothing
+handler -> current : MemberId, IsAdmin
+current --> handler : The signed-in member, if any
+handler -> entity : IsVisibleTo(memberId, isAdmin)
+alt approved, or the caller posted it, or the caller is an admin
+  entity --> handler : true
+  handler -> handler : Project ListingDetailDto: names and verified marks only,\nno email address, phone number or street address\n(L2-008 criterion 5)
+  handler --> controller : ListingDetailDto
+  controller --> client : 200 OK
+  client --> page : ListingDetail
+  page --> actor : Photos, title, space or thing, price, when, area, note\n(L2-007 criteria 1 and 2); who posted and their church,\neach "Verified" when verified (L2-008 criteria 1 to 4)
+else not approved, removed, or does not exist
+  entity --> handler : false, or no listing
+  handler --> controller : ListingNotFoundException
+  controller --> client : 404 ProblemDetails, code listing_not_found,\nthe same in each case (L2-007 criterion 4)
+  client --> page : ApiError
+  page --> actor : "Not found" state with a way back to Browse
+end
+opt the person leaves before the response arrives
+  page -> client : Abort the signal
+end
+@enduml

@@ -1,0 +1,58 @@
+@startuml
+title UML sequence behaviour — Open Post
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Person" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "BrowsePage" as browse
+  participant "PostPage" as page
+end box
+box "Frontend — domain library" #E0F2FE
+  participant "ListingDraftRules" as rules
+  participant "DraftStore" as drafts
+end box
+box "Frontend — api library" #E0F2FE
+  participant "MembersApi" as members
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "MembersController" as controller
+end box
+actor -> browse : Select "I have something to rent", "I'm looking for something",\nor the no-results offer
+browse -> page : Navigate to /post?offer and, from the offer, title
+page -> drafts : take()
+alt a draft was kept
+  drafts --> page : ListingDraft, removed from the store
+else no draft
+  drafts --> page : Nothing
+  page -> rules : empty(offer, kind), with the title from the address
+  rules --> page : ListingDraft with a new submissionId
+end
+page -> members : Ask who is signed in
+members -> controller : Request the signed-in member
+controller --> members : The member, or 401
+members --> page : Member, or ApiError
+alt a signed-in member
+  page --> actor : The sentence set to "I have" or "I need" (L2-005 criteria 2 and 3,\nL2-004 criterion 2), the fields and the live preview
+  actor -> page : Switch "have" and "need", "a space" and "a thing"
+  page -> page : Change offer or kind; keep the fields filled in;\nhide the photos field for a wanted listing\n(L2-009 criteria 1 and 2)
+else not a member
+  page -> drafts : save(draft)
+  page --> actor : Asked to become a member or sign in (L2-009 criterion 4)
+  actor -> page : Returns after members/become-member or sign-in
+  page -> drafts : take()
+  drafts --> page : ListingDraft, choices kept
+  page --> actor : Post, as it was left
+end
+@enduml

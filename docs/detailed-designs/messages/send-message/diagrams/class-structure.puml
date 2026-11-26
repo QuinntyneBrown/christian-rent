@@ -1,0 +1,112 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Send a message
+
+package "Frontend" {
+  class MessageDraft <<type, api>> {
+    +text: string
+    +startDate: string | null
+    +endDate: string | null
+  }
+  interface MessagesApi <<contract, api>> {
+    +send(listingId: string, draft: MessageDraft): SentMessage
+  }
+  class ApiError <<type, api>> {
+    +code: string
+  }
+  class MessageDraftRules <<helper, domain>> {
+    +check(draft: MessageDraft, offer: ListingOffer, today: string): FieldErrors
+  }
+  class DraftStore <<service, domain>> {
+    +saveMessage(listingId: string, draft: MessageDraft): void
+    +takeMessage(listingId: string): MessageDraft | null
+  }
+  class MessageBox <<component, components>> {
+    +offer: ListingOffer
+    +draft: MessageDraft
+    +errors: FieldErrors
+    +busy: boolean
+    +sent: boolean
+    +draftChange: MessageDraft
+    +send: MessageDraft
+  }
+  class ListingPage <<page, rent>>
+}
+
+package "Backend" {
+  class MessagesController {
+    +Send(listingId: Guid, body: SendMessageBody): Task<IActionResult>
+  }
+  class SendMessageCommand {
+    +Guid ListingId
+    +string Text
+    +DateOnly? StartDate
+    +DateOnly? EndDate
+  }
+  class SendMessageCommandValidator
+  class SendMessageCommandHandler {
+    +Handle(command: SendMessageCommand): Task<SentMessageDto>
+  }
+  class Message {
+    +Guid Id
+    +Guid ListingId
+    +Guid SenderId
+    +Guid RecipientId
+    +string Text
+    +DateOnly? StartDate
+    +DateOnly? EndDate
+    +DateTimeOffset SentAt
+  }
+  class Listing {
+    +Guid Id
+    +Guid MemberId
+    +ListingOffer Offer
+    +ListingStatus Status
+  }
+  class Member {
+    +Guid Id
+  }
+  enum ListingOffer {
+    ForRent
+    Wanted
+  }
+  enum ListingStatus {
+    WaitingForReview
+    Approved
+    Removed
+  }
+  interface ICurrentMember {
+    +Guid MemberId
+  }
+  interface IAppDbContext
+}
+
+ListingPage --> MessageBox : binds
+ListingPage ..> MessageDraftRules : checks with
+ListingPage ..> DraftStore : keeps draft in
+ListingPage ..> MessagesApi : sends through
+MessagesApi ..> MessageDraft : takes
+MessagesApi ..> ApiError : refuses with
+MessagesController ..> SendMessageCommand : sends
+SendMessageCommandValidator ..> SendMessageCommand : validates
+SendMessageCommandHandler ..> SendMessageCommand : handles
+SendMessageCommandHandler ..> ICurrentMember : reads sender
+SendMessageCommandHandler ..> IAppDbContext : reads / writes
+SendMessageCommandHandler --> Message : creates
+Message "*" --> "1" Listing : about
+Message "*" --> "1" Member : sender
+Message "*" --> "1" Member : recipient
+Listing --> ListingOffer : has
+Listing --> ListingStatus : has
+@enduml
