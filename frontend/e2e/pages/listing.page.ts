@@ -25,6 +25,7 @@ export class ListingPage {
   readonly price: Locator;
   /** The listing's skeleton, while it loads. */
   readonly skeleton: Locator;
+  readonly messageBoxSkeleton: Locator;
   readonly status: Locator;
   readonly plainPage: Locator;
   readonly plainText: Locator;
@@ -51,7 +52,8 @@ export class ListingPage {
     this.messageBoxHeading = this.messageBox.getByRole('heading', { level: 2 });
     this.eyebrow = this.messageBox.locator('.message-box__eyebrow');
     this.price = this.messageBox.locator('.message-box__price');
-    this.skeleton = this.main.locator('.listing-skeleton');
+    this.skeleton = this.main.locator('.listing--loading');
+    this.messageBoxSkeleton = this.aside.locator('.message-box[aria-hidden="true"]');
     this.status = this.main.locator('p.visually-hidden[role="status"]');
     const plain = this.main.locator('.plain-page');
     this.plainPage = plain;
