@@ -2,12 +2,15 @@ using ChristianRent.Api.Access;
 using ChristianRent.Api.Errors;
 using ChristianRent.Api.Health;
 using ChristianRent.Api.Security;
+using ChristianRent.Api.Telemetry;
 using ChristianRent.Application;
 using ChristianRent.Infrastructure;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.AddTelemetry();
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
