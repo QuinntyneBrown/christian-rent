@@ -1,3 +1,4 @@
+using ChristianRent.Application.Paging;
 using FluentValidation;
 
 namespace ChristianRent.Application.Listings;
@@ -17,7 +18,7 @@ internal sealed class BrowseListingsQueryValidator : AbstractValidator<BrowseLis
             .WithMessage($"A page holds 1 to {BrowseListingsQuery.MaxSize} listings.");
 
         RuleFor(query => query.Cursor)
-            .Must(cursor => cursor is null || ListingCursor.TryDecode(cursor, out _))
+            .Must(cursor => cursor is null || KeysetCursor.TryDecode(cursor, out _))
             .WithErrorCode("cursor_invalid")
             .WithMessage("The cursor is not one this API gave.");
 

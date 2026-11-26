@@ -2,7 +2,7 @@ namespace ChristianRent.Domain.Review;
 
 /// <summary>
 /// One entry of the review queue, pointing at its subject by <see cref="Kind"/> and
-/// <see cref="SubjectId"/> (view-review-queue design). Journeys 10 and 11 add the decision.
+/// <see cref="SubjectId"/> (view-review-queue design). Journey 11 adds the decision.
 /// </summary>
 public sealed class ReviewItem
 {
