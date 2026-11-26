@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ChristianRent.Api/ChristianRent.Api.csproj" />
+    <Project Path="src/ChristianRent.Application/ChristianRent.Application.csproj" />
+    <Project Path="src/ChristianRent.Cli/ChristianRent.Cli.csproj" />
+    <Project Path="src/ChristianRent.Domain/ChristianRent.Domain.csproj" />
+    <Project Path="src/ChristianRent.Infrastructure/ChristianRent.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ChristianRent.Api.Tests/ChristianRent.Api.Tests.csproj" />
+  </Folder>
+</Solution>
