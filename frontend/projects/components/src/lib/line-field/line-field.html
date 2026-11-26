@@ -1,0 +1,59 @@
+<div class="line-field">
+  <label class="line-field__label" [for]="fieldId()"
+    >{{ label() }}
+    @if (optional(); as optional) {
+      <span class="optional">{{ optional }}</span>
+    }
+  </label>
+  <div class="line-field__control">
+    @if (prefix(); as prefix) {
+      <span class="line-field__prefix" aria-hidden="true">{{ prefix }}</span>
+    }
+    <input
+      class="line-field__input"
+      type="text"
+      [id]="fieldId()"
+      [attr.placeholder]="placeholder()"
+      [attr.maxlength]="maxlength()"
+      [attr.inputmode]="inputmode()"
+      [value]="value()"
+      [readOnly]="readonly()"
+      [attr.aria-invalid]="error() ? 'true' : null"
+      [attr.aria-describedby]="describedBy()"
+      (input)="onInput($event)"
+    />
+    @if (units(); as units) {
+      <label class="visually-hidden" [for]="fieldId() + '-unit'">{{ unitLabel() }}</label>
+      <select
+        class="line-field__unit"
+        [id]="fieldId() + '-unit'"
+        [disabled]="readonly()"
+        (change)="onUnit($event)"
+      >
+        @for (option of units; track option.value) {
+          <option [value]="option.value" [selected]="option.value === unit()">
+            {{ option.label }}
+          </option>
+        }
+      </select>
+    }
+  </div>
+  @if (error(); as error) {
+    <p class="field__error" [id]="fieldId() + '-error'">{{ error }}</p>
+  } @else if (help(); as help) {
+    <p class="field__help" [id]="fieldId() + '-help'">{{ help }}</p>
+  }
+  @if (switchLabel(); as switchLabel) {
+    <button
+      cr-button
+      class="line-field__switch"
+      variant="link"
+      size="sm"
+      type="button"
+      [disabled]="readonly()"
+      (click)="switched.emit()"
+    >
+      {{ switchLabel }}
+    </button>
+  }
+</div>

@@ -1,0 +1,54 @@
+// Confirmation, from docs/design-system/components/confirmation.html.
+.confirmation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  max-width: 36rem;
+  margin-inline: auto;
+  padding-block: var(--space-10) var(--space-20);
+}
+
+.success-badge {
+  display: grid;
+  place-items: center;
+  width: 5rem;
+  height: 5rem;
+  border-radius: var(--radius-lg);
+}
+
+.success-badge--rent {
+  background: var(--color-rent);
+  color: var(--color-fg-on-rent);
+}
+
+.success-badge--wanted {
+  background: var(--color-wanted);
+  color: var(--color-fg-on-wanted);
+}
+
+.confirmation__title {
+  margin-top: var(--space-3);
+  letter-spacing: var(--letter-spacing-display);
+}
+
+.confirmation__text {
+  font: var(--text-body-lg);
+  color: var(--color-fg-muted);
+}
+
+.confirmation__card {
+  width: 100%;
+  max-width: 18.75rem;
+  text-align: left;
+  margin-top: var(--space-5);
+}
+
+.confirmation__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}

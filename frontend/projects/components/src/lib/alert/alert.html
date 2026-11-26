@@ -1,9 +1,12 @@
 <div
+  #box
   class="alert"
   [class.alert--success]="tone() === 'success'"
   [class.alert--warning]="tone() === 'warning'"
   [class.alert--danger]="tone() === 'danger'"
+  [class.form-summary]="summary()"
   [attr.role]="announce() ? 'alert' : null"
+  [attr.tabindex]="summary() ? -1 : null"
 >
   <cr-icon class="alert__icon" [name]="icon()" />
   <div class="alert__body">
@@ -11,5 +14,6 @@
     @if (text(); as text) {
       <p class="alert__text">{{ text }}</p>
     }
+    <ng-content />
   </div>
 </div>

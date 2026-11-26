@@ -1,0 +1,31 @@
+// The line field's shared rules (docs/design-system/components/line-field.html): the large,
+// underlined fields of Post. `cr-line-field`, `cr-date-range` and `cr-photo-picker` are each a
+// line field, and include these in their own encapsulated stylesheet.
+
+@mixin line-field {
+  .line-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .line-field__label {
+    display: flex;
+    gap: var(--space-2);
+    align-items: baseline;
+    padding: 0;
+    margin: 0;
+    font: var(--text-label);
+    color: var(--color-fg-muted);
+  }
+
+  .optional {
+    color: var(--color-fg-subtle);
+    font-weight: var(--font-weight-regular);
+  }
+
+  .line-field__switch {
+    align-self: flex-start;
+  }
+}

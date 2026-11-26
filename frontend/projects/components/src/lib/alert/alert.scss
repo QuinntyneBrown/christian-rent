@@ -52,3 +52,14 @@
 .alert__title {
   font: var(--text-label);
 }
+
+// A form's error summary keeps the danger edge (forms pattern). Its links stay readable on the
+// danger background.
+.form-summary {
+  border-left: 4px solid var(--color-danger-solid);
+}
+
+.form-summary:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}

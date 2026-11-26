@@ -142,3 +142,9 @@ a.listing-card:hover {
     transform: none;
   }
 }
+
+// A preview whose title is still a placeholder mutes the title and the price (ADR 0019).
+.listing-card--placeholder .listing-card__title,
+.listing-card--placeholder .listing-card__amount {
+  color: var(--color-fg-muted);
+}

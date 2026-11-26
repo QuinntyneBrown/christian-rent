@@ -1,0 +1,50 @@
+<fieldset class="line-field">
+  <legend class="line-field__label">{{ legend() }}</legend>
+  <div class="date-range">
+    <div class="field">
+      <label class="field__label" [for]="fieldId() + '-start'">From</label>
+      <input
+        class="input"
+        type="date"
+        [id]="fieldId() + '-start'"
+        [value]="start()"
+        [readOnly]="readonly()"
+        [attr.aria-invalid]="startError() ? 'true' : null"
+        [attr.aria-describedby]="startError() ? errorId() : null"
+        (input)="onStart($event)"
+      />
+    </div>
+    <div class="field">
+      <label class="field__label" [for]="fieldId() + '-end'">To</label>
+      <input
+        class="input"
+        type="date"
+        [id]="fieldId() + '-end'"
+        [value]="end()"
+        [attr.min]="start() || null"
+        [readOnly]="readonly()"
+        [attr.aria-invalid]="endError() ? 'true' : null"
+        [attr.aria-describedby]="endError() ? errorId() : null"
+        (input)="onEnd($event)"
+      />
+    </div>
+    @if (error(); as error) {
+      <p class="field__error" [id]="errorId()">{{ error }}</p>
+    } @else if (summary(); as summary) {
+      <p class="date-range__summary">{{ summary }}</p>
+    }
+  </div>
+  @if (switchLabel(); as switchLabel) {
+    <button
+      cr-button
+      class="line-field__switch"
+      variant="link"
+      size="sm"
+      type="button"
+      [disabled]="readonly()"
+      (click)="switched.emit()"
+    >
+      {{ switchLabel }}
+    </button>
+  }
+</fieldset>

@@ -1,0 +1,26 @@
+<div class="field">
+  <label class="field__label" [for]="fieldId()"
+    >{{ label() }}
+    @if (optional(); as optional) {
+      <span class="optional">{{ optional }}</span>
+    }
+  </label>
+  <textarea
+    class="textarea"
+    [id]="fieldId()"
+    [rows]="rows()"
+    [attr.placeholder]="placeholder()"
+    [attr.maxlength]="maxlength()"
+    [value]="value()"
+    [readOnly]="readonly()"
+    [attr.aria-invalid]="error() ? 'true' : null"
+    [attr.aria-describedby]="describedBy()"
+    (input)="onInput($event)"
+  ></textarea>
+  @if (error(); as error) {
+    <p class="field__error" [id]="fieldId() + '-error'">{{ error }}</p>
+  }
+  @if (counter(); as counter) {
+    <span class="field__counter" [id]="fieldId() + '-counter'">{{ counter }}</span>
+  }
+</div>

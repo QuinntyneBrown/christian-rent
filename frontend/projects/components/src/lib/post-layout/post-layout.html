@@ -1,0 +1,18 @@
+<div class="post-layout">
+  <form
+    class="post-form"
+    novalidate
+    [attr.aria-busy]="busy() ? 'true' : null"
+    (submit)="onSubmit($event)"
+  >
+    <ng-content />
+    <div class="post-actions">
+      <ng-content select="[slot=actions]" />
+      <p class="post-actions__fine">{{ fine() }}</p>
+    </div>
+  </form>
+  <aside class="post-layout__aside" aria-labelledby="post-preview-label">
+    <h2 class="preview__label" id="post-preview-label">{{ previewLabel() }}</h2>
+    <ng-content select="[slot=preview]" />
+  </aside>
+</div>

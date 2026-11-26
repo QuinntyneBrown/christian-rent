@@ -26,8 +26,8 @@ export type IconName =
   | 'user'
   | 'compass';
 
-/** 16 px beside small text, 20 px by default, 24 px in an empty state. */
-export type IconSize = 'sm' | 'md' | 'lg';
+/** 16 px beside small text, 20 px by default, 24 px in an empty state, 40 px in a success badge. */
+export type IconSize = 'sm' | 'md' | 'lg' | 'xl';
 
 /**
  * A line icon from the set: inline SVG, a 2 px stroke in the colour of the text beside it,

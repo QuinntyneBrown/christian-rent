@@ -44,4 +44,25 @@ describe('Alert', () => {
       '<b>What you entered</b> is still here.',
     );
   });
+
+  // L2-010 criterion 8: a form's summary lists the consumer's links and takes focus.
+  it('is a focusable summary that holds the links given to it', () => {
+    const fixture = render('danger', true);
+    fixture.componentRef.setInput('summary', true);
+    fixture.detectChanges();
+    const alert = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('.alert')!;
+
+    expect(alert.classList).toContain('form-summary');
+    expect(alert.getAttribute('tabindex')).toBe('-1');
+    document.body.append(fixture.nativeElement as HTMLElement);
+    fixture.componentInstance.focus();
+    expect(document.activeElement).toBe(alert);
+    (fixture.nativeElement as HTMLElement).remove();
+  });
+
+  it('takes no focus when it is not a summary', () => {
+    expect(
+      render('danger').nativeElement.querySelector('.alert').getAttribute('tabindex'),
+    ).toBeNull();
+  });
 });
