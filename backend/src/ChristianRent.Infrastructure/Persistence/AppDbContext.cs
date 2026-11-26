@@ -3,6 +3,7 @@ using ChristianRent.Domain.Churches;
 using ChristianRent.Domain.Listings;
 using ChristianRent.Domain.Members;
 using ChristianRent.Domain.Messages;
+using ChristianRent.Domain.Reports;
 using ChristianRent.Domain.Review;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,6 +20,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<Photo> Photos => Set<Photo>();
 
     public DbSet<Message> Messages => Set<Message>();
+
+    public DbSet<Report> Reports => Set<Report>();
 
     public DbSet<ReviewItem> ReviewItems => Set<ReviewItem>();
 
