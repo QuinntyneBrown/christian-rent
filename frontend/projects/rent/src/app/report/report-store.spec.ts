@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { REPORTS_API, type ReportsApi } from '@rent/api';
+import { type ApiError, REPORTS_API, type ReportsApi } from '@rent/api';
 import { ReportStore } from './report-store';
 
 const REPORTED_AT = '2026-06-08T15:00:00Z';
@@ -12,6 +12,12 @@ function store(report: ReportsApi['report']): ReportStore {
 }
 
 const answers = () => vi.fn<ReportsApi['report']>().mockResolvedValue({ reportedAt: REPORTED_AT });
+
+function refusal(code: string | null, status: number, reportedAt: string | null = null): ApiError {
+  return { status, code, retryAt: null, reportedAt, fields: null };
+}
+
+const refuses = (error: ApiError) => vi.fn<ReportsApi['report']>().mockRejectedValue(error);
 
 /** A send that stays in flight until the test ends it. */
 function held() {
@@ -89,6 +95,63 @@ describe('ReportStore', () => {
 
     end();
     await sent;
+  });
+
+  it('keeps what was entered when the send fails, and sends it again', async () => {
+    const report = answers().mockRejectedValueOnce(refusal(null, 0));
+    const subject = store(report);
+    subject.choose('scam');
+    subject.setNote('Pay first.');
+
+    expect(await subject.send('hall')).toBe('failed');
+
+    expect(subject.state()).toBe('failed');
+    expect(subject.reason()).toBe('scam');
+    expect(subject.note()).toBe('Pay first.');
+    subject.setNote('Pay first, it says.');
+    expect(await subject.send('hall')).toBe('reported');
+    expect(report).toHaveBeenLastCalledWith(
+      'hall',
+      { reason: 'scam', note: 'Pay first, it says.' },
+      expect.any(AbortSignal),
+    );
+  });
+
+  // ADR 0023: only these refusals change what the screen shows; any other can be tried again.
+  it.each([
+    ['not_found', 404, 'listing-changed'],
+    ['own_listing', 403, 'listing-changed'],
+    ['rate_limited', 429, 'failed'],
+    ['not_a_member', 403, 'failed'],
+    ['validation_failed', 400, 'failed'],
+    ['unexpected', 500, 'failed'],
+  ])('answers %s as %s', async (code, status, result) => {
+    const subject = store(refuses(refusal(code, status)));
+    subject.choose('scam');
+
+    expect(await subject.send('hall')).toBe(result);
+  });
+
+  it('shows an earlier report, with when it was filed', async () => {
+    const subject = store(refuses(refusal('already_reported', 409, REPORTED_AT)));
+    subject.choose('scam');
+
+    expect(await subject.send('hall')).toBe('already');
+
+    expect(subject.state()).toBe('already');
+    expect(subject.reportedAt()).toBe(REPORTED_AT);
+  });
+
+  it('opens on an earlier report and sends nothing', async () => {
+    const report = answers();
+    const subject = store(report);
+
+    subject.openAsReported(REPORTED_AT);
+
+    expect(subject.state()).toBe('already');
+    expect(subject.reportedAt()).toBe(REPORTED_AT);
+    expect(await subject.send('hall')).toBe('ignored');
+    expect(report).not.toHaveBeenCalled();
   });
 
   it('aborts a report in flight when the dialog goes, and says nothing of it', async () => {

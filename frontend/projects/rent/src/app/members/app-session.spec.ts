@@ -51,7 +51,14 @@ describe('AppSession', () => {
   it('is nobody when the backend refuses or cannot be reached', async () => {
     const answers: (() => Promise<Member | null>)[] = [
       () => Promise.resolve(sarah),
-      () => Promise.reject({ status: 401, code: 'not_signed_in', retryAt: null, fields: null }),
+      () =>
+        Promise.reject({
+          status: 401,
+          code: 'not_signed_in',
+          retryAt: null,
+          reportedAt: null,
+          fields: null,
+        }),
     ];
     const subject = session(() => answers.shift()!());
     await subject.refresh();

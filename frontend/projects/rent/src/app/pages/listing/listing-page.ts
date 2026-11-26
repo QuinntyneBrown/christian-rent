@@ -96,7 +96,9 @@ export class ListingPage {
 
   /**
    * Opens the report dialog, once the person is a member (L2-021, criteria 1 and 5). A second
-   * press while it is opening does nothing, and nothing opens once the screen has been left.
+   * press while it is opening does nothing, and nothing opens once the screen has been left. A
+   * listing the dialog finds changed is read again, so one taken down is said to be not there
+   * (criterion 12).
    */
   protected async report(): Promise<void> {
     if (this.reporting) {
@@ -121,12 +123,18 @@ export class ListingPage {
         {
           listingId: id,
           posterFirstName: view.posterFirstName,
+          reportedAt: view.reportedAt,
           reported: (reportedAt) => this.store.markReported(reportedAt),
         },
         this.injector,
       );
       this.closeReport = () => dialog.close();
-      dialog.closed.subscribe(() => (this.closeReport = null));
+      dialog.closed.subscribe((outcome) => {
+        this.closeReport = null;
+        if (outcome === 'listing-changed' && !this.destroyed) {
+          void this.store.load();
+        }
+      });
     } finally {
       this.reporting = false;
     }

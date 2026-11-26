@@ -34,7 +34,7 @@ function detail(id: string): ListingDetail {
 }
 
 function refusal(status: number, code: string | null): ApiError {
-  return { status, code, retryAt: null, fields: null };
+  return { status, code, retryAt: null, reportedAt: null, fields: null };
 }
 
 /** A ListingsApi whose answers a test gives one at a time. */

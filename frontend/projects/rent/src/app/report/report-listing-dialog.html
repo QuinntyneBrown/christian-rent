@@ -3,12 +3,20 @@
   [title]="copy().title"
   descriptionId="report-description"
   [description]="copy().description"
-  [icon]="step() === 'success' ? 'check' : null"
+  [icon]="icon()"
   [closeDisabled]="busy()"
   (closed)="close()"
 >
   @if (step() === 'form') {
     <form id="report-form" class="report-dialog__form" novalidate (submit)="submit($event)">
+      @if (store.state() === 'failed') {
+        <cr-alert
+          tone="danger"
+          [announce]="true"
+          title="Your report wasn’t sent."
+          text="We couldn’t reach christian.rent. Your reason and note are still here."
+        />
+      }
       <cr-radio-group
         fieldId="report-reason"
         legend="Why are you reporting it?"
@@ -51,7 +59,7 @@
       form="report-form"
       [busy]="busy()"
     >
-      Send report
+      {{ store.state() === 'failed' ? 'Try again' : 'Send report' }}
     </button>
   }
   @if (step() === 'success') {
@@ -64,6 +72,18 @@
       (click)="close()"
     >
       Done
+    </button>
+  }
+  @if (step() === 'already') {
+    <button
+      cr-button
+      slot="footer"
+      variant="primary"
+      type="button"
+      class="report-dialog__acknowledge"
+      (click)="close()"
+    >
+      OK, close
     </button>
   }
 </cr-dialog>

@@ -13,7 +13,13 @@ import {
 import { BrowseQuery } from '@rent/domain';
 import { BrowseStore, SEARCH_DELAY_MS, SKELETON_DELAY_MS } from './browse-store';
 
-const unreachable: ApiError = { status: 0, code: null, retryAt: null, fields: null };
+const unreachable: ApiError = {
+  status: 0,
+  code: null,
+  retryAt: null,
+  reportedAt: null,
+  fields: null,
+};
 
 function card(id: string): ListingCard {
   return {

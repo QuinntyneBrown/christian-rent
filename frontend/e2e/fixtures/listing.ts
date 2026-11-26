@@ -163,8 +163,13 @@ export function gym(overrides: Partial<ListingDetailFixture> = {}): ListingDetai
 }
 
 /** Answers `GET /api/listings/{id}` with the listing, and its photos from localhost. */
+/** The address of one listing's read, as `ApiFixtures` keys it. */
+export function listingPath(id: string): string {
+  return `/api/listings/${id}`;
+}
+
 export function answerListing(api: ApiFixtures, listing: ListingDetailFixture): void {
-  api.answer('GET', `/api/listings/${listing.id}`, { body: listing });
+  api.answer('GET', listingPath(listing.id), { body: listing });
   answerGalleryPhotos(api);
 }
 
