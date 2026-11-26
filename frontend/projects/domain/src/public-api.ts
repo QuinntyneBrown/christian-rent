@@ -21,6 +21,7 @@ export * from './listings/post-request';
 export * from './listings/report-form';
 export * from './members/join-form';
 export * from './review/queue-item-view';
+export * from './review/queue-summary';
 export * from './review/review-detail-view';
 export * from './review/review-words';
 export * from './search/listing-window';

@@ -25,6 +25,7 @@ import {
   QueueMore,
   ReviewDetail,
 } from '@rent/components';
+import { queueSummary } from '@rent/domain';
 import { ReviewQueueStore } from './review-queue-store';
 
 /** From this width the detail panel sits beside the queue (L2-031, criterion 5). */
@@ -112,26 +113,15 @@ export class ReviewPage {
     });
   }
 
-  /** The line under the heading; empty until a wait is long enough to be told. */
-  protected readonly summary = computed(() => {
-    switch (this.store.state()) {
-      case 'loading':
-        return this.store.skeleton() ? 'Loading the queue…' : '';
-      case 'failed':
-        return 'The queue didn’t load';
-      case 'empty':
-        return 'Nothing is waiting';
-      case 'loaded':
-        return this.counted();
-    }
-  });
-
-  private counted(): string {
-    const waiting = this.store.waitingCount();
-    const held = this.store.held();
-    const showing = waiting > held ? ` · showing ${held}` : '';
-    return `${waiting} waiting · oldest first${showing}`;
-  }
+  /** The line under the heading. */
+  protected readonly summary = computed(() =>
+    queueSummary({
+      state: this.store.state(),
+      told: this.store.skeleton(),
+      waiting: this.store.waitingCount(),
+      held: this.store.held(),
+    }),
+  );
 
   /** "Load 13 more" and "Try again" after the next page failed. */
   protected loadMore(): void {
