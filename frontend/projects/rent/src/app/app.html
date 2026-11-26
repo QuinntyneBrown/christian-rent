@@ -1,6 +1,6 @@
 <cr-skip-link />
 <router-outlet />
-<div class="toast-region" role="status" aria-live="polite">
+<cr-toast-region>
   @if (clientErrors.showing()) {
     <cr-toast
       tone="danger"
@@ -11,4 +11,4 @@
       (dismissed)="clientErrors.dismiss()"
     />
   }
-</div>
+</cr-toast-region>
