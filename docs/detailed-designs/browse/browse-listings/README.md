@@ -139,8 +139,9 @@ the codebase yet; every name below is introduced by this design.
   Open for production). The migration adds the index on `(Status, ApprovedAt, Id)` that the
   300 ms at the 95th percentile over 10,000 approved listings needs (L2-030, criterion 1);
   measuring it against a real engine is outside the automated suites (ADR 0007).
-- The value of the initial-bundle budget in `angular.json`: [ADR 0006](../../../adr/0006-bundle-budgets.md).
-  Browse's own code is a lazy chunk, so the initial budget does not change.
+- The value of the initial-bundle budget in `angular.json`:
+  [ADR 0014](../../../adr/0014-bundle-budgets-after-browse.md). Browse's own code is a lazy
+  chunk; the Angular runtime it uses joins the initial chunk, which grows to 309.7 kB raw.
 - Until search-and-filter (journey 3) is built, Browse shows the headline and the list without
   the search bar and the switch that its mocks draw above the list.
 
