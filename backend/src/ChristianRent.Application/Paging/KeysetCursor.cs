@@ -2,20 +2,21 @@ using System.Buffers.Text;
 using System.Globalization;
 using System.Text;
 
-namespace ChristianRent.Application.Listings;
+namespace ChristianRent.Application.Paging;
 
 /// <summary>
-/// The position after the last listing of a page: its approval time and identifier, as an
-/// opaque base64url string (ADR 0013).
+/// The position after the last row of a page in a list ordered by an instant and an identifier,
+/// as an opaque base64url string: a listing's approval time on Browse (ADR 0013), a review
+/// item's creation time in the review queue.
 /// </summary>
-public readonly record struct ListingCursor(DateTimeOffset ApprovedAt, Guid Id)
+public readonly record struct KeysetCursor(DateTimeOffset At, Guid Id)
 {
     public string Encode() =>
         Base64Url.EncodeToString(Encoding.UTF8.GetBytes(
-            $"{ApprovedAt.UtcTicks.ToString(CultureInfo.InvariantCulture)}:{Id:N}"));
+            $"{At.UtcTicks.ToString(CultureInfo.InvariantCulture)}:{Id:N}"));
 
     /// <summary>Reads a cursor this type encoded; anything else is refused.</summary>
-    public static bool TryDecode(string text, out ListingCursor cursor)
+    public static bool TryDecode(string text, out KeysetCursor cursor)
     {
         cursor = default;
         if (text.Length is 0 or > 128 || !Base64Url.IsValid(text))
@@ -32,7 +33,7 @@ public readonly record struct ListingCursor(DateTimeOffset ApprovedAt, Guid Id)
             return false;
         }
 
-        cursor = new ListingCursor(new DateTimeOffset(ticks, TimeSpan.Zero), id);
+        cursor = new KeysetCursor(new DateTimeOffset(ticks, TimeSpan.Zero), id);
         return true;
     }
 }

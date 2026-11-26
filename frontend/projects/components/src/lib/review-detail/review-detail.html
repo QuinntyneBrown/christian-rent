@@ -1,0 +1,76 @@
+@if (view(); as view) {
+  <div class="review">
+    @if (view.type === 'listing') {
+      @if (view.report; as report) {
+        <div class="review__report">
+          <p>
+            <strong>{{ report.headline }}</strong>{{ report.rest }}
+          </p>
+        </div>
+      }
+      @if (view.wanted) {
+        <div class="review__wanted" aria-hidden="true">{{ view.title }}</div>
+      } @else if (view.photos.length > 0) {
+        <img class="review__photo" [src]="view.photos[0]!.url" [alt]="view.photos[0]!.alt" />
+        @if (view.photos.length > 1) {
+          <ul class="review__photos">
+            @for (photo of view.photos.slice(1); track $index) {
+              <li><img [src]="photo.url" [alt]="photo.alt" loading="lazy" /></li>
+            }
+          </ul>
+        }
+      } @else {
+        <div class="review__no-photo" role="img" aria-label="This listing has no photo">
+          <cr-icon name="image" size="lg" />
+        </div>
+      }
+      <div class="review__head">
+        <h2 class="review__title">{{ view.title }}</h2>
+        @if (view.price; as price) {
+          <p class="review__price">{{ price }}</p>
+        }
+      </div>
+      <p>
+        <cr-tag>{{ view.tag }}</cr-tag>
+      </p>
+      @if (view.note; as note) {
+        <p class="review__note">{{ note }}</p>
+      }
+    } @else {
+      <div class="review__member">
+        <cr-avatar [initials]="view.initials" [tint]="view.tint" size="lg" />
+        <div>
+          <h2 class="review__title">{{ view.name }}</h2>
+          <p class="review__joined">{{ view.joined }}</p>
+        </div>
+      </div>
+    }
+    <dl class="review__facts">
+      @for (fact of view.facts; track fact.term) {
+        <div>
+          <dt>{{ fact.term }}</dt>
+          <dd>
+            {{ fact.value }}
+            @if (fact.verified; as subject) {
+              <cr-verified [subject]="subject" />
+            }
+          </dd>
+        </div>
+      }
+    </dl>
+    @if (view.type === 'listing' && view.siteHref; as href) {
+      <div class="decision-bar">
+        <a class="decision-bar__view" [routerLink]="href"
+          >View on site <cr-icon name="external" size="sm"
+        /></a>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="review review--loading" aria-hidden="true">
+    <div class="review__photo"><cr-skeleton shape="fill" /></div>
+    <cr-skeleton class="review__title-skeleton" shape="title" [width]="65" />
+    <cr-skeleton />
+    <cr-skeleton />
+  </div>
+}

@@ -8,6 +8,7 @@ for (const screen of SCREENS) {
     test(`${screen.name} meets WCAG 2.2 AA, ${colorScheme}`, async ({ page, api }) => {
       await page.emulateMedia({ colorScheme });
       screen.answer(api);
+      await screen.before?.(page);
       await page.goto(screen.path);
       await screen.then?.(page, api);
       const results = await new AxeBuilder({ page })

@@ -14,6 +14,10 @@ internal sealed class ChurchConfiguration : IEntityTypeConfiguration<Church>
         builder.Property(church => church.Name).HasMaxLength(Church.MaxNameLength).IsRequired();
         builder.Property(church => church.City).HasMaxLength(Church.MaxCityLength).IsRequired();
         builder.Property(church => church.IsVerified).IsRequired();
+
+        // Not a foreign key: members already point at churches, and the purge keeps a departed
+        // member's row (ADR 0024).
+        builder.Property(church => church.EnteredById);
         builder.Property(church => church.MatchKey).HasMaxLength(ChurchMatch.MaxKeyLength).IsRequired();
         builder.HasIndex(church => church.MatchKey).IsUnique();
     }

@@ -32,8 +32,13 @@ internal sealed class JoinCommandHandler(IAppDbContext database, ICurrentMember 
 
         var now = clock.GetUtcNow();
 
-        var church = await ChurchOfAsync(command, cancellationToken);
+        var (church, isNew) = await ChurchOfAsync(command, cancellationToken);
         var member = Member.Join(signInId, MemberText.Clean(command.Name), church.Id, now);
+        if (isNew)
+        {
+            church.RecordEnteredBy(member.Id);
+        }
+
         database.Members.Add(member);
         database.ReviewItems.Add(ReviewItem.ForNewMember(member.Id, now));
         await database.SaveChangesAsync(cancellationToken);
@@ -41,12 +46,13 @@ internal sealed class JoinCommandHandler(IAppDbContext database, ICurrentMember 
     }
 
     /// <summary>The chosen church, or the new one: an existing church when its key matches (ADR 0018).</summary>
-    private async Task<Church> ChurchOfAsync(JoinCommand command, CancellationToken cancellationToken)
+    private async Task<(Church Church, bool IsNew)> ChurchOfAsync(JoinCommand command, CancellationToken cancellationToken)
     {
         if (command.ChurchId is { } id)
         {
-            return await database.Churches.FirstOrDefaultAsync(church => church.Id == id, cancellationToken)
+            var chosen = await database.Churches.FirstOrDefaultAsync(church => church.Id == id, cancellationToken)
                 ?? throw new ValidationException([new ValidationFailure(nameof(JoinCommand.ChurchId), JoinCommandValidator.ChurchMessage)]);
+            return (chosen, false);
         }
 
         var name = MemberText.Clean(command.NewChurchName);
@@ -55,12 +61,12 @@ internal sealed class JoinCommandHandler(IAppDbContext database, ICurrentMember 
         var existing = await database.Churches.FirstOrDefaultAsync(church => church.MatchKey == key, cancellationToken);
         if (existing is not null)
         {
-            return existing;
+            return (existing, false);
         }
 
         var entered = Church.Enter(name, city);
         database.Churches.Add(entered);
-        return entered;
+        return (entered, true);
     }
 
     internal static MemberDto ToDto(Member member, string churchName) =>

@@ -33,6 +33,9 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
                         .HasMaxLength(80)
                         .HasColumnType("character varying(80)");
 
+                    b.Property<Guid?>("EnteredById")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("IsVerified")
                         .HasColumnType("boolean");
 

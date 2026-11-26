@@ -1,4 +1,5 @@
 using ChristianRent.Application.Abstractions;
+using ChristianRent.Application.Paging;
 using ChristianRent.Domain.Listings;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -39,11 +40,11 @@ internal sealed class BrowseListingsQueryHandler(IAppDbContext database) : IRequ
             join church in database.Churches on member.ChurchId equals church.Id
             select new { listing, member.Name, ChurchName = church.Name };
 
-        if (query.Cursor is not null && ListingCursor.TryDecode(query.Cursor, out var cursor))
+        if (query.Cursor is not null && KeysetCursor.TryDecode(query.Cursor, out var cursor))
         {
             cards = cards.Where(card =>
-                card.listing.ApprovedAt < cursor.ApprovedAt ||
-                (card.listing.ApprovedAt == cursor.ApprovedAt && card.listing.Id.CompareTo(cursor.Id) < 0));
+                card.listing.ApprovedAt < cursor.At ||
+                (card.listing.ApprovedAt == cursor.At && card.listing.Id.CompareTo(cursor.Id) < 0));
         }
 
         var rows = await cards
@@ -74,7 +75,7 @@ internal sealed class BrowseListingsQueryHandler(IAppDbContext database) : IRequ
 
         var page = rows.Take(query.Size).ToList();
         var nextCursor = rows.Count > query.Size
-            ? new ListingCursor(page[^1].ApprovedAt!.Value, page[^1].Id).Encode()
+            ? new KeysetCursor(page[^1].ApprovedAt!.Value, page[^1].Id).Encode()
             : null;
 
         var (width, height) = PhotoRenditions.Sizes[PhotoRenditions.Card];

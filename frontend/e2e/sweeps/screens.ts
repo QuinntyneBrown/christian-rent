@@ -15,6 +15,18 @@ import { answerSending, refuseSendingAtLimit, sendPath } from '../fixtures/messa
 import { answerUploads, photoFile } from '../fixtures/photos';
 import { POSTED_ID, answerPosting } from '../fixtures/post';
 import { answerReporting, refuseAsAlreadyReported, reportPath } from '../fixtures/reports';
+import {
+  GARDEN_ROW,
+  LOCKER_ROW,
+  MEMBER_ROW,
+  REPORT_ROW,
+  REVIEW_NOW,
+  type ReviewRowFixture,
+  answerAdmin,
+  manyRows,
+  queuePage,
+} from '../fixtures/review';
+import { AdminPage } from '../pages/admin.page';
 import { ListingPage } from '../pages/listing.page';
 import { PostPage } from '../pages/post.page';
 import { ReportDialogPart } from '../pages/report-dialog.part';
@@ -24,6 +36,8 @@ export interface Screen {
   readonly name: string;
   readonly path: string;
   readonly answer: (api: ApiFixtures) => void;
+  /** What is set up before the screen is opened, such as the date it reads. */
+  readonly before?: (page: Page) => Promise<void>;
   /** What a person does before the screen is looked at; `api` can change an answer midway. */
   readonly then?: (page: Page, api: ApiFixtures) => Promise<void>;
 }
@@ -69,6 +83,78 @@ async function writeMessage(page: Page, send: boolean, invalid = false): Promise
     await box.submit.click();
   }
 }
+
+/** The review mocks' today, which their waiting times are counted from. */
+const onReviewDay = (page: Page) => page.clock.setFixedTime(REVIEW_NOW);
+
+/** Admin as `answerAdmin` leaves it. */
+const asItIs = (): void => undefined;
+
+/** Selects a queue item where its detail is shown; a phone has the queue alone. */
+async function selectItem(page: Page, row: ReviewRowFixture): Promise<void> {
+  const admin = new AdminPage(page);
+  await admin.rows.first().waitFor();
+  if ((page.viewportSize()?.width ?? 0) >= 768) {
+    await admin.select(row.title);
+    await admin.detail.getByRole('heading', { level: 2, name: row.title }).waitFor();
+  }
+}
+
+/** Admin in the state of one of its mocks, as the review mocks' admin sees it. */
+function adminScreen(
+  name: string,
+  answer: (api: ApiFixtures) => void,
+  then: (page: Page) => Promise<unknown>,
+): Screen {
+  return {
+    name,
+    path: '/admin',
+    answer: (api) => {
+      answerAdmin(api);
+      answer(api);
+    },
+    before: onReviewDay,
+    then: async (page) => {
+      await then(page);
+    },
+  };
+}
+
+const ADMIN_SCREENS: readonly Screen[] = [
+  adminScreen('admin', asItIs, (page) => selectItem(page, GARDEN_ROW)),
+  adminScreen('admin-report', asItIs, (page) => selectItem(page, REPORT_ROW)),
+  adminScreen('admin-new-member', asItIs, (page) => selectItem(page, MEMBER_ROW)),
+  adminScreen('admin-wanted', asItIs, (page) => selectItem(page, LOCKER_ROW)),
+  adminScreen(
+    'admin-long',
+    (api) =>
+      api.answer('GET', '/api/review-queue', {
+        body: queuePage(manyRows(50), 'next', 63),
+      }),
+    (page) => new AdminPage(page).moreButton.waitFor(),
+  ),
+  adminScreen(
+    'admin-loading',
+    (api) => void api.hold('GET', '/api/review-queue'),
+    (page) => new AdminPage(page).skeletonRows.first().waitFor(),
+  ),
+  adminScreen(
+    'admin-error',
+    (api) => api.refuse('GET', '/api/review-queue', 500, 'server_error'),
+    (page) => new AdminPage(page).queueTryAgain.waitFor(),
+  ),
+  adminScreen(
+    'admin-empty',
+    (api) => api.answer('GET', '/api/review-queue', { body: queuePage([]) }),
+    (page) => new AdminPage(page).queueMessageTitle.waitFor(),
+  ),
+  {
+    name: 'admin-forbidden',
+    path: '/admin',
+    answer: (api) => answerMember(api),
+    then: (page) => page.getByRole('heading', { name: 'This page is for admins' }).waitFor(),
+  },
+];
 
 /** The screens every sweep visits, in the states of their mocks. Each journey adds its own. */
 export const SCREENS: readonly Screen[] = [
@@ -608,6 +694,7 @@ export const SCREENS: readonly Screen[] = [
     answer: (api) => answerJoining(api),
     then: (page) => page.getByRole('dialog').waitFor(),
   },
+  ...ADMIN_SCREENS,
 ];
 
 /** Opens the join dialog from the host page and waits for its churches. */

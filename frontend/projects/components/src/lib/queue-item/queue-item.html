@@ -1,0 +1,57 @@
+<ng-template #content>
+  @if (item(); as item) {
+    @switch (item.thumb.type) {
+      @case ('photo') {
+        <img
+          class="queue-item__thumb"
+          [src]="$any(item.thumb).url"
+          alt=""
+          width="48"
+          height="48"
+          loading="lazy"
+        />
+      }
+      @case ('wanted') {
+        <span class="queue-item__thumb queue-item__thumb--wanted" aria-hidden="true">Want</span>
+      }
+      @case ('no-photo') {
+        <span class="queue-item__thumb queue-item__thumb--member" aria-hidden="true"
+          ><cr-icon name="image"
+        /></span>
+      }
+      @case ('member') {
+        <span class="queue-item__thumb queue-item__thumb--member" aria-hidden="true">{{
+          $any(item.thumb).initials
+        }}</span>
+      }
+    }
+    <span class="queue-item__body">
+      <span class="queue-item__title">{{ item.title }}</span>
+      <span class="queue-item__meta">{{ item.meta }}</span>
+    </span>
+    <cr-tag [variant]="tags[item.kind]">{{ item.kindLabel }}</cr-tag>
+  }
+</ng-template>
+
+@if (item(); as item) {
+  @if (selectable()) {
+    <button
+      class="queue-item"
+      type="button"
+      [attr.aria-current]="current() ? 'true' : 'false'"
+      (click)="chosen.emit(item.id)"
+    >
+      <ng-container *ngTemplateOutlet="content" />
+    </button>
+  } @else {
+    <div class="queue-item"><ng-container *ngTemplateOutlet="content" /></div>
+  }
+} @else {
+  <div class="queue-item queue-item--loading" aria-hidden="true">
+    <span class="queue-item__thumb"><cr-skeleton shape="fill" /></span>
+    <span class="queue-item__body">
+      <cr-skeleton [width]="70" />
+      <cr-skeleton [width]="45" />
+    </span>
+  </div>
+}
