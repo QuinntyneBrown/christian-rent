@@ -9,18 +9,37 @@
           : null
       "
     />
-    <cr-queue-list>
-      @for (item of store.items(); track item.id) {
-        <li>
-          <cr-queue-item
-            [item]="item"
-            [selectable]="wide()"
-            [current]="store.selectedId() === item.id"
-            (chosen)="store.select($event)"
+    @if (store.state() === 'loaded') {
+      <div #above class="review-page__spacer review-page__spacer--before" aria-hidden="true"></div>
+      <div #top class="review-page__sentinel" aria-hidden="true"></div>
+      <cr-queue-list>
+        @for (page of store.pages(); track page.index) {
+          @for (item of page.items; track item.id) {
+            <li [attr.data-page]="page.index">
+              <cr-queue-item
+                [item]="item"
+                [selectable]="wide()"
+                [current]="store.selectedId() === item.id"
+                (chosen)="store.select($event)"
+              />
+            </li>
+          }
+        }
+      </cr-queue-list>
+      <div #bottom class="review-page__sentinel" aria-hidden="true"></div>
+      <div #below class="review-page__spacer review-page__spacer--after" aria-hidden="true"></div>
+      @if (store.moreState(); as more) {
+        @if (more !== 'done') {
+          <cr-queue-more
+            [state]="more"
+            [shown]="store.held()"
+            [total]="store.waitingCount()"
+            [next]="store.nextCount()"
+            (more)="loadMore()"
           />
-        </li>
+        }
       }
-    </cr-queue-list>
+    }
   </ng-container>
   <ng-container slot="detail">
     @if (store.detail(); as detail) {

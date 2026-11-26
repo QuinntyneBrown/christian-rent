@@ -21,6 +21,13 @@ export class AdminPage {
   readonly rowButtons: Locator;
   readonly currentRow: Locator;
 
+  /** What follows the last row while more items wait. */
+  readonly more: Locator;
+  readonly moreText: Locator;
+  readonly moreStatus: Locator;
+  readonly moreAlert: Locator;
+  readonly moreButton: Locator;
+
   readonly detail: Locator;
   readonly detailTitle: Locator;
   readonly detailPrice: Locator;
@@ -35,6 +42,7 @@ export class AdminPage {
   readonly detailControls: Locator;
   readonly viewOnSite: Locator;
   private readonly facts: Locator;
+  private readonly queue: Locator;
 
   constructor(private readonly page: Page) {
     const main = page.locator('main#main');
@@ -56,6 +64,13 @@ export class AdminPage {
     this.rowThumbs = queue.locator('.queue-item__thumb');
     this.rowButtons = queue.locator('button.queue-item');
     this.currentRow = queue.locator('.queue-item[aria-current="true"]');
+
+    this.more = queue.locator('.queue__more');
+    this.moreText = this.more.locator('p');
+    this.moreStatus = this.more.getByRole('status');
+    this.moreAlert = this.more.getByRole('alert');
+    this.moreButton = this.more.getByRole('button');
+    this.queue = queue;
 
     this.detail = page.getByRole('region', { name: 'Detail' });
     this.detailTitle = this.detail.getByRole('heading', { level: 2 });
@@ -84,6 +99,15 @@ export class AdminPage {
 
   async select(title: string): Promise<void> {
     await this.row(title).click();
+  }
+
+  /** Scrolls the queue, which from tablet width scrolls on its own, to its end. */
+  async scrollToEnd(): Promise<void> {
+    await this.queue.evaluate((element) => element.scrollTo(0, element.scrollHeight));
+  }
+
+  async scrollToStart(): Promise<void> {
+    await this.queue.evaluate((element) => element.scrollTo(0, 0));
   }
 
   /** The detail's facts as "term: value", in order. */

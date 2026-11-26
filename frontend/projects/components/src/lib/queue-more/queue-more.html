@@ -1,0 +1,12 @@
+<div class="queue__more">
+  @if (state() === 'failed') {
+    <p role="alert">We couldn’t load more of the queue.</p>
+  } @else if (state() === 'loading') {
+    <p role="status">Loading more of the queue…</p>
+  } @else {
+    <p>Showing {{ shown() }} of {{ total() }}</p>
+  }
+  <button cr-button size="sm" type="button" [busy]="state() === 'loading'" (click)="more.emit()">
+    {{ state() === 'failed' ? 'Try again' : 'Load ' + next() + ' more' }}
+  </button>
+</div>

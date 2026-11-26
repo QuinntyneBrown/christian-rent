@@ -5,7 +5,7 @@ import {
   type ReviewItemSummary,
   type ReviewQueuePage,
 } from '@rent/api';
-import { ReviewQueueStore, SKELETON_DELAY_MS } from './review-queue-store';
+import { PAGE_SIZE, ReviewQueueStore, SKELETON_DELAY_MS, WINDOW_PAGES } from './review-queue-store';
 
 /** A request the test answers, with the signal it was given. */
 interface Asked<T> {
@@ -211,6 +211,103 @@ describe('ReviewQueueStore', () => {
 
     await fake.items[0]!.answer(detail('a'));
     expect(store.detailSkeleton()).toBe(false);
+  });
+
+  /** The ids of page `index` of a queue of `total` items. */
+  const idsOf = (index: number, total: number) =>
+    Array.from(
+      { length: Math.min(PAGE_SIZE, total - index * PAGE_SIZE) },
+      (_, position) => `${index}-${position}`,
+    );
+  const cursorTo = (index: number, total: number) =>
+    index * PAGE_SIZE < total ? `c${index}` : null;
+
+  async function answerPage(index: number, total: number): Promise<void> {
+    await fake.pages.at(-1)!.answer(page(idsOf(index, total), cursorTo(index + 1, total), total));
+  }
+
+  async function loadedQueueOf(total: number): Promise<void> {
+    void store.load();
+    await answerPage(0, total);
+  }
+
+  it('asks for the next page by its cursor, once, and nothing after the last', async () => {
+    await loadedQueueOf(63);
+    expect(store.nextCount()).toBe(13);
+    expect(store.moreState()).toBe('idle');
+
+    void store.loadMore('down', () => 0);
+    void store.loadMore('down', () => 0);
+    expect(store.moreState()).toBe('loading');
+    await answerPage(1, 63);
+
+    expect(fake.pages.map((asked) => asked.about)).toEqual([null, 'c1']);
+    expect(store.held()).toBe(63);
+    expect(store.moreState()).toBe('done');
+    await store.loadMore('down', () => 0);
+    expect(fake.pages).toHaveLength(2);
+  });
+
+  it('keeps the items shown when the next page fails, and asks for it again', async () => {
+    await loadedQueueOf(63);
+
+    void store.loadMore('down', () => 0);
+    await fake.pages.at(-1)!.refuse('server_error');
+
+    expect(store.moreState()).toBe('failed');
+    expect(store.state()).toBe('loaded');
+    expect(store.held()).toBe(50);
+    void store.loadMore('down', () => 0);
+    await answerPage(1, 63);
+    expect(store.held()).toBe(63);
+  });
+
+  it('keeps at most three pages, and asks for a released one again by its cursor', async () => {
+    const total = 5 * PAGE_SIZE;
+    await loadedQueueOf(total);
+
+    for (let index = 1; index < 5; index++) {
+      void store.loadMore('down', () => 100);
+      await answerPage(index, total);
+      expect(store.held()).toBeLessThanOrEqual(WINDOW_PAGES * PAGE_SIZE);
+    }
+
+    expect(store.pages().map((held) => held.index)).toEqual([2, 3, 4]);
+    expect(store.before()).toBe(200);
+    expect(store.after()).toBe(0);
+    expect(store.hasBefore()).toBe(true);
+
+    void store.loadMore('up', () => 100);
+    expect(fake.pages.at(-1)!.about).toBe('c1');
+    await answerPage(1, total);
+
+    expect(store.pages().map((held) => held.index)).toEqual([1, 2, 3]);
+    expect(store.held()).toBe(WINDOW_PAGES * PAGE_SIZE);
+    expect(store.after()).toBe(100);
+    expect(store.moreState()).toBe('idle');
+    expect(store.nextCount()).toBe(PAGE_SIZE);
+  });
+
+  it('keeps the selection when its row is released', async () => {
+    store.showDetail(true);
+    await loadedQueueOf(4 * PAGE_SIZE);
+
+    for (let index = 1; index < 4; index++) {
+      void store.loadMore('down', () => 0);
+      await answerPage(index, 4 * PAGE_SIZE);
+    }
+
+    expect(store.selectedId()).toBe('0-0');
+    expect(fake.items).toHaveLength(1);
+  });
+
+  it('takes how many wait from the newest page', async () => {
+    await loadedQueueOf(63);
+
+    void store.loadMore('down', () => 0);
+    await fake.pages.at(-1)!.answer(page(idsOf(1, 63), null, 70));
+
+    expect(store.waitingCount()).toBe(70);
   });
 
   it('aborts what it was loading and clears its timers when the admin leaves', async () => {

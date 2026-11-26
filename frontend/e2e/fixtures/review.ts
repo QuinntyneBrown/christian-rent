@@ -191,6 +191,16 @@ export function detailOf(row: ReviewRowFixture, part: object): object {
   };
 }
 
+/** `count` waiting wanted listings, oldest first, each with a title of its own. */
+export function manyRows(count: number): ReviewRowFixture[] {
+  return Array.from({ length: count }, (_, index) => ({
+    ...LOCKER_ROW,
+    id: itemId(100 + index),
+    title: `Waiting listing ${index + 1}`,
+    waitingSince: minutesAgo(count - index),
+  }));
+}
+
 /** One page of the queue, as the API answers it. */
 export function queuePage(
   items: ReviewRowFixture[],

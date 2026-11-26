@@ -1,6 +1,18 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
-import { REVIEW_QUEUE_API, type QueueItemView, type ReviewDetailView, isApiError } from '@rent/api';
-import { toQueueItemView, toReviewDetailView } from '@rent/domain';
+import {
+  REVIEW_QUEUE_API,
+  type QueueItemView,
+  type ReviewDetailView,
+  type ReviewQueuePage,
+  isApiError,
+} from '@rent/api';
+import {
+  ListingWindow,
+  type PageRequest,
+  type WindowPage,
+  toQueueItemView,
+  toReviewDetailView,
+} from '@rent/domain';
 
 /** Where the queue is (L2-019, criteria 1 and 3). */
 export type ReviewState = 'loading' | 'loaded' | 'empty' | 'failed';
@@ -8,12 +20,25 @@ export type ReviewState = 'loading' | 'loaded' | 'empty' | 'failed';
 /** Where the selected item's detail is: nothing selected, awaited, shown, failed or gone. */
 export type DetailState = 'none' | 'loading' | 'loaded' | 'failed' | 'gone';
 
+/** Where the next page is (L2-019, criteria 4 and 20): none asked, in flight, failed, or none left. */
+export type MoreState = 'idle' | 'loading' | 'failed' | 'done';
+
 /** A wait shorter than this shows no loading state (L2-033, criterion 5). */
 export const SKELETON_DELAY_MS = 300;
 
+/** The pages kept in memory, 50 items each (L2-019, criterion 19). */
+export const WINDOW_PAGES = 3;
+
+/** The items a page holds, as the API gives them. */
+export const PAGE_SIZE = 50;
+
+/** Gives the height of a held page as the screen draws it, just before it is released. */
+export type MeasurePage = (index: number) => number;
+
 /**
  * The state of Admin's review queue, provided by Admin's route and gone when the admin leaves it
- * (view-review-queue design). It holds the waiting items and which one is selected, and loads
+ * (view-review-queue design). The waiting items live in a `ListingWindow` of three pages, so
+ * memory stays bounded however far the queue goes. It holds which item is selected, and loads
  * that item's detail; selecting another aborts the detail still on its way. Nothing is selected,
  * and no detail asked for, while the screen shows no detail panel (L2-019, criterion 13).
  * Destroying it aborts both requests and clears its timers.
@@ -21,10 +46,14 @@ export const SKELETON_DELAY_MS = 300;
 @Injectable()
 export class ReviewQueueStore {
   private readonly api = inject(REVIEW_QUEUE_API);
+  private readonly window = new ListingWindow<QueueItemView>(WINDOW_PAGES);
 
   private readonly _state = signal<ReviewState>('loading');
   private readonly _skeleton = signal(false);
-  private readonly _items = signal<readonly QueueItemView[]>([]);
+  private readonly _pages = signal<readonly WindowPage<QueueItemView>[]>([]);
+  private readonly _before = signal(0);
+  private readonly _after = signal(0);
+  private readonly _moreState = signal<MoreState>('idle');
   private readonly _waitingCount = signal(0);
   private readonly _selectedId = signal<string | null>(null);
   private readonly _detailState = signal<DetailState>('none');
@@ -41,9 +70,23 @@ export class ReviewQueueStore {
   readonly state = this._state.asReadonly();
   /** True once the queue has been awaited for 300 ms. */
   readonly skeleton = this._skeleton.asReadonly();
-  readonly items = this._items.asReadonly();
+  /** The pages held, each with its place in the queue. */
+  readonly pages = this._pages.asReadonly();
+  readonly items = computed(() => this._pages().flatMap((page) => page.items));
+  /** The heights released above and below the pages held, which spacers reserve. */
+  readonly before = this._before.asReadonly();
+  readonly after = this._after.asReadonly();
+  /** True while a page released above the window can be asked for again. */
+  readonly hasBefore = computed(() => this._before() > 0);
+  readonly moreState = this._moreState.asReadonly();
   readonly waitingCount = this._waitingCount.asReadonly();
-  readonly held = computed(() => this._items().length);
+  readonly held = computed(() => this.items().length);
+  /** How many items the next page down is expected to hold: "Load 13 more". */
+  readonly nextCount = computed(() => {
+    const last = this._pages().at(-1);
+    const upTo = last ? last.index * PAGE_SIZE + last.items.length : 0;
+    return Math.max(1, Math.min(PAGE_SIZE, this._waitingCount() - upTo));
+  });
   readonly selectedId = this._selectedId.asReadonly();
   readonly detailState = this._detailState.asReadonly();
   readonly detail = this._detail.asReadonly();
@@ -65,16 +108,16 @@ export class ReviewQueueStore {
     this.request = request;
     this.clearSelection();
     this._state.set('loading');
-    this._items.set([]);
+    this.window.clear();
+    this.publish();
     this._waitingCount.set(0);
     this._skeleton.set(false);
     this.stopSkeletonTimer();
     this.skeletonTimer = setTimeout(() => this._skeleton.set(true), SKELETON_DELAY_MS);
     try {
-      const page = await this.api.page(null, request.signal);
-      const now = new Date();
-      this._items.set(page.items.map((item) => toQueueItemView(item, now)));
-      this._waitingCount.set(page.waitingCount);
+      const first = this.window.nextRequest('down')!;
+      const page = await this.api.page(first.cursor, request.signal);
+      this.receive(first, page, () => 0);
       this._state.set(page.items.length > 0 ? 'loaded' : 'empty');
       this.selectFirst();
     } catch (error) {
@@ -84,6 +127,40 @@ export class ReviewQueueStore {
         this.request = null;
         this.stopSkeletonTimer();
         this._skeleton.set(false);
+      }
+    }
+  }
+
+  /**
+   * Loads the page that follows the window below, or the released page above it. One request
+   * is in flight at a time; nothing is asked after the last page. A failure below keeps the
+   * items shown and offers "Try again" (L2-019, criterion 20); one above is asked again when
+   * the admin next reaches it.
+   */
+  async loadMore(direction: 'up' | 'down', measure: MeasurePage): Promise<void> {
+    if (this._state() !== 'loaded' || this.request !== null) {
+      return;
+    }
+    const next = this.window.nextRequest(direction);
+    if (next === null) {
+      return;
+    }
+    const request = new AbortController();
+    this.request = request;
+    if (direction === 'down') {
+      this._moreState.set('loading');
+    }
+    try {
+      this.receive(next, await this.api.page(next.cursor, request.signal), measure);
+    } catch (error) {
+      this.fail(error, request, () => {
+        if (direction === 'down') {
+          this._moreState.set('failed');
+        }
+      });
+    } finally {
+      if (this.request === request) {
+        this.request = null;
       }
     }
   }
@@ -111,8 +188,28 @@ export class ReviewQueueStore {
     void this.loadDetail(id);
   }
 
+  /** Takes a page into the window, with each row written as of now. */
+  private receive(request: PageRequest, page: ReviewQueuePage, measure: MeasurePage): void {
+    const now = new Date();
+    this.window.receive(
+      request,
+      page.items.map((item) => toQueueItemView(item, now)),
+      page.nextCursor,
+      measure,
+    );
+    this._waitingCount.set(page.waitingCount);
+    this.publish();
+  }
+
+  private publish(): void {
+    this._pages.set(this.window.pages);
+    this._before.set(this.window.before);
+    this._after.set(this.window.after);
+    this._moreState.set(this.window.atEnd ? 'done' : 'idle');
+  }
+
   private selectFirst(): void {
-    const first = this._items()[0];
+    const first = this.items()[0];
     if (first && this._selectedId() === null) {
       this.select(first.id);
     }
