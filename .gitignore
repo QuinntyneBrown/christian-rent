@@ -1,0 +1,23 @@
+# Generated caches
+.cache/
+
+# Python caches (skill scripts)
+__pycache__/
+
+# Node
+node_modules/
+
+# macOS
+.DS_Store
+
+# Video build intermediates (the creating-videos skill)
+docs/videos/**/narration.wav
+docs/videos/**/*.partial.mp4
+
+# .NET build output
+backend/**/bin/
+backend/**/obj/
+backend/**/TestResults/
+
+# Worktrees of parallel Claude Code sessions
+.claude/worktrees/
