@@ -8,9 +8,8 @@
         [iconOnly]="true"
         routerLink="/"
         aria-label="Close and go back to Browse"
-        ><svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
-          <path d="M6 6l12 12M18 6 6 18" /></svg
-      ></a>
+        ><cr-icon name="x"
+      /></a>
     } @else {
       <div class="site-header__actions">
         @if (member(); as member) {
@@ -18,11 +17,7 @@
             member.initials
           }}</span>
         }
-        <a cr-button variant="primary" size="sm" routerLink="/post"
-          ><svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
-            <path d="M12 5v14M5 12h14" /></svg
-          >Post</a
-        >
+        <a cr-button variant="primary" size="sm" routerLink="/post"><cr-icon name="plus" />Post</a>
       </div>
     }
   </div>

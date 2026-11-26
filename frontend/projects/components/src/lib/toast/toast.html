@@ -4,23 +4,9 @@
   [class.toast--success]="tone() === 'success'"
   [class.toast--warning]="tone() === 'warning'"
   [class.toast--danger]="tone() === 'danger'"
-  [attr.role]="tone() === 'danger' || tone() === 'warning' ? 'alert' : 'status'"
+  [attr.role]="role()"
 >
-  <svg class="icon toast__icon" aria-hidden="true" viewBox="0 0 24 24">
-    @switch (tone()) {
-      @case ('success') {
-        <path d="m5 12 5 5L20 7" />
-      }
-      @case ('info') {
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 11v5M12 8v.5" />
-      }
-      @default {
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 8v5M12 16v.5" />
-      }
-    }
-  </svg>
+  <cr-icon class="toast__icon" [name]="icon()" />
   <div class="toast__body">
     <div class="toast__title">{{ title() }}</div>
     @if (text()) {
@@ -31,8 +17,6 @@
     }
   </div>
   <button class="toast__close" type="button" aria-label="Dismiss" (click)="dismissed.emit()">
-    <svg class="icon toast__close-icon" aria-hidden="true" viewBox="0 0 24 24">
-      <path d="M6 6l12 12M18 6 6 18" />
-    </svg>
+    <cr-icon name="x" size="sm" />
   </button>
 </div>

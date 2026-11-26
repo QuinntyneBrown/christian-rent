@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { MemberSummary } from '@rent/api';
 import { Button } from '../button/button';
+import { Icon } from '../icon/icon';
 import { Logo } from '../logo/logo';
 
 /**
@@ -11,7 +12,7 @@ import { Logo } from '../logo/logo';
  */
 @Component({
   selector: 'cr-site-header',
-  imports: [Button, Logo, RouterLink],
+  imports: [Button, Icon, Logo, RouterLink],
   templateUrl: './site-header.html',
   styleUrl: './site-header.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
