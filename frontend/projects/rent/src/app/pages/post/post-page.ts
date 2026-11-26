@@ -29,7 +29,14 @@ import {
   Textarea,
   type WordOption,
 } from '@rent/components';
-import { DRAFT_LIMITS, type DraftField, formatRetryAt, summaryTitle } from '@rent/domain';
+import {
+  DRAFT_LIMITS,
+  type DraftField,
+  formatRetryAt,
+  photoProblemText,
+  summaryTitle,
+} from '@rent/domain';
+import { PhotoUploads } from './photo-uploads';
 import { PostStore } from './post-store';
 
 /** The id of each field's input, which the summary's links move focus to. */
@@ -76,7 +83,7 @@ const PERIODS: readonly WordOption[] = [
     SiteHeader,
     Textarea,
   ],
-  providers: [PostStore],
+  providers: [PostStore, PhotoUploads],
   templateUrl: './post-page.html',
   styleUrl: './post-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -88,6 +95,7 @@ export class PostPage {
   readonly title = input<string>();
 
   protected readonly store = inject(PostStore);
+  protected readonly uploads = inject(PhotoUploads);
   protected readonly periods = PERIODS;
   protected readonly limits = DRAFT_LIMITS;
   protected readonly fieldIds = FIELD_IDS;
@@ -97,6 +105,12 @@ export class PostPage {
   protected readonly limitText = computed(() => {
     const when = formatRetryAt(this.store.retryAt(), new Date());
     return `You can post again ${when}${when.endsWith('.') ? '' : '.'} Everything you entered is still here.`;
+  });
+
+  /** What the photos field says about the last file that was not added (ADR 0021). */
+  protected readonly photoProblem = computed(() => {
+    const problem = this.uploads.problem();
+    return problem ? photoProblemText(problem) : null;
   });
 
   private readonly summary = viewChild(Alert);
@@ -121,6 +135,8 @@ export class PostPage {
       afterNextRender(() => this.summary()?.focus(), { injector: this.injector });
       return;
     }
+    // The photos that are in are posted; any still on their way is cancelled (ADR 0021).
+    this.uploads.cancelAll();
     await this.store.publish();
     if (this.store.submitState() === 'sent') {
       afterNextRender(() => this.confirmation()?.focus(), { injector: this.injector });

@@ -30,7 +30,12 @@ class MemoryStorage implements Storage {
 
 // compose-listing design (DraftStore); ADR 0019; L2-012 criterion 11.
 describe('DraftStore', () => {
-  const draft = { ...newDraft('id-1', 'wanted'), title: '<b>Van</b>', whenMode: 'dates' as const };
+  const draft = {
+    ...newDraft('id-1', 'wanted'),
+    title: '<b>Van</b>',
+    whenMode: 'dates' as const,
+    photos: [{ id: 'p1', thumbUrl: '/api/photos/p1/thumb', cardUrl: '/api/photos/p1/card' }],
+  };
 
   it('keeps a draft under cr.post.draft and gives it back', () => {
     const storage = new MemoryStorage();
@@ -62,7 +67,28 @@ describe('DraftStore', () => {
     ['an unknown period', JSON.stringify({ ...draft, pricePeriod: 'night' })],
     ['an unknown way of giving "when"', JSON.stringify({ ...draft, whenMode: 'later' })],
     ['a field that is not text', JSON.stringify({ ...draft, title: 42 })],
-    ['photos that are not text', JSON.stringify({ ...draft, photoIds: [1] })],
+    ['photos that are not a list', JSON.stringify({ ...draft, photos: 'p1' })],
+    [
+      'a photo with no identifier',
+      JSON.stringify({
+        ...draft,
+        photos: [{ thumbUrl: '/api/photos/p/thumb', cardUrl: '/api/photos/p/card' }],
+      }),
+    ],
+    [
+      'a photo from elsewhere',
+      JSON.stringify({
+        ...draft,
+        photos: [{ id: 'p', thumbUrl: 'https://x.test/p.jpg', cardUrl: '/api/photos/p/card' }],
+      }),
+    ],
+    [
+      'a photo address that is not text',
+      JSON.stringify({
+        ...draft,
+        photos: [{ id: 'p', thumbUrl: 1, cardUrl: '/api/photos/p/card' }],
+      }),
+    ],
     ['no client request', JSON.stringify({ ...draft, clientRequestId: '' })],
   ])('ignores %s', (_, stored) => {
     const storage = new MemoryStorage();

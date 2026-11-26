@@ -14,6 +14,76 @@
   margin: 0;
 }
 
+.photo-picker__item {
+  position: relative;
+  width: 8rem;
+  height: 6rem;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-bg-surface-sunken);
+}
+
+.photo-picker__item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-picker__item--uploading img {
+  opacity: 0.4;
+}
+
+.photo-picker__status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.photo-picker__first {
+  position: absolute;
+  left: var(--space-2);
+  bottom: var(--space-2);
+}
+
+.photo-picker__remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--target-min);
+  height: var(--target-min);
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  color: var(--palette-white);
+  cursor: pointer;
+}
+
+.photo-picker__remove::before {
+  content: '';
+  position: absolute;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-backdrop);
+}
+
+.photo-picker__remove cr-icon {
+  position: relative;
+}
+
+.photo-picker__remove:focus-visible,
+.photo-picker__add:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.photo-picker__remove:disabled {
+  cursor: not-allowed;
+}
+
 .photo-picker__add {
   width: 8rem;
   height: 6rem;
@@ -35,12 +105,12 @@
   color: var(--color-fg-default);
 }
 
-.photo-picker__add:focus-visible {
-  outline: var(--focus-ring-width) solid var(--color-focus-ring);
-  outline-offset: var(--focus-ring-offset);
-}
-
 .photo-picker__add:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+// The native file input is opened by the Add tile and never shown or focused itself.
+.photo-picker__file {
+  display: none;
 }

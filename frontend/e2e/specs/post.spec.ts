@@ -35,7 +35,7 @@ test.describe('Post: what is being posted', () => {
     ]);
     await expect(post.pricePrefix).toHaveText('$');
     await expect(post.photos).toBeVisible();
-    await expect(post.addPhoto).toBeDisabled();
+    await expect(post.addPhoto).toBeEnabled();
     await expect(post.submit).toHaveText('Publish listing');
     await expect(post.fine).toHaveText(
       'Prices are in CAD. An admin reviews every post before it appears on Browse.',
