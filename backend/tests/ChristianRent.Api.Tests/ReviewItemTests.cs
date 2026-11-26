@@ -29,7 +29,6 @@ public sealed class ReviewItemTests : IDisposable
     // L2-019 criteria 2, 7 and 15: a new listing's detail shows all its fields, every photo in
     // the member's order, who posted it with both verified marks, since when, and when.
     [Fact]
-    [Trait("Category", "Critical")]
     public async Task A_new_listing_is_shown_with_everything_needed_to_decide()
     {
         var first = Guid.NewGuid();

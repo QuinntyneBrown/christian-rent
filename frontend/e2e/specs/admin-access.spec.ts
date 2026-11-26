@@ -12,7 +12,7 @@ const ADMIN_CODE = 'cr-review-page';
 
 test.describe('Admin is for admins', () => {
   // L2-018 criterion 3; L2-019 criterion 5.
-  test('refuses a member who is not an admin, asks for no queue and sends them no Admin code @critical', async ({
+  test('refuses a member who is not an admin, asks for no queue and sends them no Admin code', async ({
     page,
     api,
   }) => {

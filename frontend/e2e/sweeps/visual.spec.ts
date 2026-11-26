@@ -13,6 +13,7 @@ for (const screen of SCREENS) {
         await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
         await page.setViewportSize({ width, height: 800 });
         screen.answer(api);
+        await screen.before?.(page);
         await page.goto(screen.path);
         await screen.then?.(page, api);
         await expect(page).toHaveScreenshot(`${screen.name}-${colorScheme}-${width}.png`, {
