@@ -1,25 +1,35 @@
-<a
-  class="queue-item"
-  routerLink="/admin"
-  [queryParams]="{ item: item().id }"
-  [attr.aria-current]="current() ? 'true' : 'false'"
->
-  @if (photo(); as url) {
-    <img class="queue-item__thumb" [src]="url" alt="" width="48" height="48" loading="lazy" />
-  } @else if (initials(); as initials) {
-    <span class="queue-item__thumb queue-item__thumb--member" aria-hidden="true">{{
-      initials
-    }}</span>
-  } @else if (item().thumb.kind === 'wanted') {
-    <span class="queue-item__thumb queue-item__thumb--wanted" aria-hidden="true">Want</span>
-  } @else {
-    <span class="queue-item__thumb queue-item__thumb--member" aria-hidden="true"
-      ><cr-icon name="image"
-    /></span>
-  }
-  <span class="queue-item__body">
-    <span class="queue-item__title">{{ item().title }}</span>
-    <span class="queue-item__meta">{{ item().meta }}</span>
-  </span>
-  <cr-tag [variant]="tagVariant()">{{ item().tag }}</cr-tag>
-</a>
+@if (item(); as item) {
+  <a
+    class="queue-item"
+    routerLink="/admin"
+    [queryParams]="{ item: item.id }"
+    [attr.aria-current]="current() ? 'true' : 'false'"
+  >
+    @if (photo(); as url) {
+      <img class="queue-item__thumb" [src]="url" alt="" width="48" height="48" loading="lazy" />
+    } @else if (initials(); as initials) {
+      <span class="queue-item__thumb queue-item__thumb--member" aria-hidden="true">{{
+        initials
+      }}</span>
+    } @else if (item.thumb.kind === 'wanted') {
+      <span class="queue-item__thumb queue-item__thumb--wanted" aria-hidden="true">Want</span>
+    } @else {
+      <span class="queue-item__thumb queue-item__thumb--member" aria-hidden="true"
+        ><cr-icon name="image"
+      /></span>
+    }
+    <span class="queue-item__body">
+      <span class="queue-item__title">{{ item.title }}</span>
+      <span class="queue-item__meta">{{ item.meta }}</span>
+    </span>
+    <cr-tag [variant]="tagVariant()">{{ item.tag }}</cr-tag>
+  </a>
+} @else {
+  <div class="queue-item" aria-hidden="true">
+    <cr-skeleton class="queue-item__thumb" shape="fill" />
+    <span class="queue-item__body">
+      <cr-skeleton [width]="70" />
+      <cr-skeleton [width]="45" />
+    </span>
+  </div>
+}

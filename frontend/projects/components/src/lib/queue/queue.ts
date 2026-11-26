@@ -30,8 +30,8 @@ export class Queue {
   readonly listed = input(false);
   readonly before = input(0);
   readonly after = input(0);
-  /** The next page: none asked, in flight, or failed. */
-  readonly more = input<'idle' | 'loading' | 'failed'>('idle');
+  /** The next page: none asked, in flight, failed, or none left. */
+  readonly more = input<'idle' | 'loading' | 'failed' | 'done'>('idle');
   /** "Try again" after the next page failed. */
   readonly retryMore = output();
 }

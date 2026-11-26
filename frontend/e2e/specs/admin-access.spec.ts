@@ -61,7 +61,7 @@ test.describe('Admin’s address', () => {
   });
 
   // L2-019 criteria 1 and 5: an admin opens Admin, whose code loads only for them.
-  test('opens Admin for an admin @critical', async ({ page, api }) => {
+  test('opens Admin for an admin', async ({ page, api }) => {
     answerAdmin(api);
     answerQueue(api);
     const scripts = recordScripts(page);

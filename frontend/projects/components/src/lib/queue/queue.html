@@ -13,7 +13,7 @@
   </ul>
 }
 <ng-content />
-@if (more() !== 'idle') {
+@if (more() === 'loading' || more() === 'failed') {
   <div class="queue__more">
     <cr-feed-status
       [state]="more() === 'loading' ? 'loading' : 'failed'"

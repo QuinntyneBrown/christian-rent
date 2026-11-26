@@ -18,7 +18,8 @@ let nextId = 0;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EmptyState {
-  readonly variant = input<'nothing' | 'error'>('nothing');
+  /** `done`: nothing is left to do, with a tick ("All caught up"). */
+  readonly variant = input<'nothing' | 'error' | 'done'>('nothing');
   readonly title = input.required<string>();
   readonly text = input.required<string>();
 

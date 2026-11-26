@@ -1,4 +1,45 @@
-<cr-admin-layout [queueHeadingId]="headingId">
-  <cr-admin-nav slot="nav" [name]="name()" />
-  <cr-queue [headingId]="headingId" summary="Loading the queue" [announce]="true" />
+<cr-admin-layout [queueHeadingId]="headingId" [busy]="store.state() === 'loading'">
+  <cr-admin-nav slot="nav" [name]="name()" [waiting]="store.waiting()" />
+  <cr-queue
+    [headingId]="headingId"
+    [summary]="store.summary()"
+    [announce]="store.state() === 'loading'"
+    [listed]="store.state() === 'loaded' || store.skeleton()"
+    [before]="store.before()"
+    [after]="store.after()"
+    [more]="store.more()"
+    (retryMore)="loadMore()"
+  >
+    @if (store.state() === 'loading') {
+      @for (row of skeletons; track $index) {
+        <li slot="item"><cr-queue-item [item]="null" /></li>
+      }
+    } @else {
+      @for (page of store.pages(); track page.index) {
+        @for (item of page.items; track item.id) {
+          <li slot="item" [attr.data-page]="page.index"><cr-queue-item [item]="item" /></li>
+        }
+      }
+    }
+    @switch (store.state()) {
+      @case ('empty') {
+        <cr-empty-state
+          variant="done"
+          title="All caught up"
+          text="New listings, reports and new members will show up here."
+        />
+      }
+      @case ('failed') {
+        <cr-empty-state
+          variant="error"
+          title="We couldn’t load the queue."
+          text="Check your connection and try again."
+        >
+          <button cr-button variant="primary" type="button" (click)="store.load()">
+            <cr-icon name="refresh" />Try again
+          </button>
+        </cr-empty-state>
+      }
+    }
+  </cr-queue>
 </cr-admin-layout>

@@ -6,6 +6,12 @@
     <p class="empty__text">{{ text() }}</p>
     <div class="empty__actions"><ng-container *ngTemplateOutlet="actions" /></div>
   </section>
+} @else if (variant() === 'done') {
+  <section class="empty" [attr.aria-labelledby]="titleId">
+    <div class="empty__icon empty__icon--success"><cr-icon name="check" size="lg" /></div>
+    <h2 class="empty__title" [id]="titleId">{{ title() }}</h2>
+    <p class="empty__text">{{ text() }}</p>
+  </section>
 } @else {
   <section class="no-results" [attr.aria-labelledby]="titleId">
     <h2 class="no-results__title" [id]="titleId">{{ title() }}</h2>

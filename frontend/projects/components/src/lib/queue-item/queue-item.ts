@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { RouterLink } from '@angular/router';
 import type { QueueItemView } from '@rent/api';
 import { Icon } from '../icon/icon';
+import { Skeleton } from '../skeleton/skeleton';
 import { Tag, type TagVariant } from '../tag/tag';
 
 /**
@@ -11,24 +12,27 @@ import { Tag, type TagVariant } from '../tag/tag';
  */
 @Component({
   selector: 'cr-queue-item',
-  imports: [Icon, RouterLink, Tag],
+  imports: [Icon, RouterLink, Skeleton, Tag],
   templateUrl: './queue-item.html',
   styleUrl: './queue-item.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QueueItem {
-  readonly item = input.required<QueueItemView>();
+  /** The item; null draws a row in its shape while the queue loads (L2-033, criterion 1). */
+  readonly item = input.required<QueueItemView | null>();
   /** True for the item the detail panel shows. */
   readonly current = input(false);
 
-  protected readonly tagVariant = computed<TagVariant>(() => TAGS[this.item().kind]);
+  protected readonly tagVariant = computed<TagVariant>(
+    () => TAGS[this.item()?.kind ?? 'new-listing'],
+  );
   protected readonly photo = computed(() => {
-    const thumb = this.item().thumb;
-    return thumb.kind === 'photo' ? thumb.url : null;
+    const thumb = this.item()?.thumb;
+    return thumb?.kind === 'photo' ? thumb.url : null;
   });
   protected readonly initials = computed(() => {
-    const thumb = this.item().thumb;
-    return thumb.kind === 'member' ? thumb.initials : null;
+    const thumb = this.item()?.thumb;
+    return thumb?.kind === 'member' ? thumb.initials : null;
   });
 }
 

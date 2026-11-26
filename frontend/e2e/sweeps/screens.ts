@@ -15,6 +15,7 @@ import { answerSending, refuseSendingAtLimit, sendPath } from '../fixtures/messa
 import { answerUploads, photoFile } from '../fixtures/photos';
 import { POSTED_ID, answerPosting } from '../fixtures/post';
 import { answerReporting, refuseAsAlreadyReported, reportPath } from '../fixtures/reports';
+import { REVIEW_NOW, answerAdmin, answerDetails, answerQueue } from '../fixtures/review';
 import { ListingPage } from '../pages/listing.page';
 import { PostPage } from '../pages/post.page';
 import { ReportDialogPart } from '../pages/report-dialog.part';
@@ -608,7 +609,62 @@ export const SCREENS: readonly Screen[] = [
     answer: (api) => answerJoining(api),
     then: (page) => page.getByRole('dialog').waitFor(),
   },
+  // Admin's queue (docs/mocks/pages/admin/), on the mocks' today, and its forbidden page.
+  {
+    name: 'admin',
+    path: '/admin',
+    answer: answerReview,
+    then: atReviewNow((page) => page.locator('a.queue-item').first().waitFor()),
+  },
+  {
+    name: 'admin-loading',
+    path: '/admin',
+    answer: (api) => {
+      answerReview(api);
+      api.hold('GET', '/api/review-queue');
+    },
+    then: atReviewNow((page) => page.locator('.queue-item[aria-hidden="true"]').first().waitFor()),
+  },
+  {
+    name: 'admin-empty',
+    path: '/admin',
+    answer: (api) => {
+      answerAdmin(api);
+      answerQueue(api, []);
+    },
+    then: (page) => page.locator('.empty').waitFor(),
+  },
+  {
+    name: 'admin-error',
+    path: '/admin',
+    answer: (api) => {
+      answerAdmin(api);
+      api.refuse('GET', '/api/review-queue', 503, 'unexpected');
+    },
+    then: (page) => page.locator('.empty--error').waitFor(),
+  },
+  {
+    name: 'admin-forbidden',
+    path: '/admin',
+    answer: answerMember,
+    then: (page) => page.getByRole('heading', { name: 'This page is for admins.' }).waitFor(),
+  },
 ];
+
+function answerReview(api: ApiFixtures): void {
+  answerAdmin(api);
+  answerQueue(api);
+  answerDetails(api);
+}
+
+/** Freezes the clock on the Admin mocks' today and loads the page again, so waits read as drawn. */
+function atReviewNow(ready: (page: Page) => Promise<void>) {
+  return async (page: Page) => {
+    await page.clock.setFixedTime(REVIEW_NOW);
+    await page.reload();
+    await ready(page);
+  };
+}
 
 /** Opens the join dialog from the host page and waits for its churches. */
 async function openJoin(page: Page): Promise<void> {
