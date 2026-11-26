@@ -8,5 +8,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ChristianRent.Api.Tests/ChristianRent.Api.Tests.csproj" />
+    <Project Path="tests/ChristianRent.Cli.Tests/ChristianRent.Cli.Tests.csproj" />
   </Folder>
 </Solution>
