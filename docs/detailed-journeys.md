@@ -126,16 +126,18 @@ decides a report in journeys 10 and 11.
 | 9.1 | `ReportListingCommand` adds a report to the review queue, with its refusals; already reported, told only to the reporter by the Listing read; `purge-departed` and reports | L2-021, L2-025, L2-026, L2-028 | Yes |
 | 9.2 | `ReportListingDialog` with its reasons and note, invalid, busy, failed and already states, announced confirmation, and the join dialog first for a person who is not a member | L2-021, L2-032 | Yes |
 
-## 10. View the review queue (Admin) — 4 days — 0% complete
+## 10. View the review queue (Admin) — 4 days — 100% complete
 
-Design: [view-review-queue](detailed-designs/review/view-review-queue/README.md).
+Design: [view-review-queue](detailed-designs/review/view-review-queue/README.md). The operator
+makes an admin with `grant-admin` (ADR 0024). Deciding an item, and the notification that new
+items arrived, are journey 11.
 
-| # | Slice | L2 |
-|---|---|---|
-| 10.1 | `GET /api/review-queue`, oldest first, admin only | L2-019, L2-025, L2-030 |
-| 10.2 | The `admin` library, `adminGuard` and `ForbiddenPage` | L2-019, L2-025 |
-| 10.3 | `ReviewPage` with the queue, its loading, error and "All caught up" states | L2-019, L2-033 |
-| 10.4 | The detail panel from 768 px; the queue only, with a note, below it | L2-031 |
+| # | Slice | L2 | Done |
+|---|---|---|---|
+| 10.1 | `GET /api/review-queue`, oldest first and paged, each item's detail, admin only; `grant-admin` | L2-019, L2-025, L2-030 | Yes |
+| 10.2 | The `admin` library, `adminGuard` and `ForbiddenPage` | L2-018, L2-019, L2-025 | Yes |
+| 10.3 | `ReviewPage` with the queue, paged and held to three pages, and its loading, error and "All caught up" states | L2-019, L2-029, L2-033 | Yes |
+| 10.4 | The detail panel from 768 px, by kind, with its failed and gone states; the queue only, with a note, below it | L2-019, L2-031 | Yes |
 
 ## 11. Decide a review item (Admin) — 4 days — 0% complete
 
@@ -161,4 +163,4 @@ Design: [verify-members-and-churches](detailed-designs/members/verify-members-an
 
 | Journeys | Effort (days) | % complete |
 |---|---|---|
-| 12 | 52 | 79 |
+| 12 | 52 | 87 |

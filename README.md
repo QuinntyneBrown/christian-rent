@@ -106,14 +106,18 @@ Messages inbox is not designed, so a message waits in the database
 ([ADR 0022](docs/adr/0022-sending-a-message-open-decisions.md)). Reporting a listing is built
 (journey 9): the Report button and its dialog, with a reason from a fixed list and an optional
 note, and the backend that files one report for each member and listing in the review queue and
-never says who filed it. Admin, where a report is read and decided, comes with journeys 10 and 11
-([ADR 0023](docs/adr/0023-reporting-a-listing-open-decisions.md)).
+never says who filed it
+([ADR 0023](docs/adr/0023-reporting-a-listing-open-decisions.md)). Viewing the review queue is
+built (journey 10): Admin, a library only an admin downloads, with the new listings, reports and
+new members that wait, oldest first, a page at a time, and from tablet width the selected item's
+detail beside them. The operator makes an admin with the CLI. Deciding an item comes with
+journey 11 ([ADR 0024](docs/adr/0024-viewing-the-review-queue-open-decisions.md)).
 
 - The requirements are in `docs/specs/`, the mocks in `docs/mocks/`, the design system in
   `docs/design-system/` and the detailed designs in `docs/detailed-designs/`.
 - The journeys and their slices are in `docs/journeys.md` and `docs/detailed-journeys.md`, with
   **% complete**; the architecture decisions are in `docs/adr/`.
-- What comes next is journey 10, View the review queue: one slice at a time, each with its failing
+- What comes next is journey 11, Decide a review item: one slice at a time, each with its failing
   acceptance test first.
 
 ## How it works

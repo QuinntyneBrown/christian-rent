@@ -69,8 +69,9 @@ so. `rent` imports it only with `import('@rent/admin')`.
 - **`cr-admin-layout`** — the `admin` block: slots for the rail, the queue and the detail.
 - **`cr-admin-nav`** — the ink rail: logo, "Admin · {name}", Review with its count, "Back
   to site".
-- **`cr-queue-header`**, **`cr-queue-list`**, **`cr-queue-more`** — the heading and summary,
-  the list with its spacers, and "Showing 50 of 63" with "Load 13 more", busy and failed.
+- **`cr-queue-header`**, **`cr-queue-list`**, **`cr-queue-more`** — the heading, the
+  summary and the phone's note; the list of rows; and "Showing 50 of 63" with "Load 13
+  more", busy and failed. `ReviewPage` draws the spacers around the list.
 - **`cr-queue-item`** — the listing's title or the member's name, who posted or which
   church, how long it has waited, and a `cr-tag` that names the kind in text: "New",
   "Reported", "New member" (criterion 6). From 768 px it is a button, and the selected one
@@ -185,8 +186,7 @@ handlers read `ReviewItem` rows and their subjects.
 ### Class structure
 
 `ReviewItem` points at its subject through `Kind` and `SubjectId`. The summary DTO feeds the
-queue rows; the detail DTO holds exactly one of its three optional parts and lists the
-decisions its kind allows.
+queue rows; the detail DTO holds exactly one of its three optional parts.
 
 ![Class diagram for View the review queue](diagrams/class-structure.png)
 
