@@ -1,0 +1,54 @@
+// Alert, from docs/design-system/components/alert.html.
+.alert {
+  --alert-bg: var(--color-info-bg);
+  --alert-fg: var(--color-info-fg);
+  --alert-border: var(--color-info-border);
+  --alert-icon: var(--color-info-icon);
+
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--alert-border);
+  border-left-width: 4px;
+  border-radius: var(--radius-md);
+  background: var(--alert-bg);
+  color: var(--alert-fg);
+}
+
+.alert--success {
+  --alert-bg: var(--color-success-bg);
+  --alert-fg: var(--color-success-fg);
+  --alert-border: var(--color-success-border);
+  --alert-icon: var(--color-success-icon);
+}
+
+.alert--warning {
+  --alert-bg: var(--color-warning-bg);
+  --alert-fg: var(--color-warning-fg);
+  --alert-border: var(--color-warning-border);
+  --alert-icon: var(--color-warning-icon);
+}
+
+.alert--danger {
+  --alert-bg: var(--color-danger-bg);
+  --alert-fg: var(--color-danger-fg);
+  --alert-border: var(--color-danger-border);
+  --alert-icon: var(--color-danger-icon);
+}
+
+.alert__icon {
+  flex: none;
+  margin-top: 0.1rem;
+  color: var(--alert-icon);
+}
+
+.alert__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.alert__title {
+  font: var(--text-label);
+}

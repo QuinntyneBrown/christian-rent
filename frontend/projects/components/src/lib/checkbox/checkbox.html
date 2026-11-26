@@ -1,0 +1,21 @@
+<label class="choice">
+  <input
+    type="checkbox"
+    [id]="fieldId()"
+    [attr.name]="name()"
+    [checked]="checked()"
+    [disabled]="disabled()"
+    [attr.aria-invalid]="error() ? 'true' : null"
+    [attr.aria-describedby]="error() ? fieldId() + '-error' : null"
+    (change)="onChange($event)"
+  />
+  <span class="choice__text"
+    >{{ label() }}
+    @if (description(); as description) {
+      <small>{{ description }}</small>
+    }
+  </span>
+</label>
+@if (error(); as error) {
+  <p class="field__error" [id]="fieldId() + '-error'">{{ error }}</p>
+}

@@ -1,0 +1,27 @@
+<div class="field">
+  <label class="field__label" [for]="fieldId()">{{ label() }}</label>
+  <select
+    class="select"
+    [id]="fieldId()"
+    [attr.name]="name()"
+    [disabled]="disabled()"
+    [attr.aria-invalid]="error() ? 'true' : null"
+    [attr.aria-describedby]="describedBy()"
+    (change)="onChange($event)"
+  >
+    @if (prompt(); as prompt) {
+      <option value="" [selected]="value() === ''">{{ prompt }}</option>
+    }
+    @for (option of options(); track option.value) {
+      <option [value]="option.value" [selected]="option.value === value()">
+        {{ option.label }}
+      </option>
+    }
+  </select>
+  @if (error(); as error) {
+    <p class="field__error" [id]="fieldId() + '-error'">{{ error }}</p>
+  } @else if (help(); as help) {
+    <p class="field__help" [id]="fieldId() + '-help'">{{ help }}</p>
+  }
+  <ng-content />
+</div>

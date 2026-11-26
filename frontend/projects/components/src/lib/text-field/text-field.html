@@ -1,0 +1,21 @@
+<div class="field">
+  <label class="field__label" [for]="fieldId()">{{ label() }}</label>
+  <input
+    class="input"
+    type="text"
+    [id]="fieldId()"
+    [attr.name]="name()"
+    [attr.maxlength]="maxlength()"
+    [attr.autocomplete]="autocomplete()"
+    [value]="value()"
+    [readOnly]="readonly()"
+    [attr.aria-invalid]="error() ? 'true' : null"
+    [attr.aria-describedby]="describedBy()"
+    (input)="onInput($event)"
+  />
+  @if (error(); as error) {
+    <p class="field__error" [id]="fieldId() + '-error'">{{ error }}</p>
+  } @else if (help(); as help) {
+    <p class="field__help" [id]="fieldId() + '-help'">{{ help }}</p>
+  }
+</div>

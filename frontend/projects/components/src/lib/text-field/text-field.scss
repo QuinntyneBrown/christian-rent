@@ -1,0 +1,13 @@
+// Text field in its form field, from docs/design-system/components/text-field.html and
+// form-field.html.
+@use '../field' as field;
+
+@include field.field;
+
+.input {
+  @include field.control;
+}
+
+.input:read-only:not(:disabled) {
+  background: var(--color-bg-surface-sunken);
+}
