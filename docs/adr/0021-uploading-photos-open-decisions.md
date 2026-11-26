@@ -22,24 +22,29 @@ The add-photos design and the Post mocks leave open what journey 7 has to settle
 
 ## Decision
 
-- **The image library.** `SixLabors.ImageSharp` 4.1, behind `IPhotoInspector` and
-  `IPhotoProcessor` in `ChristianRent.Infrastructure`. It is fully managed code, so no native
-  decoder reads an untrusted upload, and it runs wherever .NET does, the tests included.
-  Its Six Labors Split Licence grants Apache 2.0 terms to open-source software, which this
-  MIT-licensed repository is.
-- **Inspection.** `ImageSharpPhotoInspector` identifies the content from its header alone
-  (`Image.Identify`), never from the file name or the declared type (L2-014, criterion 1). JPEG,
-  PNG and WebP are accepted; anything else, another image format included, is "not an image".
+- **The image library.** `SkiaSharp` 4.156 (MIT), with
+  `SkiaSharp.NativeAssets.Linux.NoDependencies` so the Linux natives need no system libraries,
+  behind `IPhotoInspector` and `IPhotoProcessor` in `ChristianRent.Infrastructure`. Skia is the
+  decoder browsers use on the same untrusted images, and it is kept up to date by Microsoft.
+  `SixLabors.ImageSharp` was tried first and set aside: from 3.2 and 4.0 it refuses a Release
+  build without a Six Labors licence key, a registered credential outside the repository, even
+  for open-source use.
+- **Inspection.** `SkiaPhotoInspector` identifies the content from its header alone
+  (`SKCodec`, which reads no pixels), never from the file name or the declared type (L2-014,
+  criterion 1). JPEG, PNG and WebP are accepted; anything else, another image format included,
+  is refused, as is content that is not an image.
 - **The rules, in order.** `PhotoRules.Check` refuses, first match wins: more than 10 MB
   (`photo_too_large`), not a JPEG, PNG or WebP (`photo_type_refused`), more than 8,000 px on
-  either side (`photo_dimensions_too_large`), less than 400 × 300 px (`photo_too_small`). The
-  length is checked before anything is decoded, and the dimensions before the pixels are.
+  either side (`photo_dimensions_too_large`), less than 400 × 300 px either way round, that is a
+  longer side under 400 or a shorter side under 300 (`photo_too_small`), so a photo taken
+  upright meets the same limits as one taken sideways. The length is checked before the content
+  is read, and the dimensions before the pixels are decoded.
 - **Renditions.** As ADR 0011: `card` 800 × 600, `gallery` 1600 × 1200 and `thumb` 240 × 180,
   each a JPEG at quality 82, made by turning the photo upright from its EXIF orientation and then
-  cropping it from the centre to fill the 4:3 box (scaled up when it is smaller). Only the first
-  frame of an animated image is used. The EXIF, ICC, IPTC and XMP profiles are removed before each
-  rendition is encoded, so no location or other embedded data is stored (L2-014, criterion 3). The
-  original file is not stored.
+  cropping it from the centre to fill the 4:3 box on white (scaled up when it is smaller). Only
+  the first frame of an animated image is used. Skia's encoder writes no metadata, so the EXIF
+  block with its GPS position and every other embedded profile are left behind (L2-014,
+  criterion 3). The original file is not stored.
 - **Memory.** A photo up to 8,000 × 8,000 px decodes to about 256 MB, so each API instance
   processes at most 2 photos at a time; a third waits for one of them.
 - **Refusals.** A refused photo is answered 400 with a ProblemDetails whose `code` is the rule's,
@@ -99,5 +104,5 @@ The add-photos design and the Post mocks leave open what journey 7 has to settle
   24 hours. If that proves too generous, a limit on unattached photos per member is the next step.
 - A rendition in WebP or AVIF can follow behind the same names, as ADR 0011 foresaw.
 - Reordering needs its mock, then the criterion, the design and a slice.
-- If christian.rent stops being open-source software and earns more than the licence's threshold,
-  ImageSharp needs a commercial licence, or the two interfaces another implementation.
+- Skia is native code: a SkiaSharp update is taken promptly when it fixes a decoder, and the
+  API's image runs on Linux with the bundled natives.

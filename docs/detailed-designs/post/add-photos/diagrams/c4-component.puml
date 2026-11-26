@@ -15,7 +15,7 @@ Container_Boundary(api, "ChristianRent backend") {
   Component(up, "UploadPhotoCommandHandler", "MediatR handler", "Inspects, processes and stores")
   Component(get, "GetPhotoQueryHandler", "MediatR handler", "Authorizes and streams a rendition")
   Component(rules, "PhotoRules", "Domain rules", "Type, size and dimension limits")
-  Component(insp, "IPhotoInspector, IPhotoProcessor", "Infrastructure services; ImageSharp (ADR 0021)", "Sniffs content, strips metadata, resizes")
+  Component(insp, "IPhotoInspector, IPhotoProcessor", "Infrastructure services; SkiaSharp (ADR 0021)", "Sniffs content, strips metadata, resizes")
   Component(store2, "IPhotoStorage", "Infrastructure service", "File storage access")
 }
 ContainerDb(db, "Database", "EF Core; PostgreSQL (ADR 0003)", "Photo and listing rows, no image bytes")

@@ -70,10 +70,12 @@ Photos become part of a listing when it is published; see
 - **`Photo`** (`ChristianRent.Domain`) — `Id`, `OwnerId`, `ListingId` (null until a posted
   listing names it), `Width`, `Height`, `UploadedAt`. The renditions' keys follow from `Id`
   (ADR 0011).
-- **`IPhotoInspector`** — reads the image header. It returns `PhotoFacts { Format, Width,
-  Height }` or null for "not an image" (criterion 1). `ImageSharpPhotoInspector` implements it.
+- **`IPhotoInspector`** — `Inspect(content: byte[])` reads the image header. It returns
+  `PhotoFacts { Format, Width, Height }` or null for "not an image" (criterion 1).
+  `SkiaPhotoInspector` implements it.
 - **`PhotoRules`** (`ChristianRent.Domain`) — the table below, checked in its order, first match
-  wins; each row has a direct test.
+  wins; each row has a direct test. The sides are read either way round: a longer side of at
+  least 400 and a shorter side of at least 300.
 
   | Rule | Refusal code |
   |---|---|
@@ -86,7 +88,8 @@ Photos become part of a listing when it is published; see
   800 × 600, `gallery` 1600 × 1200 and `thumb` 240 × 180, each a JPEG at quality 82, turned
   upright and cropped from the centre to fill 4:3. Every embedded profile (EXIF with its GPS,
   ICC, IPTC, XMP) is removed before encoding (criterion 3). The original file is not stored.
-  `ImageSharpPhotoProcessor` implements it and processes at most 2 photos at a time.
+  `ProcessAsync(content: byte[])` answers the renditions' bytes. `SkiaPhotoProcessor` implements
+  it and processes at most 2 photos at a time.
 - **`IPhotoStorage`** — `SaveAsync`, `OpenReadAsync`, `DeleteAsync`, `IsReachableAsync`.
   The implementation lives in `ChristianRent.Infrastructure`.
 - **`DeletePhotoCommandHandler`** — deletes the caller's own photo that no listing names: its
@@ -112,7 +115,7 @@ Photos become part of a listing when it is published; see
   documents its settings.
 
 Decided in [ADR 0021](../../../adr/0021-uploading-photos-open-decisions.md): the image library
-(ImageSharp), the renditions' format, the rules' order, who may read and delete a photo no
+(SkiaSharp), the renditions' format, the rules' order, who may read and delete a photo no
 listing names, and that it is kept 24 hours.
 
 ### Mocks

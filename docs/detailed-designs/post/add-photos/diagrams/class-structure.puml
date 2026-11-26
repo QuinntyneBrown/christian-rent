@@ -35,18 +35,19 @@ enum PhotoFormat {
 }
 class PhotoRules {
   +{static} MaxBytes: 10 MB
-  +{static} MinWidth: 400
-  +{static} MinHeight: 300
+  +{static} MinLongSide: 400
+  +{static} MinShortSide: 300
   +{static} MaxSide: 8000
   +{static} MaxPerListing: 6
   +{static} KeepUnattached: 24 h
+  +{static} CheckLength(length: long): string?
   +{static} Check(length: long, facts: PhotoFacts?): string?
 }
 interface IPhotoInspector {
-  +Inspect(content: Stream): PhotoFacts?
+  +Inspect(content: byte[]): PhotoFacts?
 }
 interface IPhotoProcessor {
-  +Process(content: Stream): IReadOnlyList<Rendition>
+  +ProcessAsync(content: byte[]): Task<IReadOnlyList<PhotoRendition>>
 }
 interface IPhotoStorage {
   +SaveAsync(key: string, content: Stream): Task
@@ -54,8 +55,8 @@ interface IPhotoStorage {
   +DeleteAsync(key: string): Task
   +IsReachableAsync(): Task<bool>
 }
-class ImageSharpPhotoInspector
-class ImageSharpPhotoProcessor
+class SkiaPhotoInspector
+class SkiaPhotoProcessor
 class UploadPhotoCommandHandler {
   +Handle(command: UploadPhotoCommand): Task<PhotoRefDto>
 }
@@ -86,8 +87,8 @@ PurgeUnattachedPhotosCommandHandler --> Photo : deletes after 24 h
 PurgeUnattachedPhotosCommandHandler ..> IPhotoStorage
 GetPhotoQueryHandler --> Photo : loads
 GetPhotoQueryHandler ..> IPhotoStorage
-ImageSharpPhotoInspector ..|> IPhotoInspector
-ImageSharpPhotoProcessor ..|> IPhotoProcessor
+SkiaPhotoInspector ..|> IPhotoInspector
+SkiaPhotoProcessor ..|> IPhotoProcessor
 IPhotoInspector ..> PhotoFacts
 PhotoFacts --> PhotoFormat
 PhotoRules ..> PhotoFacts
