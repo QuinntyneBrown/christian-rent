@@ -56,9 +56,12 @@ Dependency direction: `rent` → `admin`, `components`, `api`, `domain`; `admin`
   header and Admin uses `cr-admin-nav`.
 - **`NotFoundPage`** — "not found" with a link to Browse (L2-033, criterion 3).
 - **`TitleStrategy`** — sets the document title per route, ending in "christian.rent".
-- On navigation, focus moves to the new page's `<h1 tabindex="-1">` (`PageFocus`), and
-  `RentTitleStrategy` announces the title with `LiveAnnouncer` (L2-032, criteria 2 and 4). The
-  first load leaves focus alone, so the skip link stays the first control.
+- On navigation to another screen, focus moves to the new page's `<h1 tabindex="-1">`
+  (`PageFocus`), and `RentTitleStrategy` announces the title with `LiveAnnouncer` (L2-032,
+  criteria 2 and 4). The first load leaves focus alone, so the skip link stays the first
+  control. A change of the query alone (Browse's search, switch and kind filter) is the same
+  screen: focus stays where the person is and the title is not announced again
+  (search-and-filter design).
 
 **`components` library**
 

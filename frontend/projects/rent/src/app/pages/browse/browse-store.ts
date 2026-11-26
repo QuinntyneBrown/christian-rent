@@ -17,6 +17,9 @@ export type MoreState = 'idle' | 'loading' | 'failed' | 'done';
 /** A wait shorter than this shows no loading state (L2-033, criterion 5). */
 export const SKELETON_DELAY_MS = 300;
 
+/** How long the term waits after the last change before it is searched (L2-003, criterion 3). */
+export const SEARCH_DELAY_MS = 300;
+
 /** The pages Browse keeps in memory, 24 listings each (ADR 0013). */
 export const WINDOW_PAGES = 3;
 
@@ -27,9 +30,10 @@ export type MeasurePage = (index: number) => number;
  * Browse's state, provided by the page and gone when the person leaves it (browse-listings and
  * search-and-filter designs). The cards live in a `ListingWindow`, so memory stays bounded
  * however far the list goes (L2-030, criterion 4). `search` shows the listings of a
- * `BrowseQuery`; a newer query aborts the request of an earlier one, so an earlier answer never
- * replaces a later one (L2-003, criterion 3). Leaving aborts the request in flight and clears
- * the timers.
+ * `BrowseQuery`: a change of the term waits until typing pauses for 300 ms, and anything else
+ * leaves at once. A newer query aborts the request of an earlier one at once, so an earlier
+ * answer never replaces a later one (L2-003, criterion 3). Leaving aborts the request in flight
+ * and clears the timers.
  */
 @Injectable()
 export class BrowseStore {
@@ -47,6 +51,9 @@ export class BrowseStore {
   private request: AbortController | null = null;
   /** False until the first page has been asked for. */
   private started = false;
+  /** The query `search` was last given, shown, awaited or waiting. */
+  private latest = new BrowseQuery();
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
   private skeletonTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly state = this._state.asReadonly();
@@ -103,26 +110,44 @@ export class BrowseStore {
     inject(DestroyRef).onDestroy(() => {
       this.request?.abort();
       this.stopSkeletonTimer();
+      this.stopSearchTimer();
     });
   }
 
   /**
-   * Shows the listings of `query`: its first page is asked for at once, and the request of an
-   * earlier query is aborted. A query that sends the request already shown or awaited is not
-   * asked again.
+   * Shows the listings of `query`. The first query, a change of the switch or the kind filter,
+   * and a submitted term (`now`) are asked for at once; a change of the term alone waits until
+   * it has not changed for 300 ms. Either way the request of an earlier query is aborted at
+   * once. A query that sends the request already shown, awaited or waiting is not asked again,
+   * unless it is submitted while it waits.
    */
-  search(query: BrowseQuery): void {
-    const shown = this._query();
-    this._query.set(query);
-    if (this.started && query.equals(shown)) {
+  search(query: BrowseQuery, options: { now?: boolean } = {}): void {
+    const previous = this.latest;
+    this.latest = query;
+    if (this.started && query.equals(previous)) {
+      if (options.now && this.searchTimer !== null) {
+        this.stopSearchTimer();
+        void this.loadFirst();
+      }
       return;
     }
-    void this.loadFirst();
+    this.stopSearchTimer();
+    if (!this.started || options.now || !query.sameChoices(previous)) {
+      void this.loadFirst();
+      return;
+    }
+    this.cancel();
+    this.searchTimer = setTimeout(() => {
+      this.searchTimer = null;
+      void this.loadFirst();
+    }, SEARCH_DELAY_MS);
   }
 
-  /** Loads the first page of the query; "Try again" calls it too. */
+  /** Loads the first page of the latest query; "Try again" calls it too. */
   async loadFirst(): Promise<void> {
     this.started = true;
+    this.stopSearchTimer();
+    this._query.set(this.latest);
     this.request?.abort();
     const request = new AbortController();
     this.request = request;
@@ -218,6 +243,22 @@ export class BrowseStore {
       throw error;
     }
     show();
+  }
+
+  /** Aborts the request in flight, whose answer is no longer wanted. */
+  private cancel(): void {
+    this.request?.abort();
+    this.request = null;
+    if (this._moreState() === 'loading') {
+      this._moreState.set('idle');
+    }
+  }
+
+  private stopSearchTimer(): void {
+    if (this.searchTimer !== null) {
+      clearTimeout(this.searchTimer);
+      this.searchTimer = null;
+    }
   }
 
   private stopSkeletonTimer(): void {

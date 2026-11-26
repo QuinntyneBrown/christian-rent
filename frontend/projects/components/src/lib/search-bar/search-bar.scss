@@ -1,0 +1,85 @@
+// The search bar, from docs/design-system/components/search-bar.html. Under 576 px the field,
+// the area and the button stack; from 576 px they sit in one row with a hairline before the area.
+:host {
+  display: block;
+}
+
+.search-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-2);
+}
+
+.search-bar__field {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  min-height: var(--control-height-md);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-lg);
+  color: var(--color-fg-muted);
+
+  &:focus-within {
+    outline: var(--focus-ring-width) solid var(--color-focus-ring);
+    outline-offset: 0;
+  }
+}
+
+.search-bar__input {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--target-min);
+  border: 0;
+  background: transparent;
+  font: var(--text-body);
+  color: var(--color-fg-default);
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  &::placeholder {
+    color: var(--color-fg-subtle);
+  }
+}
+
+.search-bar__near {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font: var(--text-body-sm);
+  color: var(--color-fg-muted);
+  white-space: nowrap;
+
+  strong {
+    color: var(--color-fg-default);
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
+.search-bar__pin {
+  color: var(--color-fg-rent);
+}
+
+.search-bar__submit {
+  border-radius: var(--radius-lg);
+}
+
+@media (min-width: 36rem) {
+  .search-bar {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .search-bar__near {
+    border-left: 1px solid var(--color-border-default);
+  }
+}

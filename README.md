@@ -184,7 +184,11 @@ variables, `:` is written `__`.
 | `ASPNETCORE_ENVIRONMENT` | no | `Production` when deployed: HTTPS redirection and HSTS are on outside `Development` |
 | The sign-in secret | yes | Not yet: sign-in is not designed ([ADR 0005](docs/adr/0005-authentication-seam.md)) |
 
-Deployment runs `ChristianRent.Cli migrate` before the new API takes traffic. The host that
+Deployment runs `ChristianRent.Cli migrate` before the new API takes traffic; the database role
+it uses may create the `pg_trgm` and `unaccent` extensions, or they are created beforehand
+([ADR 0015](docs/adr/0015-search-matching-and-browse-query.md)). The API and the CLI need ICU
+(`libicu`) on the host, as Microsoft's non-Alpine .NET images have, because a search ignores
+accents through Unicode normalisation. The host that
 serves the built frontend (`frontend/dist/rent/browser`) should send the same
 Content-Security-Policy as the API; hosting is not chosen yet.
 

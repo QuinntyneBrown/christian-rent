@@ -31,6 +31,11 @@ export class BrowsePage {
   readonly switch: Locator;
   readonly switchOptions: Locator;
   readonly switchCurrent: Locator;
+  /** The search bar: the field, the area as text, and Search. */
+  readonly searchBar: Locator;
+  readonly searchField: Locator;
+  readonly searchButton: Locator;
+  readonly searchArea: Locator;
 
   constructor(private readonly page: Page) {
     this.header = new SiteHeaderPart(page);
@@ -61,7 +66,21 @@ export class BrowsePage {
     this.switch = this.main.getByRole('navigation', { name: 'Show', exact: true });
     this.switchOptions = this.switch.locator('a.segmented__option');
     this.switchCurrent = this.switch.locator('a.segmented__option[aria-current="true"]');
+    this.searchBar = this.main.getByRole('search');
+    this.searchField = this.searchBar.getByRole('searchbox', {
+      name: 'Search listings',
+      exact: true,
+    });
+    this.searchButton = this.searchBar.getByRole('button', { name: 'Search', exact: true });
+    this.searchArea = this.searchBar.locator('.search-bar__near');
   }
+
+  /** Types a term as a person does, a key at a time. */
+  async type(term: string): Promise<void> {
+    await this.searchField.pressSequentially(term, { delay: 30 });
+  }
+
+  /** The requests Browse made for listings, as `GET /api/listings?…`. */
 
   /** The switch's option named `name` ("Everything", "For rent" or "Wanted"). */
   switchOption(name: 'Everything' | 'For rent' | 'Wanted'): Locator {

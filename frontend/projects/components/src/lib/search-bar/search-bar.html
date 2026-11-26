@@ -1,0 +1,26 @@
+<form class="search-bar" role="search" (submit)="submit($event)">
+  <label class="search-bar__field">
+    <cr-icon name="search" />
+    <span class="visually-hidden">Search listings</span>
+    <input
+      #field
+      class="search-bar__input"
+      type="search"
+      name="q"
+      autocomplete="off"
+      [attr.maxlength]="maxLength"
+      placeholder="Fellowship hall, guest room, trailer…"
+      (input)="changed()"
+      (keydown.escape)="clear($event)"
+    />
+  </label>
+  <p class="search-bar__near">
+    <cr-icon class="search-bar__pin" name="pin" size="sm" /><span
+      ><strong>{{ area() }}</strong>
+      @if (distanceKm() !== null) {
+        · within {{ distanceKm() }} km
+      }
+    </span>
+  </p>
+  <button cr-button variant="primary" class="search-bar__submit" type="submit">Search</button>
+</form>

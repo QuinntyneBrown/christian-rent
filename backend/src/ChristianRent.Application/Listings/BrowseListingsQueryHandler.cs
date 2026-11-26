@@ -15,6 +15,13 @@ internal sealed class BrowseListingsQueryHandler(IAppDbContext database) : IRequ
     public async Task<ListingsPageDto> Handle(BrowseListingsQuery query, CancellationToken cancellationToken)
     {
         var listings = PublicListings.Of(database);
+
+        // Every word has to appear; each reaches the database as a parameter (ADR 0015).
+        foreach (var word in SearchNormalizer.Words(query.Search))
+        {
+            listings = listings.Where(listing => listing.SearchText.Contains(word));
+        }
+
         var counted = listings;
         if (ListingWords.OfferOf(query.Show) is { } offer)
         {

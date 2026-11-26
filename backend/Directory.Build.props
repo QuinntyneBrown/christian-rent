@@ -6,7 +6,8 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
-    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- ICU is needed for Unicode normalisation: a search ignores accents (ADR 0015). -->
+    <InvariantGlobalization>false</InvariantGlobalization>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- Public members are documented where it helps; a missing comment is not an error. -->

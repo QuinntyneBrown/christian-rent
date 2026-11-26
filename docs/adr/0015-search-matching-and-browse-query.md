@@ -23,13 +23,16 @@ Browse shows when a choice holds nothing and no term is entered.
   and "eglise" are one word. `Listing.SearchText` holds the normalised title, note and area,
   separated by spaces, and the entity sets it whenever one of the three is set. Nothing else
   writes it.
+- **ICU.** Unicode normalisation needs ICU, so the backend no longer builds with
+  `InvariantGlobalization`; the host needs `libicu` (README, *Settings*). Formatting and
+  comparisons stay culture-invariant in code, as the analyzers require.
 - **Words.** `SearchNormalizer.Words(term)` takes the first 100 characters of the term,
   normalises them and splits them on white space. The handler adds one
   `SearchText.Contains(word)` predicate per word, so every word has to appear, and a word
   matches inside a longer one ("park" finds "parking"). EF Core sends each word as a
   parameter; no SQL is built from the term. A term of only white space is no term.
 - **Engine.** On PostgreSQL `Contains` becomes a parameterised `LIKE` (or `strpos`), which a
-  `pg_trgm` GIN index on `search_text` serves; the migration enables the extension and adds the
+  `pg_trgm` GIN index on `"SearchText"` serves; the migration enables the extension and adds the
   index. InMemory compares the same lower-cased, unaccented strings in .NET, so the tests and
   the engine agree. Measuring the 300 ms against a real engine stays outside the automated
   suites (ADR 0007).
@@ -54,8 +57,10 @@ Browse shows when a choice holds nothing and no term is entered.
 
 ## Consequences
 
-- A migration adds `listings.search_text`, fills it for the listings already there, enables
-  `pg_trgm` and adds the GIN index. Choosing another engine means choosing its equivalent of a
+- A migration adds `listings."SearchText"`, enables `pg_trgm` and adds the GIN index. It fills
+  the column for the listings already there with `lower(unaccent(...))` from the `unaccent`
+  extension, which folds a few letters (such as "œ") differently from .NET; such a listing is
+  normalised again by .NET when it next changes. Choosing another engine means choosing its equivalent of a
   trigram index; nothing above `Infrastructure` changes.
 - Matching is by substring, not by stem or synonym: "chairs" finds "chair", "chair" finds
   "chairs", but "seat" does not find "chair". A ranked full-text search is a later decision.

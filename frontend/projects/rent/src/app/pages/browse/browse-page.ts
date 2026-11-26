@@ -12,7 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SESSION } from '@rent/api';
 import {
   Button,
@@ -22,6 +22,7 @@ import {
   Icon,
   ListingCard,
   ListingGrid,
+  SearchBar,
   Segmented,
   type SegmentedOption,
   SiteHeader,
@@ -41,7 +42,7 @@ const SWITCH: readonly { offer: BrowseOffer; label: string }[] = [
 
 /**
  * Browse, the home screen (browse-listings and search-and-filter designs): the headline with
- * the two buttons that lead to posting, the switch, and approved listings, newest first, loaded
+ * the two buttons that lead to posting, the search bar, the switch, and approved listings, newest first, loaded
  * a page at a time as the person reaches the end of the list (L2-006). The address is the
  * single source of the choice: the page reads a `BrowseQuery` from its query parameters and the
  * store shows it (L2-002, criterion 5; ADR 0015). One `IntersectionObserver` watches a sentinel
@@ -60,6 +61,7 @@ const SWITCH: readonly { offer: BrowseOffer; label: string }[] = [
     ListingGrid,
     NgTemplateOutlet,
     RouterLink,
+    SearchBar,
     Segmented,
     SiteHeader,
   ],
@@ -78,7 +80,12 @@ export class BrowsePage {
   /** Eight skeleton cards: two rows at the widest, enough to fill a phone (L2-033, criterion 1). */
   protected readonly skeletons = Array.from({ length: 8 });
 
-  private readonly params = toSignal(inject(ActivatedRoute).queryParamMap, { requireSync: true });
+  /** Until a person's area can be set, the search bar names the launch area (ADR 0012). */
+  protected readonly area = 'Langley, BC';
+
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly params = toSignal(this.route.queryParamMap, { requireSync: true });
   /** The choice the address holds. */
   protected readonly query = computed(() => BrowseQuery.fromParams(this.params()));
   /** The switch: each option leads to its choice, with the others kept (L2-002, criterion 4). */
@@ -121,6 +128,27 @@ export class BrowsePage {
     effect(() => {
       const sentinels = [this.top(), this.bottom()];
       afterNextRender(() => this.watch(sentinels), { injector: this.injector });
+    });
+  }
+
+  /** Typing writes the term to the address; the store waits for typing to pause (L2-003). */
+  protected typed(term: string): void {
+    this.show(this.query().withTerm(term));
+  }
+
+  /** Enter or Search searches the term at once (L2-003, criterion 6). */
+  protected submitted(term: string): void {
+    const query = this.query().withTerm(term);
+    this.store.search(query, { now: true });
+    this.show(query);
+  }
+
+  /** Writes the query to the address, which the page reads it back from. */
+  private show(query: BrowseQuery): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: query.toParams(),
+      replaceUrl: true,
     });
   }
 

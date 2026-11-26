@@ -9,7 +9,7 @@ import {
   type ListingsPage,
 } from '@rent/api';
 import { BrowseQuery } from '@rent/domain';
-import { BrowseStore, SKELETON_DELAY_MS } from './browse-store';
+import { BrowseStore, SEARCH_DELAY_MS, SKELETON_DELAY_MS } from './browse-store';
 
 const unreachable: ApiError = { status: 0, code: null, retryAt: null, fields: null };
 
@@ -335,5 +335,92 @@ describe('BrowseStore, narrowed by the switch', () => {
     void store.loadFirst();
 
     expect(api.calls[1]!.filter.offer).toBe('wanted');
+  });
+});
+
+describe('BrowseStore, while a person types', () => {
+  let api: FakeListingsApi;
+  let store: BrowseStore;
+  const typed = (term: string) => new BrowseQuery().withTerm(term);
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    api = new FakeListingsApi();
+    TestBed.configureTestingModule({
+      providers: [BrowseStore, { provide: LISTINGS_API, useValue: api }],
+    });
+    store = TestBed.inject(BrowseStore);
+    store.search(new BrowseQuery());
+  });
+
+  afterEach(() => vi.useRealTimers());
+
+  // L2-003 criterion 3: the list updates 300 ms after typing pauses.
+  it('asks once, 300 ms after the last change of the term', async () => {
+    store.search(typed('p'));
+    await vi.advanceTimersByTimeAsync(SEARCH_DELAY_MS - 1);
+    store.search(typed('pa'));
+    await vi.advanceTimersByTimeAsync(SEARCH_DELAY_MS - 1);
+    expect(api.calls).toHaveLength(1);
+
+    await vi.advanceTimersByTimeAsync(1);
+
+    expect(api.calls).toHaveLength(2);
+    expect(api.calls[1]!.filter.term).toBe('pa');
+  });
+
+  // L2-003 criterion 3: an earlier search in flight is cancelled as soon as the term changes,
+  // and never replaces a later result.
+  it('cancels the search in flight when the term changes', async () => {
+    store.search(typed('park'));
+    await vi.advanceTimersByTimeAsync(SEARCH_DELAY_MS);
+    store.search(typed('parking'));
+
+    expect(api.calls[1]!.signal.aborted).toBe(true);
+
+    await vi.advanceTimersByTimeAsync(SEARCH_DELAY_MS);
+    api.calls[2]!.resolve(pageOf(['later']));
+    api.calls[1]!.resolve(pageOf(['earlier']));
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(store.cards().map((view) => view.href)).toEqual(['/listings/later']);
+  });
+
+  // L2-003 criterion 6: Enter or Search searches without waiting.
+  it('asks at once when the term is submitted, even while it waits', async () => {
+    store.search(typed('hall'));
+    store.search(typed('hall'), { now: true });
+
+    expect(api.calls).toHaveLength(2);
+    expect(api.calls[1]!.filter.term).toBe('hall');
+
+    await vi.advanceTimersByTimeAsync(SEARCH_DELAY_MS);
+    expect(api.calls).toHaveLength(2);
+  });
+
+  // L2-002 criterion 4: a change of the switch leaves at once and keeps the term.
+  it('asks at once when the switch changes, with the term', () => {
+    store.search(typed('hall').withOffer('for-rent'));
+
+    expect(api.calls).toHaveLength(2);
+    expect(api.calls[1]!.filter).toEqual({ offer: 'for-rent', kind: null, term: 'hall' });
+  });
+
+  it('does not ask again when only white space changes', async () => {
+    store.search(typed('hall'));
+    await vi.advanceTimersByTimeAsync(SEARCH_DELAY_MS);
+    store.search(typed('hall '));
+    await vi.advanceTimersByTimeAsync(SEARCH_DELAY_MS);
+
+    expect(api.calls).toHaveLength(2);
+  });
+
+  // AGENTS.md, Lazy loading and memory: leaving clears the wait.
+  it('clears the wait when Browse is left', () => {
+    store.search(typed('hall'));
+
+    TestBed.resetTestingModule();
+
+    expect(vi.getTimerCount()).toBe(0);
   });
 });

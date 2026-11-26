@@ -92,6 +92,26 @@ public sealed class TelemetryTests : IDisposable
         }
     }
 
+    // L2-028 criterion 3 with ADR 0015: a search term never reaches a span, a log or a metric;
+    // the route is its template.
+    [Fact]
+    public async Task A_search_is_recorded_by_its_route_and_never_by_its_term()
+    {
+        using var client = _factory.CreateHttpsClient();
+        const string term = "hot-air-balloon-for-sarah";
+
+        using var response = await client.GetAsync($"/api/listings?show=wanted&q={term}", TestContext.Current.CancellationToken);
+        await _factory.Recorder.WaitForServerSpanAsync("api/listings");
+        _factory.FlushMetrics();
+        _factory.FlushLogs();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var recorded = string.Join('\n', _factory.EverythingRecorded());
+        Assert.Contains("http.route=api/listings", recorded, StringComparison.Ordinal);
+        Assert.DoesNotContain(term, recorded, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("show=wanted", recorded, StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary>The API with in-memory exporters behind the scrubber.</summary>
     private sealed class TelemetryApiFactory : ProbeApiFactory
     {

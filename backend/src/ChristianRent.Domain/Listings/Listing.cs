@@ -12,6 +12,9 @@ public sealed class Listing
     public const int MaxAreaLength = 80;
     public const int MaxNoteLength = 1000;
 
+    /// <summary>The title, the note and the area, normalised, with a space between each.</summary>
+    public const int MaxSearchTextLength = MaxTitleLength + MaxNoteLength + MaxAreaLength + 2;
+
     private readonly List<ListingPhoto> _photos = [];
 
     private Listing(
@@ -31,6 +34,7 @@ public sealed class Listing
         Area = area;
         CreatedAt = createdAt;
         Status = ListingStatus.WaitingForReview;
+        SearchText = string.Empty;
     }
 
     public Guid Id { get; private set; }
@@ -56,6 +60,12 @@ public sealed class Listing
     public string Area { get; private set; }
 
     public string? Note { get; private set; }
+
+    /// <summary>
+    /// The normalised title, note and area that a search matches (L2-003; ADR 0015). The listing
+    /// sets it whenever one of the three is set; nothing else writes it.
+    /// </summary>
+    public string SearchText { get; private set; }
 
     public ListingStatus Status { get; private set; }
 
@@ -94,6 +104,7 @@ public sealed class Listing
             Note = note,
         };
         listing._photos.AddRange(photos ?? []);
+        listing.RefreshSearchText();
         return listing;
     }
 
@@ -106,4 +117,8 @@ public sealed class Listing
 
     /// <summary>An admin removes the listing; it stops being public.</summary>
     public void Remove() => Status = ListingStatus.Removed;
+
+    private void RefreshSearchText() =>
+        SearchText = SearchNormalizer.Normalize(
+            string.Join(' ', new[] { Title, Note, Area }.Where(text => !string.IsNullOrWhiteSpace(text))));
 }

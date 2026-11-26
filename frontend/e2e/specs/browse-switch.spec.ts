@@ -8,7 +8,7 @@ import { BrowsePage } from '../pages/browse.page';
 
 test.describe('The switch on Browse', () => {
   // L2-002 criteria 1 to 3 and 6; L2-032 criterion 3: the choice is aria-current.
-  test('shows everything first, then only what is for rent or wanted, with counts @critical', async ({
+  test('shows everything first, then only what is for rent or wanted, with counts', async ({
     page,
     api,
   }) => {

@@ -7,6 +7,12 @@
   >
     <ng-container *ngTemplateOutlet="postingButtons" />
   </cr-hero>
+  <cr-search-bar
+    [term]="query().term"
+    [area]="area"
+    (termChange)="typed($event)"
+    (submitted)="submitted($event)"
+  />
   <div class="filters">
     <cr-segmented label="Show" [options]="switchOptions()" />
   </div>

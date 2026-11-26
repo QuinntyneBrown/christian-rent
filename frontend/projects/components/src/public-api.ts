@@ -10,6 +10,7 @@ export * from './lib/listing-card/listing-card';
 export * from './lib/listing-grid/listing-grid';
 export * from './lib/logo/logo';
 export * from './lib/plain-page/plain-page';
+export * from './lib/search-bar/search-bar';
 export * from './lib/segmented/segmented';
 export * from './lib/site-header/site-header';
 export * from './lib/skeleton/skeleton';
