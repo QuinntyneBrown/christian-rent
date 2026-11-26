@@ -6,6 +6,7 @@ const error = (status: number, code: string | null): ApiError => ({
   code,
   retryAt: null,
   reportedAt: null,
+  decided: null,
   fields: null,
 });
 

@@ -24,7 +24,9 @@ import {
   answerAdmin,
   answerDetails,
   answerQueue,
+  decisionPath,
 } from '../fixtures/review';
+import { ConfirmRemoveDialogPart } from '../pages/confirm-remove-dialog.part';
 import { ListingPage } from '../pages/listing.page';
 import { PostPage } from '../pages/post.page';
 import { ReportDialogPart } from '../pages/report-dialog.part';
@@ -688,6 +690,51 @@ export const SCREENS: readonly Screen[] = [
     },
     then: (page) => page.locator('.empty--error').waitFor(),
   },
+  // The confirmation before Remove (docs/mocks/dialogs/confirm-remove/), over Admin.
+  {
+    name: 'confirm-remove',
+    path: `/admin?item=${PARTY_BUS.id}`,
+    answer: answerReview,
+    then: atReviewNow(openRemove),
+  },
+  {
+    name: 'confirm-remove-new-listing',
+    path: '/admin',
+    answer: answerReview,
+    then: atReviewNow(openRemove),
+  },
+  {
+    name: 'confirm-remove-new-member',
+    path: `/admin?item=${ALICIA.id}`,
+    answer: answerReview,
+    then: atReviewNow(openRemove),
+  },
+  {
+    name: 'confirm-remove-busy',
+    path: `/admin?item=${PARTY_BUS.id}`,
+    answer: (api) => {
+      answerReview(api);
+      api.hold('POST', decisionPath(PARTY_BUS));
+    },
+    then: atReviewNow(async (page) => {
+      const dialog = await openRemove(page);
+      await dialog.confirm.click();
+      await page.locator('.dialog__footer [aria-busy="true"]').waitFor();
+    }),
+  },
+  {
+    name: 'confirm-remove-failed',
+    path: `/admin?item=${PARTY_BUS.id}`,
+    answer: (api) => {
+      answerReview(api);
+      api.refuse('POST', decisionPath(PARTY_BUS), 503, 'unavailable');
+    },
+    then: atReviewNow(async (page) => {
+      const dialog = await openRemove(page);
+      await dialog.confirm.click();
+      await dialog.alert.waitFor();
+    }),
+  },
   {
     name: 'admin-forbidden',
     path: '/admin',
@@ -702,8 +749,16 @@ function answerReview(api: ApiFixtures): void {
   answerDetails(api);
 }
 
+/** Presses Remove under the open item and waits for its confirmation. */
+async function openRemove(page: Page): Promise<ConfirmRemoveDialogPart> {
+  await page.locator('.admin__detail').getByRole('button', { name: 'Remove', exact: true }).click();
+  const dialog = new ConfirmRemoveDialogPart(page);
+  await dialog.keepIt.waitFor();
+  return dialog;
+}
+
 /** Freezes the clock on the Admin mocks' today and loads the page again, so waits read as drawn. */
-function atReviewNow(ready: (page: Page) => Promise<void>) {
+function atReviewNow(ready: (page: Page) => Promise<unknown>) {
   return async (page: Page) => {
     await page.clock.setFixedTime(REVIEW_NOW);
     await page.reload();

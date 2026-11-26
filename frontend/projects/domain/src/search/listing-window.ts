@@ -122,6 +122,19 @@ export class ListingWindow<T> {
     }
   }
 
+  /**
+   * Drops the held items that match, such as an item an admin decided (ADR 0025). A page keeps
+   * its cursors, so the pages after it are asked for as before.
+   */
+  drop(match: (item: T) => boolean): void {
+    for (let index = this.first; index <= this.last; index++) {
+      const slot = this.slots[index]!;
+      if (slot.items !== null) {
+        slot.items = slot.items.filter((item) => !match(item));
+      }
+    }
+  }
+
   /** Forgets every page, as before the first request. */
   clear(): void {
     this.slots = [];

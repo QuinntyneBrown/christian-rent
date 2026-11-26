@@ -84,7 +84,8 @@ test.describe('An item’s detail', () => {
     await expect(admin.viewOnSite).toHaveCount(0);
   });
 
-  // L2-019 criterion 9: a new member, their church and who entered it, with no control for it.
+  // L2-019 criterion 9: a new member, their church and who entered it; the only controls are the
+  // decisions (L2-020), none for the church.
   test('shows a new member, their church and what they have done', async ({ page }) => {
     const admin = new AdminPage(page);
 
@@ -107,7 +108,7 @@ test.describe('An item’s detail', () => {
     );
     await expect(admin.fact('Listings')).toHaveText('1 wanted listing, public');
     await expect(admin.fact('Messages sent')).toHaveText('None');
-    await expect(admin.detail.getByRole('button')).toHaveCount(0);
+    await expect(admin.decisions).toHaveText(['Approve', 'Remove']);
   });
 
   // ADR 0024: the selection is in the address, and a newer one aborts the request before it (L2-030).

@@ -9,6 +9,7 @@ import type {
   ReviewReport,
   ReviewReportReason,
 } from '@rent/api';
+import { DECISION_LABELS } from './decision-words';
 import { formatPrice } from '../listings/format-price';
 import { formatTime } from '../listings/format-retry-at';
 import { formatDay, formatWhen } from '../listings/format-when';
@@ -108,17 +109,23 @@ export function reportRest(report: ReviewReport, now: Date): string {
 
 /** The detail panel's content for an item (L2-019, criteria 2, 7, 8 and 9). */
 export function toReviewDetailView(detail: ReviewItemDetail, now: Date): ReviewDetailView | null {
+  const decisions = detail.decisions.map((decision) => ({
+    decision,
+    label: DECISION_LABELS[decision],
+  }));
   if (detail.member !== null) {
-    return memberView(detail.member);
+    return { ...memberView(detail.member), decisions };
   }
-  return detail.listing === null ? null : listingView(detail.listing, detail.report, now);
+  return detail.listing === null
+    ? null
+    : { ...listingView(detail.listing, detail.report, now), decisions };
 }
 
 function listingView(
   listing: ReviewListing,
   report: ReviewReport | null,
   now: Date,
-): ReviewListingView {
+): Omit<ReviewListingView, 'decisions'> {
   const price = formatPrice(listing.price, listing.offer);
   const when = reviewWhen(listing.when);
   const offer = listing.offer === 'wanted' ? 'Wanted' : 'For rent';
@@ -165,7 +172,7 @@ function mediaOf(listing: ReviewListing): ReviewListingView['media'] {
   };
 }
 
-function memberView(member: ReviewMember): ReviewMemberView {
+function memberView(member: ReviewMember): Omit<ReviewMemberView, 'decisions'> {
   const initials = initialsOf(member.name);
   return {
     kind: 'member',

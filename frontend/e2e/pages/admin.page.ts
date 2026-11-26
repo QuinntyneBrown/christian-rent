@@ -30,6 +30,11 @@ export class AdminPage {
   readonly viewOnSite: Locator;
   readonly detailSkeleton: Locator;
   readonly detailFailed: Locator;
+  /** The decision buttons under the detail, in order. */
+  readonly decisions: Locator;
+  readonly approve: Locator;
+  readonly keep: Locator;
+  readonly remove: Locator;
 
   constructor(private readonly page: Page) {
     this.nav = page.getByRole('navigation', { name: 'Admin' });
@@ -60,6 +65,10 @@ export class AdminPage {
     this.viewOnSite = this.detail.getByRole('link', { name: 'View on site' });
     this.detailSkeleton = this.detail.locator('.skeleton');
     this.detailFailed = this.detail.locator('.empty--error');
+    this.decisions = this.detail.locator('.decision-bar button');
+    this.approve = this.detail.getByRole('button', { name: 'Approve', exact: true });
+    this.keep = this.detail.getByRole('button', { name: 'Keep listing', exact: true });
+    this.remove = this.detail.getByRole('button', { name: 'Remove', exact: true });
   }
 
   async open(query = ''): Promise<void> {

@@ -19,6 +19,18 @@ describe('ListingWindow', () => {
     return window;
   }
 
+  // ADR 0025: a decided item leaves the queue, and the pages after it are asked for as before.
+  it('drops the items that match and keeps every cursor', () => {
+    const window = new ListingWindow<string>(3);
+    window.receive({ index: 0, cursor: null }, items(1), 'c1', measure);
+    window.receive({ index: 1, cursor: 'c1' }, items(2), 'c2', measure);
+
+    window.drop((item) => item === '12' || item === '21');
+
+    expect(window.items).toEqual(['11', '13', '22', '23']);
+    expect(window.nextRequest('down')).toEqual({ index: 2, cursor: 'c2' });
+  });
+
   it('asks for the first page with no cursor', () => {
     expect(new ListingWindow<string>().nextRequest('down')).toEqual({ index: 0, cursor: null });
   });

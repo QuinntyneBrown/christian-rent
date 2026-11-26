@@ -142,6 +142,40 @@ export class ReviewQueueStore {
     }
   }
 
+  /**
+   * The item to open once `id` has left the queue: the one after it, or the one before it when
+   * it was the last held; null when nothing else is held.
+   */
+  nextAfter(id: string): string | null {
+    const ids = this.items().map((item) => item.id);
+    const at = ids.indexOf(id);
+    if (at < 0) {
+      return ids[0] ?? null;
+    }
+    return ids[at + 1] ?? ids[at - 1] ?? null;
+  }
+
+  /**
+   * A decided item leaves the queue and the number waiting drops (L2-020, criterion 11). When
+   * the last item held goes and more wait, the queue is read again.
+   */
+  drop(id: string): void {
+    if (!this.items().some((item) => item.id === id)) {
+      return;
+    }
+    this.window.drop((item) => item.id === id);
+    this.publish();
+    const waiting = Math.max(0, (this._waiting() ?? 1) - 1);
+    this._waiting.set(waiting);
+    if (this.items().length === 0) {
+      if (waiting === 0) {
+        this._state.set('empty');
+      } else {
+        void this.load();
+      }
+    }
+  }
+
   private receive(
     request: PageRequest,
     items: QueueItemView[],

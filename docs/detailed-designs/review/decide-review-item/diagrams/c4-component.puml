@@ -9,7 +9,7 @@ Container_Boundary(spa, "rent application (Angular workspace)") {
 Container_Boundary(admlib, "admin library (lazy chunk)") {
   Component(page, "ReviewPage", "Angular page", "Routes decide events")
   Component(dialog, "ConfirmRemoveDialog", "CDK Dialog", "Confirms Remove")
-  Component(store, "ReviewQueueStore", "Route-scoped signal store", "decide(), next item, conflict")
+  Component(store, "ReviewDecider", "Route-scoped service", "decide(), next item, elsewhere")
   Component(toasts, "ToastQueue", "Route-scoped service", "8 s timers, released on destroy")
   Component(client, "HttpReviewQueueApi", "REVIEW_QUEUE_API", "Typed HTTP client")
 }
@@ -25,7 +25,7 @@ Rel(ui, page, "Emits decide")
 Rel(page, dialog, "Opens for Remove")
 Rel(page, store, "decide(id, decision)")
 Rel(store, toasts, "push(toast)")
-Rel(store, client, "decide(id, decision, version)")
+Rel(store, client, "decide(id, decision)")
 Rel(client, ctrl, "POST decision", "JSON/HTTPS")
 Rel(ctrl, handler, "Sends DecideReviewItemCommand")
 Rel(handler, item, "Decide(decision, adminId, now)")

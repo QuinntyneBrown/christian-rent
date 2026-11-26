@@ -3,7 +3,12 @@
   <div class="dialog__panel">
     <div class="dialog__header">
       @if (icon(); as icon) {
-        <div class="dialog__icon dialog__icon--info" aria-hidden="true">
+        <div
+          class="dialog__icon"
+          [class.dialog__icon--info]="tone() === 'info'"
+          [class.dialog__icon--danger]="tone() === 'danger'"
+          aria-hidden="true"
+        >
           <cr-icon [name]="icon" />
         </div>
       }

@@ -8,58 +8,73 @@
     <cr-skeleton />
     <cr-skeleton />
   </div>
-} @else if (view_.kind === 'member') {
-  <div class="review">
-    <div class="review__member">
-      <cr-avatar [initials]="view_.initials" [tint]="view_.tint" size="lg" />
-      <div>
-        <h2 class="review__title" tabindex="-1">{{ view_.name }}</h2>
-        <p class="review__joined">{{ view_.joined }}</p>
-      </div>
-    </div>
-    <ng-container *ngTemplateOutlet="facts; context: { $implicit: view_.facts }" />
-  </div>
 } @else {
   <div class="review">
-    @if (view_.report; as report) {
-      <div class="review__report">
-        <p>
-          <strong>{{ report.reason }}</strong> {{ report.rest }}
-        </p>
+    <ng-content select="[slot=notice]" />
+    @if (view_.kind === 'member') {
+      <div class="review__member">
+        <cr-avatar [initials]="view_.initials" [tint]="view_.tint" size="lg" />
+        <div>
+          <h2 class="review__title" tabindex="-1">{{ view_.name }}</h2>
+          <p class="review__joined">{{ view_.joined }}</p>
+        </div>
       </div>
-    }
-    @let media = view_.media;
-    @if (media.kind === 'photo') {
-      <img
-        class="review__photo"
-        [src]="media.url"
-        [alt]="media.alt"
-        [width]="media.width"
-        [height]="media.height"
-      />
-    } @else if (media.kind === 'wanted') {
-      <div class="review__wanted" aria-hidden="true">{{ view_.title }}</div>
+      <ng-container *ngTemplateOutlet="facts; context: { $implicit: view_.facts }" />
     } @else {
-      <div class="review__no-photo" role="img" aria-label="This listing has no photo">
-        <cr-icon name="image" size="lg" />
-      </div>
-    }
-    <div class="review__head">
-      <h2 class="review__title" tabindex="-1">{{ view_.title }}</h2>
-      @if (view_.price; as price) {
-        <p class="review__price">{{ price }}</p>
+      @if (view_.report; as report) {
+        <div class="review__report">
+          <p>
+            <strong>{{ report.reason }}</strong> {{ report.rest }}
+          </p>
+        </div>
       }
-    </div>
-    <p class="review__kind">
-      <cr-tag>{{ view_.tag }}</cr-tag>
-    </p>
-    @if (view_.note; as note) {
-      <p class="review__note">{{ note }}</p>
+      @let media = view_.media;
+      @if (media.kind === 'photo') {
+        <img
+          class="review__photo"
+          [src]="media.url"
+          [alt]="media.alt"
+          [width]="media.width"
+          [height]="media.height"
+        />
+      } @else if (media.kind === 'wanted') {
+        <div class="review__wanted" aria-hidden="true">{{ view_.title }}</div>
+      } @else {
+        <div class="review__no-photo" role="img" aria-label="This listing has no photo">
+          <cr-icon name="image" size="lg" />
+        </div>
+      }
+      <div class="review__head">
+        <h2 class="review__title" tabindex="-1">{{ view_.title }}</h2>
+        @if (view_.price; as price) {
+          <p class="review__price">{{ price }}</p>
+        }
+      </div>
+      <p class="review__kind">
+        <cr-tag>{{ view_.tag }}</cr-tag>
+      </p>
+      @if (view_.note; as note) {
+        <p class="review__note">{{ note }}</p>
+      }
+      <ng-container *ngTemplateOutlet="facts; context: { $implicit: view_.facts }" />
     }
-    <ng-container *ngTemplateOutlet="facts; context: { $implicit: view_.facts }" />
-    @if (view_.siteUrl; as siteUrl) {
-      <cr-decision-bar [viewUrl]="siteUrl" />
-    }
+    <cr-decision-bar [viewUrl]="view_.kind === 'listing' ? view_.siteUrl : null">
+      @for (option of view_.decisions; track option.decision) {
+        <button
+          cr-button
+          type="button"
+          [variant]="option.decision === 'remove' ? 'danger-quiet' : 'success'"
+          [busy]="deciding() === option.decision"
+          [disabled]="decided()"
+          [attr.aria-disabled]="
+            deciding() !== null && deciding() !== option.decision ? 'true' : null
+          "
+          (click)="choose(option.decision)"
+        >
+          <cr-icon [name]="option.decision === 'remove' ? 'x' : 'check'" />{{ option.label }}
+        </button>
+      }
+    </cr-decision-bar>
   </div>
 }
 

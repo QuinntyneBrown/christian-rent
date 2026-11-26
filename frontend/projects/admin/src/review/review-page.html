@@ -52,7 +52,27 @@
         }
       }
       @case ('loaded') {
-        <cr-review-detail [view]="detail.view()" />
+        <cr-review-detail
+          [view]="detail.view()"
+          [deciding]="decider.deciding()"
+          [decided]="elsewhere() !== null"
+          (decide)="decide($event)"
+        >
+          @if (elsewhere(); as elsewhere) {
+            <cr-alert
+              slot="notice"
+              class="review-page__notice"
+              tone="warning"
+              [announce]="true"
+              title="This was already decided."
+              [text]="elsewhere.text"
+            >
+              <button cr-button variant="link" type="button" (click)="next()">
+                Go to the next item
+              </button>
+            </cr-alert>
+          }
+        </cr-review-detail>
       }
       @case ('failed') {
         <cr-empty-state

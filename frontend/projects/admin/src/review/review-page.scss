@@ -2,3 +2,10 @@
 :host {
   display: block;
 }
+
+// The warning above an item another admin decided first, as docs/mocks/pages/admin/decided.html
+// spaces it.
+.review-page__notice {
+  display: block;
+  margin-bottom: var(--space-6);
+}

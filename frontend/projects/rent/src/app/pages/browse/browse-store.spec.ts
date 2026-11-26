@@ -18,6 +18,7 @@ const unreachable: ApiError = {
   code: null,
   retryAt: null,
   reportedAt: null,
+  decided: null,
   fields: null,
 };
 

@@ -14,7 +14,7 @@ function store(report: ReportsApi['report']): ReportStore {
 const answers = () => vi.fn<ReportsApi['report']>().mockResolvedValue({ reportedAt: REPORTED_AT });
 
 function refusal(code: string | null, status: number, reportedAt: string | null = null): ApiError {
-  return { status, code, retryAt: null, reportedAt, fields: null };
+  return { status, code, retryAt: null, reportedAt, decided: null, fields: null };
 }
 
 const refuses = (error: ApiError) => vi.fn<ReportsApi['report']>().mockRejectedValue(error);

@@ -10,13 +10,14 @@ import { ReviewDetailStore } from './review-detail-store';
 import { SKELETON_DELAY_MS } from './review-queue-store';
 
 function refusal(status: number, code: string | null): ApiError {
-  return { status, code, retryAt: null, reportedAt: null, fields: null };
+  return { status, code, retryAt: null, reportedAt: null, decided: null, fields: null };
 }
 
 function member(id: string, name: string): ReviewItemDetail {
   return {
     id,
     kind: 'new-member',
+    decisions: ['approve', 'remove'],
     waitingSince: '2026-06-08T12:00:00Z',
     listing: null,
     report: null,
@@ -46,6 +47,10 @@ class FakeReviewQueueApi implements ReviewQueueApi {
   }[] = [];
 
   page(): Promise<ReviewQueuePage> {
+    return Promise.reject(new Error('Not asked in these tests.'));
+  }
+
+  decide(): Promise<void> {
     return Promise.reject(new Error('Not asked in these tests.'));
   }
 

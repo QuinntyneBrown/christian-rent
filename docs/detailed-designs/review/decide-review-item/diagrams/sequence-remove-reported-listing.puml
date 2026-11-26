@@ -18,7 +18,7 @@ actor "Admin" as actor
 box "Frontend — admin library (lazy)" #E0F2FE
   participant "ReviewPage" as page
   participant "ConfirmRemoveDialog" as dialog
-  participant "ReviewQueueStore" as store
+  participant "ReviewDecider" as store
 end box
 box "Backend — ChristianRent.Api" #D1FADF
   participant "ReviewQueueController" as ctrl
@@ -36,17 +36,17 @@ page -> dialog : Open, focus on "Keep it" (L2-020 criterion 4)
 dialog --> actor : Names the listing and what follows
 alt confirms "Remove listing"
   actor -> dialog : Confirm
-  dialog -> store : decide(id, Remove)
-  store -> ctrl : POST /api/review-queue/{id}/decision {Remove, version}
+  dialog -> store : decide(remove)
+  store -> ctrl : POST /api/review-queue/{id}/decision {decision: remove}
   ctrl -> handler : Send DecideReviewItemCommand
   handler -> db : Item, report, listing, other waiting items on the listing
   handler -> listing : Remove(), no longer public (L2-020 criterion 2)
   handler -> handler : Decide every waiting item on the listing, close each report
   handler -> db : Save in one unit of work
-  handler -> notify : ListingRemovedAsync(poster, listing) (L2-020 criterion 7)
-  handler --> ctrl : DecidedDto with the closed item ids
-  ctrl --> store : 200 OK
-  store -> store : Drop every closed item, select the next
+  handler -> notify : ListingRemoved(poster, listing) (L2-020 criterion 7)
+  handler --> ctrl : Done
+  ctrl --> store : 204 No Content
+  store -> store : Select the next, drop the item
   dialog --> actor : Closed, success toast names the removal (L2-020 criterion 11)
 else chooses "Keep it" or Escape
   dialog --> page : Closed, nothing changed

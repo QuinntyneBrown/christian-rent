@@ -127,6 +127,7 @@ export const DETAILS: Record<string, unknown> = {
     id: YARD.id,
     kind: 'new-listing',
     waitingSince: YARD.waitingSince,
+    decisions: ['approve', 'remove'],
     listing: {
       id: '1157a000-0000-4000-8000-0000000000a1',
       offer: 'for-rent',
@@ -161,6 +162,7 @@ export const DETAILS: Record<string, unknown> = {
     id: ALICIA.id,
     kind: 'new-member',
     waitingSince: ALICIA.waitingSince,
+    decisions: ['approve', 'remove'],
     listing: null,
     report: null,
     member: {
@@ -181,6 +183,7 @@ export const DETAILS: Record<string, unknown> = {
     id: PARTY_BUS.id,
     kind: 'report',
     waitingSince: PARTY_BUS.waitingSince,
+    decisions: ['keep', 'remove'],
     listing: {
       id: '1157a000-0000-4000-8000-0000000000b5',
       offer: 'for-rent',
@@ -211,6 +214,7 @@ export const DETAILS: Record<string, unknown> = {
     id: LOCKER.id,
     kind: 'new-listing',
     waitingSince: LOCKER.waitingSince,
+    decisions: ['approve', 'remove'],
     listing: {
       id: '1157a000-0000-4000-8000-0000000000c3',
       offer: 'wanted',
@@ -252,6 +256,7 @@ function memberDetail(item: QueueItemFixture): unknown {
     id: item.id,
     kind: 'new-member',
     waitingSince: item.waitingSince,
+    decisions: ['approve', 'remove'],
     listing: null,
     report: null,
     member: {
@@ -273,4 +278,21 @@ function memberDetail(item: QueueItemFixture): unknown {
 /** Every detail request, as `GET /api/review-queue/{id}`. */
 export function detailRequests(api: ApiFixtures): string[] {
   return api.requests.filter((request) => /^GET \/api\/review-queue\/[^?]+$/.test(request));
+}
+
+/** Where a decision on an item is sent. */
+export function decisionPath(item: QueueItemFixture): string {
+  return `/api/review-queue/${item.id}/decision`;
+}
+
+/** Every decision is saved. */
+export function answerDecisions(api: ApiFixtures, items: QueueItemFixture[] = QUEUE): void {
+  for (const item of items) {
+    api.answer('POST', decisionPath(item), { status: 204 });
+  }
+}
+
+/** The decisions sent about an item, in order, as `approve`, `keep` or `remove`. */
+export function decisionsSent(api: ApiFixtures, item: QueueItemFixture): unknown[] {
+  return api.bodies.get(`POST ${decisionPath(item)}`) ?? [];
 }

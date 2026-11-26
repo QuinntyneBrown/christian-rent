@@ -1,4 +1,5 @@
 import type { AvatarTint } from '../listings/listing-view';
+import type { ReviewDecision } from './review-item';
 
 /** One line of the detail's facts: "Posted by", "The Okafor family", and what is verified. */
 export interface ReviewFact {
@@ -6,6 +7,12 @@ export interface ReviewFact {
   /** As text, never HTML. */
   readonly value: string;
   readonly verified: 'member' | 'church' | null;
+}
+
+/** A decision button: "Approve", "Keep listing" or "Remove". */
+export interface ReviewDecisionOption {
+  readonly decision: ReviewDecision;
+  readonly label: string;
 }
 
 /** What the detail shows above the listing's title. */
@@ -35,6 +42,7 @@ export interface ReviewListingView {
   readonly facts: readonly ReviewFact[];
   /** Where "View on site" leads, for a report; null for a listing that is not public yet. */
   readonly siteUrl: string | null;
+  readonly decisions: readonly ReviewDecisionOption[];
 }
 
 /** A new member (L2-019, criterion 9). */
@@ -46,6 +54,7 @@ export interface ReviewMemberView {
   /** "Joined Jun 8, 2026, 11:20 a.m.". */
   readonly joined: string;
   readonly facts: readonly ReviewFact[];
+  readonly decisions: readonly ReviewDecisionOption[];
 }
 
 /** The detail panel's content, formatted by `@rent/domain`'s `toReviewDetailView`. */

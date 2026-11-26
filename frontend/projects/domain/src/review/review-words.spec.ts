@@ -131,6 +131,7 @@ function detailOf(change: Partial<ReviewItemDetail>): ReviewItemDetail {
   return {
     id: 'item-1',
     kind: 'report',
+    decisions: ['keep', 'remove'],
     waitingSince: now.toISOString(),
     listing,
     report: { reason: 'fake', note: null, reportedAt: now.toISOString() },
@@ -151,6 +152,10 @@ describe('toReviewDetailView', () => {
       price: '$40 / hour',
       tag: 'For rent · thing',
       siteUrl: '/listings/listing-1',
+      decisions: [
+        { decision: 'keep', label: 'Keep listing' },
+        { decision: 'remove', label: 'Remove' },
+      ],
     });
     expect(view?.facts.map((fact) => [fact.name, fact.value, fact.verified])).toEqual([
       ['Posted by', 'Mike Rentals', null],
