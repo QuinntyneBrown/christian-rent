@@ -18,6 +18,10 @@ export class DateRange {
   /** The prefix of the inputs' ids, unique on the page: `{fieldId}-start`, `{fieldId}-end`. */
   readonly fieldId = input.required<string>();
   readonly legend = input.required<string>();
+  /** In the message box the legend is for assistive technology only, and the fields stand alone. */
+  readonly legendHidden = input(false);
+  /** The earliest start date, as an ISO date, which the browser's picker offers; null for any. */
+  readonly min = input<string | null>(null);
   readonly start = model('');
   readonly end = model('');
   /** The range in words, such as "Jul 14 to 18, 2026", or null to show none. */

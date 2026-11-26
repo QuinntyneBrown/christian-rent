@@ -37,6 +37,12 @@ export function formatWhen(when: ListingWhen): string | null {
   return `${MONTHS[start.month]} ${start.day} to ${end.day}, ${end.year}`;
 }
 
+/** One date without its weekday, "Jun 13, 2026"; null when it is not an ISO date. */
+export function formatDay(iso: string): string | null {
+  const day = parse(iso);
+  return day === null ? null : `${MONTHS[day.month]} ${day.day}, ${day.year}`;
+}
+
 /** An ISO date (YYYY-MM-DD) as a calendar day, with no time zone to shift it. */
 function parse(iso: string): Day | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);

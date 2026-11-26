@@ -1,5 +1,5 @@
 <fieldset class="line-field">
-  <legend class="line-field__label">{{ legend() }}</legend>
+  <legend class="line-field__label" [class.visually-hidden]="legendHidden()">{{ legend() }}</legend>
   <div class="date-range">
     <div class="field">
       <label class="field__label" [for]="fieldId() + '-start'">From</label>
@@ -8,6 +8,7 @@
         type="date"
         [id]="fieldId() + '-start'"
         [value]="start()"
+        [attr.min]="min()"
         [readOnly]="readonly()"
         [attr.aria-invalid]="startError() ? 'true' : null"
         [attr.aria-describedby]="startError() ? errorId() : null"
