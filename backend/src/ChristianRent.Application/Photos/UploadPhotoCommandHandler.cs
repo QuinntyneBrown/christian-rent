@@ -19,9 +19,9 @@ internal sealed class UploadPhotoCommandHandler(
     IPhotoInspector inspector,
     IPhotoProcessor processor,
     IPhotoStorage storage,
-    TimeProvider clock) : IRequestHandler<UploadPhotoCommand, PhotoRefDto>
+    TimeProvider clock) : IRequestHandler<UploadPhotoCommand, UploadedPhotoDto>
 {
-    public async Task<PhotoRefDto> Handle(UploadPhotoCommand command, CancellationToken cancellationToken)
+    public async Task<UploadedPhotoDto> Handle(UploadPhotoCommand command, CancellationToken cancellationToken)
     {
         var memberId = caller.RequireMember();
         Refuse(PhotoRules.CheckLength(command.Length));
@@ -40,7 +40,7 @@ internal sealed class UploadPhotoCommandHandler(
 
         database.Photos.Add(Photo.Upload(id, memberId, facts!.Width, facts.Height, clock.GetUtcNow()));
         await database.SaveChangesAsync(cancellationToken);
-        return PhotoRefDto.Of(id);
+        return UploadedPhotoDto.Of(id);
     }
 
     /// <summary>A refusal is answered 400 with the rule's code (ADR 0021).</summary>

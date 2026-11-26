@@ -58,7 +58,7 @@ interface IPhotoStorage {
 class SkiaPhotoInspector
 class SkiaPhotoProcessor
 class UploadPhotoCommandHandler {
-  +Handle(command: UploadPhotoCommand): Task<PhotoRefDto>
+  +Handle(command: UploadPhotoCommand): Task<UploadedPhotoDto>
 }
 class DeletePhotoCommandHandler {
   +Handle(command: DeletePhotoCommand): Task

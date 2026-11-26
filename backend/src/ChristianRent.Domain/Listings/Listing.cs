@@ -116,7 +116,8 @@ public sealed class Listing
 
     /// <summary>
     /// A member posts a listing: it waits for review and is not public until an admin approves
-    /// it (L2-012, criterion 1). The fields have been checked by the command's validator.
+    /// it (L2-012, criterion 1). Its photos are in the order given, the first on the card
+    /// (L2-013, criterion 1). The fields have been checked by the command's validator.
     /// </summary>
     public static Listing Post(
         Guid memberId,
@@ -130,9 +131,11 @@ public sealed class Listing
         DateOnly? endDate,
         string area,
         string? note,
-        DateTimeOffset now)
+        DateTimeOffset now,
+        IReadOnlyList<Guid>? photoIds = null)
     {
-        var listing = Create(Guid.NewGuid(), memberId, offer, kind, title, price, whenText, startDate, endDate, area, note, now);
+        var photos = (photoIds ?? []).Select((photoId, position) => ListingPhoto.Create(photoId, position, description: null));
+        var listing = Create(Guid.NewGuid(), memberId, offer, kind, title, price, whenText, startDate, endDate, area, note, now, photos);
         listing.ClientRequestId = clientRequestId;
         return listing;
     }

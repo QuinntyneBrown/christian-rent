@@ -1,5 +1,6 @@
 using ChristianRent.Application.Abstractions;
 using ChristianRent.Application.Members;
+using ChristianRent.Application.Photos;
 using ChristianRent.Infrastructure.Persistence;
 using ChristianRent.Infrastructure.Seeding;
 using FluentValidation;
@@ -17,11 +18,13 @@ namespace ChristianRent.Cli;
 public static class CliApp
 {
     public const string Usage = """
-        Usage: ChristianRent.Cli <migrate|seed|purge-departed>
+        Usage: ChristianRent.Cli <migrate|seed|purge-departed|purge-photos>
           migrate         Apply the pending EF Core migrations to the database in ConnectionStrings:Default.
           seed            Enter the sample data of the mocks' cast and its photos. Safe to run again: it changes nothing twice.
           purge-departed  Make members who left Members:PurgeAfterDays (at most 30) days ago anonymous, and delete
                           their listings and photos. Run it daily. Safe to run again: it changes nothing twice.
+          purge-photos    Delete the photos no posted listing names that were uploaded 24 hours ago or more, and
+                          their files. Run it hourly. Safe to run again: it changes nothing twice.
         """;
 
     public static async Task<int> RunAsync(string[] args, IServiceProvider services, TextWriter output, CancellationToken cancellationToken)
@@ -59,6 +62,12 @@ public static class CliApp
                     await output.WriteLineAsync(string.Join(Environment.NewLine, refused.Errors.Select(error => error.ErrorMessage)));
                     return 1;
                 }
+
+            case ["purge-photos"]:
+                var deleted = await scope.ServiceProvider.GetRequiredService<ISender>()
+                    .Send(new PurgeUnattachedPhotosCommand(), cancellationToken);
+                await output.WriteLineAsync($"Deleted {deleted} unattached photos.");
+                return 0;
 
             default:
                 await output.WriteLineAsync(Usage);

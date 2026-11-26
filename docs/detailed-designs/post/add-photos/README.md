@@ -56,7 +56,7 @@ Photos become part of a listing when it is published; see
 **Backend**
 
 - **`PhotosController`** — `POST /api/photos` (member required; one multipart field, `file`;
-  request body limit 10 MB plus 64 KiB for the form; 201 with the `PhotoRefDto`),
+  request body limit 10 MB plus 64 KiB for the form; 201 with the `UploadedPhotoDto`),
   `DELETE /api/photos/{id}` (the uploader only, unattached only; 204) and
   `GET /api/photos/{id}/{rendition}` (`[AllowAnonymous]`). Each sends one MediatR request.
 - **`UploadPhotoCommand`** — `{ Content: Stream, Length }`. The file name and the declared
