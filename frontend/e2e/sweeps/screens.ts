@@ -23,10 +23,14 @@ import {
   REVIEW_NOW,
   type ReviewRowFixture,
   answerAdmin,
+  answerDecision,
+  decisionOf,
+  refuseDecided,
   manyRows,
   queuePage,
 } from '../fixtures/review';
 import { AdminPage } from '../pages/admin.page';
+import { ConfirmRemoveDialogPart } from '../pages/confirm-remove-dialog.part';
 import { ListingPage } from '../pages/listing.page';
 import { PostPage } from '../pages/post.page';
 import { ReportDialogPart } from '../pages/report-dialog.part';
@@ -119,6 +123,93 @@ function adminScreen(
     },
   };
 }
+
+/** Selects a row from tablet width, where it can be decided; a phone has the queue alone. */
+async function onDecisionBar(
+  page: Page,
+  row: ReviewRowFixture,
+  then: (admin: AdminPage) => Promise<unknown>,
+): Promise<void> {
+  await selectItem(page, row);
+  if ((page.viewportSize()?.width ?? 0) >= 768) {
+    await then(new AdminPage(page));
+  }
+}
+
+/** The confirmation of Remove on `row`, left as it opens, or after its removal is pressed. */
+function confirmRemove(
+  name: string,
+  row: ReviewRowFixture,
+  answer: (api: ApiFixtures) => void,
+  press: boolean,
+): Screen {
+  return adminScreen(name, answer, (page) =>
+    onDecisionBar(page, row, async (admin) => {
+      await admin.remove.click();
+      const dialog = new ConfirmRemoveDialogPart(page);
+      await dialog.keepIt.waitFor();
+      if (press) {
+        await dialog.confirm.click();
+      }
+    }),
+  );
+}
+
+/** The decision bar and what follows a decision (docs/mocks/, journey 11). */
+const DECIDING_SCREENS: readonly Screen[] = [
+  confirmRemove('confirm-remove', REPORT_ROW, asItIs, false),
+  confirmRemove('confirm-remove-new-listing', GARDEN_ROW, asItIs, false),
+  confirmRemove('confirm-remove-new-member', MEMBER_ROW, asItIs, false),
+  confirmRemove(
+    'confirm-remove-busy',
+    REPORT_ROW,
+    (api) => void api.hold('POST', decisionOf(REPORT_ROW.id)),
+    true,
+  ),
+  confirmRemove(
+    'confirm-remove-failed',
+    REPORT_ROW,
+    (api) => api.refuse('POST', decisionOf(REPORT_ROW.id), 500, 'server_error'),
+    true,
+  ),
+  adminScreen(
+    'admin-deciding',
+    (api) => void api.hold('POST', decisionOf(GARDEN_ROW.id)),
+    (page) => onDecisionBar(page, GARDEN_ROW, (admin) => admin.approve.click()),
+  ),
+  adminScreen(
+    'admin-decided',
+    (api) => refuseDecided(api, GARDEN_ROW.id, { decision: 'approve', decidedByYou: false }),
+    (page) => onDecisionBar(page, GARDEN_ROW, (admin) => admin.approve.click()),
+  ),
+  adminScreen(
+    'admin-toast-success',
+    (api) => answerDecision(api, GARDEN_ROW.id),
+    (page) => onDecisionBar(page, GARDEN_ROW, (admin) => admin.approve.click()),
+  ),
+  adminScreen(
+    'admin-toast-danger',
+    (api) => api.refuse('POST', decisionOf(GARDEN_ROW.id), 500, 'server_error'),
+    (page) => onDecisionBar(page, GARDEN_ROW, (admin) => admin.approve.click()),
+  ),
+  {
+    // The look for new items comes a minute on, so this screen's clock is moved there.
+    ...adminScreen(
+      'admin-toast-info',
+      (api) =>
+        api.answer('GET', '/api/review-queue/arrivals', {
+          body: { newListings: 1, reports: 1, newMembers: 0 },
+        }),
+      async (page) => {
+        const admin = new AdminPage(page);
+        await admin.rows.first().waitFor();
+        await page.clock.fastForward(60_000);
+        await admin.showThem.waitFor();
+      },
+    ),
+    before: (page) => page.clock.install({ time: REVIEW_NOW }),
+  },
+];
 
 const ADMIN_SCREENS: readonly Screen[] = [
   adminScreen('admin', asItIs, (page) => selectItem(page, GARDEN_ROW)),
@@ -695,6 +786,7 @@ export const SCREENS: readonly Screen[] = [
     then: (page) => page.getByRole('dialog').waitFor(),
   },
   ...ADMIN_SCREENS,
+  ...DECIDING_SCREENS,
 ];
 
 /** Opens the join dialog from the host page and waits for its churches. */

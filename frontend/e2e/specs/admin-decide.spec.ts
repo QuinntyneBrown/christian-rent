@@ -23,7 +23,10 @@ test.describe('Deciding a review item', () => {
   });
 
   // L2-020 criteria 1, 8, 11, 15 and 16.
-  test('approves a new listing, says so, and selects the next item', async ({ page, api }) => {
+  test('approves a new listing, says so, and selects the next item @critical', async ({
+    page,
+    api,
+  }) => {
     answerAdmin(api);
     answerDecision(api, GARDEN_ROW.id);
     const admin = new AdminPage(page);
