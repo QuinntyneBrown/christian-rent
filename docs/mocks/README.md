@@ -166,3 +166,10 @@ Legend: ✅ mock exists · ➖ not applicable (reason in manifest) · ❌ missin
    page behind it is drawn inert; in the app it is an `h2` over the screen's own `h1`, as the
    design system's dialog page says. The heading and its description use `dialog__heading` and
    `dialog__description` rather than inline styles.
+10. **Posting.** The area is free text with its hint; no list of Canadian places is consulted
+   yet, and an admin reviews every listing (ADR 0019). Behind the join dialog, the preview of a
+   person who is not a member yet shows "Your church" (and "Your name" when wanted), since they
+   have no church until they join. The preview formats a price as Browse does, so the invalid
+   state draws "$250,000", and the dates state reads its range as a card does, "Jun 20 to Aug
+   30, 2026" (L2-022). Until journey 7 builds uploading, the photos field's Add button is
+   disabled in the app; the mocks draw the field as it will be.

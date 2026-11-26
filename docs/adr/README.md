@@ -29,3 +29,4 @@ record giving its reason (`AGENTS.md`, *Prefer best practice*).
 | [0016](0016-listing-screen-open-decisions.md) | The Listing screen: area without distance, a gallery of one photo or none, the fallback text alternative, "Posted", the avatar, the price in the message box's head, and the title | Accepted |
 | [0017](0017-identifying-a-person-until-sign-in.md) | A signed-in person is a `sub` claim; joining stores it on `Member` and no sign-in screen is built | Accepted |
 | [0018](0018-joining-open-decisions.md) | Joining: how a new church is matched, the limits, the dialog's title by purpose, churches that fail to load, and the gate's host page | Accepted |
+| [0019](0019-posting-open-decisions.md) | Posting: the area as free text, the draft in `sessionStorage`, past dates, the photos field until journey 7, the member's church, placeholders, the write limit, and when posting reopens | Accepted |

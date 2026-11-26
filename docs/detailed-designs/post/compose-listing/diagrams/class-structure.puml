@@ -48,7 +48,7 @@ class ListingDraftValidator <<TypeScript>> {
 class PostStore <<Angular>> {
   +draft: Signal<ListingDraft>
   +errors: Signal<DraftErrors>
-  +previewCard: Signal<ListingCard>
+  +previewCard: Signal<ListingCardView>
   +setOffer(offer): void
   +setKind(kind): void
   +patch(change: Partial<ListingDraft>): void
@@ -60,13 +60,14 @@ class DraftStore <<TypeScript>> {
   +clear(): void
 }
 class MemberGate <<Angular>> {
-  +requireMember(): Promise<boolean>
+  +requireMember(purpose): Promise<boolean>
 }
 PostStore *-- ListingDraft
 PostStore *-- DraftErrors
 PostStore ..> ListingDraftValidator : uses
 ListingDraft *-- WhenText
 ListingDraft *-- WhenDates
-MemberGate ..> DraftStore : saves / restores
+PostStore ..> DraftStore : saves on change / restores / clears
+PostStore ..> MemberGate : requireMember('post') on entry and before publishing
 DraftStore ..> ListingDraft
 @enduml

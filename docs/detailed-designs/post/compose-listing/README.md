@@ -24,19 +24,23 @@ changes data. Sending the draft is designed in
 
 **Frontend — `rent` application**
 
-- **`PostPage`** (`rent/src/app/post/post-page.ts`, selector `cr-post-page`) — lazy page for
-  `/post`. It provides `PostStore`. It reads the query parameters `offer` (`for-rent` or
-  `wanted`) and `title`, which Browse sets (L2-004, L2-005). The `post-layout` block puts the
+- **`PostPage`** (`rent/src/app/pages/post/post-page.ts`, selector `cr-post-page`, route
+  `post.routes.ts`) — lazy page for `/post`. Its route provides `PostStore` and
+  `LISTINGS_API`. It reads the query parameters `offer` (`for-rent` or `wanted`) and `title`,
+  which Browse sets (L2-004, L2-005), and applies them over the kept draft (ADR 0019). The `post-layout` block puts the
   preview under the form below 768 px and beside it from 768 px (L2-031, criterion 4).
 - **`PostStore`** — route-scoped signal store. `draft` is a `ListingDraft` signal;
   `errors` is a `DraftErrors` signal; `previewCard` is a `computed` that maps the draft
   through `draftToCard`. `setOffer('wanted')` clears the photo list and keeps every other
   field; `setKind()` changes only the kind (L2-009, criteria 1 and 2). `validate()` runs
   `ListingDraftValidator` and sets every error at once. `PostPage` then moves focus to the
-  error summary (L2-010, criterion 8). The draft is never reset by a failed validation.
-- **`MemberGate`** — on entry, `PostPage` asks `MemberGate.requireMember()`. For a person
-  who is not a member it saves the draft through `DraftStore`, opens the Join dialog, and
-  restores the draft afterwards (L2-009, criterion 4).
+  error summary (L2-010, criterion 8). The draft is never reset by a failed validation. An
+  `effect` writes the draft through `DraftStore` on every change, and the store reads it back
+  when it is created, so the draft survives the join dialog and a reload (L2-012, criterion 11;
+  ADR 0019).
+- **`MemberGate`** — on entry, `PostStore` asks `MemberGate.requireMember('post')`, and asks
+  again before it publishes. A person who is not a member sees the Join dialog over Post with
+  what they chose kept (L2-009, criterion 4); if they close it, Post stays and nothing is sent.
 
 **Frontend — `domain` library**
 
@@ -46,15 +50,22 @@ changes data. Sending the draft is designed in
   `text` (L2-009, criterion 6; L2-010, criterion 10).
 - **`ListingDraftValidator`** (`domain/listings/`) — pure function from a draft to
   `DraftErrors`. Its rules are the table below, with one unit test per row.
-- **`draftToCard`** — maps a draft to a `ListingCard`. An empty title, price or area becomes
+- **`draftToCard`** (`domain/listings/draft-card.ts`) — maps a draft and the member to the
+  `ListingCardView` that `cr-listing-card` draws, with no address. An empty title, price or area becomes
   the placeholder "Your listing title", "Price" or "Your area", never "undefined" and never
   an empty price (L2-011, criterion 3). A price of 0 becomes "Free". A wanted draft maps to a
   card with no photo. The card takes the church name, and for a wanted draft the poster's
-  name, from `SESSION.member()`, and has no distance (criterion 4). A draft for rent with no
+  name, from `SESSION.member()` (`MemberDto.ChurchName`, ADR 0019), and has no distance
+  (criterion 4). For a person who is not a member yet they are "Your church" and "Your name"
+  (criterion 6). A wanted draft with no budget shows no price, as Browse does. The card is
+  marked `placeholder`, which mutes its title and price, while the title is the placeholder. A draft for rent with no
   photo maps to the placeholder image named "No photo yet" (criterion 5).
-- **`DraftStore`** (`domain/storage/`) — reads and writes the draft in `sessionStorage`
-  under the key `cr.post.draft`. Photos are kept by identifier only. Storage content is
-  parsed as data and validated before use.
+- **`DraftStore`** (`domain/storage/draft-store.ts`) — reads and writes the draft in the
+  `Storage` it is given (`sessionStorage`) under the key `cr.post.draft`. Photos are kept by
+  identifier only. Storage content is parsed as data and validated before use: anything that is
+  not a whole draft is ignored. A storage that refuses to write (private mode, full) is
+  ignored too; the draft then lasts as long as the page. It is cleared when the listing is
+  sent and on "Post another" (ADR 0019).
 
 | Field | Rule | Error code |
 |---|---|---|
@@ -69,7 +80,35 @@ changes data. Sending the draft is designed in
 
 The 80-character limit on the area is a design choice; the requirement names no limit, and
 L1 lists it as not yet decided. "When" is required because Post labels only the note and the
-budget "Optional" (L2-010, criteria 11 and 12).
+budget "Optional" (L2-010, criteria 11 and 12). A price is typed as text: commas and spaces
+are ignored, and anything that is not a number of dollars with at most two decimals is
+invalid. The period is a select that always has a value, "per day" in a new draft, so
+`period_required` is a backend rule only.
+
+Each invalid field says why under itself, and the summary lists one short entry per field,
+titled "1 thing needs fixing before this can be posted." or "{n} things need fixing before
+this can be posted." (the invalid mock):
+
+| Field | Case | Message under the field | Entry in the summary |
+|---|---|---|---|
+| title | under 3 | A title is 3 to 80 characters. This one is {n}. | Make the title longer |
+| title | over 80 | A title is 3 to 80 characters. This one is {n}. | Make the title shorter |
+| price, for rent | empty | Enter a price. Enter 0 to offer it free. | Give a price |
+| price, for rent | not a number | Enter a price in dollars, such as 25 or 25.50. | Fix the price |
+| price, for rent | over 100,000 | A price is between $0 and $100,000. Enter 0 to offer it free. | Lower the price |
+| price, wanted | not a number | Enter a budget in dollars, such as 120 or 120.50. | Fix the budget |
+| price, wanted | over 100,000 | A budget is up to $100,000. | Lower the budget |
+| when, text, for rent | empty | Say when it’s available, such as “Most weekends”. | Say when |
+| when, text, wanted | empty | Say when you need it, such as “Weekday evenings”. | Say when |
+| when, text | over 80 | Describe when in 80 characters or fewer. | Shorten when |
+| when, dates | a date missing | Choose a start and an end date. | Choose the dates |
+| when, dates | end before start | The end date is before the start date. | Fix the dates |
+| area | empty | Enter a city or neighbourhood in Canada, such as “Willoughby, Langley”. | Say where it is |
+| area | over 80 | Describe where in 80 characters or fewer. | Shorten where |
+| note | over 1,000 | A note is 1,000 characters or fewer. This one is {n}. | Shorten the note |
+
+Lengths count the text as it is sent: a one-line field trimmed and single-spaced, the note
+trimmed (handle-member-data design).
 
 **Frontend — `components` library**
 
@@ -110,12 +149,13 @@ Post has no field for a payment, a deposit or a card (L2-024).
 The backend applies the same rules when the draft is published; see
 `PostListingCommandValidator` in [publish-listing](../publish-listing/README.md).
 
-**Undecided**
+**Decided (ADR 0019)**
 
-- How an area is confirmed to be a place in Canada (L2-022, criterion 5): the source of
-  place names is `<TO SUPPLY>`.
-- Whether a start date in the past is refused for "when": the requirement names only the
-  order of the two dates.
+- The area is free text with its hint; no list of Canadian place names is consulted yet, and
+  an admin reviews every listing before it is public (L2-022, criterion 5).
+- A start date in the past is not refused; only the order of the two dates is.
+- Until journey 7 builds uploading, the photos field shows "0 of 6" and its Add button is
+  disabled.
 
 ### Mocks
 

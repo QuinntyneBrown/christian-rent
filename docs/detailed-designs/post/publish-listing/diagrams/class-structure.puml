@@ -15,11 +15,11 @@ title Class structure — Publish a listing
 
 class PostListingCommand {
   +Guid ClientRequestId
-  +ListingOffer Offer
-  +ListingKind Kind
+  +string Offer
+  +string Kind
   +string Title
   +decimal? PriceAmount
-  +PricePeriod? PricePeriod
+  +string? PricePeriod
   +string? WhenText
   +DateOnly? StartDate
   +DateOnly? EndDate
@@ -44,7 +44,7 @@ class LimitReachedException {
 class Listing {
   +Guid Id
   +Guid MemberId
-  +Guid ClientRequestId
+  +Guid? ClientRequestId
   +ListingStatus Status
   +DateTimeOffset CreatedAt
   +{static} Post(member, fields, photos, now): Listing
@@ -75,5 +75,5 @@ PostingLimit ..> LimitReachedException : raises
 PostListingCommandHandler --> Listing : creates
 PostListingCommandHandler --> ReviewItem : creates
 PostListingCommandHandler ..> PostedListingDto : returns
-PostListingCommand --> PricePeriod
+PostListingCommand ..> PricePeriod : read by ListingWords
 @enduml

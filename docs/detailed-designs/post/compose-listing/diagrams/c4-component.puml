@@ -16,6 +16,6 @@ Rel(page, ui, "Binds fields")
 Rel(page, card, "Renders previewCard")
 Rel(page, store, "Reads and updates the draft")
 Rel(store, val, "validate(draft), draftToCard(draft)")
-Rel(page, gate, "requireMember()")
-Rel(gate, drafts, "save / restore draft")
+Rel(page, gate, "requireMember('post')")
+Rel(store, drafts, "save on every change, restore on entry, clear when sent")
 @enduml
