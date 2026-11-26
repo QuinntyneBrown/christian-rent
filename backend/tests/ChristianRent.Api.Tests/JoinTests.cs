@@ -38,6 +38,7 @@ public sealed class JoinTests : IDisposable
         var joined = await response.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken);
         Assert.Equal("Sarah Kim", joined.GetProperty("name").GetString());
         Assert.False(joined.GetProperty("isVerified").GetBoolean());
+        Assert.Equal("Grace Community Church", joined.GetProperty("churchName").GetString());
         Assert.False(joined.GetProperty("isAdmin").GetBoolean());
 
         var (member, items) = await ReadAsync();
@@ -162,6 +163,8 @@ public sealed class JoinTests : IDisposable
         Assert.Equal(id, me.GetProperty("id").GetGuid());
         Assert.Equal("Sarah Kim", me.GetProperty("name").GetString());
         Assert.False(me.GetProperty("isVerified").GetBoolean());
+        // ADR 0019: the member's church, for Post's preview (L2-011, criterion 4).
+        Assert.Equal("Grace Community Church", me.GetProperty("churchName").GetString());
     }
 
     // L2-025 criterion 5: asking who is signed in is not refused for want of membership.
