@@ -1,0 +1,15 @@
+// What follows the queue, from docs/design-system/assets/components.css.
+:host {
+  display: block;
+}
+
+.queue__more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-5) var(--space-6);
+  color: var(--color-fg-muted);
+  font: var(--text-body-sm);
+  text-align: center;
+}

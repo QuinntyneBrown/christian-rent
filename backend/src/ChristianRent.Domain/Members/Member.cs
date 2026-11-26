@@ -55,6 +55,9 @@ public sealed class Member
     /// <summary>When the purge made the departed member anonymous; null until then.</summary>
     public DateTimeOffset? AnonymizedAt { get; private set; }
 
+    /// <summary>The operator lets the member work through the review queue (L2-019, criterion 23).</summary>
+    public void MakeAdmin() => IsAdmin = true;
+
     /// <summary>An admin removes the member; their listings stop being public.</summary>
     public void Remove() => Status = MemberStatus.Removed;
 

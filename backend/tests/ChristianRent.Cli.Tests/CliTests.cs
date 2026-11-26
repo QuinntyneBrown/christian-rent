@@ -75,7 +75,7 @@ public sealed class CliTests : IDisposable
         Assert.Equal(18, keys.Count);
         Assert.All(keys, key => Assert.True(_photos.Files.TryGetValue(key, out var bytes) && bytes is [0xFF, 0xD8, ..], key));
         Assert.Equal(3, approved.Single(listing => listing.Title == "Sunlit fellowship hall for 80").Photos.Count);
-        Assert.Contains("Seeded 7 churches, 8 members, 9 listings and 6 photos.", _output.ToString(), StringComparison.Ordinal);
+        Assert.Contains("Seeded 7 churches, 8 members, 9 listings, 6 photos and 3 review items.", _output.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public sealed class CliTests : IDisposable
         Assert.Equal(0, exitCode);
         var second = await ChurchesAsync();
         Assert.Equal(first.Select(church => (church.Id, church.Name, church.City, church.IsVerified)), second.Select(church => (church.Id, church.Name, church.City, church.IsVerified)));
-        Assert.Contains("Seeded 0 churches, 0 members, 0 listings and 0 photos.", _output.ToString(), StringComparison.Ordinal);
+        Assert.Contains("Seeded 0 churches, 0 members, 0 listings, 0 photos and 0 review items.", _output.ToString(), StringComparison.Ordinal);
         Assert.Equal(18, _photos.Saves);
     }
 
@@ -101,7 +101,7 @@ public sealed class CliTests : IDisposable
         var exitCode = await CliApp.RunAsync(args, _services, _output, TestContext.Current.CancellationToken);
 
         Assert.Equal(2, exitCode);
-        Assert.Contains("Usage: ChristianRent.Cli <migrate|seed|purge-departed|purge-photos>", _output.ToString(), StringComparison.Ordinal);
+        Assert.Contains("Usage: ChristianRent.Cli <migrate|seed|grant-admin|purge-departed|purge-photos>", _output.ToString(), StringComparison.Ordinal);
     }
 
     private async Task<List<Domain.Churches.Church>> ChurchesAsync()

@@ -7,8 +7,9 @@ const boundaries = require('eslint-plugin-boundaries');
 
 /**
  * Lint for the whole workspace. Besides angular-eslint's recommendations it enforces:
- * - the dependency direction of AGENTS.md (rent → components, api, domain; domain → api;
- *   components → api for types only; api → nothing; nothing imports rent);
+ * - the dependency direction of AGENTS.md (rent → admin, components, api, domain; admin →
+ *   components, api, domain; domain → api; components → api for types only; api → nothing;
+ *   nothing imports rent);
  * - no [innerHTML] and no bypassSecurityTrust* (L2-026, criterion 1).
  */
 module.exports = defineConfig([
@@ -31,6 +32,7 @@ module.exports = defineConfig([
         { type: 'domain', pattern: 'projects/domain/**' },
         { type: 'components', pattern: 'projects/components/**' },
         { type: 'rent', pattern: 'projects/rent/**' },
+        { type: 'admin', pattern: 'projects/admin/**' },
       ],
     },
     rules: {
@@ -63,7 +65,13 @@ module.exports = defineConfig([
           policies: [
             {
               from: { element: { type: 'rent' } },
-              allow: { to: { element: { types: ['rent', 'components', 'api', 'domain'] } } },
+              allow: {
+                to: { element: { types: ['rent', 'admin', 'components', 'api', 'domain'] } },
+              },
+            },
+            {
+              from: { element: { type: 'admin' } },
+              allow: { to: { element: { types: ['admin', 'components', 'api', 'domain'] } } },
             },
             {
               from: { element: { type: 'domain' } },

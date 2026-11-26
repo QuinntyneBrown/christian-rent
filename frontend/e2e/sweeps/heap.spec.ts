@@ -11,6 +11,8 @@ import {
 import { answerJoining, answerMember } from '../fixtures/members';
 import { refuseSendingAtLimit } from '../fixtures/messages';
 import { answerReporting } from '../fixtures/reports';
+import { LOCKER_LISTING, answerAdmin, detailOf, manyRows, queuePage } from '../fixtures/review';
+import { AdminPage } from '../pages/admin.page';
 import { answerUploads, photoFile } from '../fixtures/photos';
 import { ListingPage } from '../pages/listing.page';
 import { PostPage } from '../pages/post.page';
@@ -297,6 +299,45 @@ test('adding and removing photos on Post and leaving it keeps the heap stable', 
     await leaveForNotFound(page);
     await expect(post.form).toHaveCount(0);
     release();
+  };
+
+  await roundTrip();
+  const before = await heapAfterGc();
+  for (let round = 0; round < ROUNDS; round++) {
+    await roundTrip();
+  }
+  const after = await heapAfterGc();
+
+  expect(after - before).toBeLessThan(ALLOWED_GROWTH_BYTES);
+});
+
+// L2-019 criterion 19: scrolling a long queue to its end and leaving Admin, again and again,
+// releases the rows, the detail, the observer and the media listener.
+test('scrolling Admin’s queue and leaving it keeps the heap stable', async ({ page, api }) => {
+  const rows = manyRows(200);
+  answerAdmin(api);
+  api.answer('GET', '/api/review-queue', (url) => {
+    const start = Number(url.searchParams.get('cursor') ?? 0);
+    const next = start + 50 < rows.length ? String(start + 50) : null;
+    return { body: queuePage(rows.slice(start, start + 50), next, rows.length) };
+  });
+  api.answer('GET', `/api/review-queue/${rows[0]!.id}`, {
+    body: detailOf(rows[0]!, { listing: LOCKER_LISTING }),
+  });
+  const heapAfterGc = await heapMeter(page);
+  const admin = new AdminPage(page);
+  await page.goto('/no-such-page');
+
+  const roundTrip = async () => {
+    await page.evaluate(() => history.pushState({}, '', '/admin'));
+    await page.evaluate(() => dispatchEvent(new PopStateEvent('popstate')));
+    await expect(admin.rows.first()).toBeVisible();
+    for (const last of [rows[99]!, rows[149]!, rows[199]!]) {
+      await admin.scrollToEnd();
+      await expect(admin.rowTitles.last()).toHaveText(last.title);
+    }
+    await leaveForNotFound(page);
+    await expect(admin.rows).toHaveCount(0);
   };
 
   await roundTrip();

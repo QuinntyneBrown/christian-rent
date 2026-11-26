@@ -18,11 +18,6 @@ class ReviewItem {
   +ReviewItemKind Kind
   +Guid SubjectId
   +DateTimeOffset CreatedAt
-  +ReviewDecision? Decision
-  +Guid? DecidedBy
-  +DateTimeOffset? DecidedAt
-  +int Version
-  +IsWaiting(): bool
 }
 enum ReviewItemKind {
   NewListing
@@ -50,27 +45,36 @@ class ReviewItemSummaryDto {
   +string Title
   +string Who
   +DateTimeOffset WaitingSince
+  +string? Offer
   +string? ThumbUrl
 }
 class ReviewItemDetailDto {
   +Guid Id
   +string Kind
-  +int Version
-  +ListingDetailDto? Listing
+  +DateTimeOffset WaitingSince
+  +ReviewListingDto? Listing
   +ReportDetailDto? Report
   +NewMemberDetailDto? Member
-  +string[] AllowedDecisions
 }
 class ReviewQueueStore <<Angular>> {
-  +state: Signal<QueueState>
-  +items: Signal<ReviewItemSummary[]>
+  +state: Signal<ReviewState>
+  +pages: Signal<WindowPage<QueueItemView>[]>
+  +moreState: Signal<MoreState>
   +waitingCount: Signal<number>
-  +detail: Signal<ReviewItemDetail | null>
-  +load(): void
-  +loadMore(): void
+  +detailState: Signal<DetailState>
+  +detail: Signal<ReviewDetailView | null>
+  +load(): Promise<void>
+  +loadMore(direction, measure): Promise<void>
+  +showDetail(shown: boolean): void
   +select(id: string): void
+  +retryDetail(): void
+}
+class WaitingReviewItems <<static>> {
+  +Of(database: IAppDbContext): IQueryable<ReviewItem>
 }
 ReviewItem --> ReviewItemKind
+GetReviewQueueQueryHandler --> WaitingReviewItems
+GetReviewItemQueryHandler --> WaitingReviewItems
 GetReviewQueueQueryHandler ..> GetReviewQueueQuery : handles
 GetReviewQueueQueryHandler --> ReviewItem : reads waiting
 GetReviewQueueQueryHandler ..> ReviewQueuePageDto : returns

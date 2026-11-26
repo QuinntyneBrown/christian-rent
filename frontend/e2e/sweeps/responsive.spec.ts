@@ -7,6 +7,7 @@ for (const screen of SCREENS) {
     test(`${screen.name} fits ${width} px with 44 px targets`, async ({ page, api }) => {
       await page.setViewportSize({ width, height: 800 });
       screen.answer(api);
+      await screen.before?.(page);
       await page.goto(screen.path);
       await screen.then?.(page, api);
 

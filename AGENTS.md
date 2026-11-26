@@ -104,8 +104,10 @@ library (an `admin` library, loaded only by the people who review, a `browser` p
 browser-only implementations, and so on), add it. A smaller, focused library that can be lazy-loaded on its own is
 better than one that keeps growing. A further application needs its own ADR.
 
-- **Dependency direction.** `rent` → `components`, `api`, `domain`; `domain` → `api`;
-  `components` → `api` for types only; `api` → nothing. No library imports an app. `rent`'s
+- **Dependency direction.** `rent` → `admin`, `components`, `api`, `domain`; `admin` →
+  `components`, `api`, `domain`; `domain` → `api`; `components` → `api` for types only; `api` →
+  nothing. `rent` imports `admin` only in the lazy `/admin` route behind its admin guard (ADR
+  0024). No library imports an app. `rent`'s
   `app.config.ts` is the composition root and binds every token, except those a lazy route
   brings, which that route binds so their code stays out of the initial bundle. ESLint enforces
   it. A new library takes its place in this direction, and the same change adds it to this rule

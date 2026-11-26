@@ -4,6 +4,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "paths": {
+      "@rent/admin": ["./projects/admin/src/public-api.ts"],
       "@rent/api": ["./projects/api/src/public-api.ts"],
       "@rent/domain": ["./projects/domain/src/public-api.ts"],
       "@rent/components": ["./projects/components/src/public-api.ts"]
@@ -55,6 +56,12 @@
     },
     {
       "path": "./projects/components/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/admin/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/admin/tsconfig.spec.json"
     }
   ]
 }

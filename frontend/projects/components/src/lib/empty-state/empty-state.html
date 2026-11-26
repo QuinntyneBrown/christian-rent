@@ -1,6 +1,16 @@
 <ng-template #actions><ng-content /></ng-template>
-@if (variant() === 'error') {
-  <section class="empty empty--error" [attr.aria-labelledby]="titleId">
+@if (variant() === 'done') {
+  <section class="empty" [attr.aria-labelledby]="titleId">
+    <div class="empty__icon empty__icon--success"><cr-icon name="check" size="lg" /></div>
+    <h2 class="empty__title" [id]="titleId">{{ title() }}</h2>
+    <p class="empty__text">{{ text() }}</p>
+  </section>
+} @else if (variant() === 'error') {
+  <section
+    class="empty empty--error"
+    [attr.role]="announce() ? 'alert' : null"
+    [attr.aria-labelledby]="titleId"
+  >
     <div class="empty__icon"><cr-icon name="alert" size="lg" /></div>
     <h2 class="empty__title" [id]="titleId">{{ title() }}</h2>
     <p class="empty__text">{{ text() }}</p>

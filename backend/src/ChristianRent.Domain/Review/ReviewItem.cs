@@ -2,7 +2,7 @@ namespace ChristianRent.Domain.Review;
 
 /// <summary>
 /// One entry of the review queue, pointing at its subject by <see cref="Kind"/> and
-/// <see cref="SubjectId"/> (view-review-queue design). Journeys 10 and 11 add the decision.
+/// <see cref="SubjectId"/> (view-review-queue design). Journey 11 adds the decision.
 /// </summary>
 public sealed class ReviewItem
 {
@@ -22,6 +22,10 @@ public sealed class ReviewItem
     public Guid SubjectId { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
+
+    /// <summary>An item with a known identifier, as seed data enters them.</summary>
+    public static ReviewItem Create(Guid id, ReviewItemKind kind, Guid subjectId, DateTimeOffset createdAt) =>
+        new(id, kind, subjectId, createdAt);
 
     /// <summary>A new listing waits for an admin to approve it (L2-012, criterion 1).</summary>
     public static ReviewItem ForNewListing(Guid listingId, DateTimeOffset now) =>

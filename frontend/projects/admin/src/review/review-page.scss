@@ -1,0 +1,23 @@
+// Admin's page. The spacers reserve the height of the pages released from memory, so the
+// scroll position holds (ADR 0013); the host sets their heights. They do not shrink in the
+// queue's column.
+:host {
+  display: block;
+}
+
+.review-page__spacer {
+  flex: none;
+}
+
+.review-page__spacer--before {
+  block-size: var(--review-before, 0);
+}
+
+.review-page__spacer--after {
+  block-size: var(--review-after, 0);
+}
+
+.review-page__sentinel {
+  flex: none;
+  block-size: 1px;
+}

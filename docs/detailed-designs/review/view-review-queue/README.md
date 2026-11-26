@@ -21,76 +21,109 @@ and the browser never downloads Admin's code. Deciding an item is designed in
 **Frontend — `rent` application**
 
 - **Route `/admin`** — `{ path: 'admin', canMatch: [adminGuard], loadChildren: () =>
-  import('@rent/admin').then(m => m.ADMIN_ROUTES) }`.
-- **`adminGuard`** — a `CanMatchFn` that awaits `SESSION` and returns
+  import('@rent/admin').then(m => m.ADMIN_ROUTES) }`, followed by
+  `{ path: 'admin', loadComponent: ForbiddenPage }`.
+- **`adminGuard`** — a `CanMatchFn` that awaits `SESSION.refresh()` and returns
   `member()?.isAdmin === true`. When it returns false the route does not match, the
-  `@rent/admin` chunk is never requested (L2-019, criterion 5), and the next route,
-  `{ path: 'admin', loadComponent: ForbiddenPage }`, renders "This page is for admins".
-  The guard is a convenience; the backend's refusal is the rule.
-- **`ForbiddenPage`** — small lazy page in `rent`. It says "This page is for admins", names
-  who is signed in, and links back to Browse (L2-019, criterion 11).
+  `@rent/admin` chunk is never requested (L2-019, criterion 5), and the next route renders
+  "This page is for admins". The guard is a convenience; the backend's refusal is the rule.
+- **`ForbiddenPage`** — small lazy page in `rent`: the header and a `cr-plain-page`. It names
+  the signed-in member, or says that the person is not signed in as an admin, and links back
+  to Browse (L2-019, criteria 11 and 22).
 
 **Frontend — `admin` library (`frontend/projects/admin`, imported as `@rent/admin`)**
 
 A new library, loaded only for an admin. Its place in the dependency direction is
-`rent` → `admin` → `components`, `api`, `domain`; the change that adds it updates
-`AGENTS.md` and the ESLint boundaries.
+`rent` → `admin` → `components`, `api`, `domain`; `AGENTS.md` and the ESLint boundaries say
+so. `rent` imports it only with `import('@rent/admin')`.
 
 - **`ADMIN_ROUTES`** — one route whose `providers` bind `REVIEW_QUEUE_API` to
-  `HttpReviewQueueApi` and provide `ReviewQueueStore` and `ToastQueue`, so their code and
-  state stay out of the initial bundle and go when the admin leaves.
+  `HttpReviewQueueApi`, so its code stays out of the initial bundle. The client holds no
+  state.
 - **`ReviewPage`** (selector `cr-review-page`) — lays out `cr-admin-nav`, the queue and the
-  detail panel with the `admin` block. Under 768 px it shows the queue and a note that
-  deciding needs a wider screen; from 768 px the detail panel sits beside the queue
-  (L2-031, criteria 5 and 7). The heading "Review" carries "4 waiting · oldest first", and
-  "· showing 50" when more wait than are loaded (L2-019, criteria 6 and 10).
-- **`ReviewQueueStore`** — `state` (`loading`, `loaded`, `empty`, `failed`), `items`,
-  `waitingCount`, `selectedId`, `detail`. It loads pages of 50 by cursor as the list end is
-  reached, and keeps at most 3 pages in memory, like `ListingWindow`. `select(id)` loads the
-  detail and aborts the previous detail request.
+  detail panel with `cr-admin-layout`. It watches `(min-width: 48rem)` with `matchMedia`:
+  under it, it shows the queue and a note that deciding needs a wider screen, and asks for no
+  detail; from it, the detail panel sits beside the queue and the first item is selected
+  (L2-019, criterion 13; L2-031, criteria 5 and 7). The heading "Review" carries
+  "4 waiting · oldest first", and "· showing 50" when more wait than are held (criteria 6 and
+  10). An `IntersectionObserver` watches the ends of the list, and the spacers that stand for
+  released rows, and loads the page beyond them; so a jump into a spacer, as the Home key
+  makes, loads what belongs there. It removes the media listener and disconnects the observer
+  when it is destroyed. It provides `ReviewQueueStore` itself: Angular keeps a route's
+  providers after the route is left, so only the page's own end can end the store.
+- **`ReviewQueueStore`** — `state` (`loading`, `loaded`, `empty`, `failed`), `pages`,
+  `waitingCount`, `moreState`, `selectedId`, `detailState` (`none`, `loading`, `loaded`,
+  `failed`, `gone`) and `detail`. It loads pages of 50 by cursor and holds at most 3 in a `ListingWindow`
+  (criteria 4 and 19). `select(id)` loads the detail and aborts the previous detail request.
+  A loading state is shown only after 300 ms (L2-033, criterion 5). Destroying it aborts both
+  requests and clears its timers.
+
+**Frontend — `domain`**
+
+`domain/review` turns the API's data into the words the screen shows: `formatWaiting`
+(criterion 14), `toQueueItemView`, `toReviewDetailView` (criteria 7 to 9, 16 and 17) and
+`queueSummary`, each with a test per case. `ListingWindow` is shared with Browse.
 
 **Frontend — `components` library**
 
+- **`cr-admin-layout`** — the `admin` block: slots for the rail, the queue and the detail.
 - **`cr-admin-nav`** — the ink rail: logo, "Admin · {name}", Review with its count, "Back
   to site".
+- **`cr-queue-header`**, **`cr-queue-list`**, **`cr-queue-more`** — the heading, the
+  summary and the phone's note; the list of rows; and "Showing 50 of 63" with "Load 13
+  more", busy and failed. `ReviewPage` draws the spacers around the list.
 - **`cr-queue-item`** — the listing's title or the member's name, who posted or which
-  church, how long it has waited ("12 min", "3 hr"), and a `cr-tag` that names the kind in
-  text: "New", "Reported", "New member" (L2-019, criterion 6). The selected item carries
-  `aria-current`. A long title is cut with an ellipsis and keeps its full text for assistive
-  technology.
-- **`cr-review-detail`** — the detail panel; its content differs by kind.
-- **`cr-empty-state`** — "All caught up" (L2-019, criterion 3), and the failed state.
+  church, how long it has waited, and a `cr-tag` that names the kind in text: "New",
+  "Reported", "New member" (criterion 6). From 768 px it is a button, and the selected one
+  carries `aria-current`. A long title is cut with an ellipsis and keeps its full text for
+  assistive technology. With no item it draws a skeleton row.
+- **`cr-review-detail`** — the detail panel; its content differs by kind. It takes a
+  `ReviewDetailView`, whose every word `domain` has written.
+- **`cr-empty-state`** — "All caught up" (variant `done`, criterion 3), the failed queue, and
+  the failed or gone detail (criterion 21).
 
 **Backend**
 
 - **`ReviewQueueController`** — `[Authorize(Policy = "Admin")]`. `GET /api/review-queue`
   sends `GetReviewQueueQuery`; `GET /api/review-queue/{id}` sends `GetReviewItemQuery`.
-  A member who is not an admin receives 403 with the code `not_an_admin` and no data.
-- **`GetReviewQueueQueryHandler`** — selects review items with no decision, ordered by
-  `CreatedAt` ascending then `Id`, pages by keyset cursor with `Size = 50`, and returns
-  `ReviewQueuePageDto { Items, NextCursor, WaitingCount }`.
+  Nobody signed in receives 401 `not_signed_in`; anyone else who is not an admin receives
+  403 `not_an_admin`. Neither carries queue data.
+- **`WaitingReviewItems`** — the items whose subject still waits (ADR 0024; criterion 18):
+  a new listing waiting for review, an open report on an approved listing, or a member; the
+  poster or member active. Both handlers read through it.
+- **`GetReviewQueueQueryHandler`** — orders waiting items by `CreatedAt` then `Id`, both
+  ascending, pages by keyset cursor (`KeysetCursor`, shared with Browse), and returns
+  `ReviewQueuePageDto { Items, NextCursor, WaitingCount }`. `size` is 1 to 50, by default 50
+  (`page_size_out_of_range`, `cursor_invalid`).
 - **`ReviewItemSummaryDto`** — `{ Id, Kind, Title, Who, WaitingSince, Offer?, ThumbUrl? }`.
-- **`GetReviewItemQueryHandler`** — returns `ReviewItemDetailDto` by kind (L2-019,
-  criterion 2):
-  - new listing: every field, the photos, the tag "For rent · space" or "Wanted · thing",
-    the poster with both verified flags, the church, "Member since" and the posting time
-    (criterion 7);
-  - report: the same listing detail, the reason, the note, when it was reported, and
-    "Public since". The panel reads "Reported as a scam by a member, 40 min ago" and the
-    DTO holds no reporter identity. "View on site" opens the listing (criterion 8);
-  - new member: name, when they joined, church and city, the declaration, the church's
-    status, the count of the member's listings with whether they are public, and the count
-    of messages sent. The panel has no control for the church (criterion 9).
-- **`ReviewItem`** — `{ Id, Kind, SubjectId, CreatedAt, Decision?, DecidedBy?, DecidedAt?,
-  Version }`. `SubjectId` names a listing, a report or a member according to `Kind`.
+  `Kind` is `new-listing`, `report` or `new-member`. `Who` is the poster, or a new member's
+  church. `ThumbUrl` is the `thumb` rendition of a listing for rent that has a photo; an admin
+  may read it before the listing is public (ADR 0021).
+- **`GetReviewItemQueryHandler`** — returns `ReviewItemDetailDto { Id, Kind, WaitingSince,
+  Listing?, Report?, Member? }`, exactly one part set, or `not_found` for an item that does
+  not wait or an address that is not an identifier:
+  - new listing: every field, the photos in the member's order, the poster with both
+    verified flags, the church, when the poster joined and when it was posted (criteria 2,
+    7 and 15);
+  - report: the same listing, the reason (`fake`, `inappropriate`, `scam`, `other`), the
+    note, when it was reported and since when the listing has been public. It holds no
+    reporter. "View on site" opens the listing (criterion 8);
+  - new member: name, when they joined, church, city, whether the church is verified and who
+    entered it, the counts of the member's listings that are not removed (all, for rent,
+    public), and the count of messages sent. The panel has no control for the church
+    (criteria 9, 16 and 17).
+- **`ReviewItem`** — `{ Id, Kind, SubjectId, CreatedAt }`. `SubjectId` names a listing, a
+  report or a member according to `Kind`. Journey 11 adds the decision.
+- **`Church.EnteredById`** — the member who entered the church when they joined, or null.
+- **`GrantAdminCommand`** — `ChristianRent.Cli grant-admin <member-id>` makes an active
+  member an admin (criterion 23). Nothing else does.
 
-**Undecided**
+**Later**
 
-- How a member becomes an admin (who sets `Member.IsAdmin`): `<TO SUPPLY>`. Seed data may
-  create the first admin.
-- How `ReviewQueueStore` learns that new items arrived while the queue is open (an interval
-  or a push): `<TO SUPPLY>`. When it does, it pushes an info toast, "2 new items are
-  waiting", whose action "Show them" reloads the queue (L2-019, criterion 12).
+- Approve, Keep and Remove, their toasts and the notification that new items arrived
+  (L2-019, criterion 12), with how the store learns of them, are
+  [journey 11](../decide-review-item/README.md). Until then the panel's decision bar holds
+  only "View on site".
 
 ### Mocks
 
@@ -105,7 +138,13 @@ The mocks are the source of truth for the UI of this feature. The states this de
 - [`docs/mocks/pages/admin/error.html`](../../../mocks/pages/admin/error.html): the queue failed to load
 - [`docs/mocks/pages/admin/forbidden.html`](../../../mocks/pages/admin/forbidden.html): a member who is not an admin
 - [`docs/mocks/pages/admin/long.html`](../../../mocks/pages/admin/long.html): 50 rows and long titles
-- [`docs/mocks/notifications/review-toast/info.html`](../../../mocks/notifications/review-toast/info.html): new items arrived in the queue
+- [`docs/mocks/pages/admin/photos.html`](../../../mocks/pages/admin/photos.html): a listing with several photos
+- [`docs/mocks/pages/admin/more-loading.html`](../../../mocks/pages/admin/more-loading.html): the next page is on its way
+- [`docs/mocks/pages/admin/more-error.html`](../../../mocks/pages/admin/more-error.html): the next page failed
+- [`docs/mocks/pages/admin/detail-error.html`](../../../mocks/pages/admin/detail-error.html): the detail failed to load
+- [`docs/mocks/pages/admin/detail-gone.html`](../../../mocks/pages/admin/detail-gone.html): the item is no longer waiting
+- [`docs/mocks/pages/admin/forbidden-signed-out.html`](../../../mocks/pages/admin/forbidden-signed-out.html): a person nobody knows as a member
+- [`docs/mocks/notifications/review-toast/info.html`](../../../mocks/notifications/review-toast/info.html): new items arrived in the queue (journey 11)
 
 ## Requirements
 
@@ -147,8 +186,7 @@ handlers read `ReviewItem` rows and their subjects.
 ### Class structure
 
 `ReviewItem` points at its subject through `Kind` and `SubjectId`. The summary DTO feeds the
-queue rows; the detail DTO holds exactly one of its three optional parts and lists the
-decisions its kind allows.
+queue rows; the detail DTO holds exactly one of its three optional parts.
 
 ![Class diagram for View the review queue](diagrams/class-structure.png)
 

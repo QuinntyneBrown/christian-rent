@@ -1,16 +1,16 @@
-using ChristianRent.Application.Listings;
+using ChristianRent.Application.Paging;
 
 namespace ChristianRent.Api.Tests;
 
 /// <summary>ADR 0013: a cursor decodes only when the API encoded it.</summary>
-public sealed class ListingCursorTests
+public sealed class KeysetCursorTests
 {
     [Fact]
     public void A_cursor_decodes_to_what_was_encoded()
     {
-        var cursor = new ListingCursor(new DateTimeOffset(2026, 6, 8, 15, 30, 12, 345, TimeSpan.Zero), Guid.NewGuid());
+        var cursor = new KeysetCursor(new DateTimeOffset(2026, 6, 8, 15, 30, 12, 345, TimeSpan.Zero), Guid.NewGuid());
 
-        Assert.True(ListingCursor.TryDecode(cursor.Encode(), out var decoded));
+        Assert.True(KeysetCursor.TryDecode(cursor.Encode(), out var decoded));
         Assert.Equal(cursor, decoded);
     }
 
@@ -24,6 +24,6 @@ public sealed class ListingCursorTests
     [InlineData("OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTowMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMA")]
     public void Anything_else_does_not_decode(string text)
     {
-        Assert.False(ListingCursor.TryDecode(text, out _));
+        Assert.False(KeysetCursor.TryDecode(text, out _));
     }
 }

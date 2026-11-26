@@ -56,6 +56,12 @@ Each journey's entry has three parts:
 | L40 | Before the first run of the checks on a new machine, check that the files are checked out with LF, that `DOTNET_ROOT` (if set) holds the runtimes the SDK's tools need, and that scripts start `npx` through a shell on Windows. | 9 |
 | L41 | Follow each criterion about a later visit ("told so on selecting it again") through the whole data path: if a reload loses what the screen knew, the read has to carry it, for that caller only. | 9 |
 | L42 | A dialog tells its page what it has done as soon as it knows, and keeps the close result for what only closing means: Escape and navigation close it with no result. | 9 |
+| L43 | A route's `providers` outlive the route: Angular keeps its injector. State that must end with its screen, and abort what it asked for, is provided by the page component; prove it with a spec that leaves while a request is held. | 10 |
+| L44 | A windowed list watches the spacers as well as the sentinels at the ends of its rows: a jump (Home, a dragged scrollbar) lands inside a spacer, where neither sentinel is in view. Prove it by jumping to the start after pages were released. | 10 |
+| L45 | A script that runs the checks and then commits does so only on `verify.mjs`'s exit code. Prettier can need two passes over an Angular template before `format:check` accepts it. | 10 |
+| L46 | A component that does not compile (an unused or missing entry in `imports`) shows in the behaviour specs only as the web server timing out after 4 minutes: build with `npx ng build rent --configuration e2e` first. | 10 |
+| L47 | A design-system component that borrows another block's class cannot be built, since a component styles only its own block: give it its own element in the mock and the design system before building it. | 10 |
+| L48 | On Windows, write editing scripts to a file instead of a long heredoc command, run `verify.mjs` with `MSBUILDDISABLENODEREUSE=1` (`dotnet format` can otherwise time out reaching its build host), and give generated EF Core migrations LF endings. | 10 |
 
 ## Journeys
 
@@ -638,3 +644,62 @@ Slices 9.1 and 9.2, finished on Nov 26, 2026, on Windows.
   each was then proved by mutation (L20). A script that runs a command with Python's
   `shell=True` on Windows runs `cmd.exe`, where `NAME=value command` runs nothing; set the
   environment in the calling shell, and read the test counts (L36).
+
+### 10. View the review queue
+
+Slices 10.1 to 10.4, finished on Nov 26, 2026, on Windows.
+
+**What slowed it**
+
+- The design named states and facts that nothing could supply: no mock for the next page, a
+  failed or gone detail or a signed-out person; no way to make anybody an admin; no record of
+  who had entered a church. L2-019 gained criteria 13 to 23, and the mocks and ADR 0024 came
+  before any code (L2).
+- The new-member and report details borrowed the listing card's media block from the design
+  system. The mock and the design system changed first (L47).
+- The design had the route provide the queue's store. The spec that leaves Admin while a detail
+  is held saw no aborted request: the route's injector lives on after the route is left (L43).
+- Going back to the start of a long queue in one jump loaded nothing: the view was inside the
+  spacer, far from the sentinel at the top of the rows (L44). Browse watches only its
+  sentinels, with 600 px of look-ahead; whether the same jump strands it was not tried, and is
+  worth a spec.
+- A slice was committed although `verify.mjs` had failed on formatting, because the commit did
+  not depend on its result; it was fixed and the unpushed commit amended (L45, and L4 missed).
+  Unused imports in the page then cost a 4 minute wait for the web server (L46).
+- Long commands with several heredocs failed in Git Bash before running, and the first
+  `dotnet format` run timed out reaching its build host (L48).
+
+**New lessons**: L43 to L48 above, and these details for journey 11:
+
+- A decided item must stop waiting: add the decision to `ReviewItem` and leave decided items
+  out in `WaitingReviewItems`, which the list, the count and the detail all read through.
+- `ReviewQueueStore.load()` already reloads the queue and selects its first item, and a
+  `not_found` detail already says the item is gone. L2-019 criterion 12, the notification that
+  new items arrived, is still to be built.
+- The decision bar shows only "View on site", for a report. The detail carries no allowed
+  decisions yet.
+- "Already reported" says the report "is with an admin": check it once reports can be closed.
+- `grant-admin` has no opposite; nothing requires one yet.
+
+**Earlier lessons applied**
+
+- L1: the branch was made from journey 9's, which was not merged yet.
+- L2 and L25: every state was drawn and given a criterion first, and the mock checker passed.
+- L3 and L20: the store's rules, `grant-admin` and its seed data were broken on purpose, and
+  the tests that name them failed.
+- L4: missed once, in the slice L45 comes from; every other commit followed a read run.
+- L8: the page is composed of `@rent/components` and writes no design-system class beyond its
+  own spacers.
+- L9 and L24: no existing screen asks anything new at start.
+- L11, L27 and L28: the production build ran in each frontend slice. The initial total went
+  from 323.24 kB to 323.60 kB (the route and its guard, and framework code lazy chunks now
+  share), under the 325 kB warning; no budget changed.
+- L12: every word of a row, a detail and the summary is `@rent/domain`, with a test per case.
+- L13: the sweeps visit Admin's nine states and a heap check scrolls 200 items and leaves, 20
+  times; none was run.
+- L19: the paging and state specs were run 5 times.
+- L31: the scripts asserted each replaced text, which stopped them on text Prettier had
+  reflowed.
+- L33: the leaving spec observes the detail's request fail.
+- L36 and L37: mutation runs were read from the test counts and kept every import in use.
+
