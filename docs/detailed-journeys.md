@@ -1,0 +1,157 @@
+# Detailed journeys
+
+Each journey of [`journeys.md`](journeys.md) split into thin slices, taken from the detailed
+designs in [`detailed-designs/`](detailed-designs/README.md). A slice is finished one at a time:
+its Given-When-Then criteria, its acceptance test seen to fail, the code that makes it pass, a
+refactor while green, and the regression checks (`AGENTS.md`, *Incremental implementation and
+ATDD*). When a slice finishes, its entry goes in [`lessons-learned.md`](lessons-learned.md) and
+the **% complete** here and in `journeys.md` is updated.
+
+Effort is in days and matches `journeys.md`; a journey's % complete is the share of its slices
+that are done, and the total is weighted by effort.
+
+## 1. Scaffolding (Both) — 5 days — 100% complete
+
+Designs: [present-app-shell](detailed-designs/platform/present-app-shell/README.md),
+[enforce-access](detailed-designs/platform/enforce-access/README.md),
+[handle-member-data](detailed-designs/platform/handle-member-data/README.md),
+[fail-clearly-and-operate](detailed-designs/platform/fail-clearly-and-operate/README.md).
+
+| # | Slice | L2 | Done |
+|---|---|---|---|
+| 1.1 | Frontend workspace, libraries and lint boundaries; the home page shows the christian.rent wordmark | L2-023 | Yes |
+| 1.2 | Foundations (tokens, self-hosted fonts, reset); `cr-logo`, `cr-site-header`, `cr-skip-link`, light and dark, phone to desktop | L2-023, L2-031, L2-032, L2-036 | Yes |
+| 1.3 | `NotFoundPage` for an unknown address, and the `TitleStrategy` | L2-033, L2-036 | Yes |
+| 1.4 | `LoadState<T>`, `GlobalErrorHandler`, `ApiError` and `apiErrorInterceptor` | L2-025, L2-033 | Yes |
+| 1.5 | Backend solution, health endpoints, first acceptance test through the API | L2-034 | Yes |
+| 1.6 | Fallback policy (401 `not_signed_in`); ProblemDetails for validation and unhandled errors | L2-025, L2-026, L2-033 | Yes |
+| 1.7 | HTTPS redirect, HSTS, CSP; cross-site writes refused | L2-026, L2-027 | Yes |
+| 1.8 | Rate limits: 120 reads and 30 writes a minute, 429 with Retry-After | L2-027 | Yes |
+| 1.9 | Telemetry through `TelemetryScrubber` | L2-028, L2-034 | Yes |
+| 1.10 | `ChristianRent.Cli migrate` and `seed` | L2-034 | Yes |
+| 1.11 | `tools/verify/verify.mjs`, CI, the README's commands | — | Yes |
+
+## 2. Browse listings (Main) — 4 days — 0% complete
+
+Design: [browse-listings](detailed-designs/browse/browse-listings/README.md).
+
+| # | Slice | L2 |
+|---|---|---|
+| 2.1 | `BrowseListingsQuery` returns the first page of approved listings, newest first; a page size above 50 is refused | L2-001, L2-030 |
+| 2.2 | Browse shows the headline, the two posting buttons and the first page as cards (for rent with photo, wanted as a card) | L2-001, L2-005, L2-022 |
+| 2.3 | Loading skeleton (none within 300 ms), error with "Try again", nothing yet | L2-033 |
+| 2.4 | Loading more on scroll with a bounded `ListingWindow` | L2-006, L2-030 |
+| 2.5 | Card photos sized, reserved and lazy below the fold; columns at 576, 768, 992 and 1200 px | L2-029, L2-031 |
+
+## 3. Search and filter listings (Main) — 4 days — 0% complete
+
+Design: [search-and-filter-listings](detailed-designs/browse/search-and-filter-listings/README.md).
+
+| # | Slice | L2 |
+|---|---|---|
+| 3.1 | Switch between Everything, For rent and Wanted, with counts, kept in the address | L2-002 |
+| 3.2 | Search by words (`SearchNormalizer`), debounced, kept in the address | L2-003, L2-026 |
+| 3.3 | Spaces, things or both | L2-035 |
+| 3.4 | No results offers to post a request for the search | L2-004 |
+
+## 4. Read a listing (Main) — 4 days — 0% complete
+
+Design: [read-listing](detailed-designs/listing/read-listing/README.md).
+
+| # | Slice | L2 |
+|---|---|---|
+| 4.1 | `GetListingQuery` with `ListingVisibility`: an approved listing, or 404 that reveals nothing | L2-007, L2-025 |
+| 4.2 | Listing screen: gallery, description, price, where and when | L2-007, L2-022, L2-024 |
+| 4.3 | Who posted it and their church, each marked Verified only when verified | L2-008 |
+| 4.4 | Loading, error, not found; the message box beside the listing from 768 px | L2-031, L2-033 |
+
+## 5. Become a member (Main) — 5 days — 0% complete
+
+Design: [become-member](detailed-designs/members/become-member/README.md).
+
+| # | Slice | L2 |
+|---|---|---|
+| 5.1 | `GET /api/churches` and `GET /api/members/me` | L2-017, L2-025 |
+| 5.2 | `JoinCommand` creates an unverified member and a review item | L2-017, L2-028 |
+| 5.3 | `MemberGate` and `JoinDialog` with `JoinFormValidator` | L2-009, L2-015, L2-032 |
+| 5.4 | `Session` shows the member's initials in the header | L2-036 |
+
+## 6. Post a listing (Main) — 7 days — 0% complete
+
+Designs: [compose-listing](detailed-designs/post/compose-listing/README.md),
+[publish-listing](detailed-designs/post/publish-listing/README.md).
+
+| # | Slice | L2 |
+|---|---|---|
+| 6.1 | Post screen with the plain header and the sentence's word toggles | L2-009, L2-036 |
+| 6.2 | The fields and `ListingDraftValidator`; the draft kept in `DraftStore` | L2-010, L2-032 |
+| 6.3 | Live preview of the card beside the form from 768 px | L2-011, L2-031 |
+| 6.4 | `PostListingCommand` with its validator and `PostingLimit` | L2-010, L2-012, L2-025 |
+| 6.5 | "Sent for review" confirmation; a failed publish keeps everything | L2-012, L2-033 |
+
+## 7. Add photos to a listing (Main) — 5 days — 0% complete
+
+Design: [add-photos](detailed-designs/post/add-photos/README.md).
+
+| # | Slice | L2 |
+|---|---|---|
+| 7.1 | `UploadPhotoCommand` with `PhotoRules` and `IPhotoInspector`; refusals by code | L2-014, L2-025 |
+| 7.2 | `IPhotoProcessor` renditions stored through `IPhotoStorage`; `GetPhotoQuery` | L2-014, L2-029 |
+| 7.3 | Photo picker: add up to six, choose the card photo, remove; object URLs released | L2-013 |
+| 7.4 | Upload in progress, refused file, full state | L2-013, L2-014 |
+
+## 8. Send a message (Main) — 4 days — 0% complete
+
+Design: [send-message](detailed-designs/messages/send-message/README.md).
+
+| # | Slice | L2 |
+|---|---|---|
+| 8.1 | `SendMessageCommand` with validator and handler; not on one's own listing | L2-015, L2-016, L2-025 |
+| 8.2 | `MessageComposer` with dates for a listing for rent, and `MessageDraftValidator` | L2-015, L2-024 |
+| 8.3 | Sent confirmation quoting the message as text; limit reached | L2-016, L2-026 |
+
+## 9. Report a listing (Main) — 3 days — 0% complete
+
+Design: [report-listing](detailed-designs/reports/report-listing/README.md).
+
+| # | Slice | L2 |
+|---|---|---|
+| 9.1 | `ReportListingCommand` adds a report to the review queue; already reported | L2-021, L2-025 |
+| 9.2 | `ReportListingDialog` with its reasons and note; announced confirmation | L2-021, L2-032 |
+
+## 10. View the review queue (Admin) — 4 days — 0% complete
+
+Design: [view-review-queue](detailed-designs/review/view-review-queue/README.md).
+
+| # | Slice | L2 |
+|---|---|---|
+| 10.1 | `GET /api/review-queue`, oldest first, admin only | L2-019, L2-025, L2-030 |
+| 10.2 | The `admin` library, `adminGuard` and `ForbiddenPage` | L2-019, L2-025 |
+| 10.3 | `ReviewPage` with the queue, its loading, error and "All caught up" states | L2-019, L2-033 |
+| 10.4 | The detail panel from 768 px; the queue only, with a note, below it | L2-031 |
+
+## 11. Decide a review item (Admin) — 4 days — 0% complete
+
+Design: [decide-review-item](detailed-designs/review/decide-review-item/README.md).
+
+| # | Slice | L2 |
+|---|---|---|
+| 11.1 | `DecideReviewItemCommand`: Approve, Keep, Remove, by item kind | L2-019, L2-020 |
+| 11.2 | Approve, Keep and Remove in the detail panel; `ConfirmRemoveDialog` | L2-020, L2-032 |
+| 11.3 | Toasts after a decision, announced, with `ToastQueue` | L2-032 |
+
+## 12. Verify members and churches (Admin) — 3 days — 0% complete
+
+Design: [verify-members-and-churches](detailed-designs/members/verify-members-and-churches/README.md).
+
+| # | Slice | L2 |
+|---|---|---|
+| 12.1 | Approving a new member verifies them | L2-018 |
+| 12.2 | `VerifyChurchCommand` confirms a church | L2-018, L2-025 |
+| 12.3 | Verified marks follow on Browse and Listing | L2-008, L2-018 |
+
+## Total
+
+| Journeys | Effort (days) | % complete |
+|---|---|---|
+| 12 | 52 | 10 |

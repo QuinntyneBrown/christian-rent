@@ -1,0 +1,61 @@
+// Browse headline, from docs/design-system/components/hero.html.
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding-block: var(--space-10) var(--space-6);
+}
+
+.hero__title {
+  font: var(--text-display);
+  font-size: var(--font-size-4xl);
+  letter-spacing: var(--letter-spacing-display);
+}
+
+.hero__accent {
+  color: var(--color-fg-rent-display);
+  display: block;
+}
+
+.hero__lead {
+  margin-top: var(--space-4);
+  max-width: 28rem;
+  font: var(--text-body-lg);
+  color: var(--color-fg-muted);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.hero__actions:empty {
+  display: none;
+}
+
+@media (min-width: 36rem) {
+  .hero {
+    padding-top: var(--space-12);
+  }
+
+  .hero__title {
+    font-size: var(--font-size-5xl);
+  }
+}
+
+@media (min-width: 62rem) {
+  .hero {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .hero__title {
+    font-size: var(--font-size-6xl);
+  }
+
+  .hero__actions {
+    flex-wrap: nowrap;
+  }
+}

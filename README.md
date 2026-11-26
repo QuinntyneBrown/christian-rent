@@ -30,6 +30,7 @@ Canada.
 - [Prerequisites](#prerequisites)
 - [Getting started](#getting-started)
 - [Build and test](#build-and-test)
+- [Settings](#settings)
 - [Repository structure](#repository-structure)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
@@ -80,16 +81,17 @@ source of truth for the code.
 
 ## Project status
 
-christian.rent is designed and not yet built. The repository holds the agent instructions
-([`AGENTS.md`](AGENTS.md)), the skills that drive the work (`.claude/skills/`, `.agents/skills/`)
-and the community files. What comes next, in order:
+christian.rent is designed, and its scaffold is built: the Angular workspace with the application
+shell (the header with the wordmark, the skip link and the "not found" page), the .NET solution
+with the platform's cross-cuts (access, refusals, security headers, rate limits, telemetry, health,
+migrations and seed), the test harness and CI. No listing feature is built yet.
 
-1. The requirements in `docs/specs/`, from the prototype.
-2. The mocks in `docs/mocks/`, transcribed from the prototype, and the design system extracted
-   from them.
-3. The detailed designs, the journeys and their slices.
-4. The scaffold: the Angular workspace, the .NET solution, the test harness and CI.
-5. The app, one slice at a time, each with its failing acceptance test first.
+- The requirements are in `docs/specs/`, the mocks in `docs/mocks/`, the design system in
+  `docs/design-system/` and the detailed designs in `docs/detailed-designs/`.
+- The journeys and their slices are in `docs/journeys.md` and `docs/detailed-journeys.md`, with
+  **% complete**; the architecture decisions are in `docs/adr/`.
+- What comes next is journey 2, Browse listings: one slice at a time, each with its failing
+  acceptance test first.
 
 ## How it works
 
@@ -107,15 +109,17 @@ Member ──▶ rent (screens) ──▶ api clients (HTTP) ──▶ backend (
 | `frontend/projects/rent` | The app: pages, dialogs and the composition root |
 | `backend/src/ChristianRent.*` | `Domain` ← `Application` ← `Infrastructure` ← `Api` |
 
-This is the planned structure; each project is added by the first change that needs it.
+The `admin` library joins these when journey 10 adds it.
 Dependencies run one way, and ESLint enforces it. Every route is lazy-loaded, and the backend
 decides what a member or an admin may do. The full rules are in [`AGENTS.md`](AGENTS.md).
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org) 24 or later, with npm, for the frontend
+- [Node.js](https://nodejs.org) 24 (or 22.12 and later), with npm, for the frontend
 - The [.NET SDK](https://dotnet.microsoft.com/download) 10, for the backend
-- A current browser
+- [PostgreSQL](https://www.postgresql.org) 16 or later, to run the API against a database
+  ([ADR 0003](docs/adr/0003-database-engine.md)); no test needs it
+- A current Chrome or Edge
 
 ## Getting started
 
@@ -124,52 +128,83 @@ git clone https://github.com/QuinntyneBrown/christian-rent.git
 cd christian-rent
 ```
 
-There is nothing to run yet. The scaffold adds `frontend/` and `backend/`, and from then on:
+Run the frontend alone (it needs no backend to show the shell):
 
 ```shell
 cd frontend && npm ci && npm start        # http://localhost:4200
-cd backend && dotnet run --project src/ChristianRent.Api
 ```
+
+Run the backend against a local PostgreSQL. The connection string is a secret and never goes in
+the repository; set it in your environment or with `dotnet user-secrets`:
+
+```shell
+cd backend
+export ConnectionStrings__Default="Host=localhost;Database=christian_rent;Username=rent;Password=<yours>"
+dotnet run --project src/ChristianRent.Cli -- migrate   # apply the schema; the API never does
+dotnet run --project src/ChristianRent.Cli -- seed      # the mocks' sample churches; safe to repeat
+dotnet run --project src/ChristianRent.Api              # http://localhost:5080/health/ready
+```
+
+`npm start` sends `/api` to the API on port 5080. Nobody can sign in yet: sign-in is not designed
+([ADR 0005](docs/adr/0005-authentication-seam.md)), so every member action answers 401.
 
 ## Build and test
 
-These commands arrive with the scaffold; the table is what the project holds itself to.
-
 | Task | Command | Scope |
 |---|---|---|
-| Format and lint | `cd frontend && npm run format:check && npm run lint` | Prettier, angular-eslint and its dependency boundaries |
+| Format and lint | `cd frontend && npm run format:check && npm run lint` | Prettier, angular-eslint and its dependency boundaries, and a type check of `e2e/` |
 | Unit tests | `cd frontend && npm test` | The unit tests of every frontend project, on a fake clock |
 | Build | `cd frontend && npm run build` | The production build, within the `angular.json` bundle budgets |
 | Behaviour specs | `cd frontend && npx playwright install chromium && npm run e2e` | Playwright on Chromium, with page objects, against fixtures, with no request off localhost |
 | Backend | `cd backend && dotnet format --verify-no-changes && dotnet test` | Format, build and acceptance tests through the API on EF Core InMemory |
 | Everything | `node tools/verify/verify.mjs` | All of the above, side by side; run it before you push |
 
-No automated test uses a real backend or database, or a network beyond localhost. CI runs lint,
-the builds and one critical acceptance path per feature in under 5 minutes. Unit tests run only
-locally.
+No automated test uses a real backend or database, or a network beyond localhost. CI
+(`.github/workflows/ci.yml`) runs lint, the builds and the critical acceptance path of each feature
+(`npm run e2e:ci`, `dotnet test --filter-trait "Category=Critical"`) in under 5 minutes. Unit
+tests run only locally. The visual, responsive, accessibility and heap sweeps run only when a
+person asks: `cd frontend && npm run e2e:sweeps`.
+
+## Settings
+
+A deployed system needs these settings. Secrets come from the host's environment or a secret
+store, never from the repository ([L2-027](docs/specs/L2.md), criterion 4). In environment
+variables, `:` is written `__`.
+
+| Setting | Secret | What it is |
+|---|---|---|
+| `ConnectionStrings:Default` | yes | The PostgreSQL connection string, read by the API and `ChristianRent.Cli` ([ADR 0003](docs/adr/0003-database-engine.md)) |
+| `PhotoStorage:RootPath` | no | Where photos are kept on disk; default `App_Data/photos` under the content root ([ADR 0004](docs/adr/0004-file-storage.md)). The production storage product is not chosen |
+| `Site:Origin` | no | The origin the frontend is served from, e.g. `https://christian.rent`; a write from any other origin is refused |
+| `HTTPS_PORT` | no | The public HTTPS port the API redirects HTTP to, usually `443` |
+| `ForwardedHeaders:KnownProxies` | no | The addresses of the reverse proxies whose `X-Forwarded-*` headers are trusted |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | no | Where traces, metrics and logs are sent over OTLP; when unset, nothing is exported. The telemetry backend is not chosen |
+| `ASPNETCORE_ENVIRONMENT` | no | `Production` when deployed: HTTPS redirection and HSTS are on outside `Development` |
+| The sign-in secret | yes | Not yet: sign-in is not designed ([ADR 0005](docs/adr/0005-authentication-seam.md)) |
+
+Deployment runs `ChristianRent.Cli migrate` before the new API takes traffic. The host that
+serves the built frontend (`frontend/dist/rent/browser`) should send the same
+Content-Security-Policy as the API; hosting is not chosen yet.
 
 ## Repository structure
-
-Today:
 
 ```
 christian-rent/
 ├── AGENTS.md                        The purpose, the design, the architecture rules and the workflow
 ├── CLAUDE.md                        Points to AGENTS.md
-├── .claude/skills/                  The skills, for Claude Code
-├── .agents/skills/                  The same skills, for other coding agents
-├── .github/                         Issue and pull request templates
-└── README.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, SUPPORT.md, LICENSE
-```
-
-As it is built:
-
-```
-christian-rent/
 ├── frontend/                        The Angular workspace and its Playwright specs
-│   ├── projects/                      The libraries and the app
-│   └── e2e/                           Behaviour specs, fixtures and page objects
-├── backend/                         The .NET service: Domain, Application, Infrastructure, Api, tests
+│   ├── projects/api/                  Contracts, types, injection tokens, HTTP clients (@rent/api)
+│   ├── projects/domain/               Rules the browser applies itself (@rent/domain)
+│   ├── projects/components/           Presentation components, cr-* (@rent/components)
+│   ├── projects/rent/                 The app: pages, shell, routes and the composition root
+│   └── e2e/                           Behaviour specs, fixtures, page objects and the sweeps
+├── backend/                         The .NET service
+│   ├── src/ChristianRent.Domain/      Entities
+│   ├── src/ChristianRent.Application/ MediatR handlers, validators, contracts
+│   ├── src/ChristianRent.Infrastructure/ EF Core, migrations, storage, identity, seed
+│   ├── src/ChristianRent.Api/         Controllers, middleware, error handlers, telemetry, health
+│   ├── src/ChristianRent.Cli/         migrate and seed
+│   └── tests/                         Acceptance tests through the API, and the CLI's tests
 ├── docs/
 │   ├── journeys.md                  The journeys, by value added, with % complete
 │   ├── detailed-journeys.md         Each journey split into slices
@@ -179,7 +214,8 @@ christian-rent/
 │   ├── mocks/                       HTML mocks, the source of truth for the UI
 │   ├── design-system/               Tokens and components extracted from the mocks
 │   └── adr/                         Architecture decision records
-├── tools/                           verify
+├── tools/verify/                    verify.mjs: every check, side by side
+├── .claude/skills/, .agents/skills/ The skills, for Claude Code and other coding agents
 └── .github/                         CI workflow, issue and pull request templates
 ```
 
@@ -189,11 +225,15 @@ christian-rent/
 |---|---|
 | [AGENTS.md](AGENTS.md) | christian.rent's purpose and scope, its design, the architecture rules and the required workflow |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How a change is proposed and made |
+| [docs/specs/](docs/specs/L2.md) | The requirements: L1 and L2 with acceptance criteria |
+| [docs/mocks/](docs/mocks/README.md) | The mocks of every screen in every state, the source of truth for the UI |
+| [docs/design-system/](docs/design-system/README.md) | Tokens, foundations and components, extracted from the mocks |
+| [docs/detailed-designs/](docs/detailed-designs/README.md) | One design per feature, with its open decisions |
 | [docs/journeys.md](docs/journeys.md) | The journeys of the main app and Admin, with effort and % complete |
+| [docs/detailed-journeys.md](docs/detailed-journeys.md) | Each journey's slices |
+| [docs/lessons-learned.md](docs/lessons-learned.md) | What each journey taught |
+| [docs/adr/](docs/adr/README.md) | The architecture decisions |
 | Skills (`.claude/skills/`, `.agents/skills/`) | Requirements, mocks, the design system, detailed designs, estimates, feature prompts, Angular and incremental implementation |
-
-Requirements, mocks, the design system, the detailed designs, the journeys and the architecture
-decisions are written into `docs/` as the work reaches them, and are listed here when they are.
 
 ## Contributing
 

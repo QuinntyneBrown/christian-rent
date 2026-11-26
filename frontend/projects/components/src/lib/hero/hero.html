@@ -1,0 +1,11 @@
+<section class="hero" [attr.aria-labelledby]="titleId">
+  <div>
+    <h1 class="hero__title" [id]="titleId" tabindex="-1">
+      {{ title() }} <span class="hero__accent">{{ accent() }}</span>
+    </h1>
+    @if (lead(); as lead) {
+      <p class="hero__lead">{{ lead }}</p>
+    }
+  </div>
+  <div class="hero__actions"><ng-content /></div>
+</section>

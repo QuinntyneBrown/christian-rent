@@ -1,0 +1,24 @@
+<header class="site-header" [class.site-header--plain]="plain()">
+  <div class="container site-header__inner">
+    <cr-logo />
+    @if (plain()) {
+      <a
+        cr-button
+        variant="ghost"
+        [iconOnly]="true"
+        routerLink="/"
+        aria-label="Close and go back to Browse"
+        ><cr-icon name="x"
+      /></a>
+    } @else {
+      <div class="site-header__actions">
+        @if (member(); as member) {
+          <span class="member-chip" role="img" [attr.aria-label]="'Signed in as ' + member.name">{{
+            member.initials
+          }}</span>
+        }
+        <a cr-button variant="primary" size="sm" routerLink="/post"><cr-icon name="plus" />Post</a>
+      </div>
+    }
+  </div>
+</header>

@@ -1,0 +1,22 @@
+<div
+  class="toast"
+  [class.toast--info]="tone() === 'info'"
+  [class.toast--success]="tone() === 'success'"
+  [class.toast--warning]="tone() === 'warning'"
+  [class.toast--danger]="tone() === 'danger'"
+  [attr.role]="role()"
+>
+  <cr-icon class="toast__icon" [name]="icon()" />
+  <div class="toast__body">
+    <div class="toast__title">{{ title() }}</div>
+    @if (text()) {
+      <div class="toast__text">{{ text() }}</div>
+    }
+    @if (actionLabel(); as label) {
+      <button class="toast__action" type="button" (click)="action.emit()">{{ label }}</button>
+    }
+  </div>
+  <button class="toast__close" type="button" aria-label="Dismiss" (click)="dismissed.emit()">
+    <cr-icon name="x" size="sm" />
+  </button>
+</div>
