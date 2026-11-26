@@ -65,16 +65,16 @@ Design: [read-listing](detailed-designs/listing/read-listing/README.md).
 | 4.3 | Who posted it and their church, each marked Verified only when verified | L2-008 | Yes |
 | 4.4 | Loading, error, not found; the message box beside the listing from 768 px | L2-031, L2-033 | Yes |
 
-## 5. Become a member (Main) — 5 days — 0% complete
+## 5. Become a member (Main) — 5 days — 100% complete
 
 Design: [become-member](detailed-designs/members/become-member/README.md).
 
-| # | Slice | L2 |
-|---|---|---|
-| 5.1 | `GET /api/churches` and `GET /api/members/me` | L2-017, L2-025 |
-| 5.2 | `JoinCommand` creates an unverified member and a review item | L2-017, L2-028 |
-| 5.3 | `MemberGate` and `JoinDialog` with `JoinFormValidator` | L2-009, L2-015, L2-032 |
-| 5.4 | `Session` shows the member's initials in the header | L2-036 |
+| # | Slice | L2 | Done |
+|---|---|---|---|
+| 5.1 | `GET /api/churches` and `GET /api/members/me` | L2-017, L2-025 | Yes |
+| 5.2 | `JoinCommand` creates an unverified member and a review item | L2-017, L2-028 | Yes |
+| 5.3 | `MemberGate` and `JoinDialog` with `JoinFormValidator` | L2-009, L2-015, L2-032 | Yes |
+| 5.4 | `Session` shows the member's initials in the header | L2-036 | Yes |
 
 ## 6. Post a listing (Main) — 7 days — 0% complete
 
@@ -154,4 +154,4 @@ Design: [verify-members-and-churches](detailed-designs/members/verify-members-an
 
 | Journeys | Effort (days) | % complete |
 |---|---|---|
-| 12 | 52 | 33 |
+| 12 | 52 | 42 |

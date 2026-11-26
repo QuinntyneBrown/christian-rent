@@ -47,7 +47,12 @@ without changing the slices that depend on membership.
   inside the dialog and returns to the opening control on close; under 640 px the dialog is
   a bottom sheet. "Not now" closes it and changes nothing. The same dialog serves posting,
   messaging and reporting (criterion 12).
-- **`JoinFormValidator`** (`domain/members/`) — name 1 to 60 characters; a chosen church, or
+- **`JoinStore`** (`rent/src/app/join/`) — the dialog's state, provided by the dialog: what
+  was entered, the churches and whether they loaded, and joining (`idle`, `busy`, `failed`).
+  Errors show once a person has tried to join, and each clears as its field is put right; the
+  first invalid field takes focus. Leaving the dialog aborts the churches' request.
+- **`validateJoinForm`** (`domain/members/join-form.ts`, the `JoinFormValidator` rules) and
+  `toJoinRequest` — name 1 to 60 characters; a chosen church, or
   a new church name of 1 to 100 characters with a city of 1 to 80; the declaration checked
   (L2-017, criteria 1, 2 and 6). It answers the message of each invalid field, in the words of
   the `invalid` mock.
@@ -63,11 +68,13 @@ without changing the slices that depend on membership.
 - **`MembersApi`** (`MEMBERS_API`) — `join(request): Promise<Member>`, `me(): Promise<Member |
   null>` (null for 204). `HttpMembersApi` is bound in `app.config.ts` with `SESSION`.
 - **`ChurchesApi`** (`CHURCHES_API`) — `list(signal): Promise<ChurchOption[]>`.
-  `HttpChurchesApi` is provided by `JoinDialog` itself, so its code loads with the dialog.
+  `HttpChurchesApi` (its own file) is provided by `JoinDialog` itself, so its code loads with
+  the dialog and stays out of the initial bundle.
 
 **Frontend — `components` library**
 
-- **`cr-dialog`**, **`cr-text-field`**, **`cr-select`**, **`cr-checkbox`**, **`cr-alert`**.
+- **`cr-dialog`**, **`cr-text-field`**, **`cr-select`**, **`cr-checkbox`**, **`cr-alert`**,
+  **`cr-field-row`**.
   Each field has a visible label and its error tied to it (L2-032, criterion 5). `cr-dialog`
   is the panel only (header with its title as an `h2`, description and close, body and
   footer); the CDK `Dialog` holds focus, closes on Escape and returns focus, and its pane

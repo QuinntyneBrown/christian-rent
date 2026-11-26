@@ -41,7 +41,6 @@ public sealed class PurgeDepartedTests : IDisposable
     public void Dispose() => _output.Dispose();
 
     [Fact]
-    [Trait("Category", "Critical")]
     public async Task A_departed_member_is_made_anonymous_with_their_listings_and_photos_deleted_after_30_days()
     {
         await SeedAsync();

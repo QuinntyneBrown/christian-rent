@@ -17,7 +17,6 @@ public sealed class ChurchesTests : IDisposable
     // L2-017 criterion 8; L2-025 criterion 5: a signed-in person who is not a member picks from
     // the existing churches, each with its city, ordered by name.
     [Fact]
-    [Trait("Category", "Critical")]
     public async Task A_signed_in_person_who_is_not_a_member_lists_the_churches_by_name()
     {
         await _factory.SeedAsync(TestData.StPauls, TestData.Grace, TestData.NewSong);
