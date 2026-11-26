@@ -25,9 +25,10 @@ The admin's side is designed in
   `MemberGate.requireMember('report')` (L2-021, criterion 5), then imports and opens
   `ReportListingDialog`. While that is under way a second press does nothing, and leaving the
   screen first opens nothing. The dialog is opened with the page's injector, so it reads the
-  Listing route's `REPORTS_API`. It closes with a `ReportOutcome`: when the member's report
-  was filed (`reportedAt`), or that the listing changed. The page then keeps the time in
-  `ListingStore.markReported`, or reads the listing again with `ListingStore.load`
+  Listing route's `REPORTS_API`. As soon as a report is known to be filed it tells the page
+  when, however it is closed afterwards, and the page keeps that in
+  `ListingStore.markReported`. It closes with the `ReportOutcome` `listing-changed` when the
+  page has to read the listing again, which it does with `ListingStore.load`
   (criterion 12).
 - **`ReportListingDialog`** (`rent/src/app/report/`, selector `cr-report-listing-dialog`) —
   CDK dialog with the states `default`, `busy`, `invalid`, `failed`, `success`, `already`.
@@ -55,8 +56,9 @@ The admin's side is designed in
 **Frontend — `domain` and `api` libraries**
 
 - **`report-form`** (`domain/listings/`) — `REPORT_REASONS` (the four, with their words),
-  `validateReport`, `toReportRequest` (the cleaned note, or null) and `formatReportDate`
-  ("Jun 6, 2026", the browser's local date).
+  `validateReport`, `toReportRequest` (the cleaned note, or null), `formatReportDate`
+  ("Jun 6, 2026", the browser's local date) and `toReportDialogCopy` (the dialog's title and
+  text in each state).
 - **`ApiError`** gains `reportedAt`, read from the refusal's extension.
 
 **Frontend — `components` library**
