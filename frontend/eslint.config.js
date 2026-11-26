@@ -80,6 +80,11 @@ module.exports = defineConfig([
     },
   },
   {
+    // A test-only host component may carry its template inline; product components never do.
+    files: ['projects/**/*.spec.ts'],
+    rules: { '@angular-eslint/component-max-inline-declarations': 'off' },
+  },
+  {
     files: ['e2e/**/*.ts'],
     rules: { 'no-empty-pattern': ['error', { allowObjectPatternsAsParameters: true }] },
   },
