@@ -16,7 +16,6 @@ public sealed class PhotoServingTests : IDisposable
 
     // L2-014: served from file storage, to anyone, for an approved listing.
     [Fact]
-    [Trait("Category", "Critical")]
     public async Task An_approved_listings_card_photo_is_streamed_from_file_storage()
     {
         var photoId = Guid.NewGuid();
