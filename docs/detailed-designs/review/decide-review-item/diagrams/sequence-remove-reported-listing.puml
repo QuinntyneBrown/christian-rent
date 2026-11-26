@@ -1,0 +1,54 @@
+@startuml
+title UML sequence behaviour — Remove a reported listing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Admin" as actor
+box "Frontend — admin library (lazy)" #E0F2FE
+  participant "ReviewPage" as page
+  participant "ConfirmRemoveDialog" as dialog
+  participant "ReviewQueueStore" as store
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ReviewQueueController" as ctrl
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "DecideReviewItemCommandHandler" as handler
+  participant "Listing" as listing
+  participant "IMemberNotifier" as notify
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> page : Select "Remove"
+page -> dialog : Open, focus on "Keep it" (L2-020 criterion 4)
+dialog --> actor : Names the listing and what follows
+alt confirms "Remove listing"
+  actor -> dialog : Confirm
+  dialog -> store : decide(id, Remove)
+  store -> ctrl : POST /api/review-queue/{id}/decision {Remove, version}
+  ctrl -> handler : Send DecideReviewItemCommand
+  handler -> db : Item, report, listing, other waiting items on the listing
+  handler -> listing : Remove(), no longer public (L2-020 criterion 2)
+  handler -> handler : Decide every waiting item on the listing, close each report
+  handler -> db : Save in one unit of work
+  handler -> notify : ListingRemovedAsync(poster, listing) (L2-020 criterion 7)
+  handler --> ctrl : DecidedDto with the closed item ids
+  ctrl --> store : 200 OK
+  store -> store : Drop every closed item, select the next
+  dialog --> actor : Closed, warning toast
+else chooses "Keep it" or Escape
+  dialog --> page : Closed, nothing changed
+end
+@enduml

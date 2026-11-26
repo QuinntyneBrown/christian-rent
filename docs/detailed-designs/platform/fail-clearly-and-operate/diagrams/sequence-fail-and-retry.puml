@@ -1,0 +1,53 @@
+@startuml
+title UML sequence behaviour — Fail and try again
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Anyone" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "Page" as page
+  participant "Store" as store
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "Controller" as ctrl
+  participant "UnhandledExceptionHandler" as ueh
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "Handler" as handler
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  participant "OpenTelemetry" as tel
+end box
+actor -> page : Open a screen
+page -> store : load()
+page --> actor : Skeleton after 300 ms, aria-busy (L2-033 criterion 1)
+store -> ctrl : HTTPS request
+alt backend unreachable
+  store -> store : LoadState failed, ApiError without code
+else unhandled error in a handler
+  ctrl -> handler : Send request
+  handler --> ueh : Exception
+  ueh -> tel : Log error with trace id, no personal data (L2-028)
+  ueh --> store : 500 ProblemDetails, code = unexpected, traceId, no stack (L2-033 criterion 4)
+  store -> store : LoadState failed
+end
+store --> page : failed
+page --> actor : Plain message and "Try again", announced (L2-033 criterion 2)
+actor -> page : Select "Try again"
+page -> store : load()
+store -> ctrl : Same request
+ctrl --> store : 200 OK
+store --> page : loaded
+page --> actor : Content
+@enduml

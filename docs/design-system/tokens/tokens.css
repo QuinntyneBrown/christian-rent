@@ -1,0 +1,518 @@
+/* ==========================================================================
+   christian.rent design tokens: the single source of truth for colour, type,
+   space, shape, elevation, motion, layout and z-order.
+
+   Three tiers:
+     1. Primitives  (--palette-*, --font-*)  raw values, never used directly
+                    by components.
+     2. Semantic    (--color-*, --text-*, --space-*, --radius-*, --shadow-*,
+                    --duration-*, --ease-*, --z-*, --layout-*) meaning-based
+                    aliases that components consume. Themes override these.
+     3. Component   (--btn-*, ...) declared in ui.css, always alias a
+                    semantic token.
+
+   The palette is the prototype's: plain white, cool grey surfaces and
+   hairlines (mist), navy ink, orange (sun) for what is for rent and blue
+   (sky) for what is wanted. Never beige or cream.
+
+   Themes: light is the default (:root). Dark applies with
+   [data-theme="dark"], or automatically when the OS prefers dark and the
+   page has not forced [data-theme="light"].
+   ========================================================================== */
+
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("../assets/fonts/bricolage-grotesque-latin.woff2") format("woff2");
+  font-weight: 200 800; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("../assets/fonts/instrument-sans-latin.woff2") format("woff2");
+  font-weight: 400 700; font-style: normal; font-display: swap;
+}
+
+:root {
+  /* ---------- Primitives: colour --------------------------------------- */
+  --palette-white: #ffffff;
+  --palette-black: #000000;
+
+  /* mist: the cool greys of surfaces, hairlines and secondary text */
+  --palette-mist-50: #f7f8fb;
+  --palette-mist-100: #f1f3f8;   /* surfaces */
+  --palette-mist-200: #e3e6ee;   /* hairlines */
+  --palette-mist-300: #cbd0dc;
+  --palette-mist-400: #9aa2b4;
+  --palette-mist-500: #6f788c;   /* control edges */
+  --palette-mist-600: #5b6478;   /* secondary text */
+
+  /* ink: text, navigation and the plain primary action */
+  --palette-ink-500: #3a4666;
+  --palette-ink-600: #2a3654;
+  --palette-ink-700: #1f2740;
+  --palette-ink-800: #16213a;    /* ink */
+  --palette-ink-900: #151c30;
+  --palette-ink-950: #0e1424;
+  --palette-ink-tint: #eef1f8;   /* ink's counterpart on dark */
+  --palette-ink-tint-muted: #aeb6c8;
+  --palette-ink-tint-subtle: #8a93a8;
+  --palette-ink-line: #2b3552;
+
+  /* sun: orange, for what is for rent */
+  --palette-sun-50: #fff3ed;
+  --palette-sun-100: #ffe7dc;
+  --palette-sun-300: #ffb399;
+  --palette-sun-400: #ff8e6a;
+  --palette-sun-500: #ff6b3d;    /* brand orange */
+  --palette-sun-600: #eb4f1a;    /* orange for large display text on white */
+  --palette-sun-700: #c8431a;    /* orange for text on white */
+  --palette-sun-800: #9e3410;    /* orange for text on a sun wash */
+  --palette-sun-950: #3a1408;
+
+  /* sky: blue, for what is wanted */
+  --palette-sky-50: #eef1ff;
+  --palette-sky-100: #e3e8ff;
+  --palette-sky-200: #c5ceff;
+  --palette-sky-300: #a9b6ff;
+  --palette-sky-400: #7c8fff;
+  --palette-sky-500: #3d5afe;    /* brand blue */
+  --palette-sky-700: #2b3fc4;
+  --palette-sky-800: #22329a;
+  --palette-sky-900: #1a2570;
+  --palette-sky-950: #121a4a;
+
+  /* leaf: verified, approved, sent */
+  --palette-leaf-50: #ddf3e7;
+  --palette-leaf-300: #7fd3a8;
+  --palette-leaf-500: #1f8a5b;
+  --palette-leaf-700: #18744c;
+  --palette-leaf-800: #14633f;
+  --palette-leaf-950: #0a2a1d;
+
+  --palette-amber-50: #fff6e0;
+  --palette-amber-300: #f5c45c;
+  --palette-amber-500: #a86a00;
+  --palette-amber-700: #855200;
+  --palette-amber-950: #2c1c03;
+
+  --palette-red-50: #fde3e3;
+  --palette-red-100: #fbd0d0;
+  --palette-red-300: #f29a9a;
+  --palette-red-500: #d43a3a;
+  --palette-red-600: #c62e2e;    /* alert */
+  --palette-red-700: #a32323;
+  --palette-red-950: #380e0e;
+
+  /* ---------- Primitives: typography ----------------------------------- */
+  --font-family-display: "Bricolage Grotesque", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-family-sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-family-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --font-size-xs: 0.75rem;    /* 12px  tags, captions */
+  --font-size-sm: 0.875rem;   /* 14px  secondary text */
+  --font-size-md: 1rem;       /* 16px  body */
+  --font-size-lg: 1.125rem;   /* 18px  lead paragraph, card titles */
+  --font-size-xl: 1.25rem;    /* 20px  h4 */
+  --font-size-2xl: 1.5rem;    /* 24px  h3, line fields */
+  --font-size-3xl: 1.875rem;  /* 30px  h2 */
+  --font-size-4xl: 2.25rem;   /* 36px  h1 on a phone, prices */
+  --font-size-5xl: 3rem;      /* 48px  h1 from tablet */
+  --font-size-6xl: 3.75rem;   /* 60px  the Browse headline on desktop */
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  --line-height-display: 1;   /* the Browse headline */
+  --line-height-tight: 1.1;   /* h1-h2 */
+  --line-height-snug: 1.3;    /* h3-h4, card titles */
+  --line-height-normal: 1.5;  /* body */
+  --line-height-relaxed: 1.65;/* a listing's note */
+
+  --letter-spacing-display: -0.04em;
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.04em;
+
+  /* ---------- Semantic: colour (light) --------------------------------- */
+  --color-bg-canvas: var(--palette-white);          /* page background: plain white */
+  --color-bg-surface: var(--palette-white);         /* cards, panels, inputs */
+  --color-bg-surface-raised: var(--palette-white);  /* dialogs, the message box */
+  --color-bg-surface-sunken: var(--palette-mist-100);/* Admin canvas, wells, photo placeholders */
+  --color-bg-subtle: var(--palette-mist-100);       /* the switch track, hover, selected queue item */
+  --color-bg-subtle-hover: var(--palette-mist-200);
+  --color-bg-inverse: var(--palette-ink-800);       /* Admin navigation, tooltips */
+  --color-bg-backdrop: rgba(14, 20, 36, 0.55);      /* modal scrim */
+  --color-bg-photo-tag: rgba(255, 255, 255, 0.95);  /* the kind tag on a photo */
+
+  --color-fg-default: var(--palette-ink-800);       /* body text */
+  --color-fg-muted: var(--palette-mist-600);        /* secondary text */
+  --color-fg-subtle: var(--palette-mist-600);       /* placeholders, metadata (4.5:1 on surface) */
+  --color-fg-disabled: var(--palette-mist-400);     /* disabled text; exempt from contrast */
+  --color-fg-inverse: var(--palette-white);         /* text on ink */
+  --color-fg-inverse-muted: var(--palette-ink-tint-muted); /* secondary text on ink */
+  --color-fg-link: var(--palette-sky-700);
+  --color-fg-link-hover: var(--palette-sky-800);
+
+  --color-border-default: var(--palette-mist-200);  /* hairlines, card edges (decorative) */
+  --color-border-strong: var(--palette-mist-500);   /* form control edges (>= 3:1) */
+  --color-border-inverse: var(--palette-ink-500);
+
+  --color-accent: var(--palette-ink-800);           /* the plain primary action, selected states */
+  --color-accent-hover: var(--palette-ink-600);
+  --color-accent-active: var(--palette-ink-500);
+  --color-accent-subtle: var(--palette-mist-100);
+  --color-accent-subtle-hover: var(--palette-mist-200);
+  --color-fg-on-accent: var(--palette-white);
+  --color-fg-accent: var(--palette-ink-800);
+
+  /* for rent: orange */
+  --color-rent: var(--palette-sun-500);             /* "I have something to rent", Publish, Message */
+  --color-rent-hover: var(--palette-sun-400);
+  --color-rent-subtle: var(--palette-sun-100);
+  --color-fg-on-rent: var(--palette-ink-800);       /* ink on orange, 5.6:1 */
+  --color-fg-rent: var(--palette-sun-700);          /* orange text on white */
+  --color-fg-rent-on-subtle: var(--palette-sun-800);/* orange text on a sun wash */
+  --color-fg-rent-display: var(--palette-sun-600);  /* large display text only (>= 3:1) */
+  --color-brand-mark: var(--palette-sun-500);       /* the mark's tile and ".rent" in the wordmark */
+  --color-fg-on-brand-mark: var(--palette-ink-800);
+
+  /* wanted: blue */
+  --color-wanted: var(--palette-sky-500);           /* wanted cards, "Post request", "Offer to help" */
+  --color-wanted-hover: var(--palette-sky-700);
+  --color-wanted-subtle: var(--palette-sky-100);
+  --color-fg-on-wanted: var(--palette-white);
+  --color-fg-wanted: var(--palette-sky-700);
+  --color-bg-on-wanted-tag: rgba(255, 255, 255, 0.16);
+
+  --color-focus-ring: var(--palette-sky-500);
+  --color-focus-ring-offset: var(--color-bg-surface);
+
+  --color-info-bg: var(--palette-sky-100);
+  --color-info-fg: var(--palette-sky-700);
+  --color-info-border: var(--palette-sky-300);
+  --color-info-icon: var(--palette-sky-500);
+  --color-info-solid: var(--palette-sky-500);
+
+  --color-success-bg: var(--palette-leaf-50);
+  --color-success-fg: var(--palette-leaf-800);
+  --color-success-border: var(--palette-leaf-300);
+  --color-success-icon: var(--palette-leaf-500);
+  --color-success-solid: var(--palette-leaf-700);   /* Approve, Keep */
+  --color-success-solid-hover: var(--palette-leaf-800);
+  --color-fg-on-success: var(--palette-white);
+
+  --color-warning-bg: var(--palette-amber-50);
+  --color-warning-fg: var(--palette-amber-700);
+  --color-warning-border: var(--palette-amber-300);
+  --color-warning-icon: var(--palette-amber-500);
+  --color-warning-solid: var(--palette-amber-700);
+
+  --color-danger-bg: var(--palette-red-50);
+  --color-danger-fg: var(--palette-red-700);
+  --color-danger-border: var(--palette-red-300);
+  --color-danger-icon: var(--palette-red-600);
+  --color-danger-solid: var(--palette-red-600);     /* Remove */
+  --color-danger-solid-hover: var(--palette-red-700);
+  --color-fg-on-danger: var(--palette-white);
+
+  /* the pale tiles behind a member's initials */
+  --color-avatar-sun: var(--palette-sun-100);
+  --color-avatar-sky: var(--palette-sky-100);
+  --color-avatar-leaf: var(--palette-leaf-50);
+  --color-fg-on-avatar: var(--palette-ink-800);
+
+  /* ---------- Semantic: typography roles ------------------------------- */
+  --text-display: var(--font-weight-extrabold) var(--font-size-5xl) / var(--line-height-display) var(--font-family-display);
+  --text-h1: var(--font-weight-extrabold) var(--font-size-4xl) / var(--line-height-tight) var(--font-family-display);
+  --text-h2: var(--font-weight-bold) var(--font-size-3xl) / var(--line-height-tight) var(--font-family-display);
+  --text-h3: var(--font-weight-bold) var(--font-size-2xl) / var(--line-height-snug) var(--font-family-display);
+  --text-h4: var(--font-weight-semibold) var(--font-size-xl) / var(--line-height-snug) var(--font-family-display);
+  --text-body-lg: var(--font-weight-regular) var(--font-size-lg) / var(--line-height-normal) var(--font-family-sans);
+  --text-body: var(--font-weight-regular) var(--font-size-md) / var(--line-height-normal) var(--font-family-sans);
+  --text-body-sm: var(--font-weight-regular) var(--font-size-sm) / var(--line-height-normal) var(--font-family-sans);
+  --text-caption: var(--font-weight-regular) var(--font-size-xs) / var(--line-height-normal) var(--font-family-sans);
+  --text-card-title: var(--font-weight-semibold) var(--font-size-lg) / var(--line-height-snug) var(--font-family-display);
+  --text-price: var(--font-weight-bold) var(--font-size-md) / var(--line-height-snug) var(--font-family-display);
+  --text-field-line: var(--font-weight-semibold) var(--font-size-2xl) / var(--line-height-snug) var(--font-family-display);
+  --text-label: var(--font-weight-semibold) var(--font-size-sm) / var(--line-height-normal) var(--font-family-sans);
+  --text-overline: var(--font-weight-semibold) var(--font-size-xs) / var(--line-height-normal) var(--font-family-sans);
+  --text-code: var(--font-weight-regular) var(--font-size-sm) / var(--line-height-normal) var(--font-family-mono);
+
+  /* ---------- Semantic: spacing (4px base) ----------------------------- */
+  --space-0: 0;
+  --space-0-5: 0.125rem; /* 2px  hairline gaps */
+  --space-1: 0.25rem;    /* 4px  icon-to-label */
+  --space-2: 0.5rem;     /* 8px  inside chips, between inline items */
+  --space-3: 0.75rem;    /* 12px compact padding */
+  --space-4: 1rem;       /* 16px default padding, stack gap */
+  --space-5: 1.25rem;    /* 20px */
+  --space-6: 1.5rem;     /* 24px card padding, section gap (mobile) */
+  --space-8: 2rem;       /* 32px section gap */
+  --space-10: 2.5rem;    /* 40px */
+  --space-12: 3rem;      /* 48px page section spacing */
+  --space-16: 4rem;      /* 64px hero spacing */
+  --space-20: 5rem;      /* 80px */
+  --space-24: 6rem;      /* 96px */
+
+  /* ---------- Semantic: layout ----------------------------------------- */
+  --layout-breakpoint-sm: 36rem;   /* 576px  large phones: two columns of cards */
+  --layout-breakpoint-md: 48rem;   /* 768px  tablets */
+  --layout-breakpoint-lg: 62rem;   /* 992px  small laptops */
+  --layout-breakpoint-xl: 75rem;   /* 1200px desktops: four columns of cards */
+  --layout-breakpoint-2xl: 96rem;  /* 1536px wide screens */
+
+  --layout-columns: 4;              /* grid columns at the current breakpoint */
+  --layout-gutter: var(--space-4);  /* gap between columns */
+  --layout-margin: var(--space-4);  /* page edge to content */
+  --layout-container-max: 72rem;    /* 1152px */
+  --layout-measure: 65ch;           /* max line length for prose */
+  --layout-sidebar-width: 15rem;    /* 240px  Admin navigation */
+  --layout-queue-width: 28rem;      /* 448px  the review queue beside its detail panel */
+  --layout-aside-width: 23.75rem;   /* 380px  the message box beside a listing */
+  --layout-preview-width: 20rem;    /* 320px  the live preview beside Post */
+  --layout-topbar-height: 4rem;     /* 64px */
+
+  /* ---------- Semantic: shape ------------------------------------------ */
+  --radius-xs: 0.25rem;   /* 4px  checkbox */
+  --radius-sm: 0.75rem;   /* 12px thumbnails, queue photos */
+  --radius-md: 1rem;      /* 16px inputs, queue items, word toggles */
+  --radius-lg: 1.5rem;    /* 24px cards, photos */
+  --radius-xl: 1.75rem;   /* 28px the search bar, the message box, dialogs, a listing's photo */
+  --radius-full: 9999px;  /* pills, avatars */
+
+  --border-width-hairline: 1px;
+  --border-width-thick: 2px;
+
+  /* ---------- Semantic: elevation -------------------------------------- */
+  --shadow-color: 22 33 58;
+  --shadow-1: 0 1px 2px rgb(var(--shadow-color) / 0.08);                                       /* cards */
+  --shadow-2: 0 12px 32px -16px rgb(var(--shadow-color) / 0.22);  /* floating panels: the search bar, the message box */
+  --shadow-3: 0 8px 24px rgb(var(--shadow-color) / 0.14), 0 2px 6px rgb(var(--shadow-color) / 0.08); /* popovers, menus */
+  --shadow-4: 0 20px 48px rgb(var(--shadow-color) / 0.22), 0 4px 12px rgb(var(--shadow-color) / 0.10); /* dialogs, sheets */
+  --shadow-focus: 0 0 0 2px var(--color-focus-ring-offset), 0 0 0 4px var(--color-focus-ring);
+
+  /* ---------- Semantic: motion ----------------------------------------- */
+  --duration-instant: 0ms;
+  --duration-fast: 150ms;     /* hover, colour changes, press */
+  --duration-base: 200ms;     /* reveal, menus, tooltips */
+  --duration-slow: 320ms;     /* dialogs, sheets, page transitions */
+  --duration-deliberate: 500ms;/* progress, skeleton shimmer cycles */
+  --ease-standard: cubic-bezier(0.23, 1, 0.32, 1);   /* the prototype's "snap" */
+  --ease-enter: cubic-bezier(0, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.3, 0, 1, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ---------- Semantic: z-order ---------------------------------------- */
+  --z-base: 0;
+  --z-raised: 1;
+  --z-sticky: 100;
+  --z-dropdown: 1000;
+  --z-overlay: 1200;
+  --z-modal: 1300;
+  --z-popover: 1400;
+  --z-toast: 1500;
+  --z-tooltip: 1600;
+
+  /* ---------- Semantic: interaction ------------------------------------ */
+  --target-min: 2.75rem;     /* 44px  every touch target */
+  --target-comfortable: 2.75rem; /* 44px recommended touch target */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --control-height-sm: 2.75rem; /* 44px */
+  --control-height-md: 3rem;    /* 48px */
+  --control-height-lg: 3.5rem;  /* 56px */
+
+  color-scheme: light;
+}
+
+/* Responsive layout tokens: columns, gutters and margins grow with the viewport. */
+@media (min-width: 48rem) {
+  :root {
+    --layout-columns: 8;
+    --layout-gutter: var(--space-6);
+    --layout-margin: var(--space-6);
+  }
+}
+
+@media (min-width: 62rem) {
+  :root {
+    --layout-columns: 12;
+    --layout-gutter: var(--space-8);
+    --layout-margin: var(--space-6);
+  }
+}
+
+/* ---------- Dark theme ----------------------------------------------------- */
+[data-theme="dark"] {
+  --color-bg-canvas: var(--palette-ink-950);
+  --color-bg-surface: var(--palette-ink-900);
+  --color-bg-surface-raised: var(--palette-ink-700);
+  --color-bg-surface-sunken: var(--palette-ink-950);
+  --color-bg-subtle: var(--palette-ink-700);
+  --color-bg-subtle-hover: var(--palette-ink-600);
+  --color-bg-inverse: var(--palette-ink-700);
+  --color-bg-backdrop: rgba(0, 0, 0, 0.65);
+  --color-bg-photo-tag: rgba(14, 20, 36, 0.88);
+  --color-fg-default: var(--palette-ink-tint);
+  --color-fg-muted: var(--palette-ink-tint-muted);
+  --color-fg-subtle: var(--palette-ink-tint-muted);
+  --color-fg-disabled: var(--palette-mist-600);
+  --color-fg-inverse: var(--palette-ink-tint);
+  --color-fg-inverse-muted: var(--palette-ink-tint-muted);
+  --color-fg-link: var(--palette-sky-300);
+  --color-fg-link-hover: var(--palette-sky-200);
+  --color-border-default: var(--palette-ink-line);
+  --color-border-strong: var(--palette-ink-tint-subtle);
+  --color-border-inverse: var(--palette-ink-500);
+  --color-accent: var(--palette-ink-tint);
+  --color-accent-hover: var(--palette-white);
+  --color-accent-active: var(--palette-mist-200);
+  --color-accent-subtle: var(--palette-ink-700);
+  --color-accent-subtle-hover: var(--palette-ink-600);
+  --color-fg-on-accent: var(--palette-ink-950);
+  --color-fg-accent: var(--palette-ink-tint);
+  --color-rent-subtle: var(--palette-sun-950);
+  --color-fg-rent: var(--palette-sun-400);
+  --color-fg-rent-on-subtle: var(--palette-sun-300);
+  --color-fg-rent-display: var(--palette-sun-500);
+  --color-wanted-subtle: var(--palette-sky-950);
+  --color-fg-wanted: var(--palette-sky-300);
+  --color-focus-ring: var(--palette-sky-300);
+  --color-info-bg: var(--palette-sky-950);
+  --color-info-fg: var(--palette-sky-200);
+  --color-info-border: var(--palette-sky-800);
+  --color-info-icon: var(--palette-sky-300);
+  --color-info-solid: var(--palette-sky-300);
+  --color-success-bg: var(--palette-leaf-950);
+  --color-success-fg: var(--palette-leaf-300);
+  --color-success-border: var(--palette-leaf-700);
+  --color-success-icon: var(--palette-leaf-300);
+  --color-success-solid: var(--palette-leaf-300);
+  --color-success-solid-hover: var(--palette-leaf-50);
+  --color-fg-on-success: var(--palette-leaf-950);
+  --color-warning-bg: var(--palette-amber-950);
+  --color-warning-fg: var(--palette-amber-300);
+  --color-warning-border: var(--palette-amber-700);
+  --color-warning-icon: var(--palette-amber-300);
+  --color-warning-solid: var(--palette-amber-300);
+  --color-danger-bg: var(--palette-red-950);
+  --color-danger-fg: var(--palette-red-300);
+  --color-danger-border: var(--palette-red-700);
+  --color-danger-icon: var(--palette-red-300);
+  --color-danger-solid: var(--palette-red-300);
+  --color-danger-solid-hover: var(--palette-red-100);
+  --color-fg-on-danger: var(--palette-red-950);
+  --color-avatar-sun: var(--palette-sun-100);
+  --color-avatar-sky: var(--palette-sky-100);
+  --color-avatar-leaf: var(--palette-leaf-50);
+  --color-fg-on-avatar: var(--palette-ink-800);
+  --shadow-color: 0 0 0;
+  --shadow-1: 0 1px 2px rgb(var(--shadow-color) / 0.4);
+  --shadow-2: 0 12px 32px -16px rgb(var(--shadow-color) / 0.7);
+  --shadow-3: 0 8px 24px rgb(var(--shadow-color) / 0.5), 0 2px 6px rgb(var(--shadow-color) / 0.35);
+  --shadow-4: 0 20px 48px rgb(var(--shadow-color) / 0.6), 0 4px 12px rgb(var(--shadow-color) / 0.4);
+  color-scheme: dark;
+}
+
+/* Follow the OS preference unless the page has explicitly chosen light. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg-canvas: var(--palette-ink-950);
+    --color-bg-surface: var(--palette-ink-900);
+    --color-bg-surface-raised: var(--palette-ink-700);
+    --color-bg-surface-sunken: var(--palette-ink-950);
+    --color-bg-subtle: var(--palette-ink-700);
+    --color-bg-subtle-hover: var(--palette-ink-600);
+    --color-bg-inverse: var(--palette-ink-700);
+    --color-bg-backdrop: rgba(0, 0, 0, 0.65);
+    --color-bg-photo-tag: rgba(14, 20, 36, 0.88);
+    --color-fg-default: var(--palette-ink-tint);
+    --color-fg-muted: var(--palette-ink-tint-muted);
+    --color-fg-subtle: var(--palette-ink-tint-muted);
+    --color-fg-disabled: var(--palette-mist-600);
+    --color-fg-inverse: var(--palette-ink-tint);
+    --color-fg-inverse-muted: var(--palette-ink-tint-muted);
+    --color-fg-link: var(--palette-sky-300);
+    --color-fg-link-hover: var(--palette-sky-200);
+    --color-border-default: var(--palette-ink-line);
+    --color-border-strong: var(--palette-ink-tint-subtle);
+    --color-border-inverse: var(--palette-ink-500);
+    --color-accent: var(--palette-ink-tint);
+    --color-accent-hover: var(--palette-white);
+    --color-accent-active: var(--palette-mist-200);
+    --color-accent-subtle: var(--palette-ink-700);
+    --color-accent-subtle-hover: var(--palette-ink-600);
+    --color-fg-on-accent: var(--palette-ink-950);
+    --color-fg-accent: var(--palette-ink-tint);
+    --color-rent-subtle: var(--palette-sun-950);
+    --color-fg-rent: var(--palette-sun-400);
+    --color-fg-rent-on-subtle: var(--palette-sun-300);
+    --color-fg-rent-display: var(--palette-sun-500);
+    --color-wanted-subtle: var(--palette-sky-950);
+    --color-fg-wanted: var(--palette-sky-300);
+    --color-focus-ring: var(--palette-sky-300);
+    --color-info-bg: var(--palette-sky-950);
+    --color-info-fg: var(--palette-sky-200);
+    --color-info-border: var(--palette-sky-800);
+    --color-info-icon: var(--palette-sky-300);
+    --color-info-solid: var(--palette-sky-300);
+    --color-success-bg: var(--palette-leaf-950);
+    --color-success-fg: var(--palette-leaf-300);
+    --color-success-border: var(--palette-leaf-700);
+    --color-success-icon: var(--palette-leaf-300);
+    --color-success-solid: var(--palette-leaf-300);
+    --color-success-solid-hover: var(--palette-leaf-50);
+    --color-fg-on-success: var(--palette-leaf-950);
+    --color-warning-bg: var(--palette-amber-950);
+    --color-warning-fg: var(--palette-amber-300);
+    --color-warning-border: var(--palette-amber-700);
+    --color-warning-icon: var(--palette-amber-300);
+    --color-warning-solid: var(--palette-amber-300);
+    --color-danger-bg: var(--palette-red-950);
+    --color-danger-fg: var(--palette-red-300);
+    --color-danger-border: var(--palette-red-700);
+    --color-danger-icon: var(--palette-red-300);
+    --color-danger-solid: var(--palette-red-300);
+    --color-danger-solid-hover: var(--palette-red-100);
+    --color-fg-on-danger: var(--palette-red-950);
+    --color-avatar-sun: var(--palette-sun-100);
+    --color-avatar-sky: var(--palette-sky-100);
+    --color-avatar-leaf: var(--palette-leaf-50);
+    --color-fg-on-avatar: var(--palette-ink-800);
+    --shadow-color: 0 0 0;
+    --shadow-1: 0 1px 2px rgb(var(--shadow-color) / 0.4);
+    --shadow-2: 0 12px 32px -16px rgb(var(--shadow-color) / 0.7);
+    --shadow-3: 0 8px 24px rgb(var(--shadow-color) / 0.5), 0 2px 6px rgb(var(--shadow-color) / 0.35);
+    --shadow-4: 0 20px 48px rgb(var(--shadow-color) / 0.6), 0 4px 12px rgb(var(--shadow-color) / 0.4);
+    color-scheme: dark;
+  }
+}
+
+/* ---------- Preference overrides ------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0.01ms;
+    --duration-base: 0.01ms;
+    --duration-slow: 0.01ms;
+    --duration-deliberate: 0.01ms;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-border-default: var(--color-border-strong);
+    --color-fg-muted: var(--color-fg-default);
+    --color-fg-subtle: var(--color-fg-muted);
+  }
+}
+
+/* Windows High Contrast / forced colours: hand control to system colours. */
+@media (forced-colors: active) {
+  :root {
+    --color-focus-ring: Highlight;
+    --color-border-default: CanvasText;
+    --color-border-strong: CanvasText;
+  }
+}

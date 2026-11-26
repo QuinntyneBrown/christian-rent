@@ -1,0 +1,63 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Verify members and churches
+
+class Member {
+  +Guid Id
+  +string Name
+  +bool IsVerified
+  +MemberStatus Status
+  +Verify(): void
+  +Remove(): void
+}
+class Church {
+  +Guid Id
+  +string Name
+  +bool IsVerified
+  +Guid? VerifiedBy
+  +DateTimeOffset? VerifiedAt
+  +Verify(adminId, now): void
+}
+enum MemberStatus {
+  Active
+  Removed
+  Departed
+}
+class VerifyChurchCommand {
+  +Guid ChurchId
+}
+class VerifyChurchCommandHandler {
+  +Handle(command: VerifyChurchCommand): Task
+}
+class ListingVisibility {
+  +{static} CanBeSeenBy(listing: Listing, caller: Member?): bool
+}
+class PosterDto {
+  +string Name
+  +bool IsVerified
+  +ChurchDto Church
+}
+class ChurchDto {
+  +string Name
+  +bool IsVerified
+}
+Member --> "1" Church
+Member --> MemberStatus
+VerifyChurchCommandHandler ..> VerifyChurchCommand : handles
+VerifyChurchCommandHandler --> Church : verifies
+ListingVisibility ..> Member : reads Status
+PosterDto ..> Member : projects
+ChurchDto ..> Church : projects
+PosterDto *-- ChurchDto
+@enduml

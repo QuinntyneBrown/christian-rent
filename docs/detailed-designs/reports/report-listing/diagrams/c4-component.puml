@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Report a listing
+
+Container_Boundary(spa, "rent application (Angular workspace)") {
+  Component(page, "ListingPage", "Angular page", "Hosts the Report button")
+  Component(gate, "MemberGate", "rent service", "Asks a non-member to join")
+  Component(dialog, "ReportListingDialog", "CDK Dialog, lazy import", "Reason, note and result")
+  Component(client, "HttpReportsApi", "api library, REPORTS_API", "Typed HTTP client")
+}
+Container_Boundary(api, "ChristianRent backend") {
+  Component(ctrl, "ReportsController", "ASP.NET Core controller", "POST /api/listings/{id}/reports")
+  Component(handler, "ReportListingCommandHandler", "MediatR handler", "One report per member and listing")
+  Component(report, "Report", "Domain entity", "Reason, note, reporter")
+  Component(item, "ReviewItem", "Domain entity", "Queue entry for the report")
+}
+ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
+Rel(page, gate, "requireMember()")
+Rel(page, dialog, "Opens")
+Rel(dialog, client, "report(listingId, request)")
+Rel(client, ctrl, "POST /api/listings/{id}/reports", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends ReportListingCommand")
+Rel(handler, report, "Report.File(...)")
+Rel(handler, item, "ReviewItem.ForReport(...)")
+Rel(handler, db, "Saves in one unit of work", "IAppDbContext")
+@enduml

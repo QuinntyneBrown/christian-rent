@@ -1,0 +1,13 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Enforce access and limit abuse
+
+Person(anyone, "Anyone", "Browses and reads listings, signed in or not")
+Person(member, "Member", "Posts listings, sends messages and reports")
+Person(admin, "Admin", "Works through the review queue")
+System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for one")
+Rel(anyone, cr, "Browses and reads listings on")
+Rel(member, cr, "Posts, messages and reports on")
+Rel(admin, cr, "Reviews listings, reports and members in")
+@enduml

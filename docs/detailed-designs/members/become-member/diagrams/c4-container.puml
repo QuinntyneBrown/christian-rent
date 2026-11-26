@@ -3,19 +3,15 @@
 LAYOUT_WITH_LEGEND()
 title Containers — Become a member
 
-Person(person, "Person who is not a member", "Joins")
-Person(member, "Member", "May ask to leave")
-System_Ext(signin, "Sign-in", "Identifies the person; mechanism <TO SUPPLY>")
+Person(person, "Person who is not a member", "Wants to post, message or report")
+Person(admin, "Admin", "Works through the review queue")
 System_Boundary(cr, "christian.rent") {
-  Container(rent, "rent", "Angular", "The join form; its host is <TO SUPPLY>")
-  Container(api, "ChristianRent.Api", "ASP.NET Core", "Creates the member, the church and the review item; deletes a member who left")
-  ContainerDb(db, "Database", "Relational, engine <TO SUPPLY>", "Members, churches, review items, listings")
-  Container(files, "File storage", "Product <TO SUPPLY>", "Photos of listings")
+  Container(spa, "rent application", "Angular, zoneless, lazy routes", "Browse, Listing, Post and Admin screens")
+  Container(api, "ChristianRent.Api", "ASP.NET Core", "Controllers, MediatR handlers and domain rules")
+  ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Listings, members, churches, messages, reports and the review queue")
 }
-Rel(person, rent, "Uses", "HTTPS")
-Rel(member, rent, "Uses", "HTTPS")
-Rel(rent, api, "Finds churches, joins, leaves", "JSON/HTTPS")
+Rel(person, spa, "Uses", "HTTPS")
+Rel(admin, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
 Rel(api, db, "Reads and writes", "EF Core")
-Rel(api, files, "Deletes the photos of a member who left", "IPhotoStorage")
-Rel(api, signin, "Identifies the person through")
 @enduml

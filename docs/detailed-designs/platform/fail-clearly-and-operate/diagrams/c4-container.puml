@@ -1,27 +1,26 @@
 @startuml
 !include <C4/C4_Container>
 LAYOUT_WITH_LEGEND()
-title Containers — Fail clearly and operate
+title Containers — Fail clearly and operate in production
 
-Person(person, "Anyone, member or admin", "Uses christian.rent in a browser")
+Person(anyone, "Anyone", "Browses and reads listings, signed in or not")
 Person(operator, "Operator", "Deploys and watches the system")
-System_Ext(otel, "Telemetry backend", "Product <TO SUPPLY>")
-System_Ext(backup, "Backup", "Mechanism <TO SUPPLY>")
 System_Boundary(cr, "christian.rent") {
-  Container(rent, "rent", "Angular", "Shows loading states, the unreachable-backend message with Try again, and the not-found screen")
-  Container(api, "ChristianRent.Api", "ASP.NET Core", "Answers an unhandled error with a ProblemDetails and a trace id; reports health; emits telemetry")
-  Container(cli, "ChristianRent.Cli", ".NET console", "Applies migrations and seed data by command")
-  ContainerDb(db, "Database", "Relational, engine <TO SUPPLY>", "Listings, members, messages")
-  ContainerDb(files, "File storage", "Product <TO SUPPLY>", "Photos")
+  Container(spa, "rent application", "Angular, zoneless, lazy routes", "Browse, Listing, Post and Admin screens")
+  Container(api, "ChristianRent.Api", "ASP.NET Core", "Controllers, MediatR handlers and domain rules")
+  ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Listings, members, churches, messages, reports and the review queue")
+  ContainerDb(files, "File storage", "<TO SUPPLY>", "Photo renditions")
+  Container(cli, "ChristianRent.Cli", ".NET console", "migrate, seed and maintenance commands")
 }
-Rel(person, rent, "Uses", "HTTPS")
-Rel(rent, api, "Calls", "JSON/HTTPS")
-Rel(operator, api, "Calls the health endpoint of", "HTTPS")
-Rel(operator, cli, "Runs migrate at each deployment")
-Rel(api, db, "Reads and writes; never migrates", "EF Core")
-Rel(api, files, "Reads and writes photos in")
-Rel(cli, db, "Applies migrations to", "EF Core")
-Rel(api, otel, "Emits traces, metrics and logs to", "OTLP")
-Rel(db, backup, "Is copied each day to")
-Rel(files, backup, "Is copied each day to")
+System_Ext(otel, "Telemetry backend", "Receives traces, metrics and logs")
+System_Ext(backup, "Backup store", "Holds daily backups")
+Rel(anyone, spa, "Uses", "HTTPS")
+Rel(operator, api, "Probes health of", "HTTPS")
+Rel(operator, cli, "Runs")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, files, "Stores and streams photos", "IPhotoStorage")
+Rel(cli, db, "Migrates and maintains", "EF Core")
+Rel(api, otel, "Exports telemetry to")
+Rel(api, backup, "Is backed up to")
 @enduml

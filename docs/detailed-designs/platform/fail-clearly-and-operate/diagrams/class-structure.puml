@@ -11,78 +11,41 @@ skinparam class {
   BackgroundColor #F9FAFB
 }
 ' --------------------------
-title Class structure — Fail clearly and operate
+title Class structure — Fail clearly and operate in production
 
-class "LoadState<T>" as LoadState <<api type>> {
-  +status: 'loading' | 'loaded' | 'failed'
-  +value: T | null
-  +error: ApiError | null
+class "LoadState<T>" as LS <<TypeScript>> {
+  +status: 'loading' | 'loaded' | 'empty' | 'failed'
+  +value?: T
+  +error?: ApiError
 }
-
-class ApiError <<api type>> {
-  +code: string
-  +status: number
-  +traceId: string | null
+class UnhandledExceptionHandler {
+  +TryHandleAsync(context, exception, token): ValueTask<bool>
 }
-
-class Skeleton <<cr-skeleton>> {
-  +shape: input<'card' | 'listing' | 'row' | 'panel'>
-  +count: input<number>
+class DatabaseHealthCheck {
+  +CheckHealthAsync(context, token): Task<HealthCheckResult>
 }
-
-class ErrorState <<cr-error-state>> {
-  +message: input<string>
-  +retry: output<void>
+class PhotoStorageHealthCheck {
+  +CheckHealthAsync(context, token): Task<HealthCheckResult>
 }
-
-class NotFoundPage <<rent page>> {
-}
-
-class UnhandledExceptionHandler <<IExceptionHandler>> {
-  +TryHandleAsync(context: HttpContext, exception: Exception, ct: CancellationToken): ValueTask<bool>
-}
-
-class HealthController <<Api>> {
-  +Get(): Task<IActionResult>
-}
-
-class CheckHealthQuery <<MediatR request>> {
-}
-
-class CheckHealthQueryHandler <<MediatR handler>> {
-  +Handle(query: CheckHealthQuery): Task<HealthReport>
-}
-
-class HealthReport <<Application DTO>> {
-  +bool Alive
-  +bool Database
-  +bool FileStorage
-}
-
-interface IAppDbContext <<Application port>> {
-  +CanConnectAsync(ct: CancellationToken): Task<bool>
-}
-
-interface IPhotoStorage <<Application port>> {
-  +CanReachAsync(ct: CancellationToken): Task<bool>
-}
-
-class PersonalDataProcessor <<BaseProcessor<Activity>>> {
+interface IHealthCheck
+class TelemetryScrubber {
   +OnEnd(activity: Activity): void
 }
-
-class MigrateCommand <<ChristianRent.Cli>> {
-  +RunAsync(ct: CancellationToken): Task<int>
+class MigrateCommand {
+  +ExecuteAsync(): Task<int>
 }
-
-LoadState --> ApiError : carries when failed
-Skeleton ..> LoadState : shown for loading
-ErrorState ..> LoadState : shown for failed
-UnhandledExceptionHandler ..> ApiError : its ProblemDetails becomes
-HealthController ..> CheckHealthQuery : sends
-CheckHealthQueryHandler ..> CheckHealthQuery : handles
-CheckHealthQueryHandler --> HealthReport : returns
-CheckHealthQueryHandler ..> IAppDbContext : probes
-CheckHealthQueryHandler ..> IPhotoStorage : probes
-MigrateCommand ..> IAppDbContext : migrates the database behind
+class SeedCommand {
+  +ExecuteAsync(): Task<int>
+}
+interface IAppDbContext {
+  +CanConnectAsync(token): Task<bool>
+}
+interface IPhotoStorage {
+  +IsReachableAsync(): Task<bool>
+}
+IHealthCheck <|.. DatabaseHealthCheck
+IHealthCheck <|.. PhotoStorageHealthCheck
+DatabaseHealthCheck ..> IAppDbContext
+PhotoStorageHealthCheck ..> IPhotoStorage
+LS ..> UnhandledExceptionHandler : failed carries its ProblemDetails
 @enduml

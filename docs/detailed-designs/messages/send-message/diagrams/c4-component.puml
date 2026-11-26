@@ -1,40 +1,29 @@
 @startuml
 !include <C4/C4_Component>
 LAYOUT_WITH_LEGEND()
-title Components — Send a message
+title Components — Send a message about a listing
 
-Person(sender, "Member", "Sends a message about a listing")
-Container_Boundary(rent, "rent (Angular application and its libraries)") {
-  Component(page, "ListingPage", "Page in rent", "Orchestrates the message box, the draft and the send")
-  Component(box, "MessageBox", "Presentation component in components", "Price line, From and To on a listing for rent, message, send button, confirmation with Edit message")
-  Component(rules, "MessageDraftRules", "Pure helper in domain", "Starts the draft with a greeting and dates; length and date rules applied in the browser")
-  Component(drafts, "DraftStore", "Service in domain storage", "Keeps the unsent message for the return from sign-in")
-  Component(client, "MessagesApi", "Contract and HTTP client in api", "Builds the send request, maps ApiError")
+Container_Boundary(spa, "rent application (Angular workspace)") {
+  Component(box, "cr-message-box", "components library", "Dates, message, confirmation")
+  Component(composer, "MessageComposer", "Route-scoped service", "Draft, state and send()")
+  Component(val, "MessageDraftValidator", "domain/listings helper", "Text length and date order")
+  Component(gate, "MemberGate, DraftStore", "rent service, domain/storage", "Keeps the draft while a person joins")
+  Component(client, "HttpMessagesApi", "api library, MESSAGES_API", "Typed HTTP client")
 }
-Container_Boundary(api, "ChristianRent.Api") {
-  Component(ctrl, "MessagesController", "ASP.NET Core controller", "Sends one SendMessageCommand")
-  Component(validator, "SendMessageCommandValidator", "FluentValidation", "Length and date-order rules, the same as the browser's")
-  Component(handler, "SendMessageCommandHandler", "MediatR handler", "Own-listing, removed-listing, dates and hourly-limit rules; stores the message")
-  Component(current, "ICurrentMember", "Application port", "The signed-in member")
-  Component(clock, "TimeProvider", "Application port", "The time used for the limit and the sent time")
-  Component(message, "Message", "Domain entity", "Text, dates, sender, recipient, listing, read time")
-  Component(mailer, "IMemberMailer", "Application port", "Emails a member; reads the email address itself")
+Container_Boundary(api, "ChristianRent backend") {
+  Component(ctrl, "MessagesController", "ASP.NET Core controller", "POST /api/listings/{id}/messages")
+  Component(handler, "SendMessageCommandHandler", "MediatR handler", "Checks listing, sender and limit")
+  Component(limit, "MessagingLimit", "Domain service", "20 messages in an hour")
+  Component(entity, "Message", "Domain entity", "Private to sender and recipient")
 }
-ContainerDb(db, "Database", "Relational, engine <TO SUPPLY>", "Listings, members and messages")
-System_Ext(email, "Email delivery", "Product <TO SUPPLY>")
-
-Rel(sender, box, "Writes a message in")
-Rel(page, box, "Binds inputs and outputs of")
-Rel(page, rules, "Starts and checks the draft with")
-Rel(page, drafts, "Saves and restores the draft through")
-Rel(page, client, "Sends through MESSAGES_API")
-Rel(client, ctrl, "POST /listings/{listingId}/messages", "JSON/HTTPS")
-Rel(ctrl, handler, "Sends SendMessageCommand", "MediatR")
-Rel(validator, handler, "Runs before")
-Rel(handler, current, "Reads the sender from")
-Rel(handler, clock, "Reads the time from")
-Rel(handler, message, "Creates")
-Rel(handler, mailer, "Tells the member who posted through")
-Rel(mailer, email, "Sends the notice that a message arrived through")
-Rel(handler, db, "Reads and writes through IAppDbContext", "EF Core")
+ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
+Rel(box, composer, "draftChange, send")
+Rel(composer, val, "validate(draft, today)")
+Rel(composer, gate, "requireMember()")
+Rel(composer, client, "send(listingId, draft)")
+Rel(client, ctrl, "POST /api/listings/{id}/messages", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends SendMessageCommand")
+Rel(handler, limit, "Check(senderId, now)")
+Rel(handler, entity, "Message.Send(...)")
+Rel(handler, db, "Reads listing, saves message", "IAppDbContext")
 @enduml

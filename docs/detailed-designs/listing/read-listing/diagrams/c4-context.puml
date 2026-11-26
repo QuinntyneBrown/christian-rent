@@ -1,0 +1,13 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Read a listing
+
+Person(anyone, "Anyone", "Browses and reads listings, signed in or not")
+Person(poster, "Member who posted", "Owns the listing")
+Person(admin, "Admin", "Works through the review queue")
+System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for one")
+Rel(anyone, cr, "Browses and reads listings on")
+Rel(cr, poster, "Delivers messages and notices to")
+Rel(admin, cr, "Reviews listings, reports and members in")
+@enduml

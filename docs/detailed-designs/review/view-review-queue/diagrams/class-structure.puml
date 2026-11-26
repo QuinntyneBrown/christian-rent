@@ -1,0 +1,81 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — View the review queue
+
+class ReviewItem {
+  +Guid Id
+  +ReviewItemKind Kind
+  +Guid SubjectId
+  +DateTimeOffset CreatedAt
+  +ReviewDecision? Decision
+  +Guid? DecidedBy
+  +DateTimeOffset? DecidedAt
+  +int Version
+  +IsWaiting(): bool
+}
+enum ReviewItemKind {
+  NewListing
+  Report
+  NewMember
+}
+class GetReviewQueueQuery {
+  +string? Cursor
+  +int Size
+}
+class GetReviewQueueQueryHandler {
+  +Handle(query: GetReviewQueueQuery): Task<ReviewQueuePageDto>
+}
+class GetReviewItemQueryHandler {
+  +Handle(query: GetReviewItemQuery): Task<ReviewItemDetailDto>
+}
+class ReviewQueuePageDto {
+  +ReviewItemSummaryDto[] Items
+  +string? NextCursor
+  +int WaitingCount
+}
+class ReviewItemSummaryDto {
+  +Guid Id
+  +string Kind
+  +string Title
+  +string Who
+  +DateTimeOffset WaitingSince
+  +string? ThumbUrl
+}
+class ReviewItemDetailDto {
+  +Guid Id
+  +string Kind
+  +int Version
+  +ListingDetailDto? Listing
+  +ReportDetailDto? Report
+  +NewMemberDetailDto? Member
+  +string[] AllowedDecisions
+}
+class ReviewQueueStore <<Angular>> {
+  +state: Signal<QueueState>
+  +items: Signal<ReviewItemSummary[]>
+  +waitingCount: Signal<number>
+  +detail: Signal<ReviewItemDetail | null>
+  +load(): void
+  +loadMore(): void
+  +select(id: string): void
+}
+ReviewItem --> ReviewItemKind
+GetReviewQueueQueryHandler ..> GetReviewQueueQuery : handles
+GetReviewQueueQueryHandler --> ReviewItem : reads waiting
+GetReviewQueueQueryHandler ..> ReviewQueuePageDto : returns
+ReviewQueuePageDto *-- "0..50" ReviewItemSummaryDto
+GetReviewItemQueryHandler --> ReviewItem : reads
+GetReviewItemQueryHandler ..> ReviewItemDetailDto : returns
+ReviewQueueStore ..> ReviewQueuePageDto : receives
+@enduml

@@ -1,0 +1,22 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Present the application shell
+
+Container_Boundary(spa, "rent application (Angular workspace)") {
+  Component(config, "app.config.ts", "Composition root", "Zoneless, router, HTTP, token bindings")
+  Component(routes, "app.routes.ts", "Lazy routes", "One chunk per screen")
+  Component(app, "App", "Root component cr-root", "Skip link, outlet, toast region")
+  Component(header, "cr-site-header, cr-logo, cr-skip-link", "components library", "Wordmark on every screen")
+  Component(fmt, "formatPrice, formatDistance, formatDate", "domain/listings", "CAD, km, month as a word")
+  Component(pages, "BrowsePage, ListingPage, PostPage, NotFoundPage", "Lazy pages in rent", "One per route")
+  Component(admin, "ADMIN_ROUTES", "admin library", "Loaded only for an admin")
+}
+Rel(config, routes, "provideRouter")
+Rel(config, app, "Bootstraps")
+Rel(app, routes, "router-outlet")
+Rel(routes, pages, "loadComponent")
+Rel(routes, admin, "loadChildren, canMatch")
+Rel(pages, header, "Render")
+Rel(pages, fmt, "Format with")
+@enduml

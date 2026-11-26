@@ -1,0 +1,56 @@
+@startuml
+title UML sequence behaviour — Refuse a request that is not allowed
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Member" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "Store or page" as screen
+  participant "apiErrorInterceptor" as intc
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "Middleware pipeline" as pipe
+  participant "Controller" as ctrl
+  participant "ProblemExceptionHandler" as problem
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "Handler" as handler
+  participant "ICurrentMember" as current
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> screen : Act on something, or send the request directly
+screen -> pipe : HTTPS request
+alt no signed-in caller on a protected endpoint
+  pipe --> intc : 401, code = not_signed_in (L2-025 criterion 1)
+else data-changing request from another site
+  pipe --> intc : 403, code = cross_site_request (L2-027 criterion 2)
+else allowed by policy
+  pipe -> ctrl : Route to the action
+  ctrl -> handler : Send one MediatR request
+  handler -> current : MemberId, IsMember, IsAdmin
+  handler -> db : Load the resource
+  db --> handler : Resource
+  alt resource is not the caller's to see or change
+    handler -> problem : NotFoundException
+    problem --> intc : 404, code = not_found, nothing revealed (L2-025 criterion 2)
+  else allowed
+    handler --> ctrl : Result
+    ctrl --> intc : 2xx
+  end
+end
+intc --> screen : ApiError with code, or the result
+screen --> actor : Generic message chosen by code (L2-025 criterion 4)
+@enduml

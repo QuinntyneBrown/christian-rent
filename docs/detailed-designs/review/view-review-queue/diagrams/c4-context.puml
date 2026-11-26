@@ -1,0 +1,11 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — View the review queue
+
+Person(admin, "Admin", "Works through the review queue")
+Person(member, "Member", "Posts listings, sends messages and reports")
+System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for one")
+Rel(admin, cr, "Reviews listings, reports and members in")
+Rel(member, cr, "Posts, messages and reports on")
+@enduml

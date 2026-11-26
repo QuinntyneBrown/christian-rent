@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — View the review queue
+
+Person(admin, "Admin", "Works through the review queue")
+Person(member, "Member", "Posts listings, sends messages and reports")
+System_Boundary(cr, "christian.rent") {
+  Container(spa, "rent application", "Angular, zoneless, lazy routes", "Browse, Listing, Post and Admin screens")
+  Container(api, "ChristianRent.Api", "ASP.NET Core", "Controllers, MediatR handlers and domain rules")
+  ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Listings, members, churches, messages, reports and the review queue")
+  ContainerDb(files, "File storage", "<TO SUPPLY>", "Photo renditions")
+}
+Rel(admin, spa, "Uses", "HTTPS")
+Rel(member, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, files, "Stores and streams photos", "IPhotoStorage")
+@enduml

@@ -1,0 +1,52 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Present the application shell
+
+class App <<Angular>> {
+  selector: cr-root
+}
+class Logo <<Angular>> {
+  selector: cr-logo
+  +inverse: InputSignal<boolean>
+}
+class SiteHeader <<Angular>> {
+  selector: cr-site-header
+  +member: InputSignal<MemberSummary | null>
+  +plain: InputSignal<boolean>
+}
+class NotFoundPage <<Angular>> {
+  selector: cr-not-found-page
+}
+class Price <<TypeScript>> {
+  +amount: number
+  +period: 'hour' | 'day' | 'week' | 'month'
+}
+class Formatting <<TypeScript module>> {
+  +formatPrice(price: Price | null, offer): string
+  +formatDistance(km: number): string
+  +formatDate(date: string): string
+  +formatDateRange(start: string, end: string): string
+}
+interface Session <<TypeScript>> {
+  +member: Signal<MemberSummary | null>
+}
+class adminGuard <<CanMatchFn>> {
+  +(route, segments): Promise<boolean>
+}
+App *-- SiteHeader : pages render
+SiteHeader *-- Logo
+SiteHeader ..> Session : receives member from page
+adminGuard ..> Session
+Formatting ..> Price
+@enduml

@@ -1,0 +1,38 @@
+@startuml
+title UML sequence behaviour — Limit a client
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Anyone" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "Store or page" as screen
+  participant "apiErrorInterceptor" as intc
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "Rate limiter" as rate
+  participant "Controller" as ctrl
+end box
+actor -> screen : Trigger a request
+screen -> rate : HTTPS request
+rate -> rate : Partition by member id or remote address
+rate -> rate : GET uses the read window, other methods the write window
+alt under 120 reads or 30 writes this minute
+  rate -> ctrl : Continue
+  ctrl --> intc : Response
+else over the limit
+  rate --> intc : 429, Retry-After, code = rate_limited (L2-027)
+end
+intc --> screen : Result or ApiError(rate_limited, retryAt)
+screen --> actor : Content, or a plain message that says when to try again
+@enduml

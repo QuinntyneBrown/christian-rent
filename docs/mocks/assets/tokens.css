@@ -1,0 +1,2 @@
+/* The tokens live in the design system. This file only lets the generated gallery (index.html) reach them. */
+@import url("../../design-system/tokens/tokens.css");

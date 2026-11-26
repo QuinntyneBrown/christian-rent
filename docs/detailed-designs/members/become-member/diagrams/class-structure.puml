@@ -13,109 +13,62 @@ skinparam class {
 ' --------------------------
 title Class structure — Become a member
 
-package "Frontend" {
-  class JoinRequest <<type, api>> {
-    +name: string
-    +churchId: string | null
-    +newChurch: NewChurch | null
-    +declaresChristian: boolean
-  }
-  class NewChurch <<type, api>> {
-    +name: string
-    +city: string
-  }
-  class ChurchSummary <<type, api>> {
-    +id: string
-    +name: string
-    +city: string
-  }
-  interface MembersApi <<contract, api>> {
-    +findChurches(term: string): Page<ChurchSummary>
-    +join(request: JoinRequest): void
-    +leave(): void
-  }
-  class MemberRules <<helper, domain>> {
-    +check(request: JoinRequest): FieldErrors
-  }
-  class JoinForm <<component, components>> {
-    +churches: ChurchSummary[]
-    +errors: FieldErrors
-    +busy: boolean
-    +churchSearch: string
-    +join: JoinRequest
-  }
+class Member {
+  +Guid Id
+  +string Name
+  +Guid ChurchId
+  +bool IsVerified
+  +bool IsAdmin
+  +MemberStatus Status
+  +DateTimeOffset JoinedAt
+  +{static} Join(name, church, now): Member
+  +Verify(): void
+  +Remove(): void
 }
-
-package "Backend" {
-  class JoinCommand {
-    +string Name
-    +Guid? ChurchId
-    +string? NewChurchName
-    +string? NewChurchCity
-    +bool DeclaresChristian
-  }
-  class JoinCommandValidator
-  class JoinCommandHandler {
-    +Handle(command: JoinCommand): Task<MemberDto>
-  }
-  class FindChurchesQuery {
-    +string Term
-    +int Page
-  }
-  class LeaveCommand
-  class LeaveCommandHandler {
-    +Handle(command: LeaveCommand): Task
-  }
-  class DeleteLeftMembersCommand
-  class DeleteLeftMembersCommandHandler {
-    +Handle(command: DeleteLeftMembersCommand): Task
-  }
-  class Member {
-    +Guid Id
-    +string Name
-    +string Email
-    +Guid ChurchId
-    +bool IsVerified
-    +DateTimeOffset JoinedAt
-    +DateTimeOffset? LeftAt
-    +Leave(at: DateTimeOffset): void
-  }
-  class Church {
-    +Guid Id
-    +string Name
-    +string City
-    +bool IsVerified
-  }
-  class ReviewItem {
-    +Guid Id
-    +ReviewItemKind Kind
-    +Guid? MemberId
-    +DateTimeOffset CreatedAt
-  }
-  enum ReviewItemKind {
-    NewListing
-    Report
-    NewMember
-  }
-  interface IPhotoStorage
+enum MemberStatus {
+  Active
+  Removed
+  Departed
 }
-
-MembersApi ..> JoinRequest : takes
-MembersApi ..> ChurchSummary : returns
-JoinRequest o-- NewChurch
-JoinForm ..> JoinRequest : emits
-MemberRules ..> JoinRequest : checks
-JoinCommandValidator ..> JoinCommand : validates
+class Church {
+  +Guid Id
+  +string Name
+  +string City
+  +bool IsVerified
+  +{static} Enter(name, city): Church
+  +Verify(): void
+}
+class JoinCommand {
+  +string Name
+  +Guid? ChurchId
+  +string? NewChurchName
+  +string? NewChurchCity
+  +bool DeclaresChristian
+}
+class JoinCommandValidator {
+  +Validate(command: JoinCommand): ValidationResult
+}
+class JoinCommandHandler {
+  +Handle(command: JoinCommand): Task<MemberDto>
+}
+interface ICurrentMember {
+  +Guid? MemberId
+  +bool IsMember
+  +bool IsAdmin
+}
+class MemberGate <<Angular>> {
+  +requireMember(): Promise<boolean>
+}
+interface Session <<TypeScript>> {
+  +member: Signal<MemberSummary | null>
+  +refresh(): Promise<void>
+}
+Member --> "1" Church : belongs to
+Member --> MemberStatus
 JoinCommandHandler ..> JoinCommand : handles
+JoinCommandValidator ..> JoinCommand : validates
 JoinCommandHandler --> Member : creates
-JoinCommandHandler --> Church : creates when new
-JoinCommandHandler --> ReviewItem : creates
-LeaveCommandHandler ..> LeaveCommand : handles
-LeaveCommandHandler --> Member : marks as left
-DeleteLeftMembersCommandHandler ..> DeleteLeftMembersCommand : handles
-DeleteLeftMembersCommandHandler ..> IPhotoStorage : deletes photos
-DeleteLeftMembersCommandHandler --> Member : deletes or makes anonymous
-Member "*" --> "1" Church : belongs to
-ReviewItem "0..1" --> "1" Member : new member
-ReviewItem --> ReviewItemKind : has
+JoinCommandHandler --> Church : finds or creates
+JoinCommandHandler ..> ICurrentMember
+MemberGate ..> Session : reads
 @enduml

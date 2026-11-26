@@ -1,35 +1,30 @@
 @startuml
 !include <C4/C4_Component>
 LAYOUT_WITH_LEGEND()
-title Components — Fail clearly and operate
+title Components — Fail clearly and operate in production
 
-Container_Boundary(rent, "rent and its libraries") {
-  Component(pages, "Pages", "Angular components, rent", "Hold a LoadState and render loading, loaded or failed")
-  Component(notfound, "NotFoundPage", "Lazy page, rent", "Shown for an address that matches no screen; links back to Browse")
-  Component(skeleton, "Skeleton", "Presentation component, components", "Loading state in the shape of what will arrive")
-  Component(errorstate, "ErrorState", "Presentation component, components", "Plain message and a Try again button")
-  Component(interceptor, "apiErrorInterceptor", "HTTP interceptor, api", "Turns no response into ApiError code backend_unreachable")
+Container_Boundary(spa, "rent application (Angular workspace)") {
+  Component(store, "Route-scoped stores", "rent, admin", "Expose LoadState signals")
+  Component(ui, "cr-skeleton, cr-empty-state, cr-alert", "components library", "Loading and failed states")
+  Component(geh, "GlobalErrorHandler", "Angular ErrorHandler", "Generic toast for client errors")
 }
-Container_Boundary(api, "ChristianRent.Api") {
-  Component(exh, "UnhandledExceptionHandler", "IExceptionHandler, Api", "Records the error with its trace id; writes a ProblemDetails with no stack trace")
-  Component(health, "HealthController", "ASP.NET Core controller", "Sends CheckHealthQuery")
-  Component(healthHandler, "CheckHealthQueryHandler", "MediatR handler, Application", "Asks the database and file storage whether they can be reached")
-  Component(telemetry, "Telemetry", "OpenTelemetry setup, Api", "One span per request with its route template, duration and outcome")
-  Component(scrub, "PersonalDataProcessor", "OpenTelemetry processor, Api", "Drops query strings and any attribute not on the allowed list")
-  ComponentDb(db, "Database", "Engine <TO SUPPLY>", "Reached through IAppDbContext")
-  ComponentDb(files, "File storage", "Product <TO SUPPLY>", "Reached through IPhotoStorage")
+Container_Boundary(api, "ChristianRent backend") {
+  Component(ueh, "UnhandledExceptionHandler", "IExceptionHandler", "500 ProblemDetails with traceId")
+  Component(health, "Health checks", "ASP.NET Core health checks", "/health/live, /health/ready")
+  Component(tel, "OpenTelemetry + TelemetryScrubber", "Tracing, metrics, logs", "Route templates, no personal data")
+  Component(climig, "migrate, seed", "ChristianRent.Cli commands", "Schema changes outside the API")
 }
-Container_Boundary(cli, "ChristianRent.Cli") {
-  Component(migrate, "migrate command", ".NET console command", "Applies pending EF Core migrations")
-}
-Rel(pages, skeleton, "Show while loading")
-Rel(pages, errorstate, "Show when failed")
-Rel(pages, interceptor, "Receive ApiError from")
-Rel(interceptor, exh, "Sends requests to the API, guarded by", "HTTPS")
-Rel(exh, telemetry, "Records the error on the current span of")
-Rel(telemetry, scrub, "Passes every span through")
-Rel(health, healthHandler, "Sends CheckHealthQuery")
-Rel(healthHandler, db, "Probes", "IAppDbContext")
-Rel(healthHandler, files, "Probes", "IPhotoStorage")
-Rel(migrate, db, "Applies migrations to", "EF Core")
+ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
+ContainerDb(files, "File storage", "<TO SUPPLY>", "Photo renditions")
+System_Ext(otel, "Telemetry backend", "Receives traces, metrics and logs")
+System_Ext(backup, "Backup store", "Holds daily backups")
+Rel(store, ui, "Drive")
+Rel(store, ueh, "Receive ProblemDetails from", "JSON/HTTPS")
+Rel(ueh, tel, "Logs with trace id")
+Rel(health, db, "CanConnectAsync", "IAppDbContext")
+Rel(health, files, "IsReachableAsync", "IPhotoStorage")
+Rel(climig, db, "Applies migrations", "EF Core")
+Rel(tel, otel, "Exports", "OTLP")
+Rel(db, backup, "Daily backup")
+Rel(files, backup, "Daily backup")
 @enduml

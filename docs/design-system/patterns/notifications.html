@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notifications | christian.rent design system</title>
+<meta name="description" content="How christian.rent tells someone that something happened.">
+<link rel="stylesheet" href="../tokens/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/ds.css">
+</head>
+<body id="top">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="ds-shell">
+  <nav class="ds-nav" aria-label="Design system">
+    <div class="ds-nav__brand"><a href="../index.html">christian.rent DS</a><button class="ds-theme-toggle" type="button" aria-pressed="false">☾ Dark</button></div>
+    <details open><summary>Foundations</summary><ul><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/typography.html">Typography</a></li><li><a href="../foundations/spacing.html">Spacing</a></li><li><a href="../foundations/layout.html">Layout</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/iconography.html">Iconography</a></li><li><a href="../foundations/theming.html">Theming</a></li><li><a href="../foundations/responsive.html">Responsive</a></li><li><a href="../foundations/accessibility.html">Accessibility</a></li><li><a href="../foundations/content.html">Content</a></li></ul></details>
+    <details open><summary>Components</summary><ul><li><a href="../components/button.html">Button</a></li><li><a href="../components/link.html">Link</a></li><li><a href="../components/text-field.html">Text field</a></li><li><a href="../components/textarea.html">Textarea</a></li><li><a href="../components/select.html">Select</a></li><li><a href="../components/checkbox.html">Checkbox</a></li><li><a href="../components/radio-group.html">Radio group</a></li><li><a href="../components/date-range.html">Date range</a></li><li><a href="../components/form-field.html">Form field</a></li><li><a href="../components/line-field.html">Line field</a></li><li><a href="../components/word-toggle.html">Word toggle</a></li><li><a href="../components/photo-picker.html">Photo picker</a></li><li><a href="../components/search-bar.html">Search bar</a></li><li><a href="../components/segmented.html">Switch (Everything, For rent, Wanted)</a></li><li><a href="../components/kind-filter.html">Kind filter</a></li><li><a href="../components/logo.html">Logo</a></li><li><a href="../components/site-header.html">Site header</a></li><li><a href="../components/admin-nav.html">Admin navigation</a></li><li><a href="../components/skip-link.html">Skip link</a></li><li><a href="../components/dialog.html">Dialog</a></li><li><a href="../components/listing-card.html">Listing card</a></li><li><a href="../components/message-box.html">Message box</a></li><li><a href="../components/gallery.html">Photo gallery</a></li><li><a href="../components/wanted-panel.html">Wanted panel</a></li><li><a href="../components/poster.html">Posted by</a></li><li><a href="../components/queue-item.html">Queue item</a></li><li><a href="../components/review-detail.html">Review detail</a></li><li><a href="../components/avatar.html">Avatar</a></li><li><a href="../components/tag.html">Tag</a></li><li><a href="../components/verified.html">Verified mark</a></li><li><a href="../components/toast.html">Toast</a></li><li><a href="../components/alert.html">Alert</a></li><li><a href="../components/skeleton.html">Skeleton</a></li><li><a href="../components/spinner.html">Spinner</a></li><li><a href="../components/empty-state.html">Empty and error states</a></li><li><a href="../components/confirmation.html">Confirmation</a></li><li><a href="../components/hero.html">Browse headline</a></li><li><a href="../components/layout.html">Layout primitives</a></li></ul></details>
+    <details open><summary>Patterns</summary><ul><li><a href="../patterns/forms.html">Forms</a></li><li><a href="../patterns/feedback-and-loading.html">Feedback and loading</a></li><li><a href="../patterns/empty-and-error-states.html">Empty and error states</a></li><li><a href="../patterns/navigation-and-page-structure.html">Navigation and page structure</a></li><li><a href="../patterns/dialogs-and-overlays.html">Dialogs and overlays</a></li><li><a href="../patterns/lists.html">Lists of listings and the queue</a></li><li><a href="../patterns/notifications.html">Notifications</a></li><li><a href="../patterns/content-and-tone.html">Content and tone</a></li></ul></details>
+  </nav>
+  <main id="main" class="ds-main">
+    <header class="ds-header">
+      <p class="ds-kicker">Pattern</p>
+      <h1>Notifications</h1>
+      <p class="ds-lead">How christian.rent tells someone that something happened.</p>
+      <div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span></div>
+      <ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#when">When to use</a></li><li><a href="#structure">Structure</a></li><li><a href="#states">States</a></li><li><a href="#responsive">Responsive behaviour</a></li><li><a href="#accessibility">Accessibility</a></li><li><a href="#content">Content</a></li><li><a href="#do-dont">Do and don’t</a></li><li><a href="#sources">Sources</a></li></ul>
+    </header>
+<section class="ds-section" id="overview"><h2><a href="#overview">Overview</a></h2>
+<p>It tells them in place. A member sees a confirmation where the form was. An admin sees a toast because the item has left the screen. There is no notification centre, no badge and no banner.</p>
+</section>
+<section class="ds-section" id="when"><h2><a href="#when">When to use</a></h2>
+<div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Message</th><th scope="col">Where</th><th scope="col">Leaves</th></tr></thead><tbody><tr><td>A listing was sent for review</td><td>A confirmation in place of Post’s form</td><td>When the member leaves</td></tr><tr><td>A message was sent</td><td>A confirmation in place of the message box</td><td>When the member leaves</td></tr><tr><td>A report was sent</td><td>Inside the report dialog</td><td>On “Done”</td></tr><tr><td>An admin’s decision took</td><td>A toast in Admin</td><td>After 8 s</td></tr><tr><td>An admin’s decision did not save</td><td>A toast in Admin</td><td>Only when dismissed</td></tr></tbody></table></div>
+</section>
+<section class="ds-section" id="structure"><h2><a href="#structure">Structure</a></h2>
+<div class="ds-example"><div class="ds-example__canvas"><div class="toast toast--success" style="animation: none; flex: 1 1 18rem;"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg><div class="toast__body"><div class="toast__title">Approved</div><div class="toast__text">“Backyard garden for gatherings” is now public on Browse.</div></div><button class="close" type="button" aria-label="Dismiss"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div></div><div class="ds-example__caption"><span>The one toast a decision produces.</span></div></div>
+</section>
+<section class="ds-section" id="states"><h2><a href="#states">States</a></h2>
+<p>Info, success, warning, danger; up to three stacked.</p>
+</section>
+<section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive behaviour</a></h2>
+<p>Toasts span the bottom of a narrow screen and sit in the corner from 640 px.</p>
+</section>
+<section class="ds-section" id="accessibility"><h2><a href="#accessibility">Accessibility</a></h2>
+<ul class="ds-checklist"><li>A live region is in the page before the message arrives.</li><li>Failures are alerts and never dismiss themselves.</li><li>A timer pauses on hover and on focus.</li></ul>
+</section>
+<section class="ds-section" id="content"><h2><a href="#content">Content</a></h2>
+<ul><li>How a member learns of a reply to their message is not designed; nothing here promises an email or an inbox.</li></ul>
+</section>
+<section class="ds-section" id="do-dont"><h2><a href="#do-dont">Do and don’t</a></h2>
+<div class="ds-dodont"><figure class="ds-do"><div class="ds-example__canvas ds-example__canvas--stack"><section class="confirmation" style="padding: 0;"><span class="success-badge success-badge--rent"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg></span><p class="confirmation__title" style="font: var(--text-h1);">Sent for review</p><p class="confirmation__text">Your listing will appear on Browse once an admin has looked at it. It isn’t public yet.</p><div class="confirmation__actions"><button class="btn btn--primary" type="button">Back to browsing</button><button class="btn btn--ghost" type="button">Post another</button></div></section></div><figcaption>Confirm in place.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas ds-example__canvas--stack"><div class="toast toast--success" style="animation: none; flex: 1 1 18rem;"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg><div class="toast__body"><div class="toast__title">Posted</div><div class="toast__text">Your listing was posted.</div></div><button class="close" type="button" aria-label="Dismiss"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div></div><figcaption>Use a toast for something the member is looking straight at.</figcaption></figure><figure class="ds-do"><div class="ds-example__canvas ds-example__canvas--stack"><div class="toast toast--danger" style="animation: none; flex: 1 1 18rem;"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></svg><div class="toast__body"><div class="toast__title">Your decision wasn’t saved</div><div class="toast__text">It is still in the queue.</div></div><button class="close" type="button" aria-label="Dismiss"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div></div><figcaption>Keep failures until dismissed.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas ds-example__canvas--stack"><p>(an unread count in the header)</p></div><figcaption>Invent a badge for an inbox that is not designed.</figcaption></figure></div>
+</section>
+<section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
+<p>Mocks this pattern was drawn from:</p><ul><li><a href="../../mocks/notifications/review-toast/success.html">notifications/review-toast/success</a></li><li><a href="../../mocks/notifications/review-toast/stacked.html">notifications/review-toast/stacked</a></li><li><a href="../../mocks/pages/post/success.html">pages/post/success</a></li><li><a href="../../mocks/pages/listing/sent.html">pages/listing/sent</a></li><li><a href="../../mocks/dialogs/report-listing/success.html">dialogs/report-listing/success</a></li></ul>
+</section>
+    <footer class="ds-footer"><span>christian.rent design system · extracted from <a href="../../mocks/index.html">docs/mocks</a></span><a href="#top">Back to top</a></footer>
+  </main>
+</div>
+<script src="../assets/ds.js"></script>
+</body>
+</html>

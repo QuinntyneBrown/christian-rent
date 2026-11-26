@@ -1,21 +1,15 @@
 @startuml
 !include <C4/C4_Container>
 LAYOUT_WITH_LEGEND()
-title Containers — Send a message
+title Containers — Send a message about a listing
 
-Person(sender, "Member", "Sends a message about a listing")
-Person(poster, "Member who posted", "Is emailed when a message arrives")
-System_Ext(signin, "Sign-in", "Identifies the member; mechanism <TO SUPPLY>")
-System_Ext(email, "Email delivery", "Delivers email to a member; product <TO SUPPLY>")
+Person(member, "Member", "Posts listings, sends messages and reports")
 System_Boundary(cr, "christian.rent") {
-  Container(rent, "rent", "Angular", "Listing screen with the message box, to the right of the listing from 1024 px")
-  Container(api, "ChristianRent.Api", "ASP.NET Core", "Decides whether the message may be sent, stores it and emails the member who posted")
-  ContainerDb(db, "Database", "Relational, engine <TO SUPPLY>", "Listings, members and messages")
+  Container(spa, "rent application", "Angular, zoneless, lazy routes", "Browse, Listing, Post and Admin screens")
+  Container(api, "ChristianRent.Api", "ASP.NET Core", "Controllers, MediatR handlers and domain rules")
+  ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Listings, members, churches, messages, reports and the review queue")
 }
-Rel(sender, rent, "Uses", "HTTPS")
-Rel(rent, api, "Sends the message", "JSON/HTTPS")
-Rel(api, db, "Reads the listing, counts and writes messages", "EF Core")
-Rel(api, signin, "Identifies the signed-in member through")
-Rel(api, email, "Hands the notice that a message arrived to", "IMemberMailer")
-Rel(email, poster, "Emails that a message arrived")
+Rel(member, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
 @enduml

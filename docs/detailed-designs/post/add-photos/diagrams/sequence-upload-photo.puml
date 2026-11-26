@@ -1,0 +1,63 @@
+@startuml
+title UML sequence behaviour — Upload a photo
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Member" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "cr-photo-picker" as picker
+  participant "PhotoUploads" as uploads
+  participant "HttpPhotosApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "PhotosController" as ctrl
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "UploadPhotoCommandHandler" as handler
+  participant "PhotoRules" as rules
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  participant "IPhotoInspector / IPhotoProcessor" as insp
+  database "File storage" as files
+  database "Database" as db
+end box
+actor -> picker : Choose a file
+picker -> uploads : add(file)
+uploads -> uploads : Refuse a seventh photo (L2-013 criterion 3)
+uploads --> picker : Thumbnail from an object URL, state = uploading
+uploads -> client : upload(file, AbortSignal)
+client -> ctrl : POST /api/photos
+ctrl -> handler : Send UploadPhotoCommand
+handler -> insp : Inspect(content)
+insp --> handler : PhotoFacts or none
+handler -> rules : Check(facts, length) (L2-014 criteria 1 and 2)
+alt accepted
+  handler -> insp : Process(content), metadata removed (L2-014 criterion 3)
+  insp --> handler : Renditions card, gallery, thumb
+  handler -> files : SaveAsync per rendition
+  handler -> db : Save Photo row, no bytes (L2-014 criterion 4)
+  handler --> ctrl : PhotoRefDto
+  ctrl --> client : 201 Created
+  client --> uploads : PhotoRef
+  uploads --> picker : state = ready, first is "On the card"
+else refused
+  handler --> ctrl : PhotoRefusedException
+  ctrl --> client : 422, code = photo_too_small
+  client --> uploads : ApiError
+  uploads --> picker : state = refused, message names the limit
+end
+opt member leaves Post while uploading
+  uploads -> client : abort(), revoke object URLs (L2-013 criterion 5)
+end
+@enduml

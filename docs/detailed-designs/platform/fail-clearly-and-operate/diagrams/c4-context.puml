@@ -1,17 +1,15 @@
 @startuml
 !include <C4/C4_Context>
 LAYOUT_WITH_LEGEND()
-title System Context — Fail clearly and operate
+title System Context — Fail clearly and operate in production
 
-Person(person, "Anyone, member or admin", "Sees a loading state, a plain message with Try again, or a not-found screen")
-Person(operator, "Operator", "Deploys christian.rent and watches it in production")
-System(cr, "christian.rent", "Fails clearly and reports its health and its traces")
-System_Ext(otel, "Telemetry backend", "Receives traces, metrics and logs over OTLP; product <TO SUPPLY>")
-System_Ext(backup, "Backup", "Holds a daily copy of the database and the photos; mechanism <TO SUPPLY>")
-
-Rel(person, cr, "Uses")
-Rel(operator, cr, "Calls the health endpoint of and runs the migrate command against")
-Rel(cr, otel, "Emits a trace, its duration and its outcome to", "OTLP")
-Rel(cr, backup, "Is copied each day to")
-Rel(operator, otel, "Finds an error by its trace id in")
+Person(anyone, "Anyone", "Browses and reads listings, signed in or not")
+Person(operator, "Operator", "Deploys and watches the system")
+System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for one")
+System_Ext(otel, "Telemetry backend", "Receives traces, metrics and logs")
+System_Ext(backup, "Backup store", "Holds daily backups")
+Rel(anyone, cr, "Browses and reads listings on")
+Rel(operator, cr, "Deploys and observes")
+Rel(cr, otel, "Exports telemetry to")
+Rel(cr, backup, "Is backed up to")
 @enduml

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feedback and loading | christian.rent design system</title>
+<meta name="description" content="Which kind of feedback answers which action, and how waiting looks.">
+<link rel="stylesheet" href="../tokens/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/ds.css">
+</head>
+<body id="top">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="ds-shell">
+  <nav class="ds-nav" aria-label="Design system">
+    <div class="ds-nav__brand"><a href="../index.html">christian.rent DS</a><button class="ds-theme-toggle" type="button" aria-pressed="false">☾ Dark</button></div>
+    <details open><summary>Foundations</summary><ul><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/typography.html">Typography</a></li><li><a href="../foundations/spacing.html">Spacing</a></li><li><a href="../foundations/layout.html">Layout</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/iconography.html">Iconography</a></li><li><a href="../foundations/theming.html">Theming</a></li><li><a href="../foundations/responsive.html">Responsive</a></li><li><a href="../foundations/accessibility.html">Accessibility</a></li><li><a href="../foundations/content.html">Content</a></li></ul></details>
+    <details open><summary>Components</summary><ul><li><a href="../components/button.html">Button</a></li><li><a href="../components/link.html">Link</a></li><li><a href="../components/text-field.html">Text field</a></li><li><a href="../components/textarea.html">Textarea</a></li><li><a href="../components/select.html">Select</a></li><li><a href="../components/checkbox.html">Checkbox</a></li><li><a href="../components/radio-group.html">Radio group</a></li><li><a href="../components/date-range.html">Date range</a></li><li><a href="../components/form-field.html">Form field</a></li><li><a href="../components/line-field.html">Line field</a></li><li><a href="../components/word-toggle.html">Word toggle</a></li><li><a href="../components/photo-picker.html">Photo picker</a></li><li><a href="../components/search-bar.html">Search bar</a></li><li><a href="../components/segmented.html">Switch (Everything, For rent, Wanted)</a></li><li><a href="../components/kind-filter.html">Kind filter</a></li><li><a href="../components/logo.html">Logo</a></li><li><a href="../components/site-header.html">Site header</a></li><li><a href="../components/admin-nav.html">Admin navigation</a></li><li><a href="../components/skip-link.html">Skip link</a></li><li><a href="../components/dialog.html">Dialog</a></li><li><a href="../components/listing-card.html">Listing card</a></li><li><a href="../components/message-box.html">Message box</a></li><li><a href="../components/gallery.html">Photo gallery</a></li><li><a href="../components/wanted-panel.html">Wanted panel</a></li><li><a href="../components/poster.html">Posted by</a></li><li><a href="../components/queue-item.html">Queue item</a></li><li><a href="../components/review-detail.html">Review detail</a></li><li><a href="../components/avatar.html">Avatar</a></li><li><a href="../components/tag.html">Tag</a></li><li><a href="../components/verified.html">Verified mark</a></li><li><a href="../components/toast.html">Toast</a></li><li><a href="../components/alert.html">Alert</a></li><li><a href="../components/skeleton.html">Skeleton</a></li><li><a href="../components/spinner.html">Spinner</a></li><li><a href="../components/empty-state.html">Empty and error states</a></li><li><a href="../components/confirmation.html">Confirmation</a></li><li><a href="../components/hero.html">Browse headline</a></li><li><a href="../components/layout.html">Layout primitives</a></li></ul></details>
+    <details open><summary>Patterns</summary><ul><li><a href="../patterns/forms.html">Forms</a></li><li><a href="../patterns/feedback-and-loading.html">Feedback and loading</a></li><li><a href="../patterns/empty-and-error-states.html">Empty and error states</a></li><li><a href="../patterns/navigation-and-page-structure.html">Navigation and page structure</a></li><li><a href="../patterns/dialogs-and-overlays.html">Dialogs and overlays</a></li><li><a href="../patterns/lists.html">Lists of listings and the queue</a></li><li><a href="../patterns/notifications.html">Notifications</a></li><li><a href="../patterns/content-and-tone.html">Content and tone</a></li></ul></details>
+  </nav>
+  <main id="main" class="ds-main">
+    <header class="ds-header">
+      <p class="ds-kicker">Pattern</p>
+      <h1>Feedback and loading</h1>
+      <p class="ds-lead">Which kind of feedback answers which action, and how waiting looks.</p>
+      <div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span></div>
+      <ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#when">When to use</a></li><li><a href="#structure">Structure</a></li><li><a href="#states">States</a></li><li><a href="#responsive">Responsive behaviour</a></li><li><a href="#accessibility">Accessibility</a></li><li><a href="#content">Content</a></li><li><a href="#do-dont">Do and don’t</a></li><li><a href="#sources">Sources</a></li></ul>
+    </header>
+<section class="ds-section" id="overview"><h2><a href="#overview">Overview</a></h2>
+<p>Every press gets an answer where the member is looking. Waiting is shown in the shape of what is coming.</p>
+</section>
+<section class="ds-section" id="when"><h2><a href="#when">When to use</a></h2>
+<div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Situation</th><th scope="col">Use</th></tr></thead><tbody><tr><td>A screen’s first load</td><td><a href="../components/skeleton.html">Skeletons</a> in the shape of the content, after 300 ms.</td></tr><tr><td>More of a list arriving</td><td>A <a href="../components/spinner.html">spinner</a> with words at the end of the list.</td></tr><tr><td>A form being sent</td><td>The pressed <a href="../components/button.html">button</a> goes busy.</td></tr><tr><td>A form sent</td><td>A <a href="../components/confirmation.html">confirmation</a> replaces it.</td></tr><tr><td>A request failed</td><td>An <a href="../components/alert.html">alert</a> where it happened, with “Try again”.</td></tr><tr><td>An admin decided</td><td>A <a href="../components/toast.html">toast</a>, because the item leaves the screen.</td></tr></tbody></table></div>
+</section>
+<section class="ds-section" id="structure"><h2><a href="#structure">Structure</a></h2>
+<div class="ds-example"><div class="ds-example__canvas"><div style="width: 16rem;" aria-hidden="true"><div class="listing-card"><div class="listing-card__media skeleton"></div><div class="listing-card__body"><span class="skeleton skeleton--title" style="width: 75%;"></span><span class="skeleton skeleton--text" style="width: 55%;"></span><span class="skeleton skeleton--text" style="width: 40%;"></span></div></div></div><div class="feed-status" role="status" style="margin: 0; padding: 0;"><span class="spinner" aria-hidden="true"></span><p>Loading more listings…</p></div><button class="btn btn--rent" type="button" aria-busy="true">Publish listing</button></div><div class="ds-example__caption"><span>Skeleton, spinner with words, busy button.</span></div></div>
+</section>
+<section class="ds-section" id="states"><h2><a href="#states">States</a></h2>
+<p>Loading, loaded, more loading, more failed (the listings already shown stay), failed. A later search always replaces an earlier one; a slow early answer never overwrites it.</p>
+</section>
+<section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive behaviour</a></h2>
+<p>Skeletons follow the same grid as the cards: one, two, three or four columns.</p>
+</section>
+<section class="ds-section" id="accessibility"><h2><a href="#accessibility">Accessibility</a></h2>
+<ul class="ds-checklist"><li>The loading container has <code>aria-busy="true"</code> and a hidden status names what is loading.</li><li>Results, confirmations and failures are announced through a live region.</li><li>Under reduced motion the shimmer and spinner stop; the words remain.</li></ul>
+</section>
+<section class="ds-section" id="content"><h2><a href="#content">Content</a></h2>
+<ul><li>“Loading more listings…”, “We couldn’t load more listings.”, “Try again”.</li></ul>
+</section>
+<section class="ds-section" id="do-dont"><h2><a href="#do-dont">Do and don’t</a></h2>
+<div class="ds-dodont"><figure class="ds-do"><div class="ds-example__canvas ds-example__canvas--stack"><div style="width: 16rem;" aria-hidden="true"><div class="listing-card"><div class="listing-card__media skeleton"></div><div class="listing-card__body"><span class="skeleton skeleton--title" style="width: 75%;"></span><span class="skeleton skeleton--text" style="width: 55%;"></span><span class="skeleton skeleton--text" style="width: 40%;"></span></div></div></div></div><figcaption>Shape the wait like the content.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas ds-example__canvas--stack"><span class="spinner spinner--lg" role="status" aria-label="Loading"></span></div><figcaption>A lone spinner on a blank page.</figcaption></figure><figure class="ds-do"><div class="ds-example__canvas ds-example__canvas--stack"><button class="btn btn--rent" type="button" aria-busy="true">Publish listing</button></div><figcaption>Show the wait on the button that was pressed.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas ds-example__canvas--stack"><p>(a full-screen overlay while posting)</p></div><figcaption>Block the whole screen.</figcaption></figure></div>
+</section>
+<section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
+<p>Mocks this pattern was drawn from:</p><ul><li><a href="../../mocks/pages/browse/loading.html">pages/browse/loading</a></li><li><a href="../../mocks/pages/browse/more-loading.html">pages/browse/more-loading</a></li><li><a href="../../mocks/pages/browse/more-error.html">pages/browse/more-error</a></li><li><a href="../../mocks/pages/post/submitting.html">pages/post/submitting</a></li><li><a href="../../mocks/pages/listing/loading.html">pages/listing/loading</a></li></ul>
+</section>
+    <footer class="ds-footer"><span>christian.rent design system · extracted from <a href="../../mocks/index.html">docs/mocks</a></span><a href="#top">Back to top</a></footer>
+  </main>
+</div>
+<script src="../assets/ds.js"></script>
+</body>
+</html>

@@ -16,83 +16,49 @@ skinparam package {
 }
 actor "Member" as actor
 box "Frontend — rent application" #E0F2FE
-  participant "ListingPage" as page
-end box
-box "Frontend — components library" #E0F2FE
-  participant "MessageBox" as box
-end box
-box "Frontend — domain library" #E0F2FE
-  participant "MessageDraftRules" as rules
-  participant "DraftStore" as drafts
-end box
-box "Frontend — api library" #E0F2FE
-  participant "MessagesApi" as client
+  participant "cr-message-box" as box
+  participant "MessageComposer" as composer
+  participant "HttpMessagesApi" as client
 end box
 box "Backend — ChristianRent.Api" #D1FADF
-  participant "MessagesController" as controller
+  participant "MessagesController" as ctrl
 end box
 box "Backend — ChristianRent.Application and Domain" #ECFDF3
-  participant "SendMessageCommandValidator" as validator
   participant "SendMessageCommandHandler" as handler
+  participant "MessagingLimit" as limit
   participant "Message" as entity
 end box
 box "Backend — ChristianRent.Infrastructure" #FFF4E5
   database "Database" as db
-  participant "IMemberMailer" as mailer
 end box
-page -> rules : start(offer, firstName)
-rules --> page : Draft with the greeting and, on a listing for rent, both dates (L2-015 criteria 8 and 9)
-page --> box : Price line, "From" and "To" on a listing for rent, the draft (L2-015 criteria 2 and 9)
-actor -> box : Write the message and change the dates
-box -> page : send(draft)
-page -> rules : check(draft, offer, today)
-rules --> page : Field errors, or none
-alt the draft breaks a rule (L2-015 criteria 3, 4 and 8)
-  page --> box : Mark each invalid field, keep the text and dates
-else the person is not a member (L2-015 criterion 5)
-  page -> drafts : saveMessage(listingId, draft)
-  page --> actor : Ask to become a member or sign in (<TO SUPPLY>)
-  actor -> page : Return to Listing
-  page -> drafts : takeMessage(listingId)
-  drafts --> page : The kept message and dates
-else the draft is valid and the member is signed in
-  page -> client : send(listingId, draft)
-  client -> controller : POST /listings/{listingId}/messages
-  controller -> controller : Authenticate; 401 without a signed-in member (L2-025 criterion 1)
-  controller -> validator : Send SendMessageCommand
-  validator -> validator : Apply the length and date-order rules of L2-015 criteria 3 and 4 again
-  validator -> handler : Valid command
-  handler -> db : Load the listing and count the sender's messages in the last hour
-  db --> handler : Listing and count
-  alt the listing is not approved or was removed (L2-016 criterion 5)
-    handler --> controller : listing_not_found
-  else the listing is the sender's own (L2-015 criterion 6)
-    handler --> controller : own_listing
-  else a listing for rent without both dates, or a wanted listing with a date (L2-015 criteria 2 and 8)
-    handler --> controller : dates_required, or dates_not_allowed
-  else 20 messages sent in the last hour (L2-016 criterion 4)
-    handler --> controller : message_limit_reached, with the time sending opens again
-  else allowed
-    handler -> entity : Create with sender, recipient, listing, text and dates
-    entity --> handler : Message
-    handler -> db : Save the message only; the listing is not changed (L2-024 criterion 3)
-    db --> handler : Commit result
-    handler -> mailer : MessageArrived(recipient, listing)
-    mailer --> handler : The member who posted is emailed that a message arrived (L2-016 criterion 6)
-    handler --> controller : Sent message
-  end
-  controller --> client : 201, or ProblemDetails with a code
-  client --> page : Sent message, or ApiError
-  alt sent
-    page --> box : sent = true
-    box --> actor : "Sent to" and the first name replaces the message box (L2-015 criteria 1 and 10)
-    opt the member selects "Edit message" (L2-015 criterion 10)
-      actor -> box : Select "Edit message"
-      box -> page : edit
-      page --> box : sent = false; the text and dates are kept
-    end
-  else refused or failed (L2-015 criterion 7)
-    page --> box : Keep the text and dates, show a generic message and "Try again"
-  end
+actor -> box : Write a message, pick dates, select "Message Dan"
+box -> composer : send
+composer -> composer : Validate 1 to 1,000 characters and dates (L2-015)
+composer -> client : send(listingId, draft)
+client -> ctrl : POST /api/listings/{id}/messages
+ctrl -> ctrl : Require a member (L2-025)
+ctrl -> handler : Send SendMessageCommand
+handler -> db : Listing by id
+db --> handler : Listing
+alt listing approved, sender is not its poster
+  handler -> limit : Check(senderId, now) (L2-016 criterion 4)
+  limit --> handler : Under 20 in the hour
+  handler -> entity : Message.Send(...), recipient = poster
+  handler -> db : Save message only, listing unchanged (L2-024)
+  handler --> ctrl : SentMessageDto
+  ctrl --> client : 201 Created
+  client --> composer : Sent
+  composer --> box : state = sent
+  box --> actor : Confirmation replaces the message box (L2-015)
+else removed, waiting or missing listing
+  handler --> ctrl : NotFoundException
+  ctrl --> client : 404, code = not_found (L2-016 criterion 5)
+else sender posted the listing
+  handler --> ctrl : 403, code = own_listing (L2-015 criterion 6)
+else over the limit
+  handler --> ctrl : 429, code = message_limit_reached, retryAt
+  composer --> box : state = limited, text and dates kept
+else network or server failure
+  composer --> box : state = failed, "Try again", text and dates kept
 end
 @enduml

@@ -1,0 +1,49 @@
+@startuml
+title UML sequence behaviour — Refuse or fail a publish
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Member" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "PostPage" as page
+  participant "PostStore" as store
+  participant "HttpListingsApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ListingsController" as ctrl
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "PostListingCommandHandler" as handler
+end box
+actor -> page : Select "Publish listing"
+page -> store : publish()
+store -> client : post(draft)
+client -> ctrl : POST /api/listings
+ctrl -> handler : Send PostListingCommand
+alt invalid fields sent straight to the backend
+  handler --> ctrl : ValidationException
+  ctrl --> client : 400, code = validation_failed (L2-010 criterion 9)
+  client --> store : ApiError with fields
+  store --> page : errors set, draft kept
+else eleventh listing in 24 hours
+  handler --> ctrl : LimitReachedException(RetryAt)
+  ctrl --> client : 429, code = post_limit_reached, retryAt
+  store --> page : submitState = limited
+  page --> actor : Warning with the time posting reopens
+else network or server failure
+  client --> store : ApiError without code
+  store --> page : submitState = failed, draft and photos kept
+  page --> actor : Plain message and "Try again" (L2-012 criterion 5)
+end
+@enduml

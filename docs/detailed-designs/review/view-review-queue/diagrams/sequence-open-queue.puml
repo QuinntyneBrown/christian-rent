@@ -1,0 +1,62 @@
+@startuml
+title UML sequence behaviour — Open Admin
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Admin" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "Router + adminGuard" as router
+  participant "ForbiddenPage" as forbid
+end box
+box "Frontend — admin library (lazy)" #E0F2FE
+  participant "ReviewPage" as page
+  participant "ReviewQueueStore" as store
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ReviewQueueController" as ctrl
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "GetReviewQueueQueryHandler" as handler
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> router : Open /admin
+router -> router : adminGuard reads SESSION.member().isAdmin
+alt admin
+  router -> page : Load the @rent/admin chunk
+  page -> store : load()
+  page --> actor : Skeleton rows (L2-033)
+  store -> ctrl : GET /api/review-queue?size=50
+  ctrl -> ctrl : Admin policy (L2-019 criterion 5)
+  ctrl -> handler : Send GetReviewQueueQuery
+  handler -> db : Waiting items, oldest first, 51 rows
+  db --> handler : Rows
+  handler --> ctrl : ReviewQueuePageDto
+  ctrl --> store : 200 OK
+  alt items wait
+    store --> page : state = loaded, first item selected
+    page --> actor : Queue, each row labelled with its kind (L2-019)
+  else none
+    store --> page : state = empty
+    page --> actor : "All caught up" (L2-019 criterion 3)
+  end
+else not an admin
+  router -> forbid : Route falls through, admin chunk not requested
+  forbid --> actor : "This page is for admins"
+  opt endpoint called directly
+    ctrl --> actor : 403, code = not_an_admin, no queue data
+  end
+end
+@enduml

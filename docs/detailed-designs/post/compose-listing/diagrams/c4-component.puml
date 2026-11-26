@@ -1,0 +1,21 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Compose a listing
+
+Container_Boundary(spa, "rent application (Angular workspace)") {
+  Component(page, "PostPage", "Angular page, lazy route /post", "Composes the sentence, the fields and the preview")
+  Component(store, "PostStore", "Route-scoped signal store", "Holds the draft, its errors and the preview card")
+  Component(val, "ListingDraftValidator, draftToCard", "domain/listings helpers", "Field rules and the preview mapping")
+  Component(drafts, "DraftStore", "domain/storage", "Keeps the draft in sessionStorage")
+  Component(gate, "MemberGate", "rent service", "Asks a non-member to join")
+  Component(ui, "cr-word-toggle, cr-line-field, cr-date-range, cr-textarea", "components library", "The sentence and the fields")
+  Component(card, "cr-listing-card", "components library", "The live preview")
+}
+Rel(page, ui, "Binds fields")
+Rel(page, card, "Renders previewCard")
+Rel(page, store, "Reads and updates the draft")
+Rel(store, val, "validate(draft), draftToCard(draft)")
+Rel(page, gate, "requireMember()")
+Rel(gate, drafts, "save / restore draft")
+@enduml

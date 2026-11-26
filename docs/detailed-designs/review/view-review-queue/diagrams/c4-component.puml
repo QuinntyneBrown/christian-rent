@@ -1,0 +1,36 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — View the review queue
+
+Container_Boundary(spa, "rent application (Angular workspace)") {
+  Component(guard, "adminGuard", "CanMatchFn in rent", "Matches /admin only for an admin")
+  Component(forbid, "ForbiddenPage", "Angular page in rent", "'This page is for admins'")
+  Component(ui, "cr-admin-nav, cr-queue-item, cr-review-detail", "components library", "Rail, queue rows and detail panel")
+}
+Container_Boundary(admlib, "admin library (lazy chunk)") {
+  Component(page, "ReviewPage", "Angular page", "Queue beside the detail panel")
+  Component(store, "ReviewQueueStore", "Route-scoped signal store", "Pages of 50, selection, detail")
+  Component(client, "HttpReviewQueueApi", "REVIEW_QUEUE_API, bound by the route", "Typed HTTP client")
+}
+Container_Boundary(api, "ChristianRent backend") {
+  Component(ctrl, "ReviewQueueController", "ASP.NET Core controller, Admin policy", "GET /api/review-queue, /{id}")
+  Component(list, "GetReviewQueueQueryHandler", "MediatR handler", "Waiting items, oldest first")
+  Component(det, "GetReviewItemQueryHandler", "MediatR handler", "Detail by kind")
+  Component(item, "ReviewItem", "Domain entity", "Kind, subject and decision")
+}
+ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
+ContainerDb(files, "File storage", "<TO SUPPLY>", "Photo renditions")
+Rel(guard, page, "Lets the router load @rent/admin")
+Rel(guard, forbid, "Falls through to")
+Rel(page, store, "Reads state, select(id)")
+Rel(page, ui, "Renders")
+Rel(store, client, "queue(cursor), item(id)")
+Rel(client, ctrl, "GET /api/review-queue", "JSON/HTTPS")
+Rel(ctrl, list, "Sends GetReviewQueueQuery")
+Rel(ctrl, det, "Sends GetReviewItemQuery")
+Rel(list, item, "Reads waiting")
+Rel(det, item, "Reads with its subject")
+Rel(list, db, "Queries", "IAppDbContext")
+Rel(det, db, "Queries", "IAppDbContext")
+@enduml

@@ -1,0 +1,48 @@
+@startuml
+title UML sequence behaviour — Serve a photo
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Anyone" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "cr-listing-card / cr-gallery" as img
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "PhotosController" as ctrl
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "GetPhotoQueryHandler" as handler
+  participant "ListingVisibility" as vis
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+  database "File storage" as files
+end box
+actor -> img : See a card or a gallery
+img -> ctrl : GET /api/photos/{id}/card
+ctrl -> handler : Send GetPhotoQuery
+handler -> db : Photo and its listing
+db --> handler : Photo
+handler -> vis : CanBeSeenBy(listing, caller) (L2-014 criterion 5)
+alt public, or caller is owner or admin
+  handler -> files : OpenReadAsync(key)
+  files --> handler : Stream
+  handler --> ctrl : PhotoStreamDto
+  ctrl --> img : 200, image bytes from file storage (L2-014 criterion 4)
+  img --> actor : Photo in its reserved 4:3 box (L2-029)
+else not allowed
+  handler --> ctrl : NotFoundException
+  ctrl --> img : 404, code = not_found
+end
+@enduml

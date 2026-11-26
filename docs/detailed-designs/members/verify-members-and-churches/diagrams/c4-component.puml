@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Verify members and churches
+
+Container_Boundary(spa, "rent application (Angular workspace)") {
+  Component(poster, "cr-poster", "components library", "Member, church and their marks")
+  Component(mark, "cr-verified", "components library", "Icon and the word Verified")
+}
+Container_Boundary(api, "ChristianRent backend") {
+  Component(dec, "DecideReviewItemCommandHandler", "MediatR handler", "Approve or Remove a new member")
+  Component(vch, "VerifyChurchCommandHandler", "MediatR handler, Admin policy", "Confirms a church")
+  Component(get, "GetListingQueryHandler", "MediatR handler", "Projects the two flags")
+  Component(vis, "ListingVisibility", "Domain service", "Hides listings of a removed member")
+  Component(member, "Member", "Domain entity", "Verify(), Remove()")
+  Component(church, "Church", "Domain entity", "Verify()")
+}
+ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
+Rel(poster, mark, "Renders when a flag is true")
+Rel(poster, get, "Receives PosterDto from", "JSON/HTTPS")
+Rel(dec, member, "Verify() or Remove()")
+Rel(vch, church, "Verify()")
+Rel(get, vis, "CanBeSeenBy")
+Rel(vis, member, "Reads Status")
+Rel(get, db, "Reads member and church", "IAppDbContext")
+Rel(dec, db, "Saves", "IAppDbContext")
+@enduml

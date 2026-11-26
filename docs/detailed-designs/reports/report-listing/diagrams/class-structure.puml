@@ -1,0 +1,65 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Report a listing
+
+enum ReportReason {
+  NotARealListing
+  Inappropriate
+  Scam
+  SomethingElse
+}
+enum ReportStatus {
+  Open
+  Closed
+}
+class Report {
+  +Guid Id
+  +Guid ListingId
+  +Guid ReporterId
+  +ReportReason Reason
+  +string? Note
+  +DateTimeOffset CreatedAt
+  +ReportStatus Status
+  +{static} File(listing, reporter, reason, note, now): Report
+  +Close(): void
+}
+class ReportListingCommand {
+  +Guid ListingId
+  +ReportReason Reason
+  +string? Note
+}
+class ReportListingCommandValidator {
+  +Validate(command: ReportListingCommand): ValidationResult
+}
+class ReportListingCommandHandler {
+  +Handle(command: ReportListingCommand): Task<ReportedDto>
+}
+class AlreadyReportedException {
+  +DateTimeOffset ReportedAt
+}
+class ReportDetailDto {
+  +string Reason
+  +string? Note
+  +DateTimeOffset ReportedAt
+}
+Report --> ReportReason
+Report --> ReportStatus
+Report --> "1" Listing : about
+Report --> "1" Member : reporter
+ReportListingCommandHandler ..> ReportListingCommand : handles
+ReportListingCommandValidator ..> ReportListingCommand : validates
+ReportListingCommandHandler --> Report : creates
+ReportListingCommandHandler ..> AlreadyReportedException : raises
+ReportDetailDto ..> Report : projects without reporter
+@enduml

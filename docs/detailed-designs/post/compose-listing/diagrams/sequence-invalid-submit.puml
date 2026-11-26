@@ -1,0 +1,35 @@
+@startuml
+title UML sequence behaviour — Submit invalid fields
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Member" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "PostPage" as page
+  participant "PostStore" as store
+  participant "ListingDraftValidator" as val
+  participant "cr-alert" as alert
+end box
+actor -> page : Select "Publish listing"
+page -> store : validate()
+store -> val : validate(draft)
+val --> store : DraftErrors for title, price and area (L2-010)
+store --> page : errors set, first invalid = title
+page -> alert : Show summary, one link per field
+page -> page : aria-invalid and aria-describedby on each field (L2-032)
+page -> alert : Move focus to the summary
+alert --> actor : Summary announced, nothing typed is lost (L2-010)
+actor -> alert : Follow the first link
+alert -> page : Focus the title field
+@enduml

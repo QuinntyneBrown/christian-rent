@@ -1,0 +1,80 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Decide a review item
+
+enum ReviewDecision {
+  Approve
+  Keep
+  Remove
+}
+enum ReviewItemKind {
+  NewListing
+  Report
+  NewMember
+}
+class ReviewItem {
+  +Guid Id
+  +ReviewItemKind Kind
+  +Guid SubjectId
+  +ReviewDecision? Decision
+  +Guid? DecidedBy
+  +DateTimeOffset? DecidedAt
+  +int Version
+  +Allows(decision: ReviewDecision): bool
+  +Decide(decision, adminId, now): void
+}
+class DecideReviewItemCommand {
+  +Guid ItemId
+  +ReviewDecision Decision
+  +int Version
+}
+class DecideReviewItemCommandHandler {
+  +Handle(command: DecideReviewItemCommand): Task<DecidedDto>
+}
+class AlreadyDecidedException {
+  +ReviewDecision Decision
+  +DateTimeOffset DecidedAt
+}
+class Listing {
+  +ListingStatus Status
+  +DateTimeOffset? ApprovedAt
+  +Approve(now): void
+  +Remove(): void
+}
+class Report {
+  +ReportStatus Status
+  +Close(): void
+}
+class Member {
+  +Verify(): void
+  +Remove(): void
+}
+interface IMemberNotifier {
+  +ListingRemovedAsync(memberId: Guid, listingId: Guid): Task
+}
+class ToastQueue <<Angular>> {
+  +toasts: Signal<Toast[]>
+  +push(toast: Toast): void
+  +dismiss(id: string): void
+}
+ReviewItem --> ReviewItemKind
+ReviewItem --> ReviewDecision
+ReviewItem ..> AlreadyDecidedException : raises
+DecideReviewItemCommandHandler ..> DecideReviewItemCommand : handles
+DecideReviewItemCommandHandler --> ReviewItem : decides
+DecideReviewItemCommandHandler --> Listing : approves / removes
+DecideReviewItemCommandHandler --> Report : closes
+DecideReviewItemCommandHandler --> Member : verifies / removes
+DecideReviewItemCommandHandler ..> IMemberNotifier
+@enduml

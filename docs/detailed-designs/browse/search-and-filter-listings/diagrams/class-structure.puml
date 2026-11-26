@@ -1,0 +1,60 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Search and filter listings
+
+class BrowseQuery <<TypeScript>> {
+  +offer: 'everything' | 'for-rent' | 'wanted'
+  +kind: 'all' | 'space' | 'thing'
+  +term: string
+  +{static} fromParams(params: ParamMap): BrowseQuery
+  +toParams(): Params
+  +withTerm(term: string): BrowseQuery
+}
+class BrowseStore <<Angular>> {
+  +search(query: BrowseQuery): void
+  +state: Signal<BrowseState>
+  +counts: Signal<ListingCounts>
+}
+class SearchNormalizer {
+  +{static} MaxTermLength: 100
+  +{static} Normalize(text: string): string
+  +{static} Words(term: string): string[]
+}
+class Listing {
+  +string Title
+  +string? Note
+  +string Area
+  +string SearchText
+  -RefreshSearchText(): void
+}
+class BrowseListingsQuery {
+  +ListingOffer? Offer
+  +ListingKind? Kind
+  +string? Search
+}
+class BrowseListingsQueryHandler {
+  +Handle(query: BrowseListingsQuery): Task<ListingsPageDto>
+}
+class ListingCountsDto {
+  +int Everything
+  +int ForRent
+  +int Wanted
+}
+BrowseStore ..> BrowseQuery : receives
+BrowseListingsQueryHandler ..> BrowseListingsQuery : handles
+BrowseListingsQueryHandler ..> SearchNormalizer : uses
+BrowseListingsQueryHandler --> Listing : matches SearchText
+BrowseListingsQueryHandler ..> ListingCountsDto : returns in page
+Listing ..> SearchNormalizer : uses
+@enduml

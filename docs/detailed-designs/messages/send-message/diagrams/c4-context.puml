@@ -1,17 +1,11 @@
 @startuml
 !include <C4/C4_Context>
 LAYOUT_WITH_LEGEND()
-title System Context — Send a message
+title System Context — Send a message about a listing
 
-Person(sender, "Member", "Wants to arrange a rental with the person who posted a listing")
-Person(poster, "Member who posted", "Posted the listing the message is about")
+Person(member, "Member", "Posts listings, sends messages and reports")
+Person(poster, "Member who posted", "Owns the listing")
 System(cr, "christian.rent", "Where Christians post spaces and things for rent, or ask for one")
-System_Ext(signin, "Sign-in", "Identifies the member; mechanism <TO SUPPLY>")
-System_Ext(email, "Email delivery", "Delivers email to a member; product <TO SUPPLY>")
-
-Rel(sender, cr, "Writes and sends a message on Listing using")
-Rel(cr, poster, "Stores the message for; where it is read is <TO SUPPLY>")
-Rel(cr, email, "Hands the notice that a message arrived to")
-Rel(email, poster, "Emails that a message arrived")
-Rel(cr, signin, "Identifies the signed-in member through")
+Rel(member, cr, "Posts, messages and reports on")
+Rel(cr, poster, "Delivers messages and notices to")
 @enduml

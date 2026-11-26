@@ -1,0 +1,58 @@
+@startuml
+title UML sequence behaviour — Report a listing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Member" as actor
+box "Frontend — rent application" #E0F2FE
+  participant "ListingPage" as page
+  participant "ReportListingDialog" as dialog
+  participant "HttpReportsApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ReportsController" as ctrl
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "ReportListingCommandHandler" as handler
+  participant "Report" as report
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> page : Select "Report"
+page -> page : MemberGate.requireMember() (L2-021 criterion 5)
+page -> dialog : Open, focus on the first reason
+actor -> dialog : Choose a reason, add a note, "Send report"
+dialog -> dialog : Require a reason, note up to 500 (L2-021 criterion 1)
+dialog -> client : report(listingId, request)
+client -> ctrl : POST /api/listings/{id}/reports
+ctrl -> ctrl : Require a member (L2-025)
+ctrl -> handler : Send ReportListingCommand
+handler -> db : Listing, and a report by this member on it
+alt first report
+  handler -> report : Report.File(...)
+  handler -> handler : ReviewItem.ForReport(...)
+  handler -> db : Save report and review item (L2-021 criterion 2)
+  handler --> ctrl : ReportedDto
+  ctrl --> client : 201 Created
+  client --> dialog : Reported
+  dialog --> actor : Confirmation, announced
+else already reported by this member
+  handler --> ctrl : AlreadyReportedException
+  ctrl --> client : 409, code = already_reported (L2-021 criterion 3)
+  dialog --> actor : "already" state with the date of the first report
+else failure
+  dialog --> actor : "failed" state, reason and note kept, "Try again"
+end
+@enduml

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Become a member · new-church | christian.rent mocks</title>
+<meta name="mock:kind" content="dialog">
+<meta name="mock:screen" content="join">
+<meta name="mock:state" content="new-church">
+<meta name="mock:requirements" content="L2-009 L2-015 L2-017 L2-021">
+<meta name="description" content="The join dialog when the person’s church is not listed: they enter its name and city.">
+<link rel="stylesheet" href="../../../design-system/tokens/tokens.css">
+<link rel="stylesheet" href="../../../design-system/assets/components.css">
+<link rel="stylesheet" href="../../assets/mock.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div inert aria-hidden="true">
+<header class="site-header site-header--plain">
+  <div class="container site-header__inner">
+    <a class="logo" href="../../pages/browse/default.html" aria-label="christian.rent home"><svg class="logo__mark" viewBox="0 0 48 48" aria-hidden="true"><rect class="logo__tile" width="48" height="48" rx="14"/><rect class="logo__key" x="21" y="7" width="6" height="34" rx="3"/><rect class="logo__key" x="13" y="14" width="22" height="6" rx="3"/><rect class="logo__key" x="25" y="29" width="8" height="4.5" rx="2.25"/><rect class="logo__key" x="25" y="35.5" width="5.5" height="4.5" rx="2.25"/></svg><span class="wordmark">christian<span class="wordmark__tld">.rent</span></span></a>
+    <a class="btn btn--ghost btn--icon" href="../../pages/browse/default.html" aria-label="Close and go back to Browse"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></a>
+  </div>
+</header>
+<div class="container">
+  <div class="post-layout">
+    <form class="post-form" action="success.html" novalidate>
+      <p class="sentence">I
+      <span class="word-toggle word-toggle--side" role="radiogroup" aria-label="Do you have it or need it?"><label class="word-toggle__option"><input type="radio" name="side" value="have" checked>have</label><label class="word-toggle__option"><input type="radio" name="side" value="need">need</label></span>
+      <span class="word-toggle" role="radiogroup" aria-label="A space or a thing?"><label class="word-toggle__option"><input type="radio" name="kind" value="space">a space</label><label class="word-toggle__option"><input type="radio" name="kind" value="thing" checked>a thing</label></span>
+      to rent out.</p>
+      
+      <div class="line-field">
+        <label class="line-field__label" for="bg-title">What is it?</label>
+        <div class="line-field__control"><input class="line-field__input" id="bg-title" name="title" type="text" value="Pressure washer and drill kit" placeholder="Pressure washer and drill kit" maxlength="80"></div>
+        
+      </div>
+      <div class="field-row">
+        <div class="line-field">
+        <label class="line-field__label" for="bg-price">Price</label>
+        <div class="line-field__control"><span class="line-field__prefix" aria-hidden="true">$</span><input class="line-field__input" id="bg-price" name="price" type="text" value="25" placeholder="0" inputmode="decimal"><label class="visually-hidden" for="bg-price-unit">Per</label><select class="line-field__unit" id="bg-price-unit" name="unit"><option>per hour</option><option selected>per day</option><option>per week</option><option>per month</option></select></div>
+        
+      </div>
+        <div class="line-field">
+        <label class="line-field__label" for="bg-when">When</label>
+        <div class="line-field__control"><input class="line-field__input" id="bg-when" name="when" type="text" value="Most weekends" placeholder="Most weekends" maxlength="80"></div>
+        <a class="btn btn--link btn--sm line-field__switch" href="../../pages/post/dates.html">Give dates instead</a>
+      </div>
+      </div>
+      <div class="line-field">
+        <label class="line-field__label" for="bg-area">Where</label>
+        <div class="line-field__control"><input class="line-field__input" id="bg-area" name="area" type="text" value="Willoughby, Langley" placeholder="City or neighbourhood"></div>
+        <p class="field__help">A city or neighbourhood in Canada. Never a street address.</p>
+      </div>
+      <div class="line-field" role="group" aria-labelledby="bg-photos-label">
+        <p class="line-field__label" id="bg-photos-label">Photos <span class="optional">1 of 6</span></p>
+        <ul class="photo-picker"><li class="photo-picker__item"><img src="../../assets/photos/tools.jpg" alt="Pressure washer and drill on a workbench" width="800" height="597"><span class="tag tag--on-photo photo-picker__first">On the card</span><button class="photo-picker__remove" type="button" aria-label="Remove photo 1"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></li><li><button class="photo-picker__add" type="button"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="m3 15 4-4 6 6M19 3v6M16 6h6"/></svg>Add</button></li></ul>
+        <p class="field__help">Up to 6. JPEG, PNG or WebP, 10 MB or less each. The first one is shown on the card.</p>
+      </div>
+      <label class="field"><span class="field__label">Anything else? <span class="optional">Optional</span></span>
+        <textarea class="textarea" name="note" rows="3" maxlength="1000" placeholder="Pick up from my garage. Happy to show you how it works.">Pick up from my garage. Happy to show you how it works.</textarea>
+        <span class="field__counter">55 / 1,000</span>
+      </label>
+      <div class="post-actions">
+        <button class="btn btn--rent btn--lg" type="submit">Publish listing</button>
+        <p class="post-actions__fine">Prices are in CAD. An admin reviews every post before it appears on Browse.</p>
+      </div>
+    </form>
+    <aside class="post-layout__aside" aria-labelledby="bg-preview-label">
+      <h2 class="preview__label" id="bg-preview-label">How it’ll look</h2>
+      <div class="listing-card">
+  <div class="listing-card__media">
+    <img class="listing-card__photo" src="../../assets/photos/tools.jpg" alt="Pressure washer and drill on a workbench" width="800" height="597" loading="lazy">
+    <span class="tag tag--on-photo listing-card__kind">thing</span>
+  </div>
+  <div class="listing-card__body">
+    <div class="listing-card__top"><p class="listing-card__title">Pressure washer and drill kit</p><p class="listing-card__price"><span class="listing-card__amount">$25</span> / day</p></div>
+    <p class="listing-card__place"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12s-8-7-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg> Willoughby, Langley</p>
+    <p class="listing-card__church">Grace Community Church</p>
+  </div>
+</div>
+    </aside>
+  </div>
+</div>
+
+
+</div>
+<main id="main">
+<div class="backdrop"></div>
+<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title" aria-describedby="dlg-desc" data-dismiss-on-escape>
+  <div class="dialog__panel">
+    <div class="dialog__header">
+      
+      <div style="flex: 1;">
+        <h1 class="dialog__title" id="dlg-title">Become a member to post</h1>
+        <p id="dlg-desc" class="text-muted" style="margin-top: var(--space-1);">Browsing is open to anyone. To post, message or report, tell us who you are. What you’ve filled in is kept.</p>
+      </div>
+      <a class="btn btn--ghost btn--icon" href="../../pages/post/default.html" aria-label="Close"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></a>
+    </div>
+    <form class="dialog__body stack" id="join-form" action="../../pages/post/default.html">
+      
+      <label class="field"><span class="field__label">Your name</span>
+        <input class="input" type="text" name="name" maxlength="60" autocomplete="name" value="Sarah Kim">
+        
+      </label>
+      <label class="field"><span class="field__label">Your church</span>
+        <select class="select" name="church"><option value="">Choose a church</option><option>Grace Community Church, Langley</option><option>Cornerstone Church, Langley</option><option>New Song Fellowship, Langley</option><option>Willoughby Baptist, Langley</option><option selected>My church isn’t listed</option></select>
+        
+      </label><div class="field-row">
+        <label class="field"><span class="field__label">Church name</span><input class="input" type="text" name="church-name" maxlength="100" value="Fort Langley Evangelical Free"></label>
+        <label class="field"><span class="field__label">City</span><input class="input" type="text" name="church-city" value="Fort Langley"></label>
+      </div>
+      <p class="field__help">An admin confirms a new church before it is shown as verified.</p>
+      <label class="choice"><input type="checkbox" name="christian" checked><span class="choice__text">I am a Christian<small>christian.rent is for Christians.</small></span></label>
+      
+    </form>
+    <div class="dialog__footer"><a class="btn" href="../../pages/browse/default.html">Not now</a><button class="btn btn--primary" type="submit" form="join-form">Become a member</button></div>
+  </div>
+</div>
+</main>
+
+<nav class="mock-bar" aria-label="Mock navigation">
+  <a class="mock-bar__home" href="../../index.html" aria-label="All mocks">⌂</a>
+  <span class="mock-bar__screen">Become a member</span>
+  <ul class="mock-bar__states"><li><a href="default.html">default</a></li><li><a href="new-church.html" aria-current="page">new-church</a></li><li><a href="busy.html">busy</a></li><li><a href="invalid.html">invalid</a></li><li><a href="failed.html">failed</a></li></ul>
+  <button type="button" data-theme-toggle aria-pressed="false">☾ Dark</button>
+  <button type="button" data-chrome-toggle aria-label="Hide mock chrome">×</button>
+</nav>
+<script src="../../assets/mock.js"></script>
+</body>
+</html>

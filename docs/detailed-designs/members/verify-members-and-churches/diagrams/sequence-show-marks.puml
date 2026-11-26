@@ -1,0 +1,53 @@
+@startuml
+title UML sequence behaviour — Show the verified marks
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Admin" as actor
+box "Frontend — admin library (lazy)" #E0F2FE
+  participant "ReviewPage" as review
+end box
+box "Frontend — rent application" #E0F2FE
+  participant "ListingPage" as page
+  participant "cr-poster" as poster
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ReviewQueueController / ListingsController" as ctrl
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "DecideReviewItemCommandHandler" as dec
+  participant "Member" as member
+  participant "GetListingQueryHandler" as get
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> review : Approve a new member
+review -> ctrl : POST /api/review-queue/{id}/decision
+ctrl -> ctrl : Admin policy (L2-018 criterion 5)
+ctrl -> dec : Send DecideReviewItemCommand
+dec -> member : Verify() (L2-018 criterion 1)
+dec -> db : Save
+dec --> ctrl : Decided
+ctrl --> review : 200 OK
+... later, anyone opens a listing of that member ...
+page -> ctrl : GET /api/listings/{id}
+ctrl -> get : Send GetListingQuery
+get -> db : Listing, member, church
+db --> get : Member verified, church not verified
+get --> ctrl : PosterDto.IsVerified = true, ChurchDto.IsVerified = false
+ctrl --> page : 200 OK
+page -> poster : Render poster
+poster --> actor : "Verified" beside the member only (L2-018 criterion 3)
+@enduml

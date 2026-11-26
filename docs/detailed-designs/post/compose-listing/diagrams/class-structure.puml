@@ -1,0 +1,72 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Compose a listing
+
+class ListingDraft <<TypeScript>> {
+  +offer: 'for-rent' | 'wanted'
+  +kind: 'space' | 'thing'
+  +title: string
+  +priceAmount: number | null
+  +pricePeriod: 'hour' | 'day' | 'week' | 'month'
+  +when: WhenText | WhenDates
+  +area: string
+  +note: string
+  +photos: DraftPhoto[]
+  +clientRequestId: string
+}
+class WhenText <<TypeScript>> {
+  +mode: 'text'
+  +text: string
+}
+class WhenDates <<TypeScript>> {
+  +mode: 'dates'
+  +start: string
+  +end: string
+}
+class DraftErrors <<TypeScript>> {
+  +title?: string
+  +price?: string
+  +when?: string
+  +area?: string
+  +note?: string
+}
+class ListingDraftValidator <<TypeScript>> {
+  +validate(draft: ListingDraft): DraftErrors
+  +firstInvalid(errors: DraftErrors): FieldName | null
+}
+class PostStore <<Angular>> {
+  +draft: Signal<ListingDraft>
+  +errors: Signal<DraftErrors>
+  +previewCard: Signal<ListingCard>
+  +setOffer(offer): void
+  +setKind(kind): void
+  +patch(change: Partial<ListingDraft>): void
+  +validate(): FieldName | null
+}
+class DraftStore <<TypeScript>> {
+  +save(draft: ListingDraft): void
+  +restore(): ListingDraft | null
+  +clear(): void
+}
+class MemberGate <<Angular>> {
+  +requireMember(): Promise<boolean>
+}
+PostStore *-- ListingDraft
+PostStore *-- DraftErrors
+PostStore ..> ListingDraftValidator : uses
+ListingDraft *-- WhenText
+ListingDraft *-- WhenDates
+MemberGate ..> DraftStore : saves / restores
+DraftStore ..> ListingDraft
+@enduml

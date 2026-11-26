@@ -1,0 +1,29 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Handle what members write and who they are
+
+Container_Boundary(spa, "rent application (Angular workspace)") {
+  Component(tpl, "Component templates", "components, rent, admin", "Interpolation only, no innerHTML")
+  Component(drafts, "DraftStore", "domain/storage", "Parses stored drafts as data")
+}
+Container_Boundary(api, "ChristianRent backend") {
+  Component(hdr, "SecurityHeadersMiddleware", "ASP.NET Core middleware", "Content-Security-Policy on every response")
+  Component(val, "ValidationBehavior", "MediatR pipeline behaviour", "Type, length and range before any handler")
+  Component(handler, "Handlers", "MediatR", "EF Core LINQ only")
+  Component(del, "DeleteMembershipCommandHandler", "MediatR handler", "Marks a member departed")
+  Component(purge, "PurgeDepartedMembersCommandHandler", "MediatR handler, run from the CLI", "Anonymizes within 30 days")
+  Component(scrub, "TelemetryScrubber", "OpenTelemetry processor", "Drops personal data from telemetry")
+}
+ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
+ContainerDb(files, "File storage", "<TO SUPPLY>", "Photo renditions")
+System_Ext(otel, "Telemetry backend", "Receives traces, metrics and logs")
+Rel(tpl, hdr, "Loaded under the policy of", "HTTPS")
+Rel(tpl, val, "Sends input to", "JSON/HTTPS")
+Rel(val, handler, "Passes valid requests")
+Rel(handler, db, "Parameterised queries", "IAppDbContext")
+Rel(del, db, "Sets Status = Departed", "IAppDbContext")
+Rel(purge, db, "Anonymizes and deletes", "IAppDbContext")
+Rel(purge, files, "Deletes photo files", "IPhotoStorage")
+Rel(scrub, otel, "Exports scrubbed telemetry", "OTLP")
+@enduml
