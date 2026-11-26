@@ -114,8 +114,9 @@ the product has one language.
 
 **Undecided**
 
-- The budget values in `angular.json`: `<TO SUPPLY>`, set from the first production build
-  and tightened from there.
+- The budget values in `angular.json` are set in
+  [ADR 0006](../../../adr/0006-bundle-budgets.md): 300 kB warning and 320 kB error for the
+  initial download, from the first production build, and tightened from there.
 - Whether the dark theme has a manual switch in the product: the mocks toggle it from the
   mock bar only.
 - Which host serves the built application: `<TO SUPPLY>`.
