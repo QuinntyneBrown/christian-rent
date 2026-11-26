@@ -37,6 +37,21 @@
         (offerChange)="store.setOffer($event)"
         (kindChange)="store.setKind($event)"
       />
+      @if (state === 'failed') {
+        <cr-alert
+          tone="danger"
+          title="Your listing wasn’t posted."
+          text="We couldn’t reach christian.rent. Everything you entered is still here."
+          [announce]="true"
+        />
+      } @else if (state === 'limited') {
+        <cr-alert
+          tone="warning"
+          title="You’ve posted 10 listings in the last 24 hours."
+          [text]="limitText()"
+          [announce]="true"
+        />
+      }
       @if (store.summary().length > 0) {
         <cr-alert tone="danger" [summary]="true" [title]="summaryTitle(store.summary().length)">
           <ul class="summary">
@@ -139,6 +154,7 @@
         size="lg"
         [variant]="draft.offer === 'wanted' ? 'wanted' : 'rent'"
         [busy]="busy"
+        [disabled]="state === 'limited'"
       >
         {{ state === 'failed' ? 'Try again' : copy.submit }}
       </button>

@@ -4,6 +4,7 @@ import {
   Component,
   Injector,
   afterNextRender,
+  computed,
   effect,
   inject,
   input,
@@ -28,7 +29,7 @@ import {
   Textarea,
   type WordOption,
 } from '@rent/components';
-import { DRAFT_LIMITS, type DraftField, summaryTitle } from '@rent/domain';
+import { DRAFT_LIMITS, type DraftField, formatRetryAt, summaryTitle } from '@rent/domain';
 import { PostStore } from './post-store';
 
 /** The id of each field's input, which the summary's links move focus to. */
@@ -91,6 +92,12 @@ export class PostPage {
   protected readonly limits = DRAFT_LIMITS;
   protected readonly fieldIds = FIELD_IDS;
   protected readonly summaryTitle = summaryTitle;
+
+  /** What the limited state says, with when posting reopens in words (ADR 0019). */
+  protected readonly limitText = computed(() => {
+    const when = formatRetryAt(this.store.retryAt(), new Date());
+    return `You can post again ${when}${when.endsWith('.') ? '' : '.'} Everything you entered is still here.`;
+  });
 
   private readonly summary = viewChild(Alert);
   private readonly confirmation = viewChild(Confirmation);
