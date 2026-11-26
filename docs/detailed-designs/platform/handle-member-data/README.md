@@ -71,9 +71,10 @@ when a member leaves.
   `ChristianRent.Cli`. For each member departed at least `Members:PurgeAfterDays` days ago
   (default 30, at most 30) and not yet anonymised, `Member.Anonymize(now)` replaces the name
   with "Former member" and sets `AnonymizedAt`; the handler deletes the member's listings and
-  their photo files (every rendition) through `IPhotoStorage.DeleteAsync`. Messages do not
-  exist yet; when journey 8 adds them, the purge replaces the text of messages the member sent
-  with a placeholder, so the other person's conversation keeps its shape. The command prints
+  their photo files (every rendition) through `IPhotoStorage.DeleteAsync`. It clears the text
+  of every message the member sent (`Message.ClearText()`; the message stays, empty, so the
+  other person's conversation keeps its shape) and deletes the messages about the member's
+  listings with those listings (L2-016, criterion 7; ADR 0022). The command prints
   how many members, listings and photos it handled, and running it again changes nothing.
 - **`TelemetryScrubber`** — designed in
   [fail-clearly-and-operate](../fail-clearly-and-operate/README.md). Spans record the route
@@ -89,7 +90,9 @@ when a member leaves.
   `img-src` then names it: `<TO SUPPLY>`.
 - The screen from which a member asks to leave: `<TO SUPPLY>`; no mock exists, and no screen
   is built. `DELETE /api/members/me` and `purge-departed` are built (journey 5).
-- Whether messages a departed member received are also cleared: `<TO SUPPLY>`.
+- How a cleared message is shown to the other person: decided with the Messages inbox. The
+  messages a departed member received are about their own listings and are deleted with them
+  (ADR 0022).
 - The contact detail collected "to reach them", which depends on sign-in: `<TO SUPPLY>`.
 
 ### Mocks

@@ -16,17 +16,21 @@ the message is sent, a confirmation replaces the message box.
 A message is private to the sender and the recipient. Sending one reserves nothing and
 changes nothing on the listing. Where the recipient reads the message is not designed yet;
 this feature covers sending, storing and the rule for who may read.
+[ADR 0022](../../../adr/0022-sending-a-message-open-decisions.md) records what this design
+left open and how each point was decided.
 
 ## Description
 
 **Frontend**
 
-- **`cr-message-box`** (`components`) — the panel beside the listing. Inputs: `offer`,
-  `price`, `posterFirstName`, `state`, `draft`, `errors`, `retryAt`. Outputs: `draftChange`
-  and `send`. For a listing for rent it shows `cr-date-range` and the summary "Sat, Jun 13,
-  2026 · one day" (criterion 9); for a wanted listing it shows no dates (L2-015, criterion 2).
-  It shows the line "No payment happens here. You'll agree the details together." and no
-  payment control (L2-024). The offer decides the copy (criterion 8):
+- **`cr-message-box`** (`components`) — the panel beside the listing. Inputs: `heading`,
+  `price`, `loading`, `own`, `form`, `sent` and `draft`. Outputs: `draftChange` and `send`.
+  It is presentation only: `form` is a `MessageFormView` and `sent` a `MessageSentView`, both
+  types of `@rent/api` whose every word `@rent/domain` has already written. For a listing for
+  rent it shows `cr-date-range` and the summary "Sat, Jun 13, 2026 · one day" (criterion 9);
+  for a wanted listing it shows no dates (L2-015, criterion 2), and with no price it has no
+  head (criterion 13). It shows the line "No payment happens here. You'll agree the details
+  together." and no payment control (L2-024). The offer decides the copy (criterion 8):
 
   | | For rent | Wanted |
   |---|---|---|
@@ -34,58 +38,74 @@ this feature covers sending, storing and the rule for who may read.
   | price | "Rent for", "$45 CAD / hour" | "They'll pay", "Up to $120 CAD / day" |
   | button | "Message {name}" | "Offer to help {name}" |
 
-  The message field has `maxlength` 1,000 and a counter "94 / 1,000". By state:
-  - `invalid` — every invalid field carries `aria-invalid`; a summary lists them and takes
-    focus, and each of its links moves focus to its field (criterion 10);
-  - `submitting` — the button carries `aria-busy` and the fields are read-only
-    (criterion 11);
-  - `failed` — an alert says the message was not sent and the button reads "Try again";
-  - `limited` — an alert names when sending reopens and the button is disabled (L2-016,
-    criterion 6);
-  - `sent` — `cr-confirmation` reads "Sent to {name}", says that the person can read the
-    message and reply and that nothing is booked or paid, quotes the dates and the message
-    back as text, and links back to Browse. It does not say where the reply arrives
-    (criterion 12).
-- **`MessageComposer`** (`rent/src/app/listing/`) — service provided by the Listing route.
-  It holds `draft: MessageDraft` and `state`: `idle`, `invalid`, `submitting`, `sent`,
-  `failed`, `limited`. `send()` validates, asks `MemberGate.requireMember()`, then calls
-  `MESSAGES_API.send(listingId, draft)`. On `failed` and `limited` the draft is unchanged
-  (L2-015, criterion 7). `LiveAnnouncer` announces the confirmation.
-- **`MessageDraftValidator`** (`domain/listings/`) — text of 1 to 1,000 characters after
-  trimming; when dates are given, start today or later and end on or after start (L2-015,
-  criteria 3 and 4). "Today" comes from an injected clock.
-- **`DraftStore`** — keeps the message draft in `sessionStorage` under
-  `cr.message.draft.{listingId}` while a non-member joins, and restores it afterwards
-  (L2-015, criterion 5).
-- **`ListingPage`** — does not render `cr-message-box` when `ListingDetail.isOwn` is true;
-  it shows "This is your listing" (L2-015, criterion 6).
-- **`MessagesApi`** with the token **`MESSAGES_API`** — `send(listingId, draft)`.
+  The message field has `maxlength` 1,000 and a counter "94 / 1,000". By what `form` says:
+  - invalid — every invalid field carries `aria-invalid`; a summary lists them in the form's
+    order and takes focus (`focusSummary()`), and each of its links moves focus to its field
+    (criterion 10);
+  - busy — the button carries `aria-busy` and the fields are read-only (criterion 11);
+  - failed — an alert says the message was not sent and the button reads "Try again";
+  - limited — an alert names when sending reopens and the button is disabled (L2-016,
+    criterion 6).
+
+  With `sent` it draws its own confirmation in place of the form, as the `sent` mock does: a
+  `status` region that reads "Sent to {name}", says that the person can read the message and
+  reply and that nothing is booked or paid, quotes the dates and the message back as text,
+  and links back to Browse. It does not say where the reply arrives (criterion 12).
+  `focusSent()` moves focus to its title, which announces it. With `own` it draws the price,
+  "This is your listing." and no form (criterion 6).
+- **`MessageComposer`** (`rent/src/app/pages/listing/`) — service provided by the Listing
+  page. It holds `draft: MessageDraft` and `state`: `idle`, `submitting`, `sent`, `failed`,
+  `limited`; a draft is invalid while `errors` is not empty, which is not a state of its own.
+  `open(listingId)` restores the kept draft. `send()` validates, asks
+  `MemberGate.requireMember('message')`, then calls `MESSAGES_API.send(listingId, request)`.
+  On `failed` and `limited` the draft is unchanged (L2-015, criterion 7); `limited` returns to
+  `idle` by a timer at `retryAt`. A `not_found` refusal reloads the listing. Leaving aborts
+  the request and clears the timer.
+- **`validateMessageDraft`** (`domain/listings/`, the design's `MessageDraftValidator`) — text
+  of 1 to 1,000 characters after trimming; dates are optional, but one needs the other, the
+  start is today or later and the end is on or after the start (L2-015, criteria 3 and 4).
+  "Today" is passed in. `toMessageRequest` writes what is sent, and `toMessageFormView` and
+  `toMessageSentView` write what the box shows.
+- **`MessageDraftStore`** (`domain/storage/`) — keeps the message draft in `sessionStorage`
+  under `cr.message.draft.{listingId}` on every change, so it survives the join dialog and a
+  reload; an empty draft and a sent one are removed (L2-015, criteria 5 and 14).
+- **`ListingPage`** — passes `own` to `cr-message-box` when `ListingDetail.isOwn` is true, so
+  no form is drawn (L2-015, criterion 6).
+- **`MessagesApi`** with the token **`MESSAGES_API`** — `send(listingId, request, signal)`,
+  bound to `HttpMessagesApi` by the Listing route.
 
 **Backend**
 
 - **`MessagesController.Send`** — `POST /api/listings/{listingId}/messages`, member
   required. It sends one `SendMessageCommand` and returns `201 Created` with
   `SentMessageDto { Id, SentAt }`.
-- **`SendMessageCommand`** — `{ ListingId, Text, StartDate?, EndDate? }`.
-- **`SendMessageCommandValidator`** — the same rules as `MessageDraftValidator`, with the
-  date taken from `TimeProvider`.
+- **`SendMessageCommand`** — `{ ListingId, Text, StartDate?, EndDate? }`. `ListingId` is the
+  address's text, so one that is not an identifier is `not_found` like an unknown one.
+- **`SendMessageCommandValidator`** — the same rules as `validateMessageDraft`, with the
+  date taken from `TimeProvider`; a start date may be the day before the backend's own date,
+  which is today somewhere in Canada (ADR 0022). A control character other than a line break
+  or a tab is refused.
 - **`SendMessageCommandHandler`** — in order:
-  1. loads the listing; a listing that is missing, waiting or removed raises
-     `NotFoundException` (`not_found`), so a message about a removed listing is refused
-     (L2-016, criterion 5);
-  2. refuses the listing's own poster with the code `own_listing` (L2-015, criterion 6);
-  3. refuses dates on a wanted listing with `validation_failed`;
-  4. asks `MessagingLimit.Check(senderId, now)`; a twenty-first message in an hour raises
-     `LimitReachedException`, returned as 429 with `message_limit_reached` and `retryAt`
-     (L2-016, criterion 4);
-  5. creates `Message.Send(listing, sender, text, dates, now)` and saves it.
+  1. requires a member (`not_a_member`);
+  2. loads the listing; a listing that is missing, waiting or removed, or whose poster is not
+     active, raises `NotFoundException` (`not_found`), so a message about a removed listing
+     is refused (L2-016, criterion 5);
+  3. refuses the listing's own poster with the code `own_listing` (L2-015, criterion 6);
+  4. refuses dates on a wanted listing with `validation_failed`;
+  5. asks `MessagingLimit.RetryAt(sentAt, now)` with when the sender's messages of the last
+     hour were sent; a twenty-first message in an hour raises `LimitReachedException`,
+     returned as 429 with `message_limit_reached` and `retryAt` (L2-016, criterion 4);
+  6. creates `Message.Send(listing, senderId, text, startDate, endDate, now)` and saves it.
   The handler writes nothing to the `Listing` (L2-024, criterion 3).
 - **`Message`** — domain entity `{ Id, ListingId, SenderId, RecipientId, Text, StartDate?,
   EndDate?, SentAt }`. `CanBeReadBy(memberId)` is true for the sender and the recipient only
-  (L2-016, criterion 1). Every query that returns message text applies it.
+  (L2-016, criterion 1). Every query that returns message text applies it; none exists yet.
+  `ClearText()` empties the text when its sender has left (L2-016, criterion 7).
 - **`MessageDto`** — the shape a reader receives: sender name, sender church, the two
   verified flags, listing title, dates and text. It has no email address or phone number
-  property (L2-016, criteria 2 and 3).
+  property (L2-016, criteria 2 and 3). It is built with the Messages inbox, not before.
+- **`PurgeDepartedMembersCommand`** — also clears the text of the messages a departed member
+  sent, and deletes the messages about their listings with those listings.
 
 Message text is stored and rendered as text (L2-026) and never appears in a log, a metric
 or a span.
@@ -93,16 +113,11 @@ or a span.
 **Undecided**
 
 - Where the recipient reads a message and how they reply (the Messages inbox):
-  `<TO SUPPLY>`. No read endpoint is built before its design exists.
+  `<TO SUPPLY>`. No read endpoint is built before its design exists; until then a message is
+  stored and shown to nobody (ADR 0022).
 - Whether the recipient is notified outside christian.rent, and by which channel:
-  `<TO SUPPLY>`.
-- Whether a member may send a second message about the same listing: the requirements set
-  no limit other than 20 per hour.
-- How the short name in the copy ("Dan" for "Pastor Dan Whitaker") is derived from a
-  member's name: `<TO SUPPLY>`. `posterFirstName` carries it.
-- Whether dates are required on a message about a listing for rent: the mocks label them
-  neither required nor optional. L2-015, criterion 3 applies "given dates are entered", and
-  the design treats them as optional.
+  `<TO SUPPLY>`. Nothing is sent until it is decided.
+- How long messages are kept: decided with the inbox.
 
 ### Mocks
 
@@ -110,6 +125,7 @@ The mocks are the source of truth for the UI of this feature. The states this de
 
 - [`docs/mocks/pages/listing/default.html`](../../../mocks/pages/listing/default.html): the message box with dates
 - [`docs/mocks/pages/listing/wanted.html`](../../../mocks/pages/listing/wanted.html): the message box without dates
+- [`docs/mocks/pages/listing/no-price.html`](../../../mocks/pages/listing/no-price.html): the message box of a wanted listing that gave no price
 - [`docs/mocks/pages/listing/invalid.html`](../../../mocks/pages/listing/invalid.html): an empty message or wrong dates
 - [`docs/mocks/pages/listing/submitting.html`](../../../mocks/pages/listing/submitting.html): the request is in flight
 - [`docs/mocks/pages/listing/sent.html`](../../../mocks/pages/listing/sent.html): the confirmation that replaces the message box
@@ -173,6 +189,6 @@ limit, then stores the message without touching the listing (`L2-015`, `L2-016`,
 ### Behaviour — keep a non-member's message
 
 A person who is not a member is asked to join; the message and dates are kept in
-`DraftStore` and sent after joining (`L2-015`, criterion 5).
+`MessageDraftStore` and sent after joining (`L2-015`, criterion 5).
 
 ![Sequence diagram for keep a non-member's message](diagrams/sequence-non-member-send.png)

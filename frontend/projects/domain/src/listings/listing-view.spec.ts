@@ -79,6 +79,8 @@ describe('toListingView', () => {
         since: 'Member since 2023',
       },
       messageHeading: 'Message Dan about this listing',
+      posterFirstName: 'Dan',
+      isOwn: false,
       price: { eyebrow: 'Rent for', amount: '$45', unit: 'CAD / hour' },
     });
   });
@@ -107,6 +109,7 @@ describe('toListingView', () => {
     expect(view.when).toBe('Jul 14 to 18, 2026');
     expect(view.place).toBe('Langley · 8 km');
     expect(view.messageHeading).toBe('Offer to help Marcus about this listing');
+    expect(view.posterFirstName).toBe('Marcus');
     expect(view.price).toEqual({ eyebrow: 'They’ll pay', amount: 'Up to $120', unit: 'CAD / day' });
   });
 

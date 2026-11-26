@@ -98,13 +98,18 @@ the draft kept in the tab, and the backend that saves a listing as waiting for r
 client request and at most 10 a member in 24 hours. Adding photos is built (journey 7): up to 6
 on a listing for rent, each checked by its content, size and sides, stored as renditions without
 its metadata, removable while posting, and deleted after 24 hours if no listing is posted with it
-([ADR 0021](docs/adr/0021-uploading-photos-open-decisions.md)).
+([ADR 0021](docs/adr/0021-uploading-photos-open-decisions.md)). Sending a message is built
+(journey 8): the message box beside a listing, with optional dates when it is for rent, its
+invalid, failed and limited states that keep what was written, and the backend that stores a
+message for the two people, at most 20 a member in an hour. Nobody can read a message yet: the
+Messages inbox is not designed, so a message waits in the database
+([ADR 0022](docs/adr/0022-sending-a-message-open-decisions.md)).
 
 - The requirements are in `docs/specs/`, the mocks in `docs/mocks/`, the design system in
   `docs/design-system/` and the detailed designs in `docs/detailed-designs/`.
 - The journeys and their slices are in `docs/journeys.md` and `docs/detailed-journeys.md`, with
   **% complete**; the architecture decisions are in `docs/adr/`.
-- What comes next is journey 8, Send a message: one slice at a time, each with its failing
+- What comes next is journey 9, Report a listing: one slice at a time, each with its failing
   acceptance test first.
 
 ## How it works
@@ -156,7 +161,7 @@ cd backend
 export ConnectionStrings__Default="Host=localhost;Database=christian_rent;Username=rent;Password=<yours>"
 dotnet run --project src/ChristianRent.Cli -- migrate   # apply the schema; the API never does
 dotnet run --project src/ChristianRent.Cli -- seed      # the mocks' cast: churches, members, listings, photos; safe to repeat
-dotnet run --project src/ChristianRent.Cli -- purge-departed   # daily: anonymise members who left; safe to repeat
+dotnet run --project src/ChristianRent.Cli -- purge-departed   # daily: anonymise members who left and clear the messages they sent; safe to repeat
 dotnet run --project src/ChristianRent.Cli -- purge-photos     # hourly: delete photos no posted listing names after 24 hours (ADR 0021); safe to repeat
 dotnet run --project src/ChristianRent.Api              # http://localhost:5080/health/ready
 ```
@@ -196,7 +201,7 @@ variables, `:` is written `__`.
 | `ForwardedHeaders:KnownProxies` | no | The addresses of the reverse proxies whose `X-Forwarded-*` headers are trusted |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | no | Where traces, metrics and logs are sent over OTLP; when unset, nothing is exported. The telemetry backend is not chosen |
 | `ASPNETCORE_ENVIRONMENT` | no | `Production` when deployed: HTTPS redirection and HSTS are on outside `Development` |
-| `Members:PurgeAfterDays` | no | Days after a member leaves before `ChristianRent.Cli purge-departed` makes them anonymous and deletes their listings and photos; 0 to 30, default 30 ([L2-028](docs/specs/L2.md), criterion 2). Schedule the command daily |
+| `Members:PurgeAfterDays` | no | Days after a member leaves before `ChristianRent.Cli purge-departed` makes them anonymous, deletes their listings and photos, and clears the text of the messages they sent; 0 to 30, default 30 ([L2-028](docs/specs/L2.md), criterion 2). Schedule the command daily |
 | The sign-in secret | yes | Not yet: sign-in is not designed ([ADR 0005](docs/adr/0005-authentication-seam.md)) |
 
 `ChristianRent.Cli purge-photos` needs no setting; schedule it hourly. A reverse proxy in front of

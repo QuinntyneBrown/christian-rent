@@ -91,6 +91,33 @@ public sealed class TelemetryTests : IDisposable
         }
     }
 
+    // L2-028 criterion 3 with the send-message design: what a member writes in a message never
+    // reaches a span, a log or a metric, sent or refused; the route is its template.
+    [Fact]
+    public async Task A_message_is_recorded_by_its_route_and_never_by_its_text()
+    {
+        var dan = TestData.Member("Pastor Dan Whitaker", TestData.Grace, signInId: "dan-whitaker");
+        var sarah = TestData.Member("Sarah Kim", TestData.Grace, signInId: "sarah-kim");
+        var hall = TestData.ForRent(dan, "Hall", TestData.At(5));
+        await _factory.SeedAsync(TestData.Grace, dan, sarah, hall);
+        using var client = _factory.CreateSignedInClient("sarah-kim");
+
+        using var sent = await client.PostAsJsonAsync($"/api/listings/{hall.Id}/messages", new { text = MessageText }, TestContext.Current.CancellationToken);
+        using var refused = await client.PostAsJsonAsync(
+            $"/api/listings/{hall.Id}/messages", new { text = MessageText, startDate = "2026-06-13" }, TestContext.Current.CancellationToken);
+        await _factory.Recorder.WaitForServerSpanAsync("api/listings/{listingId}/messages");
+        _factory.FlushMetrics();
+        _factory.FlushLogs();
+
+        Assert.Equal(HttpStatusCode.Created, sent.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
+        var recorded = string.Join('\n', _factory.EverythingRecorded());
+        Assert.Contains("http.route=api/listings/{listingId}/messages", recorded, StringComparison.Ordinal);
+        Assert.DoesNotContain(MessageText, recorded, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("604-555", recorded, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(hall.Id.ToString(), recorded, StringComparison.OrdinalIgnoreCase);
+    }
+
     // L2-028 criterion 3 with ADR 0015: a search term never reaches a span, a log or a metric;
     // the route is its template.
     [Fact]

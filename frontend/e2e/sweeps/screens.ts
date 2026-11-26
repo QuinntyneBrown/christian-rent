@@ -10,9 +10,11 @@ import {
   page as listingsPage,
   wanted,
 } from '../fixtures/listings';
-import { CHURCHES, answerJoining, answerMember } from '../fixtures/members';
+import { CHURCHES, SARAH_KIM, answerJoining, answerMember } from '../fixtures/members';
+import { answerSending, refuseSendingAtLimit, sendPath } from '../fixtures/messages';
 import { answerUploads, photoFile } from '../fixtures/photos';
 import { POSTED_ID, answerPosting } from '../fixtures/post';
+import { ListingPage } from '../pages/listing.page';
 import { PostPage } from '../pages/post.page';
 
 /** One screen in one state: what the API answers, and what a person does before it is looked at. */
@@ -26,6 +28,25 @@ export interface Screen {
 
 const scrollToEnd = (page: Page) =>
   page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+
+/**
+ * Writes the message of the Listing mocks on their today, Jun 8, 2026, and presses send when
+ * asked; an end before the start and no text for the invalid state.
+ */
+async function writeMessage(page: Page, send: boolean, invalid = false): Promise<void> {
+  await page.clock.setFixedTime(new Date(2026, 5, 8, 14, 50));
+  const box = new ListingPage(page).message;
+  await box.from.fill('2026-06-13');
+  await box.to.fill(invalid ? '2026-06-12' : '2026-06-13');
+  if (!invalid) {
+    await box.text.fill(
+      'Hi Dan, is the hall free on the dates below? We’re planning a baby shower for about 40 people.',
+    );
+  }
+  if (send) {
+    await box.submit.click();
+  }
+}
 
 /** The screens every sweep visits, in the states of their mocks. Each journey adds its own. */
 export const SCREENS: readonly Screen[] = [
@@ -160,6 +181,94 @@ export const SCREENS: readonly Screen[] = [
     name: 'listing-not-found',
     path: `/listings/${hall().id}`,
     answer: (api) => api.refuse('GET', `/api/listings/${hall().id}`, 404, 'not_found'),
+  },
+  // The message box's states (docs/mocks/pages/listing/; send-message design).
+  {
+    name: 'listing-no-price',
+    path: `/listings/${van().id}`,
+    answer: (api) => answerListing(api, van({ price: null })),
+  },
+  {
+    name: 'listing-own',
+    path: `/listings/${hall().id}`,
+    answer: (api) => {
+      answerMember(api, { ...SARAH_KIM, name: 'Josh Patel' });
+      answerListing(api, hall({ price: { amount: 25, period: 'day' }, isOwn: true }));
+    },
+  },
+  {
+    name: 'listing-written',
+    path: `/listings/${hall().id}`,
+    answer: (api) => {
+      answerMember(api);
+      answerListing(api, hall());
+    },
+    then: (page) => writeMessage(page, false),
+  },
+  {
+    name: 'listing-invalid',
+    path: `/listings/${hall().id}`,
+    answer: (api) => {
+      answerMember(api);
+      answerListing(api, hall());
+    },
+    then: async (page) => {
+      await writeMessage(page, true, true);
+      await page.locator('.message-box .form-summary').waitFor();
+    },
+  },
+  {
+    name: 'listing-submitting',
+    path: `/listings/${hall().id}`,
+    answer: (api) => {
+      answerMember(api);
+      answerListing(api, hall());
+      api.hold('POST', sendPath(hall().id));
+      answerSending(api, hall().id);
+    },
+    then: async (page) => {
+      await writeMessage(page, true);
+      await page.locator('.message-box__form[aria-busy="true"]').waitFor();
+    },
+  },
+  {
+    name: 'listing-sent',
+    path: `/listings/${hall().id}`,
+    answer: (api) => {
+      answerMember(api);
+      answerListing(api, hall());
+      answerSending(api, hall().id);
+    },
+    then: async (page) => {
+      await writeMessage(page, true);
+      await page.locator('.message-box__sent').waitFor();
+    },
+  },
+  {
+    name: 'listing-failed',
+    path: `/listings/${hall().id}`,
+    answer: (api) => {
+      answerMember(api);
+      answerListing(api, hall());
+      api.refuse('POST', sendPath(hall().id), 503, 'unexpected');
+    },
+    then: async (page) => {
+      await writeMessage(page, true);
+      await page.locator('.message-box .alert--danger').waitFor();
+    },
+  },
+  {
+    name: 'listing-limited',
+    path: `/listings/${hall().id}`,
+    answer: (api) => {
+      answerMember(api);
+      answerListing(api, hall());
+      refuseSendingAtLimit(api, hall().id, new Date(2026, 5, 8, 15, 40));
+    },
+    then: async (page) => {
+      await writeMessage(page, true);
+      await page.locator('.message-box .alert--warning').waitFor();
+    },
   },
   // The join dialog's states (docs/mocks/dialogs/join/), over the e2e build's host page.
   {

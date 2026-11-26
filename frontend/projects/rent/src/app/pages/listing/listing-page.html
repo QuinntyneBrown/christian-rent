@@ -21,7 +21,17 @@
         <cr-listing-toolbar />
         <cr-listing-layout>
           <cr-listing [listing]="view" />
-          <cr-message-box slot="aside" [heading]="view.messageHeading" [price]="view.price" />
+          <cr-message-box
+            slot="aside"
+            [heading]="view.messageHeading"
+            [price]="view.price"
+            [own]="view.isOwn"
+            [form]="composer.form()"
+            [sent]="composer.sent()"
+            [draft]="composer.draft()"
+            (draftChange)="composer.change($event)"
+            (send)="send()"
+          />
         </cr-listing-layout>
       }
     }

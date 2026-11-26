@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { GalleryPart } from './gallery.part';
+import { MessageBoxPart } from './message-box.part';
 import { PosterPart } from './poster.part';
 import { SiteHeaderPart } from './site-header.part';
 
@@ -20,6 +21,8 @@ export class ListingPage {
   readonly poster: PosterPart;
   readonly aside: Locator;
   readonly messageBox: Locator;
+  /** The message box's form and confirmation. */
+  readonly message: MessageBoxPart;
   readonly messageBoxHeading: Locator;
   readonly eyebrow: Locator;
   readonly price: Locator;
@@ -49,6 +52,7 @@ export class ListingPage {
     this.poster = new PosterPart(this.listing.getByRole('region', { name: 'Posted by' }));
     this.aside = this.main.locator('.listing-layout__aside');
     this.messageBox = this.aside.locator('.message-box');
+    this.message = new MessageBoxPart(this.messageBox);
     this.messageBoxHeading = this.messageBox.getByRole('heading', { level: 2 });
     this.eyebrow = this.messageBox.locator('.message-box__eyebrow');
     this.price = this.messageBox.locator('.message-box__price');

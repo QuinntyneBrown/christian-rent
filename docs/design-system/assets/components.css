@@ -359,11 +359,12 @@ a.listing-card:hover, a.listing-card[data-state="hover"] { transform: translateY
 .message-box__price { font-family: var(--font-family-display); font-weight: var(--font-weight-extrabold); font-size: var(--font-size-4xl); line-height: var(--line-height-tight); letter-spacing: var(--letter-spacing-tight); font-variant-numeric: tabular-nums; }
 .message-box__unit { font: var(--text-body); font-weight: var(--font-weight-medium); letter-spacing: var(--letter-spacing-normal); color: var(--color-fg-muted); margin-left: var(--space-1); }
 .message-box__form { display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-5); }
+.message-box > .visually-hidden + .message-box__form { margin-top: 0; }
 .message-box__fine { text-align: center; font: var(--text-caption); color: var(--color-fg-muted); max-width: none; }
 .message-box__sent { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-2); padding-block: var(--space-4); }
 .message-box__sent-title { font: var(--text-h3); margin-top: var(--space-3); }
 .message-box__sent-text { font: var(--text-body-sm); color: var(--color-fg-muted); }
-.message-box__quote { width: 100%; margin-top: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--color-bg-subtle); text-align: left; font: var(--text-body-sm); overflow-wrap: anywhere; }
+.message-box__quote { width: 100%; margin-top: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--color-bg-subtle); text-align: left; font: var(--text-body-sm); overflow-wrap: anywhere; white-space: pre-wrap; }
 .date-range { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
 .date-range .field { min-width: 0; }
 .date-range .input { min-width: 0; padding-inline: var(--space-2); }

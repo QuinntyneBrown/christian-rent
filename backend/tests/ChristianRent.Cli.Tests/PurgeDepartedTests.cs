@@ -4,6 +4,7 @@ using ChristianRent.Application.Members;
 using ChristianRent.Domain.Churches;
 using ChristianRent.Domain.Listings;
 using ChristianRent.Domain.Members;
+using ChristianRent.Domain.Messages;
 using ChristianRent.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -66,6 +67,42 @@ public sealed class PurgeDepartedTests : IDisposable
         Assert.All(Renditions, rendition => Assert.DoesNotContain($"{_dansPhoto:N}/{rendition}.jpg", _photos.Files.Keys));
         Assert.All(Renditions, rendition => Assert.Contains($"{_ruthsPhoto:N}/{rendition}.jpg", _photos.Files.Keys));
         Assert.Equal("Ruth and Caleb Moore", (await MemberAsync(services, _ruth.Id)).Name);
+    }
+
+    // L2-016 criterion 7 (ADR 0022): what a departed member wrote in a message goes, and the
+    // message keeps its place; the messages about their listings go with those listings; other
+    // members' messages stay as they were.
+    [Fact]
+    public async Task A_departed_members_sent_messages_lose_their_text_and_the_ones_about_their_listings_are_deleted()
+    {
+        await SeedAsync();
+        using var services = Services(afterDays: null);
+        var josh = Member.Create(Guid.NewGuid(), "Josh Patel", _grace.Id, isVerified: true, LeftAt.AddYears(-1), "josh-patel");
+        Guid fromDan, fromJosh;
+        using (var scope = services.CreateScope())
+        {
+            var database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var listings = await database.Listings.AsNoTracking().ToListAsync(TestContext.Current.CancellationToken);
+            var dansHall = listings.Single(listing => listing.MemberId == _dan.Id);
+            var ruthsHall = listings.Single(listing => listing.MemberId == _ruth.Id);
+            var sentByDan = Message.Send(ruthsHall, _dan.Id, "Is your hall free? Call me on 604-555-0199", new DateOnly(2026, 6, 13), new DateOnly(2026, 6, 14), LeftAt.AddDays(-1));
+            var sentByJosh = Message.Send(ruthsHall, josh.Id, "Is it free on Friday?", null, null, LeftAt.AddDays(-1));
+            database.AddRange(josh, sentByDan, sentByJosh, Message.Send(dansHall, _ruth.Id, "Could we borrow your hall?", null, null, LeftAt.AddDays(-2)));
+            await database.SaveChangesAsync(TestContext.Current.CancellationToken);
+            (fromDan, fromJosh) = (sentByDan.Id, sentByJosh.Id);
+        }
+
+        _clock.Advance(TimeSpan.FromDays(30));
+        Assert.Equal(0, await CliApp.RunAsync(["purge-departed"], services, _output, TestContext.Current.CancellationToken));
+
+        using var after = services.CreateScope();
+        var messages = await after.ServiceProvider.GetRequiredService<AppDbContext>().Messages.AsNoTracking()
+            .ToListAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(2, messages.Count);
+        var cleared = messages.Single(message => message.Id == fromDan);
+        Assert.Equal(string.Empty, cleared.Text);
+        Assert.Equal(new DateOnly(2026, 6, 13), cleared.StartDate);
+        Assert.Equal("Is it free on Friday?", messages.Single(message => message.Id == fromJosh).Text);
     }
 
     [Fact]

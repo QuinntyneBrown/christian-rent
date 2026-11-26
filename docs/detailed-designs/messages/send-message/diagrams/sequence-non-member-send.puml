@@ -19,21 +19,23 @@ box "Frontend — rent application" #E0F2FE
   participant "cr-message-box" as box
   participant "MessageComposer" as composer
   participant "MemberGate" as gate
-  participant "DraftStore" as drafts
+  participant "MessageDraftStore" as drafts
   participant "JoinDialog (lazy)" as join
 end box
-actor -> box : Write a message and select send
+actor -> box : Write a message
+box -> composer : draftChange
+composer -> drafts : save(listingId, draft) on every change
+actor -> box : Select send
 box -> composer : send
-composer -> gate : requireMember()
-gate -> drafts : save(message draft)
+composer -> gate : requireMember('message')
 gate -> join : Open the Join dialog
 join --> actor : "Become a member"
 alt joins
   actor -> join : Name, church, declaration
   join --> gate : Member created
-  gate -> drafts : restore()
   gate --> composer : true
   composer -> composer : Continue send() with the kept draft (L2-015)
+  composer -> drafts : clear(listingId) once sent
 else chooses "Not now"
   join --> gate : Dismissed
   gate --> composer : false

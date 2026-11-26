@@ -1,13 +1,5 @@
-@if (loading()) {
-  <div class="message-box" aria-hidden="true">
-    <cr-skeleton [width]="30" />
-    <cr-skeleton class="message-box__price-skeleton" shape="title" [width]="60" />
-    <div class="message-box__field-skeleton"><cr-skeleton shape="rect" /></div>
-    <div class="message-box__button-skeleton"><cr-skeleton shape="rect" /></div>
-  </div>
-} @else if (price(); as price) {
-  <section class="message-box" [attr.aria-labelledby]="headingId">
-    <h2 class="visually-hidden" [id]="headingId">{{ heading() }}</h2>
+<ng-template #head>
+  @if (price(); as price) {
     <p class="message-box__eyebrow">{{ price.eyebrow }}</p>
     <p class="message-box__price">
       {{ price.amount }}
@@ -15,6 +7,102 @@
         <span class="message-box__unit">{{ price.unit }}</span>
       }
     </p>
-    <ng-content />
+  }
+</ng-template>
+@if (loading()) {
+  <div class="message-box" aria-hidden="true">
+    <cr-skeleton [width]="30" />
+    <cr-skeleton class="message-box__price-skeleton" shape="title" [width]="60" />
+    <div class="message-box__field-skeleton"><cr-skeleton shape="rect" /></div>
+    <div class="message-box__button-skeleton"><cr-skeleton shape="rect" /></div>
+  </div>
+} @else if (own()) {
+  <section class="message-box" [attr.aria-labelledby]="id + '-heading'">
+    <ng-container [ngTemplateOutlet]="head" />
+    <h2 class="message-box__sent-title" [id]="id + '-heading'">This is your listing.</h2>
+    <p class="message-box__sent-text">Members who are interested send you a message from here.</p>
+  </section>
+} @else if (sent(); as sent) {
+  <section class="message-box" [attr.aria-labelledby]="id + '-heading'">
+    <div class="message-box__sent" role="status">
+      <span class="success-badge"><cr-icon name="check" size="lg" /></span>
+      <h2 #sentTitle class="message-box__sent-title" tabindex="-1" [id]="id + '-heading'">
+        {{ sent.title }}
+      </h2>
+      <p class="message-box__sent-text">{{ sent.text }}</p>
+      <blockquote class="message-box__quote">{{ sent.quote }}</blockquote>
+      <a cr-button routerLink="/" [block]="true">Back to all listings</a>
+    </div>
+  </section>
+} @else if (form(); as form) {
+  <section class="message-box" [attr.aria-labelledby]="id + '-heading'">
+    <h2 class="visually-hidden" [id]="id + '-heading'">{{ heading() }}</h2>
+    <ng-container [ngTemplateOutlet]="head" />
+    <form
+      #formElement
+      class="message-box__form"
+      novalidate
+      [class.message-box__form--first]="!price()"
+      [attr.aria-busy]="form.busy ? 'true' : null"
+      (submit)="submitted($event)"
+    >
+      @if (form.alert; as alert) {
+        <cr-alert [tone]="alert.tone" [title]="alert.title" [text]="alert.text" [announce]="true" />
+      }
+      @if (form.summaryTitle; as summaryTitle) {
+        <cr-alert #summary tone="danger" [summary]="true" [title]="summaryTitle">
+          <ul class="message-box__summary">
+            @for (entry of form.summary; track entry.field) {
+              <li>
+                <a
+                  class="message-box__summary-link"
+                  [href]="'#' + fieldIds[entry.field]"
+                  (click)="focusField($event, entry.field)"
+                  >{{ entry.text }}</a
+                >
+              </li>
+            }
+          </ul>
+        </cr-alert>
+      }
+      @if (!form.wanted) {
+        <cr-date-range
+          legend="Dates"
+          [fieldId]="id + '-dates'"
+          [legendHidden]="true"
+          [min]="form.today"
+          [start]="draft().startDate"
+          [end]="draft().endDate"
+          [summary]="form.datesInWords"
+          [startError]="form.startError"
+          [endError]="form.endError"
+          [readonly]="form.busy"
+          (startChange)="patch({ startDate: $event })"
+          (endChange)="patch({ endDate: $event })"
+        />
+      }
+      <cr-textarea
+        label="Message"
+        [fieldId]="fieldIds.text"
+        [rows]="4"
+        [maxlength]="1000"
+        [counter]="form.counter"
+        [error]="form.textError"
+        [readonly]="form.busy"
+        [value]="draft().text"
+        (valueChange)="patch({ text: $event })"
+      />
+      <button
+        cr-button
+        type="submit"
+        [variant]="form.wanted ? 'wanted' : 'rent'"
+        [block]="true"
+        [busy]="form.busy"
+        [disabled]="form.off"
+      >
+        {{ form.submit }}
+      </button>
+      <p class="message-box__fine">No payment happens here. You’ll agree the details together.</p>
+    </form>
   </section>
 }

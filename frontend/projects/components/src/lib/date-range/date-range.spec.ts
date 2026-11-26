@@ -67,4 +67,12 @@ describe('DateRange', () => {
 
     expect(events).toEqual(['start 2026-07-14', 'end 2026-07-18', 'switched']);
   });
+
+  // docs/mocks/pages/listing: in the message box the legend is hidden and the start has a floor.
+  it('hides its legend and offers no start before the earliest date when asked', () => {
+    const { element, start } = render({ legendHidden: true, min: '2026-06-08' });
+
+    expect(element.querySelector('legend')?.classList.contains('visually-hidden')).toBe(true);
+    expect(start.min).toBe('2026-06-08');
+  });
 });

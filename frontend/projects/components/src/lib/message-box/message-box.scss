@@ -49,3 +49,76 @@
   border-radius: var(--radius-full);
   overflow: hidden;
 }
+
+.message-box__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+// A wanted listing that gave no price has no head above the form (ADR 0022).
+.message-box__form--first {
+  margin-top: 0;
+}
+
+.message-box__summary {
+  margin: 0;
+  padding-left: var(--space-5);
+  list-style: disc;
+}
+
+.message-box__summary-link {
+  display: inline-block;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.message-box__fine {
+  text-align: center;
+  font: var(--text-caption);
+  color: var(--color-fg-muted);
+  max-width: none;
+}
+
+.message-box__sent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-2);
+  padding-block: var(--space-4);
+}
+
+.success-badge {
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: var(--radius-full);
+  background: var(--color-success-solid);
+  color: var(--color-fg-on-success);
+}
+
+.message-box__sent-title {
+  font: var(--text-h3);
+  margin-top: var(--space-3);
+}
+
+.message-box__sent-text {
+  font: var(--text-body-sm);
+  color: var(--color-fg-muted);
+}
+
+.message-box__quote {
+  width: 100%;
+  margin: var(--space-3) 0 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle);
+  text-align: left;
+  font: var(--text-body-sm);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}

@@ -49,6 +49,10 @@ Each journey's entry has three parts:
 | L33 | A spec that proves something is released or cancelled observes the release itself (the request's `requestfailed` with `ERR_ABORTED`, an object URL that `fetch` can no longer read); asserting only what the screen shows passes even when nothing is released. | 7 |
 | L34 | A fixture that numbers what it answers keeps its count per `ApiFixtures` (a `WeakMap`), so a spec that answers again after a refusal goes on numbering instead of repeating an identifier. | 7 |
 | L35 | When a sweep's state needs an answer changed midway (an upload held or refused after one is in), its `then` takes the `api` fixture; a page object never reaches the fixtures. | 7 |
+| L36 | Check a mutation script by hand once before trusting it: it waits for the dev server's rebuild and reads Playwright's own list of failed specs; a script that misreads the output reports "nothing failed" for a rule that is well covered. | 8 |
+| L37 | A mutation that removes the only use of an import fails the .NET build (IDE0005 is an error), not the test: mutate so the import stays in use. | 8 |
+| L38 | A spec whose rule reads today fixes the browser's clock (`page.clock.setFixedTime`) before the page opens, and a sweep's `then` after it; such a spec asserts nothing a fixture derives from the real clock ("Posted 2 days ago"). | 8 |
+| L39 | When a service is small enough to write whole, plan the slices by what the spec can see failing (send, then each refusal the screen shows), or accept that later specs pass at once and prove each by mutation in that slice. | 8 |
 
 ## Journeys
 
@@ -480,3 +484,87 @@ Slices 7.1 to 7.6, finished on Nov 26, 2026.
 - L19: every new spec was run 5 times, 55 of 55 green.
 - L24: no new request at start; Post's specs answer uploads only where they add photos.
 - L31: every scripted edit asserted that its text was there; none missed.
+
+### 8. Send a message
+
+Slices 8.1 to 8.6, finished on Nov 26, 2026.
+
+**What slowed it**
+
+- The container again had no .NET SDK, PlantUML or Graphviz, and this time the package lists
+  were empty: `apt-get update` had to run before Ubuntu's packages installed.
+- The design left open how a message is held with no inbox, whether dates are required and
+  whose today they are compared with, how the text is cleaned, what a departed member's
+  messages become, the box with no price and on one's own listing, where the confirmation is
+  drawn, and the draft's lifetime. ADR 0022 decides them; L2-015 gained criteria 13 and 14 and
+  L2-016 criterion 7, L2-016 criterion 2 is marked as waiting for the inbox, `no-price.html` was
+  drawn and `failed.html` and `invalid.html` corrected, all before any code (L2).
+- The prompt asked for required dates; the requirement says "given dates are entered" and the
+  design treats them as optional. The requirement won, and the prompt says so now (L17).
+- The design named `cr-confirmation` for "Sent to Dan" and hid the panel on one's own listing;
+  the `sent` and `own` mocks draw both inside the message box. The mocks won, and the design
+  follows them.
+- Re-rendering every diagram changed two unrelated PNGs by a few bytes; they were restored, and
+  only the four changed diagrams were committed.
+- `MessageComposer` was written whole in slice 8.4, so the twelve specs of slices 8.5 and 8.6
+  passed on their first run. Each was proved by mutation (L20), but the first mutation script
+  parsed Playwright's output wrongly and reported "nothing failed" for six of nine rules; one
+  run by hand showed the specs did fail, and the corrected script showed each mutation failing
+  exactly the specs that name its rule (L36, L39).
+- A backend mutation that dropped `PublicListings.Of` broke the build on an unused `using`
+  before any test ran (L37).
+- The unit tests of the domain helpers, the composer, the HTTP client and the component were
+  written before or beside their code and passed at once, so they were not seen to fail; every
+  acceptance test of slices 8.1 to 8.4 was. The telemetry test also passed at once: the
+  scrubber of journey 1 already keeps a body out of every span and log.
+
+**New lessons**: L36 to L39 above, and these details for later slices:
+
+- A backend whose clock is UTC accepts "today" from the day before its own date, because every
+  Canadian time zone is behind UTC; the browser, which knows the member's date, is the stricter
+  check.
+- `getByLabel` also matches an element named by `aria-labelledby`, so a section called "Message
+  Dan about this listing" answers to "Message": a page object scopes field locators to the form.
+- A presentation component with many states takes one view object from `@rent/api` whose every
+  word a `@rent/domain` function has written (L12 at the size of a form); the component's test
+  then checks the drawing, and the function's test the words.
+- A draft kept per item removes its key when it is empty, so only items with something written
+  hold storage.
+- A limit that lifts within the visit sets one timer to turn the control back on, and the
+  owner's destroy clears it; its unit test counts the timers left.
+
+**Earlier lessons applied**
+
+- L1: `main` was fetched first and had not moved.
+- L2: the box of a wanted listing with no price had no mock and no criterion; both came first,
+  with ADR 0022.
+- L3 and L20: the visibility check on the backend, and on the frontend keeping the draft,
+  aborting on leaving, the limit, the taken-down listing, the summary's focus, the gate, the own
+  listing, the confirmation's focus and clearing the draft were each removed, and only the tests
+  that name them failed.
+- L4: every commit followed a green run whose counts were read: 346 backend tests, 547 unit
+  tests and 136 behaviour specs at the end.
+- L6: `MSBUILDDISABLENODEREUSE=1` held; the dev server started for the slices was stopped before
+  `verify.mjs`.
+- L8: `cr-message-box` was finished to its design-system spec, composing `cr-date-range` (which
+  gained a hidden legend and an earliest date), `cr-textarea`, `cr-alert`, `cr-button` and
+  `cr-icon`; the page writes no design-system class.
+- L9 and L24: Listing asks nothing new at start, so only the two specs whose assertions the form
+  changed were touched: the no-calendar check now looks at the listing, and a wanted listing
+  with no price now has its box.
+- L10 and L21: the box's page object finds its fields by exact label inside the form.
+- L11 and L27: the production build ran in every frontend slice; the initial chunks are
+  323.17 kB, unchanged, since the box, the composer and `HttpMessagesApi` load with Listing's
+  route (35.8 kB). No budget changed.
+- L12: `validateMessageDraft`, `toMessageRequest`, `toMessageFormView`, `toMessageSentView`,
+  `formatDateSpan` and `MessageDraftStore` are `@rent/domain`, with a test per case.
+- L13 and L35: the sweeps visit the box's eight new states, and a heap check writes a message at
+  the limit and leaves 20 times; none was run.
+- L17: see above; the prompt was brought in line with the requirement.
+- L19: every new spec was run 5 times, 85 of 85 green.
+- L25: the specs read each field's error with `toHaveAccessibleDescription`.
+- L26: the busy spec proves the button ignores a press with `dispatchEvent('click')`.
+- L29: the confirmation is announced by moving focus to its title, so no `LiveAnnouncer` is
+  loaded for it.
+- L30: behind the join dialog the spec reads only the dialog; the box is read once it closes.
+- L33: the leaving spec observes the request fail with `net::ERR_ABORTED`.

@@ -6,8 +6,8 @@ title Components — Send a message about a listing
 Container_Boundary(spa, "rent application (Angular workspace)") {
   Component(box, "cr-message-box", "components library", "Dates, message, confirmation")
   Component(composer, "MessageComposer", "Route-scoped service", "Draft, state and send()")
-  Component(val, "MessageDraftValidator", "domain/listings helper", "Text length and date order")
-  Component(gate, "MemberGate, DraftStore", "rent service, domain/storage", "Keeps the draft while a person joins")
+  Component(val, "validateMessageDraft", "domain/listings helper", "Text length and date order")
+  Component(gate, "MemberGate, MessageDraftStore", "rent service, domain/storage", "Keeps the draft while a person joins")
   Component(client, "HttpMessagesApi", "api library, MESSAGES_API", "Typed HTTP client")
 }
 Container_Boundary(api, "ChristianRent backend") {
@@ -20,10 +20,10 @@ ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
 Rel(box, composer, "draftChange, send")
 Rel(composer, val, "validate(draft, today)")
 Rel(composer, gate, "requireMember()")
-Rel(composer, client, "send(listingId, draft)")
+Rel(composer, client, "send(listingId, request)")
 Rel(client, ctrl, "POST /api/listings/{id}/messages", "JSON/HTTPS")
 Rel(ctrl, handler, "Sends SendMessageCommand")
-Rel(handler, limit, "Check(senderId, now)")
+Rel(handler, limit, "RetryAt(sentAt, now)")
 Rel(handler, entity, "Message.Send(...)")
 Rel(handler, db, "Reads listing, saves message", "IAppDbContext")
 @enduml

@@ -79,8 +79,10 @@ test.describe('Listing, who posted it', () => {
     await screen.open(listing.id);
 
     await expect(screen.heading).toHaveText('15-passenger van for youth camp');
-    await expect(screen.messageBox).toHaveCount(0);
-    await expect(screen.aside).toBeAttached();
+    await expect(screen.price).toHaveCount(0);
+    await expect(screen.eyebrow).toHaveCount(0);
+    // The box is there without its head (L2-015, criterion 13; ADR 0022).
+    await expect(screen.message.submit).toHaveText('Offer to help Marcus');
   });
 
   // L2-026 criterion 1: what a member writes is shown as text, and nothing runs.

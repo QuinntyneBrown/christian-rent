@@ -39,6 +39,8 @@ export function toListingView(detail: ListingDetail, now: Date): ListingView {
     messageHeading: wanted
       ? `Offer to help ${firstName} about this listing`
       : `Message ${firstName} about this listing`,
+    posterFirstName: firstName,
+    isOwn: detail.isOwn,
     price: priceView(detail),
   };
 }

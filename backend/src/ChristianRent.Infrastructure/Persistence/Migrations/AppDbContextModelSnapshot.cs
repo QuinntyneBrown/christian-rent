@@ -206,6 +206,45 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
                     b.ToTable("members", (string)null);
                 });
 
+            modelBuilder.Entity("ChristianRent.Domain.Messages.Message", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RecipientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("SentAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ListingId");
+
+                    b.HasIndex("RecipientId", "SentAt");
+
+                    b.HasIndex("SenderId", "SentAt");
+
+                    b.ToTable("messages", (string)null);
+                });
+
             modelBuilder.Entity("ChristianRent.Domain.Review.ReviewItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -311,6 +350,27 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
                     b.HasOne("ChristianRent.Domain.Churches.Church", null)
                         .WithMany()
                         .HasForeignKey("ChurchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChristianRent.Domain.Messages.Message", b =>
+                {
+                    b.HasOne("ChristianRent.Domain.Listings.Listing", null)
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ChristianRent.Domain.Members.Member", null)
+                        .WithMany()
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ChristianRent.Domain.Members.Member", null)
+                        .WithMany()
+                        .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

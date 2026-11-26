@@ -22,11 +22,12 @@ class Message {
   +DateOnly? StartDate
   +DateOnly? EndDate
   +DateTimeOffset SentAt
-  +{static} Send(listing, sender, text, dates, now): Message
+  +{static} Send(listing, senderId, text, startDate, endDate, now): Message
   +CanBeReadBy(memberId: Guid): bool
+  +ClearText()
 }
 class SendMessageCommand {
-  +Guid ListingId
+  +string ListingId
   +string Text
   +DateOnly? StartDate
   +DateOnly? EndDate
@@ -38,10 +39,11 @@ class SendMessageCommandHandler {
   +Handle(command: SendMessageCommand): Task<SentMessageDto>
 }
 class MessagingLimit {
-  +{static} MaxPerHour: 20
-  +Check(senderId: Guid, now: DateTimeOffset): Task
+  +{static} MaxPerWindow: 20
+  +{static} Window: 1 hour
+  +{static} RetryAt(sentAt, now): DateTimeOffset?
 }
-class MessageDto {
+class MessageDto <<with the inbox>> {
   +string SenderName
   +bool SenderIsVerified
   +string SenderChurchName
@@ -54,12 +56,13 @@ class MessageDto {
 class MessageComposer <<Angular>> {
   +draft: Signal<MessageDraft>
   +state: Signal<MessageState>
+  +open(listingId: string)
   +send(): Promise<void>
 }
 class MessageDraft <<TypeScript>> {
   +text: string
-  +start: string | null
-  +end: string | null
+  +startDate: string
+  +endDate: string
 }
 SendMessageCommandHandler ..> SendMessageCommand : handles
 SendMessageCommandValidator ..> SendMessageCommand : validates
@@ -69,4 +72,10 @@ Message --> "1" Listing : about
 Message --> "2" Member : sender, recipient
 MessageDto ..> Message : projects
 MessageComposer *-- MessageDraft
+class MessageDraftStore <<TypeScript>> {
+  +save(listingId, draft)
+  +restore(listingId): MessageDraft | null
+  +clear(listingId)
+}
+MessageComposer ..> MessageDraftStore : keeps the draft
 @enduml

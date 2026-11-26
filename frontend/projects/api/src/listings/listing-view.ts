@@ -52,6 +52,10 @@ export interface ListingView {
   readonly poster: PosterView;
   /** "Message Dan about this listing", "Offer to help Marcus about this listing". */
   readonly messageHeading: string;
+  /** "Dan" for "Pastor Dan Whitaker": who the message box's button and confirmation name. */
+  readonly posterFirstName: string;
+  /** True when the signed-in member posted it: the message box offers no form. */
+  readonly isOwn: boolean;
   /** Null for a wanted listing that gave no price. */
   readonly price: MessagePriceView | null;
 }

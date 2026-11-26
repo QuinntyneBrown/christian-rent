@@ -9,7 +9,8 @@ namespace ChristianRent.Application.Members;
 
 /// <summary>
 /// Makes every member who left at least <see cref="AfterDays"/> days ago anonymous, and deletes
-/// their listings and photo files (L2-028, criterion 2; handle-member-data design). Run daily by
+/// their listings and photo files (L2-028, criterion 2; handle-member-data design). The text of
+/// the messages they sent is cleared, and the messages about their listings are deleted. Run daily by
 /// <c>ChristianRent.Cli purge-departed</c>; running it again changes nothing.
 /// </summary>
 public sealed record PurgeDepartedMembersCommand(int AfterDays) : IRequest<PurgeResult>;
@@ -49,6 +50,24 @@ internal sealed class PurgeDepartedMembersCommandHandler(IAppDbContext database,
             }
 
             photoCount++;
+        }
+
+        // What the member wrote goes; the messages about their listings go with the listings
+        // (L2-016, criterion 7; ADR 0022).
+        var listingIds = listings.Select(listing => listing.Id).ToList();
+        var messages = await database.Messages
+            .Where(message => ids.Contains(message.SenderId) || listingIds.Contains(message.ListingId))
+            .ToListAsync(cancellationToken);
+        foreach (var message in messages)
+        {
+            if (listingIds.Contains(message.ListingId))
+            {
+                database.Messages.Remove(message);
+            }
+            else
+            {
+                message.ClearText();
+            }
         }
 
         database.Listings.RemoveRange(listings);

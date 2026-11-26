@@ -36,7 +36,10 @@ test.describe('Listing', () => {
     await expect(screen.messageBoxHeading).toHaveText('Message Dan about this listing');
     await expect(screen.eyebrow).toHaveText('Rent for');
     await expect(screen.price).toHaveText('$45 CAD / hour');
-    await expect(screen.main.locator('input[type="date"], [role="grid"]')).toHaveCount(0);
+    // No booking calendar: the listing has no date control, and the message box's dates are
+    // two plain fields that reserve nothing (L2-024, criterion 2).
+    await expect(screen.listing.locator('input, [role="grid"]')).toHaveCount(0);
+    await expect(screen.main.locator('[role="grid"]')).toHaveCount(0);
     await expect(screen.allListings).toHaveAttribute('href', '/');
   });
 
