@@ -108,7 +108,8 @@ reading and mark each with a note on the page.
    reports and new members. `pages/admin/new-member.html` shows the church's status and no control
    for it.
 5. **The area and its distance.** The search bar shows "Langley, BC · within 25 km" as text. How a
-   person sets their area, and so how "3 km" is measured, is not designed.
+   person sets their area, and so how "3 km" is measured, is not designed. The mocks draw the
+   distance; until it is designed the product shows the area alone (ADR 0012).
 6. **The Spaces and Things filter** on Browse is in the prototype and the mocks, but no requirement
    covers it.
 7. **Admin on a phone** shows the queue only, as `AGENTS.md` says; an admin cannot decide there. The

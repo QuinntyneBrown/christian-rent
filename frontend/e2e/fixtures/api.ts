@@ -5,7 +5,12 @@ export interface ApiAnswer {
   status?: number;
   body?: unknown;
   headers?: Record<string, string>;
+  /** A file to answer with, such as a photo, instead of a JSON body. */
+  path?: string;
 }
+
+/** Answers from the request's address, for example by its `cursor` parameter. */
+export type ApiResponder = (url: URL) => ApiAnswer | undefined;
 
 /**
  * Answers the app's API requests from fixtures. A spec registers what each request should get;
@@ -13,12 +18,18 @@ export interface ApiAnswer {
  * Nothing reaches a real backend.
  */
 export class ApiFixtures {
-  private readonly answers = new Map<string, ApiAnswer>();
+  private readonly answers = new Map<string, ApiResponder>();
+  private readonly held = new Map<string, Promise<void>>();
   readonly unanswered: string[] = [];
+  /** Every API request, in order, as `METHOD path?query`. */
+  readonly requests: string[] = [];
 
   /** Answers `method path` (path without the query string), for example `GET /api/listings`. */
-  answer(method: string, path: string, answer: ApiAnswer): void {
-    this.answers.set(`${method.toUpperCase()} ${path}`, answer);
+  answer(method: string, path: string, answer: ApiAnswer | ApiResponder): void {
+    this.answers.set(
+      `${method.toUpperCase()} ${path}`,
+      typeof answer === 'function' ? answer : () => answer,
+    );
   }
 
   /** A ProblemDetails refusal with the `code` a screen branches on. */
@@ -30,20 +41,47 @@ export class ApiFixtures {
     });
   }
 
+  /**
+   * Holds every request to `method path` until the returned function is called, so a spec can
+   * look at a screen while it waits.
+   */
+  hold(method: string, path: string): () => void {
+    let release!: () => void;
+    this.held.set(
+      `${method.toUpperCase()} ${path}`,
+      new Promise<void>((resolve) => (release = resolve)),
+    );
+    return () => {
+      this.held.delete(`${method.toUpperCase()} ${path}`);
+      release();
+    };
+  }
+
   async handle(route: Route): Promise<void> {
     const request = route.request();
     const url = new URL(request.url());
     const key = `${request.method()} ${url.pathname}`;
-    const answer = this.answers.get(key);
+    this.requests.push(`${request.method()} ${url.pathname}${url.search}`);
+    await this.held.get(key);
+    const answer = this.answers.get(key)?.(url);
     if (!answer) {
       this.unanswered.push(key);
-      await route.abort('failed');
+      await route.abort('failed').catch(() => undefined);
       return;
     }
-    await route.fulfill({
-      status: answer.status ?? 200,
-      headers: { 'content-type': 'application/json', ...answer.headers },
-      body: answer.body === undefined ? '' : JSON.stringify(answer.body),
-    });
+    if (answer.path) {
+      await route
+        .fulfill({ status: answer.status ?? 200, path: answer.path, headers: answer.headers })
+        .catch(() => undefined);
+      return;
+    }
+    // A request the page has abandoned (it navigated away) can no longer be answered.
+    await route
+      .fulfill({
+        status: answer.status ?? 200,
+        headers: { 'content-type': 'application/json', ...answer.headers },
+        body: answer.body === undefined ? '' : JSON.stringify(answer.body),
+      })
+      .catch(() => undefined);
   }
 }

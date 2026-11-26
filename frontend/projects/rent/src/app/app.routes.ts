@@ -8,7 +8,7 @@ export const routes: Routes = [
     path: '',
     pathMatch: 'full',
     title: 'Browse',
-    loadComponent: () => import('./pages/browse/browse-page').then((m) => m.BrowsePage),
+    loadChildren: () => import('./pages/browse/browse.routes'),
   },
   {
     path: '**',

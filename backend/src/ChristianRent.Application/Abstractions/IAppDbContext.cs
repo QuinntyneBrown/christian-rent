@@ -1,4 +1,6 @@
 using ChristianRent.Domain.Churches;
+using ChristianRent.Domain.Listings;
+using ChristianRent.Domain.Members;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChristianRent.Application.Abstractions;
@@ -10,6 +12,10 @@ namespace ChristianRent.Application.Abstractions;
 public interface IAppDbContext
 {
     DbSet<Church> Churches { get; }
+
+    DbSet<Member> Members { get; }
+
+    DbSet<Listing> Listings { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 

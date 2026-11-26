@@ -31,17 +31,17 @@ Designs: [present-app-shell](detailed-designs/platform/present-app-shell/README.
 | 1.10 | `ChristianRent.Cli migrate` and `seed` | L2-034 | Yes |
 | 1.11 | `tools/verify/verify.mjs`, CI, the README's commands | — | Yes |
 
-## 2. Browse listings (Main) — 4 days — 0% complete
+## 2. Browse listings (Main) — 4 days — 100% complete
 
 Design: [browse-listings](detailed-designs/browse/browse-listings/README.md).
 
-| # | Slice | L2 |
-|---|---|---|
-| 2.1 | `BrowseListingsQuery` returns the first page of approved listings, newest first; a page size above 50 is refused | L2-001, L2-030 |
-| 2.2 | Browse shows the headline, the two posting buttons and the first page as cards (for rent with photo, wanted as a card) | L2-001, L2-005, L2-022 |
-| 2.3 | Loading skeleton (none within 300 ms), error with "Try again", nothing yet | L2-033 |
-| 2.4 | Loading more on scroll with a bounded `ListingWindow` | L2-006, L2-030 |
-| 2.5 | Card photos sized, reserved and lazy below the fold; columns at 576, 768, 992 and 1200 px | L2-029, L2-031 |
+| # | Slice | L2 | Done |
+|---|---|---|---|
+| 2.1 | `BrowseListingsQuery` returns the first page of approved listings, newest first; a page size above 50 is refused | L2-001, L2-030 | Yes |
+| 2.2 | Browse shows the headline, the two posting buttons and the first page as cards (for rent with photo, wanted as a card) | L2-001, L2-005, L2-022 | Yes |
+| 2.3 | Loading skeleton (none within 300 ms), error with "Try again", nothing yet | L2-033 | Yes |
+| 2.4 | Loading more on scroll with a bounded `ListingWindow` | L2-006, L2-030 | Yes |
+| 2.5 | Card photos sized, reserved and lazy below the fold; columns at 576, 768, 992 and 1200 px | L2-029, L2-031 | Yes |
 
 ## 3. Search and filter listings (Main) — 4 days — 0% complete
 
@@ -154,4 +154,4 @@ Design: [verify-members-and-churches](detailed-designs/members/verify-members-an
 
 | Journeys | Effort (days) | % complete |
 |---|---|---|
-| 12 | 52 | 10 |
+| 12 | 52 | 17 |

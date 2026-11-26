@@ -84,14 +84,16 @@ source of truth for the code.
 christian.rent is designed, and its scaffold is built: the Angular workspace with the application
 shell (the header with the wordmark, the skip link and the "not found" page), the .NET solution
 with the platform's cross-cuts (access, refusals, security headers, rate limits, telemetry, health,
-migrations and seed), the test harness and CI. No listing feature is built yet.
+migrations and seed), the test harness and CI. Browse is built (journey 2): approved listings,
+newest first, loaded a page at a time as the list is scrolled, with their photos served from file
+storage.
 
 - The requirements are in `docs/specs/`, the mocks in `docs/mocks/`, the design system in
   `docs/design-system/` and the detailed designs in `docs/detailed-designs/`.
 - The journeys and their slices are in `docs/journeys.md` and `docs/detailed-journeys.md`, with
   **% complete**; the architecture decisions are in `docs/adr/`.
-- What comes next is journey 2, Browse listings: one slice at a time, each with its failing
-  acceptance test first.
+- What comes next is journey 3, Search and filter listings: one slice at a time, each with its
+  failing acceptance test first.
 
 ## How it works
 
@@ -141,7 +143,7 @@ the repository; set it in your environment or with `dotnet user-secrets`:
 cd backend
 export ConnectionStrings__Default="Host=localhost;Database=christian_rent;Username=rent;Password=<yours>"
 dotnet run --project src/ChristianRent.Cli -- migrate   # apply the schema; the API never does
-dotnet run --project src/ChristianRent.Cli -- seed      # the mocks' sample churches; safe to repeat
+dotnet run --project src/ChristianRent.Cli -- seed      # the mocks' cast: churches, members, listings, photos; safe to repeat
 dotnet run --project src/ChristianRent.Api              # http://localhost:5080/health/ready
 ```
 
@@ -174,7 +176,7 @@ variables, `:` is written `__`.
 | Setting | Secret | What it is |
 |---|---|---|
 | `ConnectionStrings:Default` | yes | The PostgreSQL connection string, read by the API and `ChristianRent.Cli` ([ADR 0003](docs/adr/0003-database-engine.md)) |
-| `PhotoStorage:RootPath` | no | Where photos are kept on disk; default `App_Data/photos` under the content root ([ADR 0004](docs/adr/0004-file-storage.md)). The production storage product is not chosen |
+| `PhotoStorage:RootPath` | no | Where photo renditions are kept on disk, as `{photoId}/{rendition}.jpg`; default `App_Data/photos` under the content root ([ADR 0004](docs/adr/0004-file-storage.md), [ADR 0011](docs/adr/0011-photo-renditions-and-serving.md)). The production storage product is not chosen |
 | `Site:Origin` | no | The origin the frontend is served from, e.g. `https://christian.rent`; a write from any other origin is refused |
 | `HTTPS_PORT` | no | The public HTTPS port the API redirects HTTP to, usually `443` |
 | `ForwardedHeaders:KnownProxies` | no | The addresses of the reverse proxies whose `X-Forwarded-*` headers are trusted |

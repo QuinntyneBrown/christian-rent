@@ -1,0 +1,74 @@
+// Empty and error states, from docs/design-system/components/empty-state.html.
+:host {
+  display: block;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+}
+
+.empty__icon {
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-accent-subtle);
+  color: var(--color-fg-accent);
+}
+
+.empty__title {
+  font: var(--text-h3);
+}
+
+.empty__text {
+  max-width: 36ch;
+  color: var(--color-fg-muted);
+}
+
+.empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.empty--error .empty__icon {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-icon);
+}
+
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 28rem;
+  margin-inline: auto;
+  padding-block: var(--space-16) var(--space-20);
+  text-align: center;
+}
+
+.no-results__title {
+  font: var(--text-h2);
+  overflow-wrap: anywhere;
+}
+
+.no-results__text {
+  color: var(--color-fg-muted);
+}
+
+.no-results__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}

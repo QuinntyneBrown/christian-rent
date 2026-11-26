@@ -1,0 +1,72 @@
+@if (card(); as card) {
+  <a class="listing-card" [class.listing-card--wanted]="card.wanted" [routerLink]="card.href">
+    @if (card.wanted) {
+      <div class="listing-card__media">
+        <cr-tag class="listing-card__tag" variant="on-wanted"
+          ><cr-icon name="search" size="sm" /> {{ card.tag }}</cr-tag
+        >
+        <h2 class="listing-card__ask">{{ card.title }}</h2>
+        @if (card.when; as when) {
+          <p class="listing-card__when"><cr-icon name="calendar" size="sm" /> {{ when }}</p>
+        }
+      </div>
+      <div class="listing-card__body">
+        <div class="listing-card__top">
+          <p class="listing-card__title">{{ card.poster }}</p>
+          <ng-container *ngTemplateOutlet="price; context: { $implicit: card }" />
+        </div>
+        <ng-container *ngTemplateOutlet="footer; context: { $implicit: card }" />
+      </div>
+    } @else {
+      <div class="listing-card__media">
+        @if (card.photo; as photo) {
+          <img
+            class="listing-card__photo"
+            [ngSrc]="photo.url"
+            [width]="photo.width"
+            [height]="photo.height"
+            [alt]="photo.alt"
+            [priority]="priority()"
+          />
+        } @else {
+          <div class="listing-card__no-photo" role="img" aria-label="No photo yet">
+            <cr-icon name="image" size="lg" />
+          </div>
+        }
+        <cr-tag class="listing-card__kind" variant="on-photo">{{ card.tag }}</cr-tag>
+      </div>
+      <div class="listing-card__body">
+        <div class="listing-card__top">
+          <h2 class="listing-card__title">{{ card.title }}</h2>
+          <ng-container *ngTemplateOutlet="price; context: { $implicit: card }" />
+        </div>
+        <ng-container *ngTemplateOutlet="footer; context: { $implicit: card }" />
+      </div>
+    }
+  </a>
+} @else {
+  <div class="listing-card" aria-hidden="true">
+    <div class="listing-card__media"><cr-skeleton shape="fill" /></div>
+    <div class="listing-card__body">
+      <cr-skeleton shape="title" [width]="75" />
+      <cr-skeleton [width]="55" />
+      <cr-skeleton [width]="40" />
+    </div>
+  </div>
+}
+
+<ng-template #price let-card>
+  @if (card.price; as price) {
+    <p class="listing-card__price">
+      <span class="listing-card__amount">{{ price.amount }}</span>
+      @if (price.per) {
+        {{ price.per }}
+      }
+    </p>
+  }
+</ng-template>
+
+<ng-template #footer let-card>
+  <p class="listing-card__place"><cr-icon name="pin" size="sm" /> {{ card.place }}</p>
+  <p class="listing-card__church">{{ card.church }}</p>
+</ng-template>

@@ -1,7 +1,10 @@
+import { answerNoListings } from '../fixtures/listings';
 import { expect, test } from '../fixtures/test';
 import { BrowsePage } from '../pages/browse.page';
 
 test.describe('The site header', () => {
+  test.beforeEach(({ api }) => answerNoListings(api));
+
   // L2-036 criteria 1 and 5; L2-023.
   test('shows the wordmark leading to Browse and a Post button, and nothing else', async ({
     page,
@@ -52,6 +55,8 @@ test.describe('The site header', () => {
 });
 
 test.describe('The skip link', () => {
+  test.beforeEach(({ api }) => answerNoListings(api));
+
   // L2-032 criterion 8: the first control is "Skip to content", and it leads to the content.
   test('is the first control and moves focus to the content', async ({ page }) => {
     const browse = new BrowsePage(page);
