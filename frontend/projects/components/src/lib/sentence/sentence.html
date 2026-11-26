@@ -1,0 +1,21 @@
+<h1 class="sentence" tabindex="-1">
+  I
+  <cr-word-toggle
+    name="post-side"
+    label="Do you have it or need it?"
+    [side]="true"
+    [options]="sides"
+    [value]="side()"
+    [disabled]="disabled()"
+    (valueChange)="sideChosen($event)"
+  />
+  <cr-word-toggle
+    name="post-kind"
+    label="A space or a thing?"
+    [options]="kinds"
+    [value]="kind()"
+    [disabled]="disabled()"
+    (valueChange)="kindChosen($event)"
+  />
+  {{ ending() }}
+</h1>

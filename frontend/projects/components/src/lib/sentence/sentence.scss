@@ -1,0 +1,12 @@
+// Post's sentence, from docs/design-system/components/word-toggle.html.
+.sentence {
+  font: var(--text-h1);
+  line-height: var(--line-height-snug);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+@media (min-width: 48rem) {
+  .sentence {
+    font-size: var(--font-size-5xl);
+  }
+}

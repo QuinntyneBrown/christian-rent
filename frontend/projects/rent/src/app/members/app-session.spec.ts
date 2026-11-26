@@ -2,7 +2,13 @@ import { TestBed } from '@angular/core/testing';
 import { MEMBERS_API, type Member, type MembersApi } from '@rent/api';
 import { AppSession } from './app-session';
 
-const sarah: Member = { id: 'm1', name: 'Sarah Kim', isVerified: false, isAdmin: false };
+const sarah: Member = {
+  id: 'm1',
+  name: 'Sarah Kim',
+  churchName: 'Grace Community Church',
+  isVerified: false,
+  isAdmin: false,
+};
 
 function session(me: MembersApi['me']): AppSession {
   TestBed.configureTestingModule({
@@ -26,6 +32,7 @@ describe('AppSession', () => {
       id: 'm1',
       name: 'Sarah Kim',
       initials: 'SK',
+      churchName: 'Grace Community Church',
       isAdmin: false,
       isVerified: false,
     });

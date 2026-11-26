@@ -23,6 +23,10 @@ public sealed class ReviewItem
 
     public DateTimeOffset CreatedAt { get; private set; }
 
+    /// <summary>A new listing waits for an admin to approve it (L2-012, criterion 1).</summary>
+    public static ReviewItem ForNewListing(Guid listingId, DateTimeOffset now) =>
+        new(Guid.NewGuid(), ReviewItemKind.NewListing, listingId, now);
+
     /// <summary>A new member waits for an admin to verify them (L2-017, criterion 3).</summary>
     public static ReviewItem ForNewMember(Guid memberId, DateTimeOffset now) =>
         new(Guid.NewGuid(), ReviewItemKind.NewMember, memberId, now);

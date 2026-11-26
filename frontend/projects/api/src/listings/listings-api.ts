@@ -1,6 +1,7 @@
 import { InjectionToken } from '@angular/core';
 import type { ListingKind, ListingOffer, ListingsPage } from './listing-card';
 import type { ListingDetail } from './listing-detail';
+import type { PostListingRequest, PostedListing } from './post-listing';
 
 /**
  * What Browse narrows the listings to (search-and-filter design): an offer or both, a kind or
@@ -33,6 +34,14 @@ export interface ListingsApi {
    * `ApiError` whose code is `not_found` (L2-007, criterion 4). Aborting `signal` cancels it.
    */
   get(id: string, signal: AbortSignal): Promise<ListingDetail>;
+
+  /**
+   * Posts a listing, which waits for review (publish-listing design). The same
+   * `clientRequestId` sent again answers the same listing (L2-012, criterion 4). A refusal
+   * rejects with an `ApiError`, such as `post_limit_reached` with its `retryAt`; aborting
+   * `signal` cancels it.
+   */
+  post(request: PostListingRequest, signal: AbortSignal): Promise<PostedListing>;
 }
 
 export const LISTINGS_API = new InjectionToken<ListingsApi>('LISTINGS_API');

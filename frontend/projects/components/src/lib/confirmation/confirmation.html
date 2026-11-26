@@ -1,0 +1,12 @@
+<section class="confirmation" role="status">
+  <span
+    class="success-badge"
+    [class.success-badge--rent]="tone() === 'rent'"
+    [class.success-badge--wanted]="tone() === 'wanted'"
+    ><cr-icon name="check" size="xl"
+  /></span>
+  <h1 #heading class="confirmation__title" tabindex="-1">{{ title() }}</h1>
+  <p class="confirmation__text">{{ text() }}</p>
+  <div class="confirmation__card"><ng-content /></div>
+  <div class="confirmation__actions"><ng-content select="[slot=actions]" /></div>
+</section>

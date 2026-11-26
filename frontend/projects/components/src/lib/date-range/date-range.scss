@@ -1,0 +1,49 @@
+// Date range, from docs/design-system/components/date-range.html, in a line field.
+@use '../field' as field;
+@use '../line-field' as line;
+
+@include field.field;
+@include line.line-field;
+
+fieldset.line-field {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.date-range {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.date-range .field {
+  min-width: 0;
+}
+
+.input {
+  @include field.control;
+
+  min-width: 0;
+  padding-inline: var(--space-2);
+}
+
+.input:read-only:not(:disabled) {
+  background: var(--color-bg-surface-sunken);
+}
+
+.date-range .field__error,
+.date-range__summary {
+  grid-column: 1 / -1;
+}
+
+.date-range__summary {
+  font: var(--text-body-sm);
+  color: var(--color-fg-muted);
+}
+
+@media (max-width: 22.49rem) {
+  .date-range {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

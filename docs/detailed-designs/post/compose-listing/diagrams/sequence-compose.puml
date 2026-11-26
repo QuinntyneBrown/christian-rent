@@ -27,7 +27,7 @@ page -> store : setOffer('for-rent')
 actor -> page : Type title, price, when, where
 page -> store : patch(change)
 store -> map : draftToCard(draft)
-map --> store : ListingCard, placeholders for empty fields (L2-011)
+map --> store : ListingCardView, placeholders for empty fields (L2-011)
 store --> card : previewCard
 card --> actor : Card as it will appear on Browse
 actor -> toggle : Choose "need" with touch or arrow key (L2-009)

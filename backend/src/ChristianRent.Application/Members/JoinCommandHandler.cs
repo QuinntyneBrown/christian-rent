@@ -26,7 +26,7 @@ internal sealed class JoinCommandHandler(IAppDbContext database, ICurrentMember 
             // Joining twice creates nothing (L2-017, criterion 14); a removed member cannot join
             // again as the same person (L2-018, criterion 4; ADR 0017).
             return existing.Status == MemberStatus.Active
-                ? new JoinResult(ToDto(existing), Created: false)
+                ? new JoinResult(await DtoOfAsync(database, existing, cancellationToken), Created: false)
                 : throw new ForbiddenException("not_a_member");
         }
 
@@ -37,7 +37,7 @@ internal sealed class JoinCommandHandler(IAppDbContext database, ICurrentMember 
         database.Members.Add(member);
         database.ReviewItems.Add(ReviewItem.ForNewMember(member.Id, now));
         await database.SaveChangesAsync(cancellationToken);
-        return new JoinResult(ToDto(member), Created: true);
+        return new JoinResult(ToDto(member, church.Name), Created: true);
     }
 
     /// <summary>The chosen church, or the new one: an existing church when its key matches (ADR 0018).</summary>
@@ -63,5 +63,16 @@ internal sealed class JoinCommandHandler(IAppDbContext database, ICurrentMember 
         return entered;
     }
 
-    internal static MemberDto ToDto(Member member) => new(member.Id, member.Name, member.IsVerified, member.IsAdmin);
+    internal static MemberDto ToDto(Member member, string churchName) =>
+        new(member.Id, member.Name, churchName, member.IsVerified, member.IsAdmin);
+
+    /// <summary>The member with their church's name, read from the database.</summary>
+    internal static async Task<MemberDto> DtoOfAsync(IAppDbContext database, Member member, CancellationToken cancellationToken)
+    {
+        var churchName = await database.Churches.AsNoTracking()
+            .Where(church => church.Id == member.ChurchId)
+            .Select(church => church.Name)
+            .FirstAsync(cancellationToken);
+        return ToDto(member, churchName);
+    }
 }

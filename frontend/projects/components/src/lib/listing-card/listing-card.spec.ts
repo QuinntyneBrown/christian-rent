@@ -6,11 +6,12 @@ import { ListingCard } from './listing-card';
 
 @Component({
   imports: [ListingCard],
-  template: `<cr-listing-card [card]="card()" />`,
+  template: `<cr-listing-card [card]="card()" [heading]="heading()" />`,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 class Host {
   readonly card = signal<ListingCardView | null>(null);
+  readonly heading = signal(true);
 }
 
 const hall: ListingCardView = {
@@ -41,10 +42,11 @@ const van: ListingCardView = {
 
 // docs/design-system/components/listing-card.html; L2-001 criteria 3 to 8.
 describe('ListingCard', () => {
-  function render(card: ListingCardView | null) {
+  function render(card: ListingCardView | null, heading = true) {
     TestBed.configureTestingModule({ providers: [provideRouter([])] });
     const fixture = TestBed.createComponent(Host);
     fixture.componentInstance.card.set(card);
+    fixture.componentInstance.heading.set(heading);
     fixture.detectChanges();
     return fixture.nativeElement as HTMLElement;
   }
@@ -119,5 +121,29 @@ describe('ListingCard', () => {
 
     expect(skeleton?.getAttribute('aria-hidden')).toBe('true');
     expect(skeleton?.querySelectorAll('cr-skeleton')).toHaveLength(4);
+  });
+
+  // ADR 0019; L2-011: Post's preview is a plain block, not a link, with no heading of its own,
+  // and mutes its title and price while the title is a placeholder.
+  it('draws a preview with no address as a plain block whose title is no heading', () => {
+    const element = render({ ...hall, href: null, placeholder: true }, false);
+
+    expect(element.querySelector('a')).toBeNull();
+    const card = element.querySelector('div.listing-card');
+    expect(card?.classList).toContain('listing-card--placeholder');
+    expect(card?.querySelector('h2')).toBeNull();
+    expect(text(card?.querySelector('p.listing-card__title'))).toBe(
+      'Sunlit fellowship hall for 80',
+    );
+  });
+
+  it('keeps a wanted preview’s ask as a paragraph', () => {
+    expect(
+      render({ ...van, href: null }, false).querySelector('p.listing-card__ask'),
+    ).not.toBeNull();
+  });
+
+  it('makes a wanted card’s ask its heading when asked', () => {
+    expect(render({ ...van, href: null }).querySelector('h2.listing-card__ask')).not.toBeNull();
   });
 });

@@ -4,6 +4,7 @@ import type { ApiFixtures } from './api';
 export interface MemberFixture {
   id: string;
   name: string;
+  churchName: string;
   isVerified: boolean;
   isAdmin: boolean;
 }
@@ -11,6 +12,7 @@ export interface MemberFixture {
 export const SARAH_KIM: MemberFixture = {
   id: '5a7a4c3e-0000-4000-8000-000000000001',
   name: 'Sarah Kim',
+  churchName: 'Grace Community Church',
   isVerified: false,
   isAdmin: false,
 };

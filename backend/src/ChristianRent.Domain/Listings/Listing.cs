@@ -41,6 +41,12 @@ public sealed class Listing
 
     public Guid MemberId { get; private set; }
 
+    /// <summary>
+    /// The identifier the browser gave the draft, so a repeated submission is the same listing
+    /// (L2-012, criterion 4). Null for listings entered by seed data.
+    /// </summary>
+    public Guid? ClientRequestId { get; private set; }
+
     public ListingOffer Offer { get; private set; }
 
     public ListingKind Kind { get; private set; }
@@ -105,6 +111,29 @@ public sealed class Listing
         };
         listing._photos.AddRange(photos ?? []);
         listing.RefreshSearchText();
+        return listing;
+    }
+
+    /// <summary>
+    /// A member posts a listing: it waits for review and is not public until an admin approves
+    /// it (L2-012, criterion 1). The fields have been checked by the command's validator.
+    /// </summary>
+    public static Listing Post(
+        Guid memberId,
+        Guid clientRequestId,
+        ListingOffer offer,
+        ListingKind kind,
+        string title,
+        Price? price,
+        string? whenText,
+        DateOnly? startDate,
+        DateOnly? endDate,
+        string area,
+        string? note,
+        DateTimeOffset now)
+    {
+        var listing = Create(Guid.NewGuid(), memberId, offer, kind, title, price, whenText, startDate, endDate, area, note, now);
+        listing.ClientRequestId = clientRequestId;
         return listing;
     }
 

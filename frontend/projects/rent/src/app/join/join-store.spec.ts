@@ -14,7 +14,13 @@ import { JoinStore } from './join-store';
 
 const unreachable: ApiError = { status: 0, code: null, retryAt: null, fields: null };
 const grace: ChurchOption = { id: 'grace', name: 'Grace Community Church', city: 'Langley' };
-const sarah = { id: 'm1', name: 'Sarah Kim', isVerified: false, isAdmin: false };
+const sarah = {
+  id: 'm1',
+  name: 'Sarah Kim',
+  churchName: 'Grace Community Church',
+  isVerified: false,
+  isAdmin: false,
+};
 
 interface Setup {
   list?: ChurchesApi['list'];

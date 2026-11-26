@@ -22,7 +22,8 @@ The form and its client-side rules are designed in
 
 **Frontend**
 
-- **`PostStore.publish()`** — runs `validate()`, then calls `LISTINGS_API.post(draft)`. The
+- **`PostStore.publish()`** — runs `validate()`, asks `MemberGate.requireMember('post')`,
+  then calls `LISTINGS_API.post(toPostRequest(draft), signal)`. The
   store holds `submitState`: `idle`, `submitting`, `sent`, `failed`, `limited`. While
   `submitting`, the button carries `aria-busy` and shows `cr-spinner`, the fields are
   read-only, and a second activation is ignored (criterion 8). The draft's `clientRequestId` is created once with
@@ -30,26 +31,39 @@ The form and its client-side rules are designed in
   request (L2-012, criteria 4 and 5).
 - **`cr-confirmation`** — replaces the form when `submitState` is `sent`. It shows "Sent
   for review", the preview card, "Back to browsing" and "Post another", and no way to edit
-  the listing. It does not say the listing is public (L2-012, criteria 2 and 9). `LiveAnnouncer` announces it. `DraftStore.clear()`
-  then runs.
-- **`cr-alert`** — on `failed`, a plain message above the kept form, whose submit button
-  reads "Try again"; on `limited`, a warning that names when posting reopens, from
-  `retryAt`, with the submit button disabled (criterion 10).
+  the listing. It does not say the listing is public (L2-012, criteria 2 and 9). It is a live region
+  (`role="status"`), so a screen reader announces it, and focus moves to its title, "Sent for
+  review", the screen's `h1`. `DraftStore.clear()` then runs.
+- **`cr-alert`** — on `failed`, a plain message above the kept form, "Your listing wasn't
+  posted." and "We couldn't reach christian.rent. Everything you entered is still here.", whose
+  submit button reads "Try again"; on `limited`, a warning, "You've posted 10 listings in the
+  last 24 hours." and "You can post again {when}. Everything you entered is still here.", with
+  the submit button disabled (criterion 10). `{when}` is `formatRetryAt(retryAt, now)`
+  (`domain/listings/`), "tomorrow at 9:15 a.m." (ADR 0019). `failed` covers a request that
+  cannot be sent, a 5xx, `rate_limited` and `validation_failed`; only `post_limit_reached` is
+  `limited`.
+- **Leaving** — the store aborts a request in flight when Post is left; the draft and its
+  `clientRequestId` stay in `DraftStore` (ADR 0019).
 - **Fine print** — under the submit button Post says "Prices are in CAD. An admin reviews
   every post before it appears on Browse." (criterion 7).
-- **`HttpListingsApi.post()`** — `POST /api/listings`. It maps a ProblemDetails to
-  `ApiError { status, code, retryAt, fields }`.
+- **`HttpListingsApi.post()`** — `POST /api/listings` with a `PostListingRequest`
+  (`@rent/api`), answering a `PostedListing { id, status }`. The interceptor maps a
+  ProblemDetails to `ApiError { status, code, retryAt, fields }`.
 
 **Backend**
 
 - **`ListingsController.Post`** — `POST /api/listings`. It requires a member (fallback
   policy), sends one `PostListingCommand`, and returns `201 Created` with
-  `PostedListingDto { Id, Status }`.
+  `PostedListingDto { Id, Status }`, or `200 OK` with the same body when the
+  `ClientRequestId` was already posted. `Status` is `waiting-for-review`.
 - **`PostListingCommand`** — `{ ClientRequestId, Offer, Kind, Title, PriceAmount?,
-  PricePeriod?, WhenText?, StartDate?, EndDate?, Area, Note?, PhotoIds[] }`.
+  PricePeriod?, WhenText?, StartDate?, EndDate?, Area, Note?, PhotoIds[] }`. `Offer`, `Kind`
+  and `PricePeriod` are the API's words (`for-rent`, `space`, `day`), read by `ListingWords`.
 - **`PostListingCommandValidator`** — FluentValidation rules equal to the table in
-  [compose-listing](../compose-listing/README.md), plus: `PhotoIds` empty for a wanted
-  listing and at most 6 for rent. `ValidationBehavior` runs it before the handler, and a
+  [compose-listing](../compose-listing/README.md), plus: a `ClientRequestId`; an offer, a
+  kind and a period that are the API's words; "when" as text or as two dates, never both;
+  `PhotoIds` empty for a wanted listing and at most 6 for rent. Title, "when" and area are
+  counted as `MemberText` cleans them, the note trimmed. `ValidationBehavior` runs it before the handler, and a
   failure is a 400 ProblemDetails with the code `validation_failed` and an `errors` map
   (L2-010, criterion 9).
 - **`PostListingCommandHandler`** — in order:
@@ -59,7 +73,9 @@ The form and its client-side rules are designed in
   3. asks `PostingLimit.Check(memberId, now)`; when 10 listings exist in the last 24 hours
      it raises `LimitReachedException` with `RetryAt`, returned as 429 with the code
      `post_limit_reached` (criterion 6);
-  4. loads the photos named by `PhotoIds` and refuses any that the member does not own;
+  4. loads the photos named by `PhotoIds` and refuses any that the member does not own; until
+     journey 7 stores uploads, every identifier is refused with `validation_failed` on
+     `photoIds` (ADR 0019);
   5. calls `Listing.Post(...)`, which creates the listing with `Status = WaitingForReview`;
   6. adds `ReviewItem.ForNewListing(listing.Id, now)`;
   7. saves both in one `SaveChangesAsync` (criterion 1).
@@ -68,6 +84,7 @@ The form and its client-side rules are designed in
 - **`Listing.Post`** — factory on the domain entity. It sets `SearchText`, `CreatedAt` and
   the ordered `ListingPhoto` rows.
 - A unique index on `(MemberId, ClientRequestId)` backs step 2 in a relational database.
+  `Listing.ClientRequestId` is null for listings entered by seed data.
 
 **Tests**
 

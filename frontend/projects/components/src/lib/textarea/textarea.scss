@@ -1,0 +1,30 @@
+// Textarea in its form field, from docs/design-system/components/textarea.html.
+@use '../field' as field;
+
+@include field.field;
+
+.optional {
+  color: var(--color-fg-subtle);
+  font-weight: var(--font-weight-regular);
+}
+
+.textarea {
+  @include field.control;
+
+  min-height: calc(var(--control-height-md) * 2.5);
+  resize: vertical;
+}
+
+.textarea::placeholder {
+  color: var(--color-fg-subtle);
+}
+
+.textarea:read-only:not(:disabled) {
+  background: var(--color-bg-surface-sunken);
+}
+
+.field__counter {
+  font: var(--text-caption);
+  color: var(--color-fg-subtle);
+  text-align: right;
+}

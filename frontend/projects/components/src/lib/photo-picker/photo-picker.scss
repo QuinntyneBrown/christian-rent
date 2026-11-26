@@ -1,0 +1,46 @@
+// Photo picker, from docs/design-system/components/photo-picker.html, in a line field.
+@use '../field' as field;
+@use '../line-field' as line;
+
+@include field.field;
+@include line.line-field;
+
+.photo-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.photo-picker__add {
+  width: 8rem;
+  height: 6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  border: var(--border-width-thick) dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-fg-muted);
+  font: var(--text-label);
+  cursor: pointer;
+}
+
+.photo-picker__add:hover:not(:disabled) {
+  border-color: var(--color-fg-default);
+  color: var(--color-fg-default);
+}
+
+.photo-picker__add:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.photo-picker__add:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -18,6 +18,6 @@ internal sealed class GetCurrentMemberQueryHandler(IAppDbContext database, ICurr
         }
 
         var member = await database.Members.AsNoTracking().FirstOrDefaultAsync(member => member.Id == id, cancellationToken);
-        return member is null ? null : JoinCommandHandler.ToDto(member);
+        return member is null ? null : await JoinCommandHandler.DtoOfAsync(database, member, cancellationToken);
     }
 }

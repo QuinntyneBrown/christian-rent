@@ -95,7 +95,8 @@ without changing the slices that depend on membership.
   new `Church` that is not verified; a new church whose `ChurchMatch` key equals an existing
   church's reuses it (ADR 0018). It creates `Member.Join(name, church, now)` with `IsVerified = false`, adds
   `ReviewItem.ForNewMember(member.Id, now)`, and saves in one unit of work (L2-017,
-  criterion 3). It answers `MemberDto { Id, Name, IsVerified, IsAdmin }` with 201.
+  criterion 3). It answers `MemberDto { Id, Name, ChurchName, IsVerified, IsAdmin }` with 201; Post's preview
+  shows the church (ADR 0019).
 - **`Member`** — stores `Name`, `ChurchId`, `IsVerified`, `IsAdmin`, `Status`, `JoinedAt`,
   `DepartedAt` and the sign-in identifier `SignInId`. It stores nothing else about the person
   (L2-028, criterion 1).

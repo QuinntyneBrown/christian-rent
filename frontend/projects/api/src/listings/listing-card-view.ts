@@ -1,11 +1,12 @@
 /**
  * A card as `cr-listing-card` draws it: every word already written in the product's terms
- * (L2-022). `@rent/domain` makes one from a `ListingCard`; Post's preview will make one from a
- * draft.
+ * (L2-022). `@rent/domain` makes one from a `ListingCard`, and Post's preview from a draft.
  */
 export interface ListingCardView {
-  /** Where selecting the card leads (L2-001, criterion 5). */
-  readonly href: string;
+  /** Where selecting the card leads (L2-001, criterion 5); null for a preview, which is no link. */
+  readonly href: string | null;
+  /** True while the title is a placeholder, which mutes the title and the price (ADR 0019). */
+  readonly placeholder?: boolean;
   readonly wanted: boolean;
   /** "space", or "Wanted · space". */
   readonly tag: string;

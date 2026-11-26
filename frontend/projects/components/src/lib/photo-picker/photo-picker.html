@@ -1,0 +1,15 @@
+<div class="line-field" role="group" [attr.aria-labelledby]="fieldId() + '-label'">
+  <p class="line-field__label" [id]="fieldId() + '-label'">
+    Photos <span class="optional">{{ count() }} of {{ max() }}</span>
+  </p>
+  <ul class="photo-picker">
+    <li>
+      <button class="photo-picker__add" type="button" [disabled]="disabled()" (click)="add.emit()">
+        <cr-icon name="image-plus" />Add
+      </button>
+    </li>
+  </ul>
+  <p class="field__help">
+    Up to 6. JPEG, PNG or WebP, 10 MB or less each. The first one is shown on the card.
+  </p>
+</div>

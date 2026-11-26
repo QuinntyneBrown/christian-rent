@@ -1,0 +1,164 @@
+<cr-site-header [plain]="true" />
+<main id="main" class="container">
+  @let draft = store.draft();
+  @let copy = store.copy();
+  @let errors = store.errors();
+  @let state = store.submitState();
+  @let busy = state === 'submitting';
+  @if (state === 'sent') {
+    <cr-confirmation
+      title="Sent for review"
+      [tone]="draft.offer === 'wanted' ? 'wanted' : 'rent'"
+      [text]="
+        draft.offer === 'wanted'
+          ? 'Your request will appear on Browse once an admin has looked at it. It isn’t public yet.'
+          : 'Your listing will appear on Browse once an admin has looked at it. It isn’t public yet.'
+      "
+    >
+      <cr-listing-card [card]="store.sentCard()" />
+      <a slot="actions" cr-button variant="primary" routerLink="/"
+        >Back to browsing <cr-icon name="arrow-right"
+      /></a>
+      <button slot="actions" cr-button variant="ghost" type="button" (click)="startAnother()">
+        Post another
+      </button>
+    </cr-confirmation>
+  } @else {
+    <cr-post-layout
+      fine="Prices are in CAD. An admin reviews every post before it appears on Browse."
+      previewLabel="How it’ll look"
+      [busy]="busy"
+      (submitted)="submitted()"
+    >
+      <cr-sentence
+        [offer]="draft.offer"
+        [kind]="draft.kind"
+        [disabled]="busy"
+        (offerChange)="store.setOffer($event)"
+        (kindChange)="store.setKind($event)"
+      />
+      @if (state === 'failed') {
+        <cr-alert
+          tone="danger"
+          title="Your listing wasn’t posted."
+          text="We couldn’t reach christian.rent. Everything you entered is still here."
+          [announce]="true"
+        />
+      } @else if (state === 'limited') {
+        <cr-alert
+          tone="warning"
+          title="You’ve posted 10 listings in the last 24 hours."
+          [text]="limitText()"
+          [announce]="true"
+        />
+      }
+      @if (store.summary().length > 0) {
+        <cr-alert tone="danger" [summary]="true" [title]="summaryTitle(store.summary().length)">
+          <ul class="summary">
+            @for (entry of store.summary(); track entry.field) {
+              <li>
+                <a [href]="'#' + fieldIds[entry.field]" (click)="focusField($event, entry.field)">{{
+                  entry.text
+                }}</a>
+              </li>
+            }
+          </ul>
+        </cr-alert>
+      }
+      <cr-line-field
+        fieldId="post-title"
+        [label]="copy.titleLabel"
+        [placeholder]="copy.titlePlaceholder"
+        [maxlength]="limits.title"
+        [error]="errors.title?.message"
+        [readonly]="busy"
+        [value]="draft.title"
+        (valueChange)="store.patch({ title: $event })"
+      />
+      <cr-field-row>
+        <cr-line-field
+          fieldId="post-price"
+          inputmode="decimal"
+          placeholder="0"
+          [label]="copy.priceLabel"
+          [optional]="copy.priceOptional"
+          [prefix]="copy.pricePrefix"
+          [units]="periods"
+          [error]="errors.price?.message"
+          [readonly]="busy"
+          [unit]="draft.pricePeriod"
+          [value]="draft.price"
+          (valueChange)="store.patch({ price: $event })"
+          (unitChange)="periodChosen($event)"
+        />
+        @if (draft.whenMode === 'text') {
+          <cr-line-field
+            fieldId="post-when"
+            label="When"
+            placeholder="Most weekends"
+            switchLabel="Give dates instead"
+            [maxlength]="limits.whenText"
+            [error]="errors.whenText?.message"
+            [readonly]="busy"
+            [value]="draft.whenText"
+            (valueChange)="store.patch({ whenText: $event })"
+            (switched)="store.patch({ whenMode: 'dates' })"
+          />
+        } @else {
+          <cr-date-range
+            fieldId="post-dates"
+            legend="When"
+            switchLabel="Describe it in words instead"
+            [start]="draft.startDate"
+            [end]="draft.endDate"
+            [summary]="store.datesInWords()"
+            [startError]="errors.startDate?.message"
+            [endError]="errors.endDate?.message"
+            [readonly]="busy"
+            (startChange)="store.patch({ startDate: $event })"
+            (endChange)="store.patch({ endDate: $event })"
+            (switched)="store.patch({ whenMode: 'text' })"
+          />
+        }
+      </cr-field-row>
+      <cr-line-field
+        fieldId="post-area"
+        label="Where"
+        placeholder="City or neighbourhood"
+        help="A city or neighbourhood in Canada. Never a street address."
+        [maxlength]="limits.area"
+        [error]="errors.area?.message"
+        [readonly]="busy"
+        [value]="draft.area"
+        (valueChange)="store.patch({ area: $event })"
+      />
+      @if (draft.offer === 'for-rent') {
+        <cr-photo-picker fieldId="post-photos" [count]="draft.photoIds.length" [disabled]="true" />
+      }
+      <cr-textarea
+        fieldId="post-note"
+        label="Anything else?"
+        optional="Optional"
+        [placeholder]="copy.notePlaceholder"
+        [maxlength]="limits.note"
+        [counter]="store.noteCounter()"
+        [error]="errors.note?.message"
+        [readonly]="busy"
+        [value]="draft.note"
+        (valueChange)="store.patch({ note: $event })"
+      />
+      <button
+        slot="actions"
+        cr-button
+        type="submit"
+        size="lg"
+        [variant]="draft.offer === 'wanted' ? 'wanted' : 'rent'"
+        [busy]="busy"
+        [disabled]="state === 'limited'"
+      >
+        {{ state === 'failed' ? 'Try again' : copy.submit }}
+      </button>
+      <cr-listing-card slot="preview" [card]="store.previewCard()" [heading]="false" />
+    </cr-post-layout>
+  }
+</main>

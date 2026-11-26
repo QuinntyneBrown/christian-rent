@@ -76,18 +76,18 @@ Design: [become-member](detailed-designs/members/become-member/README.md).
 | 5.3 | `MemberGate` and `JoinDialog` with `JoinFormValidator` | L2-009, L2-015, L2-032 | Yes |
 | 5.4 | `Session` shows the member's initials in the header | L2-036 | Yes |
 
-## 6. Post a listing (Main) — 7 days — 0% complete
+## 6. Post a listing (Main) — 7 days — 100% complete
 
 Designs: [compose-listing](detailed-designs/post/compose-listing/README.md),
 [publish-listing](detailed-designs/post/publish-listing/README.md).
 
-| # | Slice | L2 |
-|---|---|---|
-| 6.1 | Post screen with the plain header and the sentence's word toggles | L2-009, L2-036 |
-| 6.2 | The fields and `ListingDraftValidator`; the draft kept in `DraftStore` | L2-010, L2-032 |
-| 6.3 | Live preview of the card beside the form from 768 px | L2-011, L2-031 |
-| 6.4 | `PostListingCommand` with its validator and `PostingLimit` | L2-010, L2-012, L2-025 |
-| 6.5 | "Sent for review" confirmation; a failed publish keeps everything | L2-012, L2-033 |
+| # | Slice | L2 | Done |
+|---|---|---|---|
+| 6.1 | Post screen with the plain header and the sentence's word toggles | L2-009, L2-036 | Yes |
+| 6.2 | The fields and `ListingDraftValidator`; the draft kept in `DraftStore` | L2-010, L2-032 | Yes |
+| 6.3 | Live preview of the card beside the form from 768 px | L2-011, L2-031 | Yes |
+| 6.4 | `PostListingCommand` with its validator and `PostingLimit` | L2-010, L2-012, L2-025 | Yes |
+| 6.5 | "Sent for review" confirmation; a failed publish keeps everything | L2-012, L2-033 | Yes |
 
 ## 7. Add photos to a listing (Main) — 5 days — 0% complete
 
@@ -154,4 +154,4 @@ Design: [verify-members-and-churches](detailed-designs/members/verify-members-an
 
 | Journeys | Effort (days) | % complete |
 |---|---|---|
-| 12 | 52 | 42 |
+| 12 | 52 | 56 |

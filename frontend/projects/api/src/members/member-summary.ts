@@ -3,6 +3,7 @@ export interface MemberSummary {
   readonly id: string;
   readonly name: string;
   readonly initials: string;
+  readonly churchName: string;
   readonly isAdmin: boolean;
   readonly isVerified: boolean;
 }

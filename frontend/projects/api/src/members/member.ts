@@ -2,6 +2,8 @@
 export interface Member {
   readonly id: string;
   readonly name: string;
+  /** The member's church, which Post's preview shows (ADR 0019). */
+  readonly churchName: string;
   readonly isVerified: boolean;
   readonly isAdmin: boolean;
 }
