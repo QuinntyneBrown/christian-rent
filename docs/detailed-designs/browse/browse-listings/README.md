@@ -30,10 +30,13 @@ the codebase yet; every name below is introduced by this design.
 
 **Frontend — `rent` application**
 
-- **`BrowsePage`** (`rent/src/app/browse/browse-page.ts`, selector `cr-browse-page`) — the
-  page loaded by `loadComponent` for the route `/`. It composes the presentation components,
-  provides `BrowseStore` in its own `providers`, and owns one `IntersectionObserver` on a
-  sentinel element after the last card. The observer is disconnected through `DestroyRef`.
+- **`BrowsePage`** (`rent/src/app/pages/browse/browse-page.ts`, selector `cr-browse-page`) —
+  the page loaded by `loadComponent` for the route `/`. It composes the presentation
+  components, provides `BrowseStore` in its own `providers`, and owns one
+  `IntersectionObserver` on two sentinels: one after the last card, which asks for the next
+  page, and one before the first, which asks again for a released page above it. Before a
+  page is released it measures the page's height. The observer is disconnected, and the
+  request in flight aborted, through `DestroyRef`.
 - **`BrowseStore`** — route-scoped signal store. It holds `state` (`loading`, `loaded`,
   `empty`, `failed`), `moreState` (`idle`, `loading`, `failed`, `done`), the `ListingWindow`
   and the `counts`. `loadFirst()` and `loadMore()` call `LISTINGS_API`. A failed `loadMore()`
@@ -42,13 +45,17 @@ the codebase yet; every name below is introduced by this design.
 
 **Frontend — `domain` library**
 
-- **`ListingWindow`** (`domain/search/listing-window.ts`) — bounded buffer of pages. It
-  retains at most 3 consecutive pages (72 cards). When a fourth page arrives, the page
-  farthest from the viewport is released and replaced by its measured height, so the scroll
-  position holds and memory stays bounded over 500 listings (L2-030, criterion 4). Scrolling
-  back requests a released page again by its cursor.
-- **`formatPrice`**, **`formatDistance`** (`domain/listings/`) — pure helpers that produce
-  "$45 / hour", "Free", "Up to $120 / day" and "3 km" (L2-022).
+- **`ListingWindow`** (`domain/search/listing-window.ts`) — bounded buffer of pages
+  ([ADR 0013](../../../adr/0013-browse-paging-and-window.md)). Each page it has seen is a slot
+  holding the cursor that requested it; at most 3 consecutive slots (72 cards) hold their
+  items. When a fourth page arrives at one end, the slot at the other end is released and
+  keeps only its measured height, which a spacer reserves, so the scroll position holds and
+  memory stays bounded over 500 listings (L2-030, criterion 4). Scrolling back to a spacer
+  requests that released page again by its cursor. `before()` and `after()` give the spacer
+  heights; `nextRequest('up' | 'down')` gives the cursor to ask for, or none.
+- **`formatPrice`**, **`formatDistance`**, **`formatWhen`** (`domain/listings/`) — pure
+  helpers that produce "$45 / hour", "Free", "Up to $120 / day", "3 km", "Sat, Aug 8, 2026"
+  and "Jul 14 to 18, 2026" (L2-022). Each has a unit test per case.
 
 **Frontend — `api` library**
 
@@ -56,7 +63,11 @@ the codebase yet; every name below is introduced by this design.
   `browse(query, cursor, signal)` returns `ListingsPage`.
 - **`ListingsPage`** — `{ items: ListingCard[]; nextCursor: string | null; counts }`.
 - **`ListingCard`** — `{ id, offer, kind, title, price, area, distanceKm, when, posterName,
-  churchName, photo }`. `photo` is `{ url, width, height }` or `null`.
+  churchName, photo }`. `price` is `{ amount, period }` or `null`; `when` is
+  `{ text, start, end }` with either the text or the two ISO dates; `photo` is
+  `{ url, width, height, description }` or `null`, and `distanceKm` is null until a person's
+  area is designed ([ADR 0012](../../../adr/0012-area-without-distance.md)).
+- **`ListingCounts`** — `{ everything, forRent, wanted }`, the approved listings of each.
 
 **Frontend — `components` library**
 
@@ -64,7 +75,9 @@ the codebase yet; every name below is introduced by this design.
   `/post?offer=for-rent`; "I'm looking for something" links to `/post?offer=wanted` (L2-005).
 - **`cr-listing-card`** — one card, a link to `/listings/{id}`. A for-rent card shows the
   first photo through `NgOptimizedImage` with `width`, `height` and a 4:3 box reserved before
-  load; cards in the first row set `priority`, the rest load lazily (L2-029, criterion 3). A
+  load; cards in the first row set `priority`, the rest load lazily (L2-029, criterion 3). The
+  photo's description is its text alternative, and the `alt` is empty when it has none: the
+  card's title already names the listing. A
   listing for rent with no photo shows the placeholder image, named "No photo yet". Under the
   photo the card shows a tag "space" or "thing", the title, the price, the area followed by
   the distance ("Langley · 3 km") and the church name (L2-001, criteria 7 and 9). A wanted
@@ -85,32 +98,51 @@ the codebase yet; every name below is introduced by this design.
 
 - **`ListingsController.Browse`** — `GET /api/listings`, marked `[AllowAnonymous]`. It sends
   one `BrowseListingsQuery` and returns its result.
-- **`BrowseListingsQuery`** — `{ Offer?, Kind?, Search?, Cursor?, Size = 24 }`.
+- **`BrowseListingsQuery`** — `{ Offer?, Kind?, Search?, Cursor?, Size = 24 }`. This journey
+  reads `Cursor` and `Size`; search-and-filter adds the rest.
 - **`BrowseListingsQueryValidator`** — refuses `Size` above 50 or below 1 with the code
-  `page_size_out_of_range` (L2-030, criterion 3).
+  `page_size_out_of_range` (L2-030, criterion 3), and a cursor that does not decode with
+  `cursor_invalid`. Both are 400 ProblemDetails.
 - **`BrowseListingsQueryHandler`** — selects listings whose `Status` is `Approved` and whose
   poster is not removed, orders by `ApprovedAt` descending then `Id` descending, applies the
   cursor as a keyset predicate, takes `Size + 1` rows to learn whether a next page exists,
   and projects to `ListingCardDto` without tracking. Ordering by approval time keeps the
   keyset stable: a listing approved later than older posts enters at the head of the list.
-- **`ListingCursor`** — value type that encodes `(ApprovedAt, Id)` as an opaque string.
-- **`Listing`** — domain entity. This slice reads `Offer`, `Kind`, `Title`, `Price`, `When`,
-  `Area`, `Status`, `ApprovedAt` and the first `ListingPhoto`.
+- **`ListingCursor`** — value type that encodes `(ApprovedAt, Id)` as an opaque base64url
+  string.
+- **`Listing`** — domain entity. This slice reads `Offer`, `Kind`, `Title`, `Price`
+  (`Amount`, `Period`), `WhenText`, `StartDate`, `EndDate`, `Area`, `Status`, `ApprovedAt`,
+  its poster and the first `ListingPhoto` (`PhotoId`, `Position`, `Description`).
+- **`Member`** — the poster: `Name`, `ChurchId`, `IsVerified`, `Status` (`Active`,
+  `Removed`). A removed member's listings are not public.
+- **`PhotosController.Get`** — `GET /api/photos/{id}/{rendition}`, `[AllowAnonymous]`. It
+  sends one `GetPhotoQuery`. **`GetPhotoQueryHandler`** finds the listing that holds the
+  photo; when that listing is public it opens `{id}/{rendition}.jpg` through `IPhotoStorage`
+  and streams it with a year-long public `Cache-Control`. Otherwise, and for an unknown
+  rendition, it answers `not_found` ([ADR 0011](../../../adr/0011-photo-renditions-and-serving.md)).
+- **`ChristianRent.Cli seed`** — enters the mocks' cast: the members who posted, the seven
+  approved listings of Browse and two listings waiting in the review queue, and the `card`
+  renditions of their photos.
 
 **Undecided**
 
-- How a person's area is set, and so how `distanceKm` is measured: `<TO SUPPLY>` (mocks open
-  question 5). The mocks show the distance on every card of Browse (L2-001, criterion 9).
-  `distanceKm` is nullable and the card omits it when absent.
-- Whether "newest first" counts from when a listing was posted or approved: L1 lists it as
-  not yet decided. The design orders by `ApprovedAt`.
+- How a person's area is set, and so how `distanceKm` is measured: open
+  ([ADR 0012](../../../adr/0012-area-without-distance.md); mocks open question 5). The mocks
+  show the distance on every card of Browse (L2-001, criterion 9). `distanceKm` is null and
+  the card shows the area alone until it is decided.
+- Whether "newest first" counts from when a listing was posted or approved: settled by
+  [ADR 0013](../../../adr/0013-browse-paging-and-window.md), which orders by `ApprovedAt`.
 - What Browse shows when For rent, Wanted, Spaces or Things holds nothing and no search term
   is entered: the mocks draw no such state. The design shows the empty state of
   [`empty.html`](../../../mocks/pages/browse/empty.html).
-- The database engine and the index that meets 300 ms at the 95th percentile over 10,000
-  approved listings (L2-030, criterion 1): `<TO SUPPLY>`. The query needs an index on
-  `(Status, ApprovedAt, Id)`.
-- The value of the initial-bundle budget in `angular.json`: `<TO SUPPLY>`.
+- The database engine: PostgreSQL in development ([ADR 0003](../../../adr/0003-database-engine.md),
+  Open for production). The migration adds the index on `(Status, ApprovedAt, Id)` that the
+  300 ms at the 95th percentile over 10,000 approved listings needs (L2-030, criterion 1);
+  measuring it against a real engine is outside the automated suites (ADR 0007).
+- The value of the initial-bundle budget in `angular.json`: [ADR 0006](../../../adr/0006-bundle-budgets.md).
+  Browse's own code is a lazy chunk, so the initial budget does not change.
+- Until search-and-filter (journey 3) is built, Browse shows the headline and the list without
+  the search bar and the switch that its mocks draw above the list.
 
 ### Mocks
 

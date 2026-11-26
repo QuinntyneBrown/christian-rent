@@ -33,10 +33,24 @@ class Listing {
   +ListingKind Kind
   +string Title
   +Price? Price
+  +string? WhenText
+  +DateOnly? StartDate
+  +DateOnly? EndDate
   +string Area
   +ListingStatus Status
   +DateTimeOffset? ApprovedAt
-  +IsPublic(): bool
+}
+class ListingPhoto {
+  +Guid PhotoId
+  +int Position
+  +string? Description
+}
+class Member {
+  +Guid Id
+  +string Name
+  +Guid ChurchId
+  +bool IsVerified
+  +MemberStatus Status
 }
 class Price {
   +decimal Amount
@@ -71,7 +85,7 @@ class ListingCardDto {
   +PriceDto? Price
   +string Area
   +int? DistanceKm
-  +string When
+  +WhenDto When
   +string PosterName
   +string ChurchName
   +PhotoRefDto? Photo
@@ -85,9 +99,19 @@ class BrowseStore <<Angular>> {
 }
 class ListingWindow <<TypeScript>> {
   +maxPages: 3
-  +append(page: ListingsPage): void
-  +release(pageIndex: number, height: number): void
-  +visible(): ListingCard[]
+  +nextRequest(direction): PageRequest?
+  +receive(request: PageRequest, page: ListingsPage): Release?
+  +release(height: number): void
+  +items(): ListingCard[]
+  +before(): number
+  +after(): number
+}
+class GetPhotoQueryHandler {
+  +Handle(query: GetPhotoQuery): Task<PhotoFile>
+}
+interface IPhotoStorage {
+  +SaveAsync(key, content): Task
+  +OpenReadAsync(key): Task<Stream?>
 }
 BrowseListingsQueryHandler ..> BrowseListingsQuery : handles
 BrowseListingsQueryHandler ..> ListingCursor : decodes / encodes
@@ -98,6 +122,10 @@ Listing --> ListingOffer
 Listing --> ListingKind
 Listing --> ListingStatus
 Listing *-- "0..1" Price
+Listing *-- "0..6" ListingPhoto
+Listing --> Member : posted by
+GetPhotoQueryHandler --> Listing : reads
+GetPhotoQueryHandler ..> IPhotoStorage : opens rendition
 BrowseStore *-- ListingWindow
 BrowseStore ..> ListingsPageDto : receives as ListingsPage
 @enduml

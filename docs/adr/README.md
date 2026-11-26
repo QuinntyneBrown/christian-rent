@@ -21,3 +21,6 @@ record giving its reason (`AGENTS.md`, *Prefer best practice*).
 | [0008](0008-ci-scope.md) | CI runs lint, the builds and one acceptance path per feature, in under 5 minutes | Accepted |
 | [0009](0009-health-endpoints-and-rate-limiter.md) | The health endpoints are anonymous and outside the rate limiter; the limiter reads `TimeProvider` | Accepted |
 | [0010](0010-mediatr-version.md) | MediatR stays on the 12.x line, the last under the Apache 2.0 licence | Accepted |
+| [0011](0011-photo-renditions-and-serving.md) | Photos are stored as `card`, `gallery` and `thumb` JPEG renditions and served anonymously only for an approved listing | Accepted |
+| [0012](0012-area-without-distance.md) | A listing's area is stored as its name and shown without a distance until a person's area is designed | Open |
+| [0013](0013-browse-paging-and-window.md) | Browse orders by approval, pages by a keyset cursor, and keeps a window of 3 pages | Accepted |
