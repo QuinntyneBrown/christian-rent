@@ -3,7 +3,9 @@ namespace ChristianRent.Application.Listings;
 /// <summary>
 /// One listing on the Listing screen (read-listing design). <c>PostedAt</c> is when the member
 /// posted it, <c>DistanceKm</c> is null until a person's area is designed (ADR 0012), and
-/// <c>IsOwn</c> is true for its poster.
+/// <c>IsOwn</c> is true for its poster. <c>ReportedAt</c> is when the caller reported the
+/// listing, and null for everyone else, so nobody learns of another's report (L2-021,
+/// criteria 4 and 8; ADR 0023).
 /// </summary>
 public sealed record ListingDetailDto(
     Guid Id,
@@ -18,7 +20,8 @@ public sealed record ListingDetailDto(
     DateTimeOffset PostedAt,
     IReadOnlyList<ListingPhotoDto> Photos,
     PosterDto Poster,
-    bool IsOwn);
+    bool IsOwn,
+    DateTimeOffset? ReportedAt);
 
 /// <summary>
 /// A photo in the gallery: its <c>gallery</c> rendition, the size of that rendition, its

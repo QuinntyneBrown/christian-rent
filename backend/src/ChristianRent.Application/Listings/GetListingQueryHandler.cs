@@ -35,6 +35,12 @@ internal sealed class GetListingQueryHandler(IAppDbContext database, ICurrentMem
         }
 
         var listing = row.Listing;
+        var reportedAt = caller.MemberId is { } memberId
+            ? await database.Reports.AsNoTracking()
+                .Where(report => report.ListingId == id && report.ReporterId == memberId)
+                .Select(report => (DateTimeOffset?)report.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken)
+            : null;
         var (width, height) = PhotoRenditions.Sizes[PhotoRenditions.Gallery];
         var photos = listing.Offer == ListingOffer.ForRent
             ? listing.Photos
@@ -65,6 +71,7 @@ internal sealed class GetListingQueryHandler(IAppDbContext database, ICurrentMem
                 row.Member.IsVerified,
                 row.Member.JoinedAt.Year,
                 new ChurchDto(row.Church.Name, row.Church.IsVerified)),
-            IsOwn: caller.MemberId == listing.MemberId);
+            IsOwn: caller.MemberId == listing.MemberId,
+            ReportedAt: reportedAt);
     }
 }
