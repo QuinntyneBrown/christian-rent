@@ -1,0 +1,40 @@
+// Avatar, from docs/design-system/components/avatar.html.
+:host {
+  display: inline-flex;
+  flex: none;
+}
+
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  overflow: hidden;
+  flex: none;
+  border-radius: var(--radius-full);
+  background: var(--color-avatar-sky);
+  color: var(--color-fg-on-avatar);
+  font: var(--text-label);
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+}
+
+.avatar--sm {
+  width: 2rem;
+  height: 2rem;
+  font-size: var(--font-size-xs);
+}
+
+.avatar--lg {
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: var(--font-size-lg);
+}
+
+.avatar--sun {
+  background: var(--color-avatar-sun);
+}
+
+.avatar--leaf {
+  background: var(--color-avatar-leaf);
+}

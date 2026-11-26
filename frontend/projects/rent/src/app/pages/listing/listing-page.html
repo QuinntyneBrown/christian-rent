@@ -1,0 +1,51 @@
+<cr-site-header [member]="member()" />
+<main
+  id="main"
+  class="container"
+  tabindex="-1"
+  [attr.aria-busy]="store.state() === 'loading' ? 'true' : null"
+>
+  @switch (store.state()) {
+    @case ('loading') {
+      <cr-listing-toolbar />
+      <h1 class="visually-hidden">Loading listing</h1>
+      @if (store.skeleton()) {
+        <cr-listing-layout>
+          <cr-listing [listing]="null" />
+          <cr-message-box slot="aside" [loading]="true" />
+        </cr-listing-layout>
+      }
+    }
+    @case ('loaded') {
+      @if (store.view(); as view) {
+        <cr-listing-toolbar />
+        <cr-listing-layout>
+          <cr-listing [listing]="view" />
+          <cr-message-box slot="aside" [heading]="view.messageHeading" [price]="view.price" />
+        </cr-listing-layout>
+      }
+    }
+    @case ('not-found') {
+      <cr-plain-page
+        icon="compass"
+        title="This listing isn’t here."
+        text="It may have been taken down, or the link may be wrong. Nothing else is known about it."
+      >
+        <a cr-button variant="primary" routerLink="/">Browse all listings</a>
+      </cr-plain-page>
+    }
+    @case ('failed') {
+      <cr-plain-page
+        icon="alert"
+        title="We couldn’t load this listing."
+        text="Check your connection and try again."
+      >
+        <button cr-button variant="primary" type="button" (click)="store.load()">
+          <cr-icon name="refresh" />Try again
+        </button>
+        <a cr-button routerLink="/">All listings</a>
+      </cr-plain-page>
+    }
+  }
+  <p class="visually-hidden" role="status">{{ store.announcement() }}</p>
+</main>

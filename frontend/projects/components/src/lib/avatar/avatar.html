@@ -1,0 +1,9 @@
+<span
+  class="avatar"
+  [class.avatar--sm]="size() === 'sm'"
+  [class.avatar--lg]="size() === 'lg'"
+  [class.avatar--sun]="tint() === 'sun'"
+  [class.avatar--leaf]="tint() === 'leaf'"
+  aria-hidden="true"
+  >{{ initials() }}</span
+>

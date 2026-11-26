@@ -1,0 +1,20 @@
+@if (loading()) {
+  <div class="message-box" aria-hidden="true">
+    <cr-skeleton [width]="30" />
+    <cr-skeleton class="message-box__price-skeleton" shape="title" [width]="60" />
+    <div class="message-box__field-skeleton"><cr-skeleton shape="rect" /></div>
+    <div class="message-box__button-skeleton"><cr-skeleton shape="rect" /></div>
+  </div>
+} @else if (price(); as price) {
+  <section class="message-box" [attr.aria-labelledby]="headingId">
+    <h2 class="visually-hidden" [id]="headingId">{{ heading() }}</h2>
+    <p class="message-box__eyebrow">{{ price.eyebrow }}</p>
+    <p class="message-box__price">
+      {{ price.amount }}
+      @if (price.unit) {
+        <span class="message-box__unit">{{ price.unit }}</span>
+      }
+    </p>
+    <ng-content />
+  </section>
+}

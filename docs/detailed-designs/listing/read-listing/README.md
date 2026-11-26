@@ -46,8 +46,8 @@ The message box beside the listing is designed in
 - **`formatAge(from, now)`** — "just now", then minutes, hours, days, weeks, months and years,
   rounded down (ADR 0016).
 - **`initialsOf(name)`**, **`firstNameOf(name)`**, **`avatarTint(name)`** — the first letters
-  of the first two words skipping "Pastor", "Dr." and "The"; the first such word; one of `sun`,
-  `sky` and `leaf` from a stable hash of the name (ADR 0016).
+  of the first two words skipping "Pastor", "Dr." and "The"; the first such word; one of `leaf`,
+  `sky` and `sun` from the initials (ADR 0016).
 
 **Frontend — `components` library**
 

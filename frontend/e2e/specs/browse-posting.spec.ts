@@ -1,9 +1,11 @@
 // Acceptance Test
 // Traces to: L2-001, L2-005, L2-031
 // Description: Browse leads straight to posting, keeping the choice in the address, and a card leads to its listing.
+import { answerListing, office } from '../fixtures/listing';
 import { answerNoListings, answerPhotos, cast, page as listingsPage } from '../fixtures/listings';
 import { expect, test } from '../fixtures/test';
 import { BrowsePage } from '../pages/browse.page';
+import { ListingPage } from '../pages/listing.page';
 
 test.describe('Browse leads to posting', () => {
   // L2-005 criteria 1 and 2.
@@ -49,16 +51,18 @@ test.describe('Browse leads to posting', () => {
     }
   });
 
-  // L2-001 criterion 5: selecting a card opens its listing (the Listing screen is journey 4).
+  // L2-001 criterion 5: selecting a card opens its listing.
   test('a card leads to its listing', async ({ page, api }) => {
     const listings = cast();
     api.answer('GET', '/api/listings', { body: listingsPage(listings) });
     answerPhotos(api);
+    answerListing(api, office({ id: listings[1]!.id }));
     const browse = new BrowsePage(page);
     await browse.open();
 
     await browse.cardTitled('Small office for weekly counselling').link.click();
 
     await expect(page).toHaveURL(`/listings/${listings[1]!.id}`);
+    await expect(new ListingPage(page).heading).toHaveText('Small office for weekly counselling');
   });
 });

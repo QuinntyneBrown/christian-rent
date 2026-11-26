@@ -46,8 +46,9 @@ things open that the Listing screen (journey 4) has to show one way or another:
   and years, each "1 day" or "2 days", always rounded down: "Posted 2 days ago".
 - **Initials and tint.** `initialsOf` in `@rent/domain` takes the first letters of the first two
   words of the member's name, skipping "Pastor", "Dr." and "The", as the avatar page says.
-  `avatarTint` picks one of the three tints from a stable hash of the name, so the same name has
-  the same tint on every screen. Neither is sent by the API: both follow from the name it sends.
+  `avatarTint` picks one of the three tints from the initials (the sum of their character
+  codes, modulo 3: leaf, sky, sun), so a member has the same tint on every screen, and the
+  mocks' cast keeps its tints (DW sun, ML leaf, AG sky). Neither is sent by the API: both follow from the name it sends.
 - **Price.** `cr-message-box` is built now with its head only: the visually hidden heading,
   "Rent for" or "They'll pay", and the price with its currency ("$45" and "CAD / hour", "Up to
   $120" and "CAD / day", "Free"). Journey 8 adds the form and its states. A wanted listing that
@@ -68,5 +69,5 @@ things open that the Listing screen (journey 4) has to show one way or another:
   has one.
 - Journey 8 fills `cr-message-box` below its head and shows it for a wanted listing with no
   price.
-- A member's tint depends on their name: a member who changes their name may change tint.
-  Nothing else depends on it.
+- A member's tint depends on their initials: members who share initials share a tint, and a
+  member who changes their name may change tint. Nothing else depends on it.

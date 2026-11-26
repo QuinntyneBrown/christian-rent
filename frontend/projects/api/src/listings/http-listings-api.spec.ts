@@ -77,4 +77,23 @@ describe('HttpListingsApi', () => {
     });
     backend.expectNone('/api/listings');
   });
+
+  it('asks for one listing by its identifier, encoded', async () => {
+    const listing = api.get('a b/c', new AbortController().signal);
+
+    const request = backend.expectOne('/api/listings/a%20b%2Fc');
+    request.flush({ id: 'a b/c' });
+    expect(await listing).toEqual({ id: 'a b/c' });
+  });
+
+  it('cancels a listing’s request when it is aborted', async () => {
+    const controller = new AbortController();
+    const listing = api.get('l1', controller.signal).catch((error: unknown) => error);
+    const request = backend.expectOne('/api/listings/l1');
+
+    controller.abort();
+
+    expect(request.cancelled).toBe(true);
+    expect(((await listing) as DOMException).name).toBe('AbortError');
+  });
 });
