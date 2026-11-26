@@ -65,18 +65,25 @@ Dependency direction: `rent` → `admin`, `components`, `api`, `domain`; `admin`
   is the constant "christian" + ".rent" in the template; no input can change its case
   (L2-023). The link is named "christian.rent home".
 - **`cr-site-header`** — logo, the member's initials (`member-chip`, not a control) and a
-  Post button. It has no Messages button and no sign-in control, because neither is designed.
-  It has no payment, booking, rating or advert element (L2-024).
+  Post button that links to `/post` (L2-036, criterion 1). The chip has `role="img"` and the
+  name "Signed in as {name}" (criterion 2). With `plain` set, on Post, it shows the wordmark
+  and a close button named "Close and go back to Browse", and no Post button (criterion 3).
+  Admin replaces it with `cr-admin-nav` (criterion 4). It has no Messages button and no
+  sign-in control, because neither is designed (criterion 5); what it shows a person who is
+  not a member waits for sign-in. It has no payment, booking, rating or advert element
+  (L2-024).
 - **`cr-skip-link`** — the first focusable element, "Skip to content".
 
 **`domain/listings` formatting** (L2-022)
 
 | Helper | Output |
 |---|---|
-| `formatPrice(price, offer)` | "$25 / day", "$12.50 / hour", "Free", "Up to $120 / day"; cents only when not zero |
+| `formatPrice(price, offer)` | "$25 / day", "$12.50 / hour", "$1,250.50 / week", "Free", "Up to $120 / day"; cents only when not zero |
 | `formatDistance(km)` | "4 km" |
 | `formatDate(date)` | "Dec 3, 2026" |
 | `formatDateRange(start, end)` | "Jul 14 to 18, 2026"; "Sat, Jun 13, 2026 · one day" |
+| `formatTime(instant)` | "3:40 p.m." |
+| `formatAge(instant, now)` | "12 min", "3 hr", "2 days ago" |
 
 The helpers use `Intl.NumberFormat` and `Intl.DateTimeFormat` with the locale `en-CA` and
 the currency `CAD`, and are pure. Copy uses Canadian spelling and lives in the templates;
@@ -89,6 +96,7 @@ the product has one language.
   `font-display: swap`, a reset and utilities. Component styles read tokens by role.
 - Breakpoints are 576, 768, 992 and 1200 px, mobile first. The listing grid is 1 column
   under 576 px, 2 from 576, 3 from 768 and 4 from 1200; at 992 the gutters widen (L2-031).
+- A dialog is a bottom sheet under 640 px and centred from 640 px (L2-031, criterion 8).
 - Every control is at least 44 × 44 px. Under `prefers-reduced-motion: reduce`, transitions
   reduce to a fade of the shortest motion token (L2-032, criterion 6). Sizes use `rem`, so
   text at 200% reflows (criterion 7).
@@ -131,13 +139,14 @@ acceptance criteria in the specification remain authoritative.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-022` | `L1-009` | Prices shall be shown in Canadian dollars with their period, with cents only when not zero. Distances shall be in kilometres. Dates shall write the month as a word. Copy shall use Canadian spelling. An area shall be a place in Canada. |
+| `L2-022` | `L1-009` | Prices shall be shown in Canadian dollars with their period, with cents only when not zero and a thousands separator. Distances shall be in kilometres. Dates shall write the month as a word, ranges shall use "to", and times shall be in 12-hour form. Copy shall use Canadian spelling. An area shall be a place in Canada. |
 | `L2-023` | `L1-009` | The wordmark shall read "christian.rent" in lowercase on every screen. |
+| `L2-036` | `L1-001` | The header shall show the wordmark, which leads to Browse, the member's initials as text, and a "Post" button. On Post it shall show the wordmark and a close button. On Admin the navigation shall show the wordmark, the admin's name, Review with its count and "Back to site". No header shall have a Messages button or a sign-in control. |
 | `L2-024` | `L1-010` | No screen shall offer a way to pay, take a deposit or enter a card. A listing shall show no booking calendar, review, rating or advert. A message with dates shall not change the listing's availability or reserve anything. |
 | `L2-029` | `L1-012` | On a mid-range phone on 4G, Browse shall paint its largest content within 2.5 s with layout shift under 0.1. The code for Listing, Post and Admin shall not be in the initial download. A card's photo shall be sized to the card, reserve its space and load lazily below the fold. A control shall respond within 200 ms. |
-| `L2-031` | `L1-013` | No screen shall be cut off or scroll sideways from 320 px. Browse's columns shall grow at 576, 768, 992 and 1200 px as the mocks draw. From 768 px the message box, the live preview and the Admin detail panel shall sit beside their main column; below it they shall sit under it, and Admin shall show only the queue. Every touch target shall be at least 44 × 44 px. |
-| `L2-032` | `L1-014` | Every screen shall meet WCAG 2.2 level AA. Every action shall be completable by keyboard with visible focus. A state shall be carried by text or an announced attribute, never by colour alone. Confirmations and errors shall be announced. Every field shall have a visible label with its error tied to it. Reduced motion shall be honoured, and text at 200% shall lose nothing. |
-| `L2-033` | `L1-015` | A waiting screen shall show a loading state in the shape of what will arrive. An unreachable backend shall produce a plain message and "Try again". An address that matches no screen shall show "not found" with a way back to Browse. An unhandled backend error shall be a ProblemDetails with no stack trace, recorded with a trace id. |
+| `L2-031` | `L1-013` | No screen shall be cut off or scroll sideways from 320 px. Browse shall show one column of cards under 576 px, two from 576 px, three from 768 px and four from 1200 px, with wider gutters from 992 px. From 768 px the message box, the live preview and the Admin detail panel shall sit beside their main column; below it they shall sit under it, and Admin shall show only the queue and a note that deciding needs a wider screen. A dialog shall be a bottom sheet under 640 px. Every touch target shall be at least 44 × 44 px. |
+| `L2-032` | `L1-014` | Every screen shall meet WCAG 2.2 level AA. Every action shall be completable by keyboard with visible focus. A state shall be carried by text or an announced attribute, never by colour alone. Confirmations and errors shall be announced. Every field shall have a visible label with its error tied to it. Reduced motion shall be honoured, and text at 200% shall lose nothing. "Skip to content" shall be the first control, and a dialog shall hold focus and return it on close. |
+| `L2-033` | `L1-015` | A waiting screen shall show a loading state in the shape of what will arrive, and none when the request answers within 300 ms. An unreachable backend shall produce a plain message and "Try again". An address that matches no screen shall show "not found" with a way back to Browse. An unhandled backend error shall be a ProblemDetails with no stack trace, recorded with a trace id. |
 
 ## Diagrams
 

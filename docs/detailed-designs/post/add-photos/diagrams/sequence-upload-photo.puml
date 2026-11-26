@@ -34,7 +34,7 @@ box "Backend — ChristianRent.Infrastructure" #FFF4E5
 end box
 actor -> picker : Choose a file
 picker -> uploads : add(file)
-uploads -> uploads : Refuse a seventh photo (L2-013 criterion 3)
+uploads -> uploads : Accept only while fewer than 6 photos are present (L2-013 criterion 3)
 uploads --> picker : Thumbnail from an object URL, state = uploading
 uploads -> client : upload(file, AbortSignal)
 client -> ctrl : POST /api/photos

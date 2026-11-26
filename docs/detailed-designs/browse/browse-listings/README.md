@@ -65,11 +65,21 @@ the codebase yet; every name below is introduced by this design.
 - **`cr-listing-card`** — one card, a link to `/listings/{id}`. A for-rent card shows the
   first photo through `NgOptimizedImage` with `width`, `height` and a 4:3 box reserved before
   load; cards in the first row set `priority`, the rest load lazily (L2-029, criterion 3). A
-  listing for rent with no photo shows the placeholder image. A wanted card uses the
-  `listing-card--wanted` modifier, shows no photo and carries the text "Wanted".
+  listing for rent with no photo shows the placeholder image, named "No photo yet". Under the
+  photo the card shows a tag "space" or "thing", the title, the price, the area followed by
+  the distance ("Langley · 3 km") and the church name (L2-001, criteria 7 and 9). A wanted
+  card uses the `listing-card--wanted` modifier and shows no photo. It shows the tag
+  "Wanted · space" or "Wanted · thing", the title, when it is needed, the poster's name, the
+  price as "Up to $120 / day" when one was given, the area with its distance and the church
+  name (criterion 8).
 - **`cr-skeleton`**, **`cr-empty-state`**, **`cr-alert`** — the loading, empty and failed
   states. The skeleton cards appear 300 ms after the request starts and reserve the card
-  shape.
+  shape (L2-033, criterion 5). While a further page is in flight, a spinner and "Loading more
+  listings…" follow the last card (L2-006, criterion 4). In the failed state the header, the
+  search bar and the switch stay (L2-033, criterion 6).
+- **Count status** — `BrowsePage` holds a visually hidden `role="status"` line that reads
+  "7 listings", "4 listings for rent", "3 wanted listings" or "Loading listings", so a
+  screen reader hears each change of the list (L2-001, criterion 10).
 
 **Backend**
 
@@ -90,7 +100,13 @@ the codebase yet; every name below is introduced by this design.
 **Undecided**
 
 - How a person's area is set, and so how `distanceKm` is measured: `<TO SUPPLY>` (mocks open
-  question 5). `distanceKm` is nullable and the card omits it when absent.
+  question 5). The mocks show the distance on every card of Browse (L2-001, criterion 9).
+  `distanceKm` is nullable and the card omits it when absent.
+- Whether "newest first" counts from when a listing was posted or approved: L1 lists it as
+  not yet decided. The design orders by `ApprovedAt`.
+- What Browse shows when For rent, Wanted, Spaces or Things holds nothing and no search term
+  is entered: the mocks draw no such state. The design shows the empty state of
+  [`empty.html`](../../../mocks/pages/browse/empty.html).
 - The database engine and the index that meets 300 ms at the 95th percentile over 10,000
   approved listings (L2-030, criterion 1): `<TO SUPPLY>`. The query needs an index on
   `(Status, ApprovedAt, Id)`.
@@ -117,14 +133,14 @@ acceptance criteria in the specification remain authoritative.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-001` | `L1-001` | Browse shall show approved listings, newest first, to anyone, signed in or not. A listing for rent shall show as a card with its first photo, title, price and area. A wanted listing shall show as a card with no photo, labelled "Wanted" in text. |
+| `L2-001` | `L1-001` | Browse shall show approved listings, newest first, to anyone, signed in or not. A card for rent shall show its first photo, kind, title, price, area with its distance, and church. A wanted card shall show no photo, "Wanted" in text, its kind, title, when, poster, church, area and the price when given. The number of listings shall be announced. |
 | `L2-005` | `L1-001` | Browse shall have two buttons, "I have something to rent" and "I'm looking for something", which shall open Post set to "I have" and to "I need". |
-| `L2-006` | `L1-001` | Browse shall show the first 24 matching listings and shall load more as the person reaches the end of the list. No request shall follow the last page. A page that fails to load shall leave the listings already shown and offer "Try again". |
-| `L2-022` | `L1-009` | Prices shall be shown in Canadian dollars with their period, with cents only when not zero. Distances shall be in kilometres. Dates shall write the month as a word. Copy shall use Canadian spelling. An area shall be a place in Canada. |
+| `L2-006` | `L1-001` | Browse shall show the first 24 matching listings and shall load more as the person reaches the end of the list. "Loading more listings" shall show while a page is in flight. No request shall follow the last page. A page that fails to load shall leave the listings already shown and offer "Try again". |
+| `L2-022` | `L1-009` | Prices shall be shown in Canadian dollars with their period, with cents only when not zero and a thousands separator. Distances shall be in kilometres. Dates shall write the month as a word, ranges shall use "to", and times shall be in 12-hour form. Copy shall use Canadian spelling. An area shall be a place in Canada. |
 | `L2-029` | `L1-012` | On a mid-range phone on 4G, Browse shall paint its largest content within 2.5 s with layout shift under 0.1. The code for Listing, Post and Admin shall not be in the initial download. A card's photo shall be sized to the card, reserve its space and load lazily below the fold. A control shall respond within 200 ms. |
 | `L2-030` | `L1-012` | With 10,000 approved listings, a page of Browse or a search shall respond within 300 ms and a single listing within 200 ms, at the 95th percentile. A list endpoint shall return at most one page and shall refuse a page size above 50. Browser memory shall stay bounded while a person scrolls 500 listings. |
-| `L2-031` | `L1-013` | No screen shall be cut off or scroll sideways from 320 px. Browse's columns shall grow at 576, 768, 992 and 1200 px as the mocks draw. From 768 px the message box, the live preview and the Admin detail panel shall sit beside their main column; below it they shall sit under it, and Admin shall show only the queue. Every touch target shall be at least 44 × 44 px. |
-| `L2-033` | `L1-015` | A waiting screen shall show a loading state in the shape of what will arrive. An unreachable backend shall produce a plain message and "Try again". An address that matches no screen shall show "not found" with a way back to Browse. An unhandled backend error shall be a ProblemDetails with no stack trace, recorded with a trace id. |
+| `L2-031` | `L1-013` | No screen shall be cut off or scroll sideways from 320 px. Browse shall show one column of cards under 576 px, two from 576 px, three from 768 px and four from 1200 px, with wider gutters from 992 px. From 768 px the message box, the live preview and the Admin detail panel shall sit beside their main column; below it they shall sit under it, and Admin shall show only the queue and a note that deciding needs a wider screen. A dialog shall be a bottom sheet under 640 px. Every touch target shall be at least 44 × 44 px. |
+| `L2-033` | `L1-015` | A waiting screen shall show a loading state in the shape of what will arrive, and none when the request answers within 300 ms. An unreachable backend shall produce a plain message and "Try again". An address that matches no screen shall show "not found" with a way back to Browse. An unhandled backend error shall be a ProblemDetails with no stack trace, recorded with a trace id. |
 
 ## Diagrams
 

@@ -28,10 +28,19 @@ without changing the slices that depend on membership.
   bundle. Post, the message box and the Report button each call it (L2-009 criterion 4,
   L2-015 criterion 5, L2-021 criterion 5).
 - **`JoinDialog`** (`rent/src/app/join/`, selector `cr-join-dialog`) — orchestrating dialog
-  with states `default`, `new-church`, `busy`, `invalid`, `failed`. It loads churches from
-  `CHURCHES_API.list()`. Choosing "My church isn't listed" shows the church name and city
-  fields. Focus starts inside the dialog and returns to the opening control on close; under
-  640 px the dialog is a bottom sheet. "Not now" closes it and changes nothing.
+  with states `default`, `new-church`, `busy`, `invalid`, `failed`. Its text says that
+  browsing is open to anyone, that posting, messaging and reporting need a member, and that
+  what the person has filled in is kept (L2-017, criterion 7). It has three fields: "Your
+  name" (`maxlength` 60), "Your church" and the checkbox "I am a Christian" (criterion 9). It
+  loads churches from `CHURCHES_API.list()` and shows each as "{name}, {city}". Choosing "My
+  church isn't listed" shows the church name (`maxlength` 100) and city fields and the line
+  "An admin confirms a new church before it is shown as verified." (criterion 8). In
+  `invalid` each missing item is marked and says why (criterion 10). In `busy` the button
+  carries `aria-busy` and the fields are read-only; in `failed` an alert says the person was
+  not added, the entries stay and the button reads "Try again" (criterion 11). Focus starts
+  inside the dialog and returns to the opening control on close; under 640 px the dialog is
+  a bottom sheet. "Not now" closes it and changes nothing. The same dialog serves posting,
+  messaging and reporting (criterion 12).
 - **`JoinFormValidator`** (`domain/`) — name 1 to 60 characters; a chosen church, or a new
   church name of 1 to 100 characters with a city; the declaration checked (L2-017, criteria
   1, 2 and 6).
@@ -40,7 +49,7 @@ without changing the slices that depend on membership.
 
 - **`Session`** with the token **`SESSION`** — `member: Signal<MemberSummary | null>` and
   `refresh()`. `MemberSummary` is `{ id, name, initials, isAdmin, isVerified }`. The site
-  header shows the initials. `SESSION` is bound in `app.config.ts`, because the whole
+  header shows the initials (L2-036, criterion 2). `SESSION` is bound in `app.config.ts`, because the whole
   application shares it.
 - **`MembersApi`** (`MEMBERS_API`) — `join(request)`, `me()`.
 - **`ChurchesApi`** (`CHURCHES_API`) — `list()`.
@@ -79,10 +88,12 @@ mark (L2-017, criterion 4).
 - How a person is identified before and after joining (sign-in, sign-out, the sign-in
   identifier on `Member`, and the contact detail needed "to reach them"): `<TO SUPPLY>`.
   The mocks draw no credentials on purpose.
-- L2-025, criterion 1 answers 401 to every endpoint except browsing, searching and reading
-  when no member is signed in. `POST /api/members` and `GET /api/churches` are called by a
-  person who is not yet a member. Whether they require an identified person or are
-  anonymous depends on sign-in: `<TO SUPPLY>`, and L2-025 needs the exception stated.
+- `POST /api/members` and `GET /api/churches` are called by a person who is not yet a
+  member. L2-025, criterion 5 states that they are not refused for want of membership.
+  Whether they require an identified person or are anonymous depends on sign-in:
+  `<TO SUPPLY>`.
+- The longest city of a new church: the field shows no limit, and L1 lists it as not yet
+  decided.
 - How a member asks to leave (L2-028, criterion 2): the backend part is designed in
   [handle-member-data](../../platform/handle-member-data/README.md); its screen is
   `<TO SUPPLY>`.
@@ -106,13 +117,13 @@ acceptance criteria in the specification remain authoritative.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-009` | `L1-003` | Post shall open with the sentence "I have / need a space / a thing to rent out". Switching "have" to "need" shall make a wanted listing and remove the photos field. Each highlighted word shall be a named control with a selected state. A person who is not a member shall be asked to become a member or sign in and shall return to Post with their choices kept. |
-| `L2-015` | `L1-005` | The Listing screen shall have a message box that sends a message of 1 to 1,000 characters to the person who posted, with start and end dates when the listing is for rent. A confirmation shall replace the message box once sent. A non-member's message and dates shall be kept while they become a member. The message box shall not be offered on a member's own listing. A failed send shall keep the text and dates. |
-| `L2-017` | `L1-006` | A person shall become a member by giving their name and their church and declaring that they are a Christian. The church shall be an existing church or a new one with its name and city. A new member shall enter the review queue and shall not be verified. A member who is not verified may post and message. A name longer than 60 characters or a church name longer than 100 shall be refused. |
-| `L2-021` | `L1-008` | A member shall be able to report a listing with a reason from a fixed list and an optional note of up to 500 characters. The report shall enter the review queue and the member shall see a confirmation. A second report by the same member on the same listing shall not be created. The member who posted shall never be told who reported. |
-| `L2-025` | `L1-011` | Every endpoint other than browsing, searching and reading an approved listing shall respond 401 without a signed-in member. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
+| `L2-009` | `L1-003` | Post shall open with the sentence "I have / need a space / a thing to rent out", with both words of each pair shown and the chosen one highlighted. Switching "have" to "need" shall make a wanted listing, remove the photos field and change the sentence, the field labels and the button. Each word shall be a named control with a selected state. "A thing" shall be chosen when no kind is given. A person who is not a member shall be asked to become a member or sign in and shall return to Post with their choices kept. |
+| `L2-015` | `L1-005` | The Listing screen shall have a message box that sends a message of 1 to 1,000 characters to the person who posted, with start and end dates when the listing is for rent. The box shall name the person who posted, show the price with "CAD" and state that no payment happens here. Invalid fields shall be listed in a summary that takes focus. A confirmation shall replace the message box once sent; it shall quote the message back and shall not say where the reply arrives. A non-member's message and dates shall be kept while they become a member. The message box shall not be offered on a member's own listing. A failed send shall keep the text and dates. |
+| `L2-017` | `L1-006` | A person shall become a member by giving their name and their church and declaring that they are a Christian. The church shall be an existing church or a new one with its name and city. A new member shall enter the review queue and shall not be verified. A member who is not verified may post and message. A name longer than 60 characters or a church name longer than 100 shall be refused. One join dialog shall serve posting, messaging and reporting; it shall mark each missing item and keep what was entered when joining fails. |
+| `L2-021` | `L1-008` | A member shall be able to report a listing with a reason from a fixed list and an optional note of up to 500 characters. A report with no reason shall not be sent. The report shall enter the review queue and the member shall see a confirmation. A second report by the same member on the same listing shall not be created. The member who posted shall never be told who reported. Report shall not be offered on a member's own listing. |
+| `L2-025` | `L1-011` | Every endpoint other than browsing, searching, reading an approved listing and serving its photos shall respond 401 without a signed-in member. Listing the churches and joining shall not be refused for want of membership. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
 | `L2-028` | `L1-011` | Only the member's name, church and what is needed to sign in and reach them shall be collected. When a membership is deleted, the member's listings and photos shall no longer be public and their personal data shall be deleted or made anonymous within 30 days. No log, metric or trace shall hold a contact detail, token, message text, query string or request body. |
-| `L2-032` | `L1-014` | Every screen shall meet WCAG 2.2 level AA. Every action shall be completable by keyboard with visible focus. A state shall be carried by text or an announced attribute, never by colour alone. Confirmations and errors shall be announced. Every field shall have a visible label with its error tied to it. Reduced motion shall be honoured, and text at 200% shall lose nothing. |
+| `L2-032` | `L1-014` | Every screen shall meet WCAG 2.2 level AA. Every action shall be completable by keyboard with visible focus. A state shall be carried by text or an announced attribute, never by colour alone. Confirmations and errors shall be announced. Every field shall have a visible label with its error tied to it. Reduced motion shall be honoured, and text at 200% shall lose nothing. "Skip to content" shall be the first control, and a dialog shall hold focus and return it on close. |
 
 ## Diagrams
 
