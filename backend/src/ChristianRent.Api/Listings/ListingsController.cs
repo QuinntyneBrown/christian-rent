@@ -33,4 +33,15 @@ public sealed class ListingsController(ISender sender) : ControllerBase
     [AllowAnonymous]
     public Task<ListingDetailDto> Get(string id, CancellationToken cancellationToken) =>
         sender.Send(new GetListingQuery(id), cancellationToken);
+
+    /// <summary>
+    /// A member posts a listing, which waits for review (L2-012): 201 the first time, 200 when
+    /// the same client request was already posted. Membership is checked by the handler.
+    /// </summary>
+    [HttpPost]
+    public async Task<IActionResult> Post(PostListingCommand command, CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(command, cancellationToken);
+        return result.Created ? Created($"/api/listings/{result.Listing.Id}", result.Listing) : Ok(result.Listing);
+    }
 }

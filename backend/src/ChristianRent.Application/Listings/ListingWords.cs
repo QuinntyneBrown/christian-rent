@@ -35,6 +35,24 @@ public static class ListingWords
         _ => null,
     };
 
+    /// <summary>The period a word names, or null when it names none; the words are exact.</summary>
+    public static PricePeriod? PeriodOf(string? word) => word switch
+    {
+        "hour" => PricePeriod.Hour,
+        "day" => PricePeriod.Day,
+        "week" => PricePeriod.Week,
+        "month" => PricePeriod.Month,
+        _ => null,
+    };
+
+    public static string Of(ListingStatus status) => status switch
+    {
+        ListingStatus.WaitingForReview => "waiting-for-review",
+        ListingStatus.Approved => "approved",
+        ListingStatus.Removed => "removed",
+        _ => throw new ArgumentOutOfRangeException(nameof(status)),
+    };
+
     public static string Of(PricePeriod period) => period switch
     {
         PricePeriod.Hour => "hour",

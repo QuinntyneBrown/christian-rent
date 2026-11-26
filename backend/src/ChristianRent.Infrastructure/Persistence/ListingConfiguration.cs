@@ -26,6 +26,8 @@ internal sealed class ListingConfiguration : IEntityTypeConfiguration<Listing>
         builder.Property(listing => listing.SearchText).HasMaxLength(Listing.MaxSearchTextLength).IsRequired();
         builder.Property(listing => listing.Status).HasConversion<string>().HasMaxLength(24).IsRequired();
         builder.Property(listing => listing.CreatedAt).IsRequired();
+        // A repeated submission is the same listing (L2-012, criterion 4); seed data has none.
+        builder.HasIndex(listing => new { listing.MemberId, listing.ClientRequestId }).IsUnique();
         builder.HasOne<Member>().WithMany().HasForeignKey(listing => listing.MemberId).OnDelete(DeleteBehavior.Restrict);
 
         builder.OwnsMany(listing => listing.Photos, photo =>
