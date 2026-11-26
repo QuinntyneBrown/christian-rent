@@ -1,6 +1,7 @@
 using ChristianRent.Domain.Churches;
 using ChristianRent.Domain.Listings;
 using ChristianRent.Domain.Members;
+using ChristianRent.Domain.Review;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChristianRent.Application.Abstractions;
@@ -16,6 +17,8 @@ public interface IAppDbContext
     DbSet<Member> Members { get; }
 
     DbSet<Listing> Listings { get; }
+
+    DbSet<ReviewItem> ReviewItems { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 

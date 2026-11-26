@@ -129,6 +129,12 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("ChurchId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset?>("DepartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsVerified")
                         .HasColumnType("boolean");
 
@@ -137,8 +143,12 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<string>("SignInId")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -149,7 +159,33 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ChurchId");
 
+                    b.HasIndex("SignInId")
+                        .IsUnique();
+
                     b.ToTable("members", (string)null);
+                });
+
+            modelBuilder.Entity("ChristianRent.Domain.Review.ReviewItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.ToTable("review_items", (string)null);
                 });
 
             modelBuilder.Entity("ChristianRent.Domain.Listings.Listing", b =>
