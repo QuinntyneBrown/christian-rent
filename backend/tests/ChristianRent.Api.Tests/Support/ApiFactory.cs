@@ -41,7 +41,7 @@ public class ApiFactory : WebApplicationFactory<Program>
         builder.UseEnvironment(EnvironmentName);
         builder.UseSetting("ConnectionStrings:Default", "Host=not-used-by-tests");
         builder.UseSetting("Site:Origin", SiteOrigin);
-        builder.UseSetting("HttpsRedirection:HttpsPort", "443");
+        builder.UseSetting("https_port", "443");
 
         builder.ConfigureTestServices(services =>
         {
