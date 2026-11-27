@@ -150,18 +150,18 @@ records a notice for the poster; nothing is sent until a channel is designed (AD
 | 11.2 | Approve, Keep and Remove in the detail panel; `ConfirmRemoveDialog`; already decided, gone and failed | L2-020, L2-032 | Yes |
 | 11.3 | Toasts after a decision, announced, with `ToastQueue`, and the notification that new items arrived | L2-019, L2-020, L2-032 | Yes |
 
-## 12. Verify members and churches (Admin) — 3 days — 0% complete
+## 12. Verify members and churches (Admin) — 3 days — 100% complete
 
 Design: [verify-members-and-churches](detailed-designs/members/verify-members-and-churches/README.md).
 
-| # | Slice | L2 |
-|---|---|---|
-| 12.1 | Approving a new member verifies them | L2-018 |
-| 12.2 | `VerifyChurchCommand` confirms a church | L2-018, L2-025 |
-| 12.3 | `cr-review-detail` offers "Confirm church", and the verified marks follow on Listing | L2-008, L2-018 |
+| # | Slice | L2 | Done |
+|---|---|---|---|
+| 12.1 | Approving a new member verifies them | L2-018 | Yes |
+| 12.2 | `VerifyChurchCommand` confirms a church | L2-018, L2-025 | Yes |
+| 12.3 | `cr-review-detail` offers "Confirm church", and the verified marks follow on Listing | L2-008, L2-018 | Yes |
 
 ## Total
 
 | Journeys | Effort (days) | % complete |
 |---|---|---|
-| 12 | 52 | 94 |
+| 12 | 52 | 100 |

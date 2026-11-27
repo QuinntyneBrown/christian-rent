@@ -65,6 +65,8 @@ Each journey's entry has three parts:
 | L49 | When a change to a paged list aborts what is on its way, cover every direction: a flag that tracks only the next page misses a released page being asked for again. | 11 |
 | L50 | Prove timed behaviour in the browser (a notification that leaves, a look every minute) with `page.clock.install` before the screen opens and `fastForward`; the spec waits for nothing. | 11 |
 | L51 | A spec that checks which controls a screen offers asserts their texts, not how many there are: the journey that adds controls then changes a list a reader can check. | 11 |
+| L52 | A test whose code changes a row of the shared cast (`TestData`'s static churches) creates its own: the static object is the one every other test seeds. | 12 |
+| L53 | Add a migration with the infrastructure project as the startup project (`dotnet ef migrations add <Name> --project src/ChristianRent.Infrastructure --startup-project src/ChristianRent.Infrastructure -o Persistence/Migrations`): it holds the design-time factory and the EF design package. | 12 |
 
 ## Journeys
 
@@ -752,3 +754,51 @@ Slices 11.1 to 11.3, finished on Nov 26, 2026, on Windows.
   for new items, and clear their timers, when the admin leaves.
 - L46: the build ran before the behaviour specs.
 - L48: missed once; editing scripts were otherwise files.
+
+### 12. Verify members and churches
+
+Slices 12.1 to 12.3, finished on Nov 26, 2026, on Windows.
+
+**What slowed it**
+
+- No mock, prototype or requirement settled where an admin confirms a church. L2-018 gained
+  criteria 7 to 11, L2-019 criterion 9 changed, and the mocks and ADR 0028 came before any code
+  (L2). A church whose new members have all been decided still has no screen, which
+  `docs/specs/L1.md` keeps open.
+- The feature prompt said Browse cards show the marks and that the unverified listing mock marks
+  the member. No Browse mock draws a mark, and that mock marks neither; the wanted one marks the
+  member alone. The mocks won, and the prompt says so now (L17).
+- Slice 12.1 was built by journey 11, and the marks of slice 12.3 on Listing by journey 4, whose
+  specs cover the three states. What 12.3 added is the control in Admin.
+- The backend test's assertions on who confirmed the church did not compile before the code,
+  so its first run, which showed the endpoint missing, was made without those four lines.
+- The first frontend unit run stopped at the first project that did not compile, so the new
+  domain and store tests were not each seen to fail on their own; the six behaviour specs were.
+- `dotnet ef` refused the CLI as its startup project (L53), and one backend mutation broke the
+  build on an unused `using` before any test ran (L37, missed once).
+
+**New lessons**: L52 and L53 above.
+
+**Earlier lessons applied**
+
+- L1: the branch was made from journey 11's, which was not merged yet.
+- L2 and L25: the three new states were drawn and given criteria first, and the mock checker
+  passed.
+- L3 and L20: removing the admin policy, overwriting the first confirmation, not aborting on
+  leaving, leaving "Confirm church" or the decisions on, and not moving focus were each caught
+  by the tests that name them.
+- L4 and L45: each slice was committed on a green `verify.mjs`, the frontend one by a script
+  that commits only then.
+- L11, L27 and L28: the production build ran in the frontend slice. The initial total stays at
+  324.29 kB: the client, the store and the words load with Admin's route. No budget changed.
+- L12: the notifications' words and whether a church can be confirmed are `@rent/domain`, with a
+  test per case.
+- L13: the sweeps visit the three new states, and a heap check confirms and leaves; none was run.
+- L17: see above.
+- L19: the new specs were run 5 times, 30 of 30 green.
+- L26: the busy spec presses the busy button with `dispatchEvent('click')`.
+- L33: the leaving spec observes the confirmation's request fail with `net::ERR_ABORTED`.
+- L40 and L48: `dotnet` ran with `DOTNET_ROOT` unset, and longer editing scripts were files.
+- L50: not needed; no new timed behaviour beyond the notifications' own.
+- L51: the spec of the new member's controls lists their texts, so the new button was one entry.
+
