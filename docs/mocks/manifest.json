@@ -195,7 +195,9 @@
       "states": [
         "default",
         "busy",
-        "failed"
+        "failed",
+        "new-listing",
+        "new-member"
       ],
       "not_applicable": {
         "invalid": "The dialog has no input; it only confirms or cancels."

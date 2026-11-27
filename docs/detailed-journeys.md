@@ -138,7 +138,7 @@ criterion 12, new items while the queue is open, is slice 11.4, with the review 
 | 10.3 | `ReviewPage` with the queue, its loading, error and "All caught up" states, held in 3 pages | L2-019, L2-030, L2-033 | Yes |
 | 10.4 | The detail panel from 768 px, by kind, with its failed and gone states; the queue only, with a note, below it | L2-019, L2-031, L2-033 | Yes |
 
-## 11. Decide a review item (Admin) — 4 days — 0% complete
+## 11. Decide a review item (Admin) — 4 days — 100% complete
 
 Design: [decide-review-item](detailed-designs/review/decide-review-item/README.md).
 
@@ -163,4 +163,4 @@ Design: [verify-members-and-churches](detailed-designs/members/verify-members-an
 
 | Journeys | Effort (days) | % complete |
 |---|---|---|
-| 12 | 52 | 87 |
+| 12 | 52 | 94 |

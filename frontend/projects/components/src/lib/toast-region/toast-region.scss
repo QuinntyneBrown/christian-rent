@@ -19,3 +19,16 @@
     right: var(--space-6);
   }
 }
+
+// At the top, clear of controls at the bottom of the screen (WCAG 2.2, 2.4.11).
+.toast-region--top {
+  top: var(--space-4);
+  bottom: auto;
+}
+
+@media (min-width: 40rem) {
+  .toast-region--top {
+    top: var(--space-6);
+    bottom: auto;
+  }
+}

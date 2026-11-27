@@ -46,4 +46,7 @@ public sealed class Report
 
     /// <summary>Its reporter has left: what they wrote goes, and the report keeps its place.</summary>
     public void ClearNote() => Note = null;
+
+    /// <summary>An admin kept or removed the listing (L2-020, criterion 2).</summary>
+    public void Close() => Status = ReportStatus.Closed;
 }

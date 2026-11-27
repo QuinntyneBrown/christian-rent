@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import type { Observable } from 'rxjs';
-import type { ReviewItemDetail, ReviewQueuePage } from './review-item';
+import { type Observable, firstValueFrom } from 'rxjs';
+import type { ReviewDecision, ReviewItemDetail, ReviewQueuePage } from './review-item';
 import type { ReviewQueueApi } from './review-queue-api';
 
 /**
@@ -21,6 +21,12 @@ export class HttpReviewQueueApi implements ReviewQueueApi {
     return this.send(
       this.http.get<ReviewItemDetail>(`/api/review-queue/${encodeURIComponent(id)}`),
       signal,
+    );
+  }
+
+  async decide(id: string, decision: ReviewDecision): Promise<void> {
+    await firstValueFrom(
+      this.http.post(`/api/review-queue/${encodeURIComponent(id)}/decision`, { decision }),
     );
   }
 

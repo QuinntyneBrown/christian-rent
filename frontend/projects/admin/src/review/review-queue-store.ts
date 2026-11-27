@@ -40,6 +40,9 @@ export class ReviewQueueStore {
   private readonly _after = signal(0);
   private readonly _waiting = signal<number | null>(null);
   private request: AbortController | null = null;
+  private check: AbortController | null = null;
+  /** How many waited when the queue was read, less those decided since (ADR 0025). */
+  private baseline = 0;
   private skeletonTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly state = this._state.asReadonly();
@@ -66,6 +69,7 @@ export class ReviewQueueStore {
   constructor() {
     inject(DestroyRef).onDestroy(() => {
       this.request?.abort();
+      this.check?.abort();
       this.stopSkeletonTimer();
     });
   }
@@ -91,6 +95,7 @@ export class ReviewQueueStore {
         () => 0,
       );
       this._waiting.set(page.waitingCount);
+      this.baseline = page.waitingCount;
       this._state.set(page.items.length > 0 ? 'loaded' : 'empty');
     } catch (error) {
       this.fail(error, request, () => this._state.set('failed'));
@@ -138,6 +143,67 @@ export class ReviewQueueStore {
     } finally {
       if (this.request === request) {
         this.request = null;
+      }
+    }
+  }
+
+  /**
+   * Asks how many wait now, without changing what is shown, and answers how many arrived since
+   * the queue was read: 0 when none did, or when it could not be asked (ADR 0025).
+   */
+  async arrivedSinceLoad(): Promise<number> {
+    const state = this._state();
+    if ((state !== 'loaded' && state !== 'empty') || this.check !== null) {
+      return 0;
+    }
+    const check = new AbortController();
+    this.check = check;
+    try {
+      const page = await this.api.page(null, check.signal);
+      return this._state() === state ? Math.max(0, page.waitingCount - this.baseline) : 0;
+    } catch (error) {
+      if (check.signal.aborted || isApiError(error)) {
+        return 0;
+      }
+      throw error;
+    } finally {
+      if (this.check === check) {
+        this.check = null;
+      }
+    }
+  }
+
+  /**
+   * The item to open once `id` has left the queue: the one after it, or the one before it when
+   * it was the last held; null when nothing else is held.
+   */
+  nextAfter(id: string): string | null {
+    const ids = this.items().map((item) => item.id);
+    const at = ids.indexOf(id);
+    if (at < 0) {
+      return ids[0] ?? null;
+    }
+    return ids[at + 1] ?? ids[at - 1] ?? null;
+  }
+
+  /**
+   * A decided item leaves the queue and the number waiting drops (L2-020, criterion 11). When
+   * the last item held goes and more wait, the queue is read again.
+   */
+  drop(id: string): void {
+    if (!this.items().some((item) => item.id === id)) {
+      return;
+    }
+    this.window.drop((item) => item.id === id);
+    this.publish();
+    const waiting = Math.max(0, (this._waiting() ?? 1) - 1);
+    this._waiting.set(waiting);
+    this.baseline = Math.max(0, this.baseline - 1);
+    if (this.items().length === 0) {
+      if (waiting === 0) {
+        this._state.set('empty');
+      } else {
+        void this.load();
       }
     }
   }

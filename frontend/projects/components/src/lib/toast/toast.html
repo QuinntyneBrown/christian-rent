@@ -4,6 +4,7 @@
   [class.toast--success]="tone() === 'success'"
   [class.toast--warning]="tone() === 'warning'"
   [class.toast--danger]="tone() === 'danger'"
+  [class.toast--paused]="paused()"
   [attr.role]="role()"
 >
   <cr-icon class="toast__icon" [name]="icon()" />
@@ -19,4 +20,7 @@
   <button class="toast__close" type="button" aria-label="Dismiss" (click)="dismissed.emit()">
     <cr-icon name="x" size="sm" />
   </button>
+  @if (timed()) {
+    <span class="toast__progress" aria-hidden="true"></span>
+  }
 </div>

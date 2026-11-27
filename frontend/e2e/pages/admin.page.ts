@@ -30,6 +30,16 @@ export class AdminPage {
   readonly viewOnSite: Locator;
   readonly detailSkeleton: Locator;
   readonly detailFailed: Locator;
+  /** The decision buttons under the detail, in order. */
+  readonly decisions: Locator;
+  readonly approve: Locator;
+  readonly keep: Locator;
+  readonly remove: Locator;
+  /** The warning above an item another admin decided first. */
+  readonly decidedNotice: Locator;
+  readonly decidedTitle: Locator;
+  readonly decidedText: Locator;
+  readonly goToNext: Locator;
 
   constructor(private readonly page: Page) {
     this.nav = page.getByRole('navigation', { name: 'Admin' });
@@ -60,6 +70,14 @@ export class AdminPage {
     this.viewOnSite = this.detail.getByRole('link', { name: 'View on site' });
     this.detailSkeleton = this.detail.locator('.skeleton');
     this.detailFailed = this.detail.locator('.empty--error');
+    this.decisions = this.detail.locator('.decision-bar button');
+    this.approve = this.detail.getByRole('button', { name: 'Approve', exact: true });
+    this.keep = this.detail.getByRole('button', { name: 'Keep listing', exact: true });
+    this.remove = this.detail.getByRole('button', { name: 'Remove', exact: true });
+    this.decidedNotice = this.detail.locator('.alert--warning');
+    this.decidedTitle = this.decidedNotice.locator('.alert__title');
+    this.decidedText = this.decidedNotice.locator('.alert__text');
+    this.goToNext = this.decidedNotice.getByRole('button', { name: 'Go to the next item' });
   }
 
   async open(query = ''): Promise<void> {
@@ -96,6 +114,17 @@ export class AdminPage {
   /** The names of the detail's facts, in order. */
   factNames(): Locator {
     return this.detail.locator('.review__facts dt');
+  }
+
+  /** Hides the page, as switching to another tab does, or shows it again. */
+  async setHidden(hidden: boolean): Promise<void> {
+    await this.page.evaluate((value) => {
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        get: () => (value ? 'hidden' : 'visible'),
+      });
+      document.dispatchEvent(new Event('visibilitychange'));
+    }, hidden);
   }
 
   /** Scrolls the queue to its end, where the next page is asked for. */

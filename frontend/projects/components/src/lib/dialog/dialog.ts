@@ -26,6 +26,8 @@ export class Dialog {
   readonly description = input<string | null>(null);
   /** Decoration before the title, in a round tinted badge. */
   readonly icon = input<IconName | null>(null);
+  /** The badge's tone: danger for a confirmation that removes something. */
+  readonly tone = input<'info' | 'danger'>('info');
   /** While a request is in flight, Close does nothing. */
   readonly closeDisabled = input(false);
 

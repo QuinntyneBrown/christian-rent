@@ -12,22 +12,28 @@ import {
   untracked,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
-import { SESSION } from '@rent/api';
+import { ActivatedRoute, Router } from '@angular/router';
+import { type ReviewDecision, SESSION } from '@rent/api';
 import {
   AdminLayout,
   AdminNav,
+  Alert,
   Button,
   EmptyState,
   Icon,
   Queue,
   QueueItem,
   ReviewDetail,
+  Toast,
+  ToastRegion,
 } from '@rent/components';
-import { selectedItem } from '@rent/domain';
+import { confirmRemoveWords, selectedItem } from '@rent/domain';
 import { map } from 'rxjs';
+import { NewItemsWatch } from './new-items-watch';
+import { ReviewDecider } from './review-decider';
 import { ReviewDetailStore } from './review-detail-store';
 import { ReviewQueueStore } from './review-queue-store';
+import { ToastQueue } from './toast-queue';
 
 /** From this width the detail panel is shown beside the queue (L2-031, criterion 5). */
 const WIDE = '(min-width: 48rem)';
@@ -39,12 +45,26 @@ const WIDE = '(min-width: 48rem)';
  * reaching either asks for the page beyond it. The address holds the selection,
  * `/admin?item={id}`, and the detail is asked for only while the panel is shown, from 768 px
  * (ADR 0024). Leaving disconnects the observer and the width listener, and the stores, provided
- * here, abort their requests.
+ * here, abort their requests. A decision selects the next item and moves focus to it; Remove asks
+ * first in a dialog whose code loads only then. While the page is visible, new items are looked
+ * for every 60 s (ADR 0025).
  */
 @Component({
   selector: 'cr-review-page',
-  imports: [AdminLayout, AdminNav, Button, EmptyState, Icon, Queue, QueueItem, ReviewDetail],
-  providers: [ReviewQueueStore, ReviewDetailStore],
+  imports: [
+    AdminLayout,
+    AdminNav,
+    Alert,
+    Button,
+    EmptyState,
+    Icon,
+    Queue,
+    QueueItem,
+    ReviewDetail,
+    Toast,
+    ToastRegion,
+  ],
+  providers: [ReviewQueueStore, ReviewDetailStore, ToastQueue, ReviewDecider, NewItemsWatch],
   templateUrl: './review-page.html',
   styleUrl: './review-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,9 +73,13 @@ export class ReviewPage {
   private readonly member = inject(SESSION).member;
   protected readonly store = inject(ReviewQueueStore);
   protected readonly detail = inject(ReviewDetailStore);
+  protected readonly decider = inject(ReviewDecider);
+  protected readonly toasts = inject(ToastQueue);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   private readonly requested = toSignal(
-    inject(ActivatedRoute).queryParamMap.pipe(map((params) => params.get('item'))),
+    this.route.queryParamMap.pipe(map((params) => params.get('item'))),
     { initialValue: null },
   );
   /** True while the detail panel is shown. */
@@ -77,14 +101,36 @@ export class ReviewPage {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private readonly injector = inject(Injector);
   private observer: IntersectionObserver | null = null;
+  private destroyed = false;
+  /** After a decision, focus goes to the title of the item that opens next. */
+  private focusNext = false;
+  private closeDialog: (() => void) | null = null;
+  /** Changes the selection in the address, as a click on an item would. */
+  private readonly select = (id: string | null) =>
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { item: id },
+      replaceUrl: true,
+    });
+
+  /** The warning about the open item, when another admin decided it first. */
+  protected readonly elsewhere = computed(() => {
+    const elsewhere = this.decider.elsewhere();
+    return elsewhere !== null && elsewhere.id === this.detail.id() ? elsewhere : null;
+  });
 
   constructor() {
     void this.store.load();
+    inject(NewItemsWatch).start();
 
     afterNextRender(() => {
       this.observer = new IntersectionObserver((entries) => this.reached(entries));
     });
-    inject(DestroyRef).onDestroy(() => this.observer?.disconnect());
+    inject(DestroyRef).onDestroy(() => {
+      this.destroyed = true;
+      this.observer?.disconnect();
+      this.closeDialog?.();
+    });
     this.watchWidth();
 
     // Open the selected item while the panel is shown; a phone asks for no detail.
@@ -100,10 +146,72 @@ export class ReviewPage {
       });
     });
 
+    // The warning goes with the item it was about; focus follows a decision to the next item.
+    effect(() => {
+      const id = this.detail.id();
+      const state = this.detail.state();
+      untracked(() => {
+        this.decider.forget(id);
+        if (state === 'loaded' && this.focusNext) {
+          this.focusNext = false;
+          afterNextRender(() => this.host.querySelector<HTMLElement>('.review__title')?.focus(), {
+            injector: this.injector,
+          });
+        }
+      });
+    });
+
     // Watch the ends of the list whenever the items held change.
     effect(() => {
       this.store.pages();
       afterNextRender(() => this.watch(), { injector: this.injector });
+    });
+  }
+
+  /** A decision button: Remove asks first; Approve and Keep listing are sent at once. */
+  protected async decide(decision: ReviewDecision): Promise<void> {
+    if (decision === 'remove') {
+      await this.confirmRemove();
+      return;
+    }
+    const result = await this.decider.decide(decision, this.select);
+    if (result === 'decided') {
+      this.focusNext = true;
+    }
+  }
+
+  /** "Go to the next item" after another admin decided first. */
+  protected async next(): Promise<void> {
+    this.focusNext = true;
+    await this.decider.next(this.select);
+  }
+
+  private async confirmRemove(): Promise<void> {
+    const item = this.detail.detail();
+    if (item === null || this.closeDialog !== null) {
+      return;
+    }
+    const [{ Dialog }, { openConfirmRemoveDialog }] = await Promise.all([
+      import('@angular/cdk/dialog'),
+      import('./confirm-remove-dialog'),
+    ]);
+    if (this.destroyed || this.detail.detail() !== item) {
+      return;
+    }
+    const dialog = openConfirmRemoveDialog(
+      this.injector.get(Dialog),
+      {
+        words: confirmRemoveWords(item),
+        remove: () => this.decider.decide('remove', this.select, { failureShown: true }),
+      },
+      this.injector,
+    );
+    this.closeDialog = () => dialog.close();
+    dialog.closed.subscribe((result) => {
+      this.closeDialog = null;
+      if (result === 'decided') {
+        this.focusNext = true;
+      }
     });
   }
 

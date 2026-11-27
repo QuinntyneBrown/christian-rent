@@ -28,6 +28,7 @@ describe('apiErrorInterceptor', () => {
       code: 'not_found',
       retryAt: null,
       reportedAt: null,
+      decided: null,
       fields: null,
     });
     backend.verify();

@@ -57,6 +57,7 @@ describe('AppSession', () => {
           code: 'not_signed_in',
           retryAt: null,
           reportedAt: null,
+          decided: null,
           fields: null,
         }),
     ];

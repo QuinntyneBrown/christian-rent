@@ -1,5 +1,6 @@
 using ChristianRent.Application.Abstractions;
 using ChristianRent.Infrastructure.Identity;
+using ChristianRent.Infrastructure.Notices;
 using ChristianRent.Infrastructure.Persistence;
 using ChristianRent.Infrastructure.Photos;
 using ChristianRent.Infrastructure.Storage;
@@ -29,6 +30,7 @@ public static class DependencyInjection
 
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentMember, HttpCurrentMember>();
+        services.AddScoped<IMemberNotifier, RecordedMemberNotifier>();
         services.AddScoped<Microsoft.AspNetCore.Authentication.IClaimsTransformation, MemberClaimsTransformation>();
 
         services.AddSingleton(TimeProvider.System);

@@ -19,12 +19,17 @@ import {
   ALICIA,
   LOCKER,
   PARTY_BUS,
+  QUEUE,
   REVIEW_NOW,
   YARD,
   answerAdmin,
   answerDetails,
+  answerDecisions,
   answerQueue,
+  decisionPath,
+  refuseAsDecided,
 } from '../fixtures/review';
+import { ConfirmRemoveDialogPart } from '../pages/confirm-remove-dialog.part';
 import { ListingPage } from '../pages/listing.page';
 import { PostPage } from '../pages/post.page';
 import { ReportDialogPart } from '../pages/report-dialog.part';
@@ -688,6 +693,107 @@ export const SCREENS: readonly Screen[] = [
     },
     then: (page) => page.locator('.empty--error').waitFor(),
   },
+  // After a decision (docs/mocks/pages/admin/decided.html, docs/mocks/notifications/review-toast/).
+  {
+    name: 'admin-decided',
+    path: '/admin',
+    answer: (api) => {
+      answerReview(api);
+      refuseAsDecided(api, YARD, 'approve', new Date(2026, 5, 8, 12, 14));
+    },
+    then: atReviewNow(async (page) => {
+      await approveOpenItem(page);
+      await page.locator('.admin__detail .alert--warning').waitFor();
+    }),
+  },
+  {
+    name: 'review-toast-success',
+    path: '/admin',
+    answer: (api) => {
+      answerReview(api);
+      answerDecisions(api);
+    },
+    then: atReviewNow(async (page) => {
+      await approveOpenItem(page);
+      await page.locator('.toast--success').waitFor();
+    }),
+  },
+  {
+    name: 'review-toast-danger',
+    path: '/admin',
+    answer: (api) => {
+      answerReview(api);
+      api.refuse('POST', decisionPath(YARD), 503, 'unavailable');
+    },
+    then: atReviewNow(async (page) => {
+      await approveOpenItem(page);
+      await page.locator('.toast--danger').waitFor();
+    }),
+  },
+  {
+    name: 'review-toast-info',
+    path: '/admin',
+    answer: (api) => {
+      answerReview(api);
+      // The page is read twice (on opening and after the clock is set); then two more wait.
+      let reads = 0;
+      api.answer('GET', '/api/review-queue', () => ({
+        body: { items: QUEUE, nextCursor: null, waitingCount: reads++ < 2 ? 4 : 6 },
+      }));
+    },
+    then: async (page) => {
+      await page.clock.install({ time: REVIEW_NOW });
+      await page.reload();
+      await page.locator('a.queue-item').first().waitFor();
+      await page.clock.runFor(60_000);
+      await page.locator('.toast--info').waitFor();
+    },
+  },
+  // The confirmation before Remove (docs/mocks/dialogs/confirm-remove/), over Admin.
+  {
+    name: 'confirm-remove',
+    path: `/admin?item=${PARTY_BUS.id}`,
+    answer: answerReview,
+    then: atReviewNow(openRemove),
+  },
+  {
+    name: 'confirm-remove-new-listing',
+    path: '/admin',
+    answer: answerReview,
+    then: atReviewNow(openRemove),
+  },
+  {
+    name: 'confirm-remove-new-member',
+    path: `/admin?item=${ALICIA.id}`,
+    answer: answerReview,
+    then: atReviewNow(openRemove),
+  },
+  {
+    name: 'confirm-remove-busy',
+    path: `/admin?item=${PARTY_BUS.id}`,
+    answer: (api) => {
+      answerReview(api);
+      api.hold('POST', decisionPath(PARTY_BUS));
+    },
+    then: atReviewNow(async (page) => {
+      const dialog = await openRemove(page);
+      await dialog.confirm.click();
+      await page.locator('.dialog__footer [aria-busy="true"]').waitFor();
+    }),
+  },
+  {
+    name: 'confirm-remove-failed',
+    path: `/admin?item=${PARTY_BUS.id}`,
+    answer: (api) => {
+      answerReview(api);
+      api.refuse('POST', decisionPath(PARTY_BUS), 503, 'unavailable');
+    },
+    then: atReviewNow(async (page) => {
+      const dialog = await openRemove(page);
+      await dialog.confirm.click();
+      await dialog.alert.waitFor();
+    }),
+  },
   {
     name: 'admin-forbidden',
     path: '/admin',
@@ -702,8 +808,24 @@ function answerReview(api: ApiFixtures): void {
   answerDetails(api);
 }
 
+/** Presses Approve under the open item. */
+async function approveOpenItem(page: Page): Promise<void> {
+  await page
+    .locator('.admin__detail')
+    .getByRole('button', { name: 'Approve', exact: true })
+    .click();
+}
+
+/** Presses Remove under the open item and waits for its confirmation. */
+async function openRemove(page: Page): Promise<ConfirmRemoveDialogPart> {
+  await page.locator('.admin__detail').getByRole('button', { name: 'Remove', exact: true }).click();
+  const dialog = new ConfirmRemoveDialogPart(page);
+  await dialog.keepIt.waitFor();
+  return dialog;
+}
+
 /** Freezes the clock on the Admin mocks' today and loads the page again, so waits read as drawn. */
-function atReviewNow(ready: (page: Page) => Promise<void>) {
+function atReviewNow(ready: (page: Page) => Promise<unknown>) {
   return async (page: Page) => {
     await page.clock.setFixedTime(REVIEW_NOW);
     await page.reload();

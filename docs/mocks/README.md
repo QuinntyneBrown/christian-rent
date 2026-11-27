@@ -122,7 +122,14 @@ reading and mark each with a note on the page.
    The prototype draws the detail panel loaded or loading only. `pages/admin/detail-error.html`
    adds the detail that did not load, with "Try again", and `pages/admin/detail-gone.html` the item
    another admin decided, or whose listing or member has gone, meanwhile (L2-033, criterion 2).
-8. **Offline** has no mock: nothing in the requirements keeps content for use without a connection.
+8. **Deciding.** The prototype confirms removing a reported listing only;
+   `dialogs/confirm-remove/new-listing.html` and `new-member.html` draw the other two, and the
+   success toast's note gives each decision's words (ADR 0025). The info toast says "They arrived
+   while you were reviewing." rather than naming the kinds that arrived, which a count of waiting
+   items does not give. The prototype raises Admin's toasts in the bottom right, over the decision
+   bar at the bottom of the detail panel, so a toast would hide Remove, focused or not, for 8 s
+   (WCAG 2.2, 2.4.11). Admin's toasts rise at the top right instead (`toast-region--top`).
+9. **Offline** has no mock: nothing in the requirements keeps content for use without a connection.
    A failed request is the error state of each screen.
 
 ## Checking and looking

@@ -14,6 +14,7 @@ const unreachable: ApiError = {
   code: null,
   retryAt: null,
   reportedAt: null,
+  decided: null,
   fields: null,
 };
 
@@ -46,6 +47,10 @@ class FakeReviewQueueApi implements ReviewQueueApi {
 
   page(cursor: string | null, signal: AbortSignal): Promise<ReviewQueuePage> {
     return new Promise((resolve, reject) => this.calls.push({ cursor, signal, resolve, reject }));
+  }
+
+  decide(): Promise<void> {
+    return Promise.reject(new Error('Not asked in these tests.'));
   }
 
   item(): Promise<ReviewItemDetail> {
@@ -94,6 +99,90 @@ describe('ReviewQueueStore', () => {
     expect(store.waiting()).toBe(4);
     expect(store.summary()).toBe('4 waiting · oldest first');
     expect(store.more()).toBe('done');
+  });
+
+  // L2-020 criterion 11; ADR 0025: a decided item leaves and the next one opens.
+  it.each([
+    ['item-1', 'item-2'],
+    ['item-0', 'item-1'],
+    ['item-3', 'item-2'],
+    ['item-9', 'item-0'],
+  ])('opens %s, then %s once it is decided', async (id, next) => {
+    const store = create();
+    const loading = store.load();
+    api.last().resolve(pageOf(0, 4, 4));
+    await loading;
+
+    expect(store.nextAfter(id)).toBe(next);
+  });
+
+  it('drops a decided item and lowers the number waiting', async () => {
+    const store = create();
+    const loading = store.load();
+    api.last().resolve(pageOf(0, 4, 9));
+    await loading;
+
+    store.drop('item-1');
+
+    expect(store.items().map((view) => view.id)).toEqual(['item-0', 'item-2', 'item-3']);
+    expect(store.waiting()).toBe(8);
+    expect(store.summary()).toBe('8 waiting · oldest first · showing 3');
+  });
+
+  it('is all caught up once the last item is decided (L2-019, criterion 3)', async () => {
+    const store = create();
+    const loading = store.load();
+    api.last().resolve(pageOf(0, 1, 1));
+    await loading;
+
+    store.drop('item-0');
+
+    expect(store.state()).toBe('empty');
+    expect(store.waiting()).toBe(0);
+    expect(api.calls).toHaveLength(1);
+  });
+
+  it('reads the queue again when every item held is decided and more wait', async () => {
+    const store = create();
+    const loading = store.load();
+    api.last().resolve(pageOf(0, 1, 3));
+    await loading;
+
+    store.drop('item-0');
+
+    expect(api.calls).toHaveLength(2);
+    expect(api.last().cursor).toBeNull();
+  });
+
+  // L2-019 criterion 12; ADR 0025: how many arrived, without changing what is shown.
+  it('answers how many arrived since the queue was read, less those decided', async () => {
+    const store = create();
+    const loading = store.load();
+    api.last().resolve(pageOf(0, 4, 4));
+    await loading;
+    store.drop('item-0');
+
+    const asking = store.arrivedSinceLoad();
+    expect(api.last().cursor).toBeNull();
+    api.last().resolve(pageOf(0, 5, 5));
+
+    expect(await asking).toBe(2);
+    expect(store.items()).toHaveLength(3);
+    expect(store.waiting()).toBe(3);
+  });
+
+  it('answers that none arrived when it cannot ask, or while the queue loads', async () => {
+    const store = create();
+    expect(await store.arrivedSinceLoad()).toBe(0);
+    expect(api.calls).toHaveLength(0);
+    const loading = store.load();
+    api.last().resolve(pageOf(0, 1, 1));
+    await loading;
+
+    const asking = store.arrivedSinceLoad();
+    api.last().reject(unreachable);
+
+    expect(await asking).toBe(0);
   });
 
   it('is empty when nothing waits (L2-019, criterion 3)', async () => {

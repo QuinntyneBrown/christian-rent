@@ -5,6 +5,7 @@ using ChristianRent.Domain.Churches;
 using ChristianRent.Domain.Listings;
 using ChristianRent.Domain.Members;
 using ChristianRent.Domain.Messages;
+using ChristianRent.Domain.Notices;
 using ChristianRent.Domain.Reports;
 using ChristianRent.Domain.Review;
 using ChristianRent.Infrastructure.Persistence;
@@ -105,6 +106,30 @@ public sealed class PurgeDepartedTests : IDisposable
         Assert.Equal(string.Empty, cleared.Text);
         Assert.Equal(new DateOnly(2026, 6, 13), cleared.StartDate);
         Assert.Equal("Is it free on Friday?", messages.Single(message => message.Id == fromJosh).Text);
+    }
+
+    // ADR 0025: what a departed member was to be told goes with them; another member's stays.
+    [Fact]
+    public async Task A_departed_members_notices_are_deleted()
+    {
+        await SeedAsync();
+        using var services = Services(afterDays: null);
+        using (var scope = services.CreateScope())
+        {
+            var database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            database.AddRange(
+                MemberNotice.ListingRemoved(_dan.Id, Guid.NewGuid(), LeftAt.AddDays(-3)),
+                MemberNotice.ListingRemoved(_ruth.Id, Guid.NewGuid(), LeftAt.AddDays(-3)));
+            await database.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        _clock.Advance(TimeSpan.FromDays(30));
+        Assert.Equal(0, await CliApp.RunAsync(["purge-departed"], services, _output, TestContext.Current.CancellationToken));
+
+        using var after = services.CreateScope();
+        var notices = await after.ServiceProvider.GetRequiredService<AppDbContext>().MemberNotices.AsNoTracking()
+            .ToListAsync(TestContext.Current.CancellationToken);
+        Assert.Equal([_ruth.Id], notices.Select(notice => notice.MemberId));
     }
 
     // L2-021 criterion 13 (ADR 0023): the note of a departed member's report goes and the report

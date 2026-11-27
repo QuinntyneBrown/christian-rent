@@ -55,6 +55,11 @@ internal sealed class PurgeDepartedMembersCommandHandler(IAppDbContext database,
             photoCount++;
         }
 
+        // What the member was to be told goes with them (ADR 0025).
+        database.MemberNotices.RemoveRange(await database.MemberNotices
+            .Where(notice => ids.Contains(notice.MemberId))
+            .ToListAsync(cancellationToken));
+
         // What the member wrote goes; the messages about their listings go with the listings
         // (L2-016, criterion 7; ADR 0022).
         var listingIds = listings.Select(listing => listing.Id).ToList();

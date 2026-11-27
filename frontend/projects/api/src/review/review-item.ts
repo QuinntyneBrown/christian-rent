@@ -84,9 +84,14 @@ export interface ReviewMember {
  * One item, as `GET /api/review-queue/{id}` answers it: `listing` for a new listing and a
  * report, `report` for a report, `member` for a new member.
  */
+/** What an admin decides on an item (L2-020). */
+export type ReviewDecision = 'approve' | 'keep' | 'remove';
+
 export interface ReviewItemDetail {
   readonly id: string;
   readonly kind: ReviewItemKind;
+  /** The decisions its kind allows: approve and remove, or keep and remove for a report. */
+  readonly decisions: readonly ReviewDecision[];
   readonly waitingSince: string;
   readonly listing: ReviewListing | null;
   readonly report: ReviewReport | null;

@@ -64,6 +64,9 @@ public sealed class Member
     /// <summary>An admin removes the member; their listings stop being public.</summary>
     public void Remove() => Status = MemberStatus.Removed;
 
+    /// <summary>An admin approved the member: their verified mark shows (L2-018, criterion 1).</summary>
+    public void Verify() => IsVerified = true;
+
     /// <summary>
     /// The member asks to leave: their listings stop being public at once, and the sign-in is no
     /// longer this member (L2-028, criterion 2; ADR 0017).

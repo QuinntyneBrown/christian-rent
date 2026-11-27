@@ -81,5 +81,12 @@ public static class TestData
         await database.SaveChangesAsync(TestContext.Current.CancellationToken);
     }
 
+    /// <summary>Reads from the factory's in-memory store, as it is after the requests.</summary>
+    public static async Task<T> ReadAsync<T>(this ApiFactory factory, Func<AppDbContext, Task<T>> read)
+    {
+        using var scope = factory.Services.CreateScope();
+        return await read(scope.ServiceProvider.GetRequiredService<AppDbContext>());
+    }
+
     public static DateTimeOffset At(int day, int hour = 9) => new(2026, 6, day, hour, 0, 0, TimeSpan.Zero);
 }

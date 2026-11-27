@@ -22,8 +22,10 @@ The queue and the detail panel are designed in
 **Frontend — `admin` library**
 
 - **`cr-review-detail`** (`components`) — its `decision-bar` shows the buttons named in
-  `ReviewItemDetail.allowedDecisions`: "Approve" and "Remove", or "Keep listing" and
-  "Remove" (L2-020, criterion 8). It emits `decide`. The bar is not shown under 768 px.
+  `ReviewItemDetail.decisions`: "Approve" and "Remove", or "Keep listing" and "Remove"
+  (L2-020, criterion 8). It emits `decide`; the button of the decision in flight is busy and the
+  others do nothing; `decided` turns them all off. A warning is projected above the item with
+  `slot="notice"`. The panel, and so the bar, is not shown under 768 px.
 - **`ConfirmRemoveDialog`** (`admin`, selector `cr-confirm-remove-dialog`) — CDK dialog
   opened for Remove (L2-020, criterion 4). It names what is removed and what follows: the
   listing stops being public, every open report on it is closed, the poster is told, and
@@ -32,23 +34,36 @@ The queue and the detail panel are designed in
   `default`, `busy`, `failed`. In `busy` the confirm button carries `aria-busy` and "Keep
   it" is off; in `failed` an alert says nothing has changed and the button reads "Try
   again" (criterion 10). It has no input, so Remove takes no reason.
-- **`ReviewQueueStore.decide(id, decision)`** — calls
-  `REVIEW_QUEUE_API.decide(id, decision, version)`. On success it drops the item, lowers
-  `waitingCount`, selects the next item and pushes a success toast that names the decision
-  and the item; no undo is offered (criterion 11). On `already_decided` it sets
-  `detail.conflict` with the other admin's decision and time; the panel shows a warning with
-  "Go to the next item", the decision buttons are disabled, and a warning toast says the
-  decision was not applied (criterion 13). On any other failure it keeps the selection and
-  pushes a danger toast with "Try again", which repeats the same decision (criterion 12).
-- **`ToastQueue`** (`admin`) — route-scoped list of toasts, newest last. A toast dismisses
+- **`ReviewDecider.decide(decision, select)`** (`admin`, provided by `ReviewPage`) — calls
+  `REVIEW_QUEUE_API.decide(id, decision)` for the open item, one decision at a time. On success
+  it selects the next item (`ReviewQueueStore.nextAfter`), then `ReviewQueueStore.drop` removes
+  the decided one and lowers the number waiting, and a success toast names the decision and the
+  item; no undo is offered (criterion 11). Focus moves to the next item's title. On
+  `already_decided` it keeps the item selected by its id while the item leaves the queue, and
+  `elsewhere` holds the other admin's decision and time: the panel shows a warning with "Go to
+  the next item", the decision buttons are off, and a warning toast says the decision was not
+  applied (criterion 13). On any other failure nothing changes and a danger toast offers "Try
+  again", which repeats the same decision (criterion 12). The words come from `@rent/domain`'s
+  `decision-words`. Removing a reported listing also decides the other items about it on the server;
+  the queue drops only the one decided, and opening another shows "This item is no longer
+  waiting." until the queue is read again.
+- **`ToastQueue`** (`admin`) — route-scoped list of toasts, newest last, shown in a
+  `cr-toast-region` at the top right, clear of the decision bar. A toast dismisses
   itself after 8 s; the timer pauses on hover and focus; a danger toast stays until
-  dismissed (L2-020, criterion 14). Timers are cleared on dismissal and on destroy. `cr-toast` renders inside a
+  dismissed (L2-020, criterion 14). Timers are cleared on dismissal and on destroy.
+- **`NewItemsWatch`** (`admin`, provided by `ReviewPage`) — every 60 s, while
+  `document.visibilityState` is `visible`, asks `ReviewQueueStore.arrivedSinceLoad()`, which
+  reads the first page without changing what is shown and answers how many more wait than
+  when the queue was read, less those decided since. When more have arrived than it has said,
+  it replaces its info toast, "2 new items are waiting" (or "1 new item is waiting") with "They
+  arrived while you were reviewing.", whose "Show them" reads the queue again (L2-019,
+  criterion 12). Its interval is cleared when Admin is left. `cr-toast` renders inside a
   live region so that a screen reader announces each (L2-032, criterion 4).
 
 **Backend**
 
 - **`ReviewQueueController.Decide`** — `POST /api/review-queue/{id}/decision` with
-  `{ decision, version }`, under the `Admin` policy. It sends one
+  `{ decision }`, under the `Admin` policy. It sends one
   `DecideReviewItemCommand`.
 - **`DecideReviewItemCommandHandler`** — loads the item and its subject, calls
   `ReviewItem.Decide(decision, adminId, now)`, applies the effect from the table, and saves
@@ -80,12 +95,15 @@ The queue and the detail panel are designed in
 The acceptance tests decide through the API. The decision table has a direct handler test,
 one case per row, and one test for the refused pairs.
 
-**Undecided**
+**Decided in ADR 0025**
 
-- How the poster is told that a listing was removed: `<TO SUPPLY>`. The Messages inbox and
-  sign-in are not designed, so `IMemberNotifier` has no implementation yet; the first
-  implementation records the notice for later delivery.
-- The largest number of toasts shown at once: `<TO SUPPLY>`.
+- The poster is told by a `MemberNotice` that `IMemberNotifier` records with the decision; the
+  inbox, when designed, shows it.
+- A decision already recorded, or a save whose `ReviewItem.Version` token check fails because
+  another admin decided first, answers 409 `already_decided`; the request carries no version.
+- At most three toasts show; a fourth drops the oldest that is not a failure.
+- The words after each decision, the confirmation for a new listing and a new member, and new
+  items noticed every 60 s while the page is visible (L2-019, criterion 12).
 
 ### Mocks
 

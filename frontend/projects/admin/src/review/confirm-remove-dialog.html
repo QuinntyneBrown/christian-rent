@@ -1,0 +1,32 @@
+<cr-dialog
+  titleId="confirm-remove-title"
+  [title]="data.words.title"
+  descriptionId="confirm-remove-description"
+  [description]="data.words.description"
+  icon="alert"
+  tone="danger"
+  [closeDisabled]="busy()"
+  (closed)="close()"
+>
+  @if (state() === 'failed') {
+    <cr-alert
+      tone="danger"
+      [announce]="true"
+      [title]="data.words.failed"
+      text="We couldn’t reach christian.rent. Nothing has changed."
+    />
+  }
+  <button
+    cr-button
+    slot="footer"
+    class="confirm-remove__keep"
+    type="button"
+    [attr.aria-disabled]="busy() ? 'true' : null"
+    (click)="close()"
+  >
+    Keep it
+  </button>
+  <button cr-button slot="footer" variant="danger" type="button" [busy]="busy()" (click)="remove()">
+    {{ state() === 'failed' ? 'Try again' : data.words.confirm }}
+  </button>
+</cr-dialog>

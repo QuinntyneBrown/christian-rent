@@ -93,3 +93,14 @@ export function selectedItem(
   }
   return listed[0] ?? null;
 }
+
+/**
+ * The info toast when items arrived while the queue was open (L2-019, criterion 12; ADR 0025):
+ * "2 new items are waiting", or "1 new item is waiting".
+ */
+export function newItemsToast(count: number): { title: string; text: string } {
+  return {
+    title: count === 1 ? '1 new item is waiting' : `${count} new items are waiting`,
+    text: 'They arrived while you were reviewing.',
+  };
+}

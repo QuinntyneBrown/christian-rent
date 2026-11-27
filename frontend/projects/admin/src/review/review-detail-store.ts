@@ -1,5 +1,10 @@
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
-import { REVIEW_QUEUE_API, type ReviewDetailView, isApiError } from '@rent/api';
+import {
+  REVIEW_QUEUE_API,
+  type ReviewDetailView,
+  type ReviewItemDetail,
+  isApiError,
+} from '@rent/api';
 import { toReviewDetailView } from '@rent/domain';
 import { SKELETON_DELAY_MS } from './review-queue-store';
 
@@ -17,6 +22,7 @@ export class ReviewDetailStore {
 
   private readonly _state = signal<ReviewDetailState>('idle');
   private readonly _view = signal<ReviewDetailView | null>(null);
+  private readonly _detail = signal<ReviewItemDetail | null>(null);
   private readonly _skeleton = signal(false);
   private readonly _id = signal<string | null>(null);
   private request: AbortController | null = null;
@@ -24,6 +30,8 @@ export class ReviewDetailStore {
 
   readonly state = this._state.asReadonly();
   readonly view = this._view.asReadonly();
+  /** The item as the backend gave it, which a decision's words are made from. */
+  readonly detail = this._detail.asReadonly();
   /** True once the detail has been awaited for 300 ms (L2-033, criteria 1 and 5). */
   readonly skeleton = this._skeleton.asReadonly();
   /** The item open, or being opened. */
@@ -54,6 +62,7 @@ export class ReviewDetailStore {
     this.stopSkeletonTimer();
     this._id.set(null);
     this._view.set(null);
+    this._detail.set(null);
     this._skeleton.set(false);
     this._state.set('idle');
   }
@@ -64,6 +73,7 @@ export class ReviewDetailStore {
     this.request = request;
     this._id.set(id);
     this._view.set(null);
+    this._detail.set(null);
     this._state.set('loading');
     this._skeleton.set(false);
     this.stopSkeletonTimer();
@@ -74,6 +84,7 @@ export class ReviewDetailStore {
         return;
       }
       const view = toReviewDetailView(detail, new Date());
+      this._detail.set(detail);
       this._view.set(view);
       this._state.set(view === null ? 'gone' : 'loaded');
     } catch (error) {

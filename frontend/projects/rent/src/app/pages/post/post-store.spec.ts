@@ -37,7 +37,7 @@ class FakeListingsApi implements Pick<ListingsApi, 'post'> {
 }
 
 function refusal(status: number, code: string | null, retryAt: string | null = null): ApiError {
-  return { status, code, retryAt, reportedAt: null, fields: null };
+  return { status, code, retryAt, reportedAt: null, decided: null, fields: null };
 }
 
 // publish-listing design (PostStore.publish); L2-012; ADR 0019.

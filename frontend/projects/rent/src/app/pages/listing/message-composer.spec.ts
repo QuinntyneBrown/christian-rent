@@ -36,7 +36,7 @@ class FakeMessagesApi implements MessagesApi {
 }
 
 function refusal(status: number, code: string | null, retryAt: string | null = null): ApiError {
-  return { status, code, retryAt, reportedAt: null, fields: null };
+  return { status, code, retryAt, reportedAt: null, decided: null, fields: null };
 }
 
 // send-message design (MessageComposer); ADR 0022; L2-015; L2-016 criteria 4 and 6.
