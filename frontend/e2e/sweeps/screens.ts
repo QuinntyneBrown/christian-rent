@@ -22,7 +22,10 @@ import {
   REPORT_ROW,
   REVIEW_NOW,
   type ReviewRowFixture,
+  ALICIA_CHURCH,
   answerAdmin,
+  answerChurchConfirmation,
+  churchVerification,
   answerDecision,
   decisionOf,
   refuseDecided,
@@ -209,6 +212,24 @@ const DECIDING_SCREENS: readonly Screen[] = [
     ),
     before: (page) => page.clock.install({ time: REVIEW_NOW }),
   },
+];
+
+/** A new member selected and "Confirm church" pressed (docs/mocks/, journey 12). */
+function confirmingChurch(name: string, answer: (api: ApiFixtures) => void): Screen {
+  return adminScreen(name, answer, (page) =>
+    onDecisionBar(page, MEMBER_ROW, (admin) => admin.confirmChurch.click()),
+  );
+}
+
+const CHURCH_SCREENS: readonly Screen[] = [
+  confirmingChurch(
+    'admin-church-confirming',
+    (api) => void api.hold('POST', churchVerification(ALICIA_CHURCH)),
+  ),
+  confirmingChurch('admin-church-confirmed', (api) => answerChurchConfirmation(api)),
+  confirmingChurch('admin-church-failed', (api) =>
+    api.refuse('POST', churchVerification(ALICIA_CHURCH), 500, 'server_error'),
+  ),
 ];
 
 const ADMIN_SCREENS: readonly Screen[] = [
@@ -787,6 +808,7 @@ export const SCREENS: readonly Screen[] = [
   },
   ...ADMIN_SCREENS,
   ...DECIDING_SCREENS,
+  ...CHURCH_SCREENS,
 ];
 
 /** Opens the join dialog from the host page and waits for its churches. */

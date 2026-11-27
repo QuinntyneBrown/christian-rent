@@ -1,0 +1,49 @@
+@startuml
+title UML sequence behaviour — Confirm a church
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Admin" as actor
+box "Frontend — admin library (lazy)" #E0F2FE
+  participant "cr-review-detail" as detail
+  participant "ReviewQueueStore" as store
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "ChurchesController" as ctrl
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "VerifyChurchCommandHandler" as handler
+  participant "Church" as church
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> detail : Confirm church (L2-018 criterion 7)
+detail -> store : confirmChurch()
+store -> ctrl : POST /api/churches/{id}/verification
+ctrl -> ctrl : Admin policy (L2-018 criterion 5)
+ctrl -> handler : Send VerifyChurchCommand
+handler -> db : Read the church
+alt no such church
+  handler --> ctrl : not_found
+  ctrl --> store : 404
+  store --> actor : "The church wasn't confirmed", Try again
+else
+  handler -> church : Verify(adminId, now) (L2-018 criterion 11)
+  handler -> db : Save
+  ctrl --> store : 204
+  store -> detail : Church status "Verified"
+  store --> actor : "Church confirmed"
+end
+@enduml

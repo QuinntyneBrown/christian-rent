@@ -118,14 +118,18 @@ refused, notifications say what came of it, and the screen says when new items a
 removal records a notice for the poster, but nothing is sent yet
 ([ADR 0025](docs/adr/0025-telling-a-poster-their-listing-was-removed.md),
 [ADR 0026](docs/adr/0026-two-admins-deciding-one-item.md),
-[ADR 0027](docs/adr/0027-deciding-a-review-item-open-decisions.md)).
+[ADR 0027](docs/adr/0027-deciding-a-review-item-open-decisions.md)). Verifying members and
+churches is built (journey 12): approving a new member verifies them, "Confirm church" on their
+detail verifies their church on the listings of all its members, and only an admin can do either.
+A church none of whose new members still waits cannot be confirmed from any screen
+([ADR 0028](docs/adr/0028-confirming-a-church.md)).
 
 - The requirements are in `docs/specs/`, the mocks in `docs/mocks/`, the design system in
   `docs/design-system/` and the detailed designs in `docs/detailed-designs/`.
 - The journeys and their slices are in `docs/journeys.md` and `docs/detailed-journeys.md`, with
   **% complete**; the architecture decisions are in `docs/adr/`.
-- What comes next is journey 11, Decide a review item: one slice at a time, each with its failing
-  acceptance test first.
+- All twelve journeys are built. What is not designed, such as sign-in, a Messages inbox and
+  "My listings", is listed in `docs/specs/L1.md` under *Not yet decided*.
 
 ## How it works
 
@@ -140,10 +144,10 @@ Member ──▶ rent (screens) ──▶ api clients (HTTP) ──▶ backend (
 | `frontend/projects/api` (`@rent/api`) | Contracts, types, injection tokens, and the HTTP clients for the backend |
 | `frontend/projects/domain` (`@rent/domain`) | Rules the browser applies itself: `listings/`, `search/`, `storage/` |
 | `frontend/projects/components` (`@rent/components`) | Presentation components, named as in the design system |
+| `frontend/projects/admin` (`@rent/admin`) | Admin: the review queue, loaded only for an admin |
 | `frontend/projects/rent` | The app: pages, dialogs and the composition root |
 | `backend/src/ChristianRent.*` | `Domain` ← `Application` ← `Infrastructure` ← `Api` |
 
-The `admin` library joins these when journey 10 adds it.
 Dependencies run one way, and ESLint enforces it. Every route is lazy-loaded, and the backend
 decides what a member or an admin may do. The full rules are in [`AGENTS.md`](AGENTS.md).
 

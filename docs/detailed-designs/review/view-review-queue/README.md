@@ -110,8 +110,9 @@ so. `rent` imports it only with `import('@rent/admin')`.
     reporter. "View on site" opens the listing (criterion 8);
   - new member: name, when they joined, church, city, whether the church is verified and who
     entered it, the counts of the member's listings that are not removed (all, for rent,
-    public), and the count of messages sent. The panel has no control for the church
-    (criteria 9, 16 and 17).
+    public), and the count of messages sent. The panel's one control for the church confirms
+    it ([verify-members-and-churches](../../members/verify-members-and-churches/README.md);
+    criteria 9, 16 and 17).
 - **`ReviewItem`** — `{ Id, Kind, SubjectId, CreatedAt }`. `SubjectId` names a listing, a
   report or a member according to `Kind`. Journey 11 adds the decision.
 - **`Church.EnteredById`** — the member who entered the church when they joined, or null.

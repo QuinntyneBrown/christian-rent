@@ -1,5 +1,7 @@
+using ChristianRent.Api.Access;
 using ChristianRent.Application.Members;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChristianRent.Api.Members;
@@ -15,4 +17,16 @@ public sealed class ChurchesController(ISender sender) : ControllerBase
     [HttpGet]
     public Task<IReadOnlyList<ChurchOptionDto>> List(CancellationToken cancellationToken) =>
         sender.Send(new ListChurchesQuery(), cancellationToken);
+
+    /// <summary>
+    /// An admin confirms a church. Anyone else is refused before it is looked for, so they
+    /// learn nothing of which churches exist (L2-018, criteria 5 and 11).
+    /// </summary>
+    [HttpPost("{id}/verification")]
+    [Authorize(Policy = AccessExtensions.AdminPolicy)]
+    public async Task<IActionResult> Verify(string id, CancellationToken cancellationToken)
+    {
+        await sender.Send(new VerifyChurchCommand(id), cancellationToken);
+        return NoContent();
+    }
 }

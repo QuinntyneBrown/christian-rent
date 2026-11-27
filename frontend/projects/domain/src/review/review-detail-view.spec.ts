@@ -61,6 +61,7 @@ function member(overrides: Partial<ReviewMember> = {}): ReviewMember {
     name: 'Dr. Alicia Gomez',
     joinedAt: noon(2026, 6, 8),
     church: {
+      id: 'c1',
       name: 'St. Paul’s Anglican',
       city: 'Fort Langley',
       isVerified: false,
@@ -194,6 +195,7 @@ describe('toReviewDetailView', () => {
           term: 'Church status',
           value: 'New to christian.rent, entered by this member',
           verified: null,
+          churchStatus: { confirmable: true },
         },
         { term: 'Listings', value: '1 wanted listing, public', verified: null },
         { term: 'Messages sent', value: 'None', verified: null },
@@ -221,11 +223,25 @@ describe('toReviewDetailView', () => {
     ],
     [false, null, 'Not verified'],
   ])('writes a church (verified %s, entered by %o) as "%s"', (isVerified, enteredBy, words) => {
-    const church = { name: 'Open Door', city: 'Surrey', isVerified, enteredBy };
+    const church = { id: 'c1', name: 'Open Door', city: 'Surrey', isVerified, enteredBy };
 
     expect(factsOf(item({ kind: 'new-member', member: member({ church }) }))['Church status']).toBe(
       words,
     );
+  });
+
+  // L2-018 criterion 7: only a church that is not verified can be confirmed.
+  it.each([
+    [false, true],
+    [true, false],
+  ])('offers to confirm a church that is verified %s: %s', (isVerified, confirmable) => {
+    const church = { id: 'c1', name: 'Open Door', city: 'Surrey', isVerified, enteredBy: null };
+
+    const view = toReviewDetailView(item({ kind: 'new-member', member: member({ church }) }), NOW);
+
+    expect(view.facts.filter((fact) => fact.churchStatus)).toEqual([
+      expect.objectContaining({ term: 'Church status', churchStatus: { confirmable } }),
+    ]);
   });
 
   // L2-019 criterion 17: listings that are not removed (all, for rent, public).

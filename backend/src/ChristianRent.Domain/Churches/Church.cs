@@ -36,6 +36,12 @@ public sealed class Church
     /// </summary>
     public Guid? EnteredById { get; private set; }
 
+    /// <summary>The admin who confirmed the church (L2-018, criterion 11). Null for sample data.</summary>
+    public Guid? VerifiedBy { get; private set; }
+
+    /// <summary>When that admin confirmed it.</summary>
+    public DateTimeOffset? VerifiedAt { get; private set; }
+
     /// <summary>A church with a known identifier, as seed data and tests enter them.</summary>
     public static Church Create(Guid id, string name, string city, bool isVerified) =>
         new(id, name, city, isVerified);
@@ -43,6 +49,22 @@ public sealed class Church
     /// <summary>A member enters their church; an admin has not confirmed it yet.</summary>
     public static Church Enter(string name, string city) =>
         new(Guid.NewGuid(), name, city, isVerified: false);
+
+    /// <summary>
+    /// An admin confirms the church, which is the only way it becomes verified. A verified
+    /// church is left as it is, so the first record stays (ADR 0028).
+    /// </summary>
+    public void Verify(Guid adminId, DateTimeOffset now)
+    {
+        if (IsVerified)
+        {
+            return;
+        }
+
+        IsVerified = true;
+        VerifiedBy = adminId;
+        VerifiedAt = now;
+    }
 
     /// <summary>Records who entered a new church, once.</summary>
     public void RecordEnteredBy(Guid memberId) => EnteredById ??= memberId;

@@ -64,6 +64,18 @@ describe('HttpReviewQueueApi', () => {
     await expect(arrived).resolves.toEqual({ newListings: 1, reports: 0, newMembers: 0 });
   });
 
+  // L2-018 criterion 11 (ADR 0028): the confirmation sends no body.
+  it('confirms a church by its identifier, with no body', async () => {
+    const confirmed = api.confirmChurch('a/b', new AbortController().signal);
+
+    const sent = http.expectOne('/api/churches/a%2Fb/verification');
+    expect(sent.request.method).toBe('POST');
+    expect(sent.request.body).toBeNull();
+    sent.flush(null, { status: 204, statusText: 'No Content' });
+
+    await expect(confirmed).resolves.toBeNull();
+  });
+
   // Lesson L33: the abort is observed on the request itself.
   it('cancels the request in flight when it is aborted', async () => {
     const abort = new AbortController();

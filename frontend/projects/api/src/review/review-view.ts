@@ -25,6 +25,8 @@ export interface ReviewFactView {
   readonly term: string;
   readonly value: string;
   readonly verified: 'member' | 'church' | null;
+  /** Set on a new member's "Church status": whether the church can be confirmed. */
+  readonly churchStatus?: { readonly confirmable: boolean };
 }
 
 /** One button of the decision bar. */

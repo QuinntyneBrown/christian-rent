@@ -65,9 +65,26 @@
         <div>
           <dt>{{ fact.term }}</dt>
           <dd>
-            {{ fact.value }}
-            @if (fact.verified; as subject) {
-              <cr-verified [subject]="subject" />
+            @if (fact.churchStatus; as church) {
+              <span class="review__church-status" tabindex="-1">{{ fact.value }}</span>
+              @if (church.confirmable) {
+                <button
+                  cr-button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  [busy]="confirming()"
+                  [disabled]="conflict() !== null || (off() && !confirming())"
+                  (click)="confirmChurch.emit()"
+                >
+                  Confirm church
+                </button>
+              }
+            } @else {
+              {{ fact.value }}
+              @if (fact.verified; as subject) {
+                <cr-verified [subject]="subject" />
+              }
             }
           </dd>
         </div>

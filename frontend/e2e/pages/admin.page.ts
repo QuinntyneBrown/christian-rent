@@ -57,6 +57,9 @@ export class AdminPage {
   readonly approve: Locator;
   readonly keep: Locator;
   readonly remove: Locator;
+  /** A new member's church: its status, and the button that confirms it. */
+  readonly churchStatus: Locator;
+  readonly confirmChurch: Locator;
 
   /** What the panel says of an item another admin decided first. */
   readonly conflictTitle: Locator;
@@ -136,6 +139,9 @@ export class AdminPage {
     this.keep = bar.getByRole('button', { name: 'Keep listing', exact: true });
     this.remove = bar.getByRole('button', { name: 'Remove', exact: true });
 
+    this.churchStatus = this.detail.locator('.review__church-status');
+    this.confirmChurch = this.detail.getByRole('button', { name: 'Confirm church', exact: true });
+
     const conflict = this.detail.locator('.review__conflict');
     this.conflictTitle = conflict.locator('.alert__title');
     this.conflictText = conflict.locator('.alert__text');
@@ -178,7 +184,11 @@ export class AdminPage {
       facts.map((fact) => {
         const text = (selector: string) =>
           (fact.querySelector(selector)?.textContent ?? '').replace(/\s+/g, ' ').trim();
-        return `${text('dt')}: ${text('dd')}`;
+        // A new member's church status stands beside the button that confirms the church.
+        const value = fact.querySelector('.review__church-status')
+          ? '.review__church-status'
+          : 'dd';
+        return `${text('dt')}: ${text(value)}`;
       }),
     );
   }

@@ -46,6 +46,11 @@ export class HttpReviewQueueApi implements ReviewQueueApi {
     return this.send(this.http.post<ReviewDecided>(url, { decision, version }), signal);
   }
 
+  confirmChurch(churchId: string, signal: AbortSignal): Promise<void> {
+    const url = `/api/churches/${encodeURIComponent(churchId)}/verification`;
+    return this.send(this.http.post<void>(url, null), signal);
+  }
+
   private send<T>(response: Observable<T>, signal: AbortSignal): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       if (signal.aborted) {

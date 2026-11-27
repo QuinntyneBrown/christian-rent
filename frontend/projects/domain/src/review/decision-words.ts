@@ -109,6 +109,22 @@ export function toFailedToast(subject: DecisionSubject): Notice {
   };
 }
 
+/** The notification of a church confirmed (L2-018, criterion 9). */
+export function toChurchConfirmedToast(church: string): Notice {
+  return {
+    title: 'Church confirmed',
+    text: `${church} is now verified. Its members’ listings show it as verified.`,
+  };
+}
+
+/** The notification of a church confirmation that could not be saved (L2-018, criterion 10). */
+export function toChurchFailedToast(church: string): Notice {
+  return {
+    title: 'The church wasn’t confirmed',
+    text: `We couldn’t reach christian.rent. ${church} is not verified yet.`,
+  };
+}
+
 /** The notification that new items arrived: how many, and what (L2-019, criterion 12). */
 export function toArrivalsToast({ newListings, reports, newMembers }: ReviewArrivals): Notice {
   const total = newListings + reports + newMembers;
