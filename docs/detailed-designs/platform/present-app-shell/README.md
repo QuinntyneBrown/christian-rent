@@ -190,7 +190,8 @@ the product has one language.
   [ADR 0030](../../../adr/0030-bundle-budgets-per-application.md), and tightened from there.
 - Whether the dark theme has a manual switch in the product: the mocks toggle it from the
   mock bar only.
-- Which hosts serve the two applications: `<TO SUPPLY>`. Each is a static host as above.
+- christian.rent's own domains are not bound: each application is served from the host Azure
+  gives its container app ([ADR 0031](../../../adr/0031-hosting-on-azure-and-deploying-each-commit.md)).
 
 ### Mocks
 

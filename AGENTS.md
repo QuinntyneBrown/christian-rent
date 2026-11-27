@@ -88,6 +88,9 @@ rules.
 - Where a rule below names something that does not exist yet (a project, a command, a fixture,
   a helper, a folder, a document), the first change that needs it adds it. The repository starts
   with these instructions and the skills, and nothing else.
+- **`infra/` is how it runs in Azure** (ADR 0031): the two images' Dockerfiles, the static
+  hosts' nginx configuration, `provision.sh` (once) and `deploy.sh` (every release), all with
+  the Azure CLI.
 - Run npm commands from `frontend/` and `dotnet` commands from `backend/`.
   `node tools/verify/verify.mjs` runs every CI check and the unit tests locally; run it before
   pushing.
@@ -223,7 +226,12 @@ Clean architecture, strict dependency direction: `ChristianRent.Domain` (entitie
   fixed or removed, never retried.
 - It runs only the few highest-value tests per feature: lint, build and one critical acceptance
   path each. Unit tests run locally, never in CI.
-- A setting a deployed system needs is documented in the same change.
+- Every commit to `main` that passes CI is deployed to Azure by the `Deploy` workflow
+  (ADR 0031), so `main` is always releasable. It signs in with GitHub's OIDC token; no credential
+  is stored in the repository or its secrets. A migration stays compatible with the release
+  before it, because going back does not undo it.
+- A setting a deployed system needs is documented in the same change, and set in
+  `infra/deploy.sh`.
 
 ## Lazy loading and memory (the top frontend priority)
 

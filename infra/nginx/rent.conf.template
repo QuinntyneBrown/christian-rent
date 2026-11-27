@@ -1,0 +1,42 @@
+# The static host of `rent` (ADR 0028). The API runs beside it in the same replica, on 5080.
+server {
+    listen 8080;
+    server_name _;
+    root /usr/share/nginx/html;
+    server_tokens off;
+    absolute_redirect off;
+
+    # A 10 MB photo and its form (ADR 0021).
+    client_max_body_size 11m;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 1024;
+
+    # `rent` proxies /api/ to the one API on its own origin, with the Host it was asked for. The
+    # platform's ingress appends the caller's address to X-Forwarded-For and sets the scheme, so
+    # both pass through unchanged; the API trusts them from this loopback address only.
+    location /api/ {
+        proxy_pass http://127.0.0.1:5080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $http_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_set_header Connection "";
+    }
+
+    # Files whose name holds a hash of their content never change.
+    location ~ "-[A-Za-z0-9_-]{8}\.(js|css)$" {
+        include /etc/nginx/snippets/security-headers.conf;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        try_files $uri =404;
+    }
+
+    # Anything that is not a file is a screen: the SPA fallback. index.html and the files with
+    # no hash in their name are checked with the server every time.
+    location / {
+        include /etc/nginx/snippets/security-headers.conf;
+        add_header Cache-Control "no-cache" always;
+        try_files $uri /index.html;
+    }
+}

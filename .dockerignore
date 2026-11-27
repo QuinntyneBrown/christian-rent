@@ -1,0 +1,15 @@
+# The images are built from the repository root (infra/*.Dockerfile). Only what they copy is sent.
+*
+!backend/
+!frontend/
+!infra/nginx/
+
+**/bin/
+**/obj/
+**/TestResults/
+**/node_modules/
+**/dist/
+**/test-results/
+**/.angular/
+backend/tests/
+frontend/e2e/
