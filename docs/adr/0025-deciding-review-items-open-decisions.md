@@ -37,7 +37,9 @@ The decide-review-item design and its mocks leave open what journey 11 has to se
   not applied.", its decision buttons off and "Go to the next item"; a warning toast says
   "Already decided" and "Another admin approved “Backyard garden for gatherings” first. Your
   decision was not applied."
-- **At most three toasts.** They stack newest at the bottom. A fourth drops the oldest toast
+- **At most three toasts.** They rise at the top right, clear of the decision bar at the bottom
+  of the detail panel, which a toast in the bottom right would hide (WCAG 2.2, 2.4.11), and
+  stack newest at the bottom. A fourth drops the oldest toast
   that is not a failure; a failure stays until it is dismissed. Every other toast dismisses
   itself after 8 s, paused while the pointer or the focus is on it.
 - **Words.** After a decision the success toast says, for a new listing, "Approved" and

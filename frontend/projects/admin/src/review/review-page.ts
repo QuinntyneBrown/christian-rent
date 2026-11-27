@@ -24,12 +24,15 @@ import {
   Queue,
   QueueItem,
   ReviewDetail,
+  Toast,
+  ToastRegion,
 } from '@rent/components';
 import { confirmRemoveWords, selectedItem } from '@rent/domain';
 import { map } from 'rxjs';
 import { ReviewDecider } from './review-decider';
 import { ReviewDetailStore } from './review-detail-store';
 import { ReviewQueueStore } from './review-queue-store';
+import { ToastQueue } from './toast-queue';
 
 /** From this width the detail panel is shown beside the queue (L2-031, criterion 5). */
 const WIDE = '(min-width: 48rem)';
@@ -46,8 +49,20 @@ const WIDE = '(min-width: 48rem)';
  */
 @Component({
   selector: 'cr-review-page',
-  imports: [AdminLayout, AdminNav, Alert, Button, EmptyState, Icon, Queue, QueueItem, ReviewDetail],
-  providers: [ReviewQueueStore, ReviewDetailStore, ReviewDecider],
+  imports: [
+    AdminLayout,
+    AdminNav,
+    Alert,
+    Button,
+    EmptyState,
+    Icon,
+    Queue,
+    QueueItem,
+    ReviewDetail,
+    Toast,
+    ToastRegion,
+  ],
+  providers: [ReviewQueueStore, ReviewDetailStore, ToastQueue, ReviewDecider],
   templateUrl: './review-page.html',
   styleUrl: './review-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,6 +72,7 @@ export class ReviewPage {
   protected readonly store = inject(ReviewQueueStore);
   protected readonly detail = inject(ReviewDetailStore);
   protected readonly decider = inject(ReviewDecider);
+  protected readonly toasts = inject(ToastQueue);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -181,7 +197,10 @@ export class ReviewPage {
     }
     const dialog = openConfirmRemoveDialog(
       this.injector.get(Dialog),
-      { words: confirmRemoveWords(item), remove: () => this.decider.decide('remove', this.select) },
+      {
+        words: confirmRemoveWords(item),
+        remove: () => this.decider.decide('remove', this.select, { failureShown: true }),
+      },
       this.injector,
     );
     this.closeDialog = () => dialog.close();

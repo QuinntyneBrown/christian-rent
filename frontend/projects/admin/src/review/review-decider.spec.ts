@@ -10,6 +10,7 @@ import {
 import { ReviewDecider } from './review-decider';
 import { ReviewDetailStore } from './review-detail-store';
 import { ReviewQueueStore } from './review-queue-store';
+import { ToastQueue } from './toast-queue';
 
 function refusal(code: string | null, decided: ApiError['decided'] = null): ApiError {
   return {
@@ -90,6 +91,8 @@ class FakeReviewQueueApi implements ReviewQueueApi {
 
 let api: FakeReviewQueueApi;
 let queue: ReviewQueueStore;
+let toasts: ToastQueue;
+const shown = () => toasts.toasts().map(({ tone, title, text }) => ({ tone, title, text }));
 /** What the selection was changed to, in order, with the queue's ids at that moment. */
 let selections: { id: string | null; listed: string[] }[];
 const select = (id: string | null) => {
@@ -104,11 +107,13 @@ async function create(open = 'b'): Promise<ReviewDecider> {
     providers: [
       ReviewQueueStore,
       ReviewDetailStore,
+      ToastQueue,
       ReviewDecider,
       { provide: REVIEW_QUEUE_API, useValue: api },
     ],
   });
   queue = TestBed.inject(ReviewQueueStore);
+  toasts = TestBed.inject(ToastQueue);
   await queue.load();
   await TestBed.inject(ReviewDetailStore).open(open);
   return TestBed.inject(ReviewDecider);
@@ -128,6 +133,9 @@ describe('ReviewDecider', () => {
     expect(selections).toEqual([{ id: 'c', listed: ['a', 'b', 'c'] }]);
     expect(queue.items().map((item) => item.id)).toEqual(['a', 'c']);
     expect(decider.deciding()).toBeNull();
+    expect(shown()).toEqual([
+      { tone: 'success', title: 'Approved', text: 'Member b is now verified.' },
+    ]);
   });
 
   it('sends one decision at a time', async () => {
@@ -158,6 +166,14 @@ describe('ReviewDecider', () => {
       next: 'c',
     });
 
+    expect(shown()).toEqual([
+      {
+        tone: 'warning',
+        title: 'Already decided',
+        text: 'Another admin approved Member b first. Your decision was not applied.',
+      },
+    ]);
+
     await decider.next(select);
 
     expect(selections[1]).toEqual({ id: 'c', listed: ['a', 'c'] });
@@ -174,6 +190,41 @@ describe('ReviewDecider', () => {
     expect(selections).toEqual([]);
     expect(queue.items().map((item) => item.id)).toEqual(['a', 'b', 'c']);
     expect(decider.deciding()).toBeNull();
+    expect(shown()).toEqual([
+      {
+        tone: 'danger',
+        title: 'Your decision wasn’t saved',
+        text: 'We couldn’t reach christian.rent. Member b is still in the queue.',
+      },
+    ]);
+  });
+
+  it('tries the same decision on the same item again, from its toast', async () => {
+    const decider = await create();
+    const deciding = decider.decide('remove', select);
+    api.last().reject(refusal(null));
+    await deciding;
+
+    toasts.act(toasts.toasts()[0]!.id);
+    api.last().resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(api.decisions.map(({ id, decision }) => [id, decision])).toEqual([
+      ['b', 'remove'],
+      ['b', 'remove'],
+    ]);
+    expect(toasts.toasts().map((toast) => toast.title)).toEqual(['Removed']);
+  });
+
+  it('leaves a failure in the dialog to the dialog', async () => {
+    const decider = await create();
+
+    const deciding = decider.decide('remove', select, { failureShown: true });
+    api.last().reject(refusal(null));
+
+    expect(await deciding).toBe('failed');
+    expect(shown()).toEqual([]);
   });
 
   it('forgets the warning once another item opens', async () => {

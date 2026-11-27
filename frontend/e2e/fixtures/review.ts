@@ -292,6 +292,27 @@ export function answerDecisions(api: ApiFixtures, items: QueueItemFixture[] = QU
   }
 }
 
+/** Another admin decided the item first: the first decision stands (ADR 0025). */
+export function refuseAsDecided(
+  api: ApiFixtures,
+  item: QueueItemFixture,
+  decision: string,
+  decidedAt: Date,
+): void {
+  api.answer('POST', decisionPath(item), {
+    status: 409,
+    body: {
+      type: 'about:blank',
+      title: 'Refused',
+      status: 409,
+      code: 'already_decided',
+      decision,
+      decidedAt: decidedAt.toISOString(),
+    },
+    headers: { 'content-type': 'application/problem+json' },
+  });
+}
+
 /** The decisions sent about an item, in order, as `approve`, `keep` or `remove`. */
 export function decisionsSent(api: ApiFixtures, item: QueueItemFixture): unknown[] {
   return api.bodies.get(`POST ${decisionPath(item)}`) ?? [];

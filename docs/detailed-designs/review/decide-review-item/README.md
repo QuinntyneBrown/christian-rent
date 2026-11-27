@@ -47,7 +47,8 @@ The queue and the detail panel are designed in
   `decision-words`. Removing a reported listing also decides the other items about it on the server;
   the queue drops only the one decided, and opening another shows "This item is no longer
   waiting." until the queue is read again.
-- **`ToastQueue`** (`admin`) — route-scoped list of toasts, newest last. A toast dismisses
+- **`ToastQueue`** (`admin`) — route-scoped list of toasts, newest last, shown in a
+  `cr-toast-region` at the top right, clear of the decision bar. A toast dismisses
   itself after 8 s; the timer pauses on hover and focus; a danger toast stays until
   dismissed (L2-020, criterion 14). Timers are cleared on dismissal and on destroy. `cr-toast` renders inside a
   live region so that a screen reader announces each (L2-032, criterion 4).

@@ -126,7 +126,9 @@ reading and mark each with a note on the page.
    `dialogs/confirm-remove/new-listing.html` and `new-member.html` draw the other two, and the
    success toast's note gives each decision's words (ADR 0025). The info toast says "They arrived
    while you were reviewing." rather than naming the kinds that arrived, which a count of waiting
-   items does not give.
+   items does not give. The prototype raises Admin's toasts in the bottom right, over the decision
+   bar at the bottom of the detail panel, so a toast would hide Remove, focused or not, for 8 s
+   (WCAG 2.2, 2.4.11). Admin's toasts rise at the top right instead (`toast-region--top`).
 9. **Offline** has no mock: nothing in the requirements keeps content for use without a connection.
    A failed request is the error state of each screen.
 

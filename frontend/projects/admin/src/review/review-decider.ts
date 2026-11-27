@@ -1,8 +1,14 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { REVIEW_QUEUE_API, type ReviewDecision, isApiError } from '@rent/api';
-import { alreadyDecidedWords } from '@rent/domain';
+import {
+  REVIEW_QUEUE_API,
+  type ReviewDecision,
+  type ReviewItemDetail,
+  isApiError,
+} from '@rent/api';
+import { alreadyDecidedWords, decidedToast, failedDecisionToast } from '@rent/domain';
 import { ReviewDetailStore } from './review-detail-store';
 import { ReviewQueueStore } from './review-queue-store';
+import { ToastQueue } from './toast-queue';
 
 /** How a decision ended: saved, refused because another admin decided first, or not saved. */
 export type DecideResult = 'decided' | 'already' | 'failed';
@@ -17,17 +23,26 @@ export interface DecidedElsewhere {
   readonly next: string | null;
 }
 
+/** How a decision is asked for. */
+export interface DecideOptions {
+  /** The dialog says a failure itself, so no toast does (L2-020, criterion 10). */
+  readonly failureShown?: boolean;
+}
+
 /**
  * Sends an admin's decision on the open item and moves the screen on (decide-review-item design;
- * ADR 0025). A decision saved selects the next item, then drops this one from the queue. One
- * another admin made first also drops it, while the panel keeps it with a warning and its
- * decisions off. One not saved changes nothing. One decision is in flight at a time.
+ * ADR 0025). A decision saved selects the next item, drops this one from the queue and says so
+ * in a toast. One another admin made first also drops it, while the panel keeps it with a
+ * warning and its decisions off, and a toast says so. One not saved changes nothing, and its
+ * toast's "Try again" repeats the same decision on the same item. One decision is in flight at
+ * a time.
  */
 @Injectable()
 export class ReviewDecider {
   private readonly api = inject(REVIEW_QUEUE_API);
   private readonly queue = inject(ReviewQueueStore);
   private readonly detail = inject(ReviewDetailStore);
+  private readonly toasts = inject(ToastQueue);
 
   private readonly _deciding = signal<ReviewDecision | null>(null);
   private readonly _elsewhere = signal<DecidedElsewhere | null>(null);
@@ -38,34 +53,17 @@ export class ReviewDecider {
   readonly elsewhere = this._elsewhere.asReadonly();
 
   /** Sends `decision` on the open item; `select` changes the selection in the address. */
-  async decide(decision: ReviewDecision, select: SelectItem): Promise<DecideResult | null> {
+  decide(
+    decision: ReviewDecision,
+    select: SelectItem,
+    options: DecideOptions = {},
+  ): Promise<DecideResult | null> {
     const id = this.detail.id();
     const item = this.detail.detail();
-    if (id === null || item === null || this._deciding() !== null) {
-      return null;
+    if (id === null || item === null) {
+      return Promise.resolve(null);
     }
-    this._deciding.set(decision);
-    try {
-      await this.api.decide(id, decision);
-      await select(this.queue.nextAfter(id));
-      this.queue.drop(id);
-      return 'decided';
-    } catch (error) {
-      if (!isApiError(error)) {
-        throw error;
-      }
-      if (error.code === 'already_decided' && error.decided !== null) {
-        const next = this.queue.nextAfter(id);
-        // The address names the item, so the panel keeps it once it leaves the queue.
-        await select(id);
-        this.queue.drop(id);
-        this._elsewhere.set({ id, text: alreadyDecidedWords(item, error.decided).panel, next });
-        return 'already';
-      }
-      return 'failed';
-    } finally {
-      this._deciding.set(null);
-    }
+    return this.send(id, item, decision, select, options);
   }
 
   /** "Go to the next item" after another admin decided first. */
@@ -79,6 +77,53 @@ export class ReviewDecider {
   forget(id: string | null): void {
     if (this._elsewhere()?.id !== id) {
       this._elsewhere.set(null);
+    }
+  }
+
+  private async send(
+    id: string,
+    item: ReviewItemDetail,
+    decision: ReviewDecision,
+    select: SelectItem,
+    options: DecideOptions,
+  ): Promise<DecideResult | null> {
+    if (this._deciding() !== null) {
+      return null;
+    }
+    this._deciding.set(decision);
+    try {
+      await this.api.decide(id, decision);
+      if (this.detail.id() === id) {
+        await select(this.queue.nextAfter(id));
+      }
+      this.queue.drop(id);
+      this.toasts.push({ tone: 'success', ...decidedToast(item, decision) });
+      return 'decided';
+    } catch (error) {
+      if (!isApiError(error)) {
+        throw error;
+      }
+      if (error.code === 'already_decided' && error.decided !== null) {
+        const words = alreadyDecidedWords(item, error.decided);
+        const next = this.queue.nextAfter(id);
+        // The address names the item, so the panel keeps it once it leaves the queue.
+        await select(id);
+        this.queue.drop(id);
+        this._elsewhere.set({ id, text: words.panel, next });
+        this.toasts.push({ tone: 'warning', ...words.toast });
+        return 'already';
+      }
+      if (!options.failureShown) {
+        this.toasts.push({
+          tone: 'danger',
+          ...failedDecisionToast(item),
+          actionLabel: 'Try again',
+          action: () => void this.send(id, item, decision, select, {}),
+        });
+      }
+      return 'failed';
+    } finally {
+      this._deciding.set(null);
     }
   }
 }

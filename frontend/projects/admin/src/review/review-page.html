@@ -95,3 +95,21 @@
     }
   </div>
 </cr-admin-layout>
+<cr-toast-region class="review-page__toasts" placement="top">
+  @for (toast of toasts.toasts(); track toast.id) {
+    <cr-toast
+      [tone]="toast.tone"
+      [title]="toast.title"
+      [text]="toast.text"
+      [actionLabel]="toast.actionLabel ?? null"
+      [timed]="toast.timed"
+      [paused]="toast.paused"
+      (action)="toasts.act(toast.id)"
+      (dismissed)="toasts.dismiss(toast.id)"
+      (mouseenter)="toasts.hold(toast.id, 'pointer')"
+      (mouseleave)="toasts.release(toast.id, 'pointer')"
+      (focusin)="toasts.hold(toast.id, 'focus')"
+      (focusout)="toasts.release(toast.id, 'focus')"
+    />
+  }
+</cr-toast-region>

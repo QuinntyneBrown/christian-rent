@@ -35,6 +35,11 @@ export class AdminPage {
   readonly approve: Locator;
   readonly keep: Locator;
   readonly remove: Locator;
+  /** The warning above an item another admin decided first. */
+  readonly decidedNotice: Locator;
+  readonly decidedTitle: Locator;
+  readonly decidedText: Locator;
+  readonly goToNext: Locator;
 
   constructor(private readonly page: Page) {
     this.nav = page.getByRole('navigation', { name: 'Admin' });
@@ -69,6 +74,10 @@ export class AdminPage {
     this.approve = this.detail.getByRole('button', { name: 'Approve', exact: true });
     this.keep = this.detail.getByRole('button', { name: 'Keep listing', exact: true });
     this.remove = this.detail.getByRole('button', { name: 'Remove', exact: true });
+    this.decidedNotice = this.detail.locator('.alert--warning');
+    this.decidedTitle = this.decidedNotice.locator('.alert__title');
+    this.decidedText = this.decidedNotice.locator('.alert__text');
+    this.goToNext = this.decidedNotice.getByRole('button', { name: 'Go to the next item' });
   }
 
   async open(query = ''): Promise<void> {

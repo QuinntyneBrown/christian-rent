@@ -23,8 +23,10 @@ import {
   YARD,
   answerAdmin,
   answerDetails,
+  answerDecisions,
   answerQueue,
   decisionPath,
+  refuseAsDecided,
 } from '../fixtures/review';
 import { ConfirmRemoveDialogPart } from '../pages/confirm-remove-dialog.part';
 import { ListingPage } from '../pages/listing.page';
@@ -690,6 +692,43 @@ export const SCREENS: readonly Screen[] = [
     },
     then: (page) => page.locator('.empty--error').waitFor(),
   },
+  // After a decision (docs/mocks/pages/admin/decided.html, docs/mocks/notifications/review-toast/).
+  {
+    name: 'admin-decided',
+    path: '/admin',
+    answer: (api) => {
+      answerReview(api);
+      refuseAsDecided(api, YARD, 'approve', new Date(2026, 5, 8, 12, 14));
+    },
+    then: atReviewNow(async (page) => {
+      await approveOpenItem(page);
+      await page.locator('.admin__detail .alert--warning').waitFor();
+    }),
+  },
+  {
+    name: 'review-toast-success',
+    path: '/admin',
+    answer: (api) => {
+      answerReview(api);
+      answerDecisions(api);
+    },
+    then: atReviewNow(async (page) => {
+      await approveOpenItem(page);
+      await page.locator('.toast--success').waitFor();
+    }),
+  },
+  {
+    name: 'review-toast-danger',
+    path: '/admin',
+    answer: (api) => {
+      answerReview(api);
+      api.refuse('POST', decisionPath(YARD), 503, 'unavailable');
+    },
+    then: atReviewNow(async (page) => {
+      await approveOpenItem(page);
+      await page.locator('.toast--danger').waitFor();
+    }),
+  },
   // The confirmation before Remove (docs/mocks/dialogs/confirm-remove/), over Admin.
   {
     name: 'confirm-remove',
@@ -747,6 +786,14 @@ function answerReview(api: ApiFixtures): void {
   answerAdmin(api);
   answerQueue(api);
   answerDetails(api);
+}
+
+/** Presses Approve under the open item. */
+async function approveOpenItem(page: Page): Promise<void> {
+  await page
+    .locator('.admin__detail')
+    .getByRole('button', { name: 'Approve', exact: true })
+    .click();
 }
 
 /** Presses Remove under the open item and waits for its confirmation. */
