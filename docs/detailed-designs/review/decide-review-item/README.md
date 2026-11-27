@@ -81,7 +81,7 @@ confirmation, the conflict and the toasts, with a test per case.
 
 **Backend**
 
-- **`ReviewQueueController.Decide`** — `POST /api/review-queue/{id}/decision` with
+- **`ReviewQueueController.Decide`** — `POST /api/admin/review-queue/{id}/decision` with
   `{ decision, version }` (`approve`, `keep` or `remove`), under the `Admin` policy. It sends
   one `DecideReviewItemCommand` and answers `DecidedDto { ClosedItemIds }`: the item, and every
   other item the decision closed.
@@ -118,8 +118,8 @@ confirmation, the conflict and the toasts, with a test per case.
   20). The notice names the listing and never a reporter (L2-021, criterion 4).
   `purge-departed` deletes a departed member's notices.
 - **`GetReviewItemQueryHandler`** — its answer gains `version` and `allowedDecisions`.
-- **Arrivals** — `GET /api/review-queue` answers `asOf`, and
-  `GET /api/review-queue/arrivals?since=` sends `GetReviewArrivalsQuery`, which answers
+- **Arrivals** — `GET /api/admin/review-queue` answers `asOf`, and
+  `GET /api/admin/review-queue/arrivals?since=` sends `GetReviewArrivalsQuery`, which answers
   `{ newListings, reports, newMembers }`: the waiting items made after `since`
   (`since_invalid` when it is not an instant).
 

@@ -1,0 +1,47 @@
+@startuml
+title UML sequence behaviour — Sign in to rent and return
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Person" as person
+box "Frontend — rent" #E0F2FE
+  participant "Post or Listing" as screen
+  participant "MemberGate" as gate
+  participant "SignInPage + SignInStore" as page
+  participant "AppSession" as session
+end box
+box "Backend" #D1FADF
+  participant "CrossSiteRequestGuard + RateLimits" as pipe
+  participant "SignInCommandHandler" as handler
+  participant "IAccounts" as accounts
+  participant "ISessionCookies" as cookies
+end box
+person -> screen : Publish, Send or Report
+screen -> gate : requireMember(purpose)
+gate -> session : refresh()
+session --> gate : signed-out
+gate -> page : navigate /sign-in?return=/post (draft kept in sessionStorage)
+person -> page : Email, password, Sign in
+page -> session : signIn(email, password)
+session -> pipe : POST /api/session
+alt over 10 attempts from this address in 15 min
+  pipe --> page : 429 rate_limited, Retry-After -> limited
+else
+  pipe -> handler : SignInCommand(Member, email, password)
+  handler -> accounts : FindByEmailAsync(email)
+  alt no account
+    handler -> accounts : CheckNothingAsync(password) (same time)
+    handler --> page : 401 sign_in_failed -> refused
+  else locked (SignInLockout.IsLocked) or wrong password or removed member
+    handler -> accounts : RecordFailureAsync(id, AfterFailure(...))
+    handler --> page : 401 sign_in_failed -> refused (one message)
+  else right password
+    handler -> accounts : RecordSuccessAsync(id)
+    handler -> cookies : SignInAsync(Member, id, stamp)
+    handler --> session : 200 member, or 204 (Set-Cookie cr-member)
+    page -> screen : navigate safeReturn(return)
+  end
+end
+@enduml

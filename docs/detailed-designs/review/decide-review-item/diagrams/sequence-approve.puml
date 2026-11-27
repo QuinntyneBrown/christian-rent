@@ -15,7 +15,7 @@ skinparam package {
   BackgroundColor #F9FAFB
 }
 actor "Admin" as actor
-box "Frontend — admin library (lazy)" #E0F2FE
+box "Frontend — admin application (review page, lazy)" #E0F2FE
   participant "ReviewPage" as page
   participant "ReviewQueueStore" as store
   participant "ToastQueue" as toasts
@@ -33,7 +33,7 @@ box "Backend — ChristianRent.Infrastructure" #FFF4E5
 end box
 actor -> page : Select "Approve"
 page -> store : decide(Approve)
-store -> ctrl : POST /api/review-queue/{id}/decision {Approve, version}
+store -> ctrl : POST /api/admin/review-queue/{id}/decision {Approve, version}
 ctrl -> ctrl : Admin policy (L2-025)
 ctrl -> handler : Send DecideReviewItemCommand
 handler -> db : Review item and listing

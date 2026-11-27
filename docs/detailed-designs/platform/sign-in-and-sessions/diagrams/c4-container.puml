@@ -1,0 +1,23 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Sign in and sessions
+
+Person(member, "Member")
+Person(admin, "Admin")
+Person(operator, "Operator")
+System_Boundary(cr, "christian.rent") {
+  Container(rent, "rent", "Angular, served by its own static host", "Browse, Listing, Post, Sign in; proxies /api/ to the backend")
+  Container(adm, "admin", "Angular, served by its own static host", "Admin, Admin sign-in; reads /config.json; proxies /api/admin/ to the backend")
+  Container(api, "ChristianRent.Api", "ASP.NET Core", "Two cookie schemes, Member and Admin, chosen by path; Identity accounts")
+  Container(cli, "ChristianRent.Cli", ".NET console", "migrate, seed, create-account, grant-admin")
+  ContainerDb(db, "Database", "PostgreSQL through EF Core", "Accounts, members, data protection keys, listings, the review queue")
+}
+Rel(member, rent, "Uses, cookie cr-member", "HTTPS")
+Rel(admin, adm, "Uses, cookie cr-admin", "HTTPS")
+Rel(rent, api, "Calls /api/ on its own origin", "JSON/HTTPS")
+Rel(adm, api, "Calls /api/admin/ on its own origin", "JSON/HTTPS")
+Rel(operator, cli, "Runs; password on standard input")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(cli, db, "Reads and writes", "EF Core")
+@enduml

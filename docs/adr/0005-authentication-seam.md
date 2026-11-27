@@ -1,6 +1,6 @@
 # 0005. The authentication seam while sign-in is not designed
 
-**Status:** Accepted. [0017](0017-identifying-a-person-until-sign-in.md) adds how a signed-in person becomes a member, and binds `SESSION` to the backend.
+**Status:** Superseded by [0029](0029-sign-in-and-two-sessions.md). [0017](0017-identifying-a-person-until-sign-in.md) added how a signed-in person becomes a member, and bound `SESSION` to the backend.
 
 ## Context
 

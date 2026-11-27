@@ -1,7 +1,7 @@
 # 0020. The angular.json budget values after Post
 
 **Status:** Accepted. Supersedes the values of [0014](0014-bundle-budgets-after-browse.md); the
-rules of [0006](0006-bundle-budgets.md) stand.
+rules of [0006](0006-bundle-budgets.md) stand. Amended by [0030](0030-bundle-budgets-per-application.md): its values are `rent`'s, and Admin has its own.
 
 ## Context
 

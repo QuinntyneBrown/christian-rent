@@ -24,22 +24,39 @@ a phone.
 |---|---|---|---|
 | `api` | library | `@rent/api` | contracts, types, injection tokens, HTTP clients |
 | `domain` | library | `@rent/domain` | `listings/`, `search/`, `storage/` rules and helpers |
-| `components` | library | `@rent/components` | presentation components, `cr-*` selectors |
-| `admin` | library | `@rent/admin` | the Admin screen, lazy |
-| `rent` | application | — | pages, dialogs, routes, composition root |
+| `components` | library | `@rent/components` | presentation components, `cr-*` selectors; `foundations/` and `public/` (fonts, favicon) for both applications |
+| `shell` | library | `@rent/shell` | what both applications' shells share: `GlobalErrorHandler`, `ClientErrors`, `PageFocus`, `ShellTitleStrategy`, `screenPath`, `SignInStore`, `sessionExpiryInterceptor` |
+| `rent` | application | — | Browse, Listing, Post, Sign in; dialogs; its routes and composition root |
+| `admin` | application | — | Admin, Admin sign-in, its forbidden page; its routes and composition root |
 
-Dependency direction: `rent` → `admin`, `components`, `api`, `domain`; `admin` →
-`components`, `api`, `domain`; `domain` → `api`; `components` → `api` for types only; `api`
-→ nothing. ESLint boundaries enforce it.
+Dependency direction: `rent` → `shell`, `components`, `api`, `domain`; `admin` → `shell`,
+`components`, `api`, `domain`; `shell` → `api`, `domain`; `domain` → `api`; `components` →
+`api` for types only; `api` → nothing. No application imports the other. ESLint boundaries
+enforce it ([ADR 0028](../../../adr/0028-two-applications-deployed-separately.md)).
+
+**Building, serving and deploying each application**
+
+| | `rent` | `admin` |
+|---|---|---|
+| Serve | `npm start` (port 4200) | `npm run start:admin` (port 4300) |
+| Build | `npm run build:rent` → `dist/rent/browser` | `npm run build:admin` → `dist/admin/browser` |
+| Proxy (dev and host) | `/api/` → backend | `/api/admin/` → backend |
+| Deploy-time file | none | `/config.json`: `{ "siteUrl": "https://christian.rent" }` |
+| Indexing | indexed | `noindex, nofollow` (meta, `robots.txt`, `X-Robots-Tag`) |
+
+Each static host serves its folder, falls back to `index.html` for any path that is not a
+file, and sends the Content-Security-Policy and the other security headers of
+[ADR 0028](../../../adr/0028-two-applications-deployed-separately.md). `npm run build` builds
+both.
 
 **`rent` application**
 
 - **`app.config.ts`** — `provideZonelessChangeDetection()`, `provideRouter(routes,
   withComponentInputBinding(), withInMemoryScrolling({ scrollPositionRestoration:
-  'enabled' }))`, `provideHttpClient(withFetch(), withInterceptors([apiErrorInterceptor]))`,
-  and the bindings of `SESSION`, `LISTINGS_API`, `MEMBERS_API` and `CHURCHES_API`. Tokens
-  used by one route (`PHOTOS_API`, `MESSAGES_API`, `REPORTS_API`, `REVIEW_QUEUE_API`) are
-  bound by that route.
+  'enabled' }))`, `provideHttpClient(withFetch(), withInterceptors([apiErrorInterceptor,
+  sessionExpiryInterceptor]))`, and the bindings of `SESSION` (`AppSession`), `SESSION_API`
+  (`HttpMemberSessionApi`), `LISTINGS_API`, `MEMBERS_API` and `CHURCHES_API`. Tokens used by
+  one route (`PHOTOS_API`, `MESSAGES_API`, `REPORTS_API`) are bound by that route.
 - **`app.routes.ts`** — every route is lazy (L2-029, criterion 2):
 
   | Path | Loads | Chunk |
@@ -47,15 +64,35 @@ Dependency direction: `rent` → `admin`, `components`, `api`, `domain`; `admin`
   | `` | `BrowsePage` | browse |
   | `listings/:id` | `ListingPage` | listing |
   | `post` | `PostPage` | post |
-  | `admin` (`canMatch: adminGuard`) | `ADMIN_ROUTES` from `@rent/admin` | admin |
-  | `admin` | `ForbiddenPage` | forbidden |
+  | `sign-in` | `SignInPage` | sign-in |
   | `**` | `NotFoundPage` | not-found |
+
+  `/admin` is "not found" in `rent`: Admin is its own application.
+
+**`admin` application**
+
+- **`app.config.ts`** — the same providers, with `SESSION` bound to `AdminSession` over
+  `HttpAdminSessionApi`, `SITE_LINKS` read from `/config.json` before the first screen
+  (`parseSiteUrl`), and `REVIEW_QUEUE_API` bound by the review route.
+- **`app.routes.ts`**:
+
+  | Path | Loads | Chunk |
+  |---|---|---|
+  | `` (`canMatch: adminGuard`) | `ReviewPage` | review |
+  | `` | `ForbiddenPage` | forbidden |
+  | `sign-in` | `AdminSignInPage` | sign-in |
+  | `**` | `NotFoundPage` | not-found |
+
+- **`App`** — the skip link, the outlet and the toast region, as `rent`'s. Titles end in
+  "Admin · christian.rent".
 
 - **`App`** (selector `cr-root`) — `cr-skip-link`, `<router-outlet>`, and a
   `toast-region`. Each page renders its own header variant, because Post uses the plain
-  header and Admin uses `cr-admin-nav`.
+  header.
 - **`NotFoundPage`** — "not found" with a link to Browse (L2-033, criterion 3).
-- **`TitleStrategy`** — sets the document title per route, ending in "christian.rent".
+- **`ShellTitleStrategy`** (`shell`) — sets the document title per route, ending in
+  "christian.rent", or "Admin · christian.rent" in Admin (the `SITE_TITLE` each application
+  binds).
 - On navigation to another screen, focus moves to the new page's `<h1 tabindex="-1">`
   (`PageFocus`), and `RentTitleStrategy` announces the title with `LiveAnnouncer` (L2-032,
   criteria 2 and 4). The first load leaves focus alone, so the skip link stays the first
@@ -67,15 +104,23 @@ Dependency direction: `rent` → `admin`, `components`, `api`, `domain`; `admin`
 
 - **`cr-logo`** — the mark, a key whose head is a cross, and the wordmark. The wordmark text
   is the constant "christian" + ".rent" in the template; no input can change its case
-  (L2-023). The link is named "christian.rent home".
-- **`cr-site-header`** — logo, the member's initials (`member-chip`, not a control) and a
-  Post button that links to `/post` (L2-036, criterion 1). The chip has `role="img"` and the
-  name "Signed in as {name}" (criterion 2). With `plain` set, on Post, it shows the wordmark
-  and a close button named "Close and go back to Browse", and no Post button (criterion 3).
-  Admin replaces it with `cr-admin-nav` (criterion 4). It has no Messages button and no
-  sign-in control, because neither is designed (criterion 5); what it shows a person who is
-  not a member waits for sign-in. It has no payment, booking, rating or advert element
-  (L2-024).
+  (L2-023). The link leads to `/`, home in either application, and is named by its `label`
+  input: "christian.rent home", or "Admin home" in Admin.
+- **`cr-site-header`** — logo, the session control and a Post button that links to `/post`
+  (L2-036, criterion 1). Its inputs are `state` (`unknown`, `signed-out`, `signed-in`),
+  `member`, `returnTo` and `plain`; it emits `signOut`. Signed out: "Sign in", a link to
+  `/sign-in?return={returnTo}`. Signed in: the member's initials (`member-chip`, not a
+  control, `role="img"`, named "Signed in as {name}"; criterion 2) when there is a member, and
+  "Sign out", a button. Unknown, and on the sign-in page: Post alone. Below 400 px the session
+  control shows its icon alone, below 360 px Post its word alone (criterion 5). With `plain`
+  set, on Post, it shows the wordmark and a close button named "Close and go back to Browse",
+  and no Post button (criterion 3). Admin uses `cr-admin-nav` (criterion 4). It has no
+  Messages button, and no payment, booking, rating or advert element (L2-024).
+- **`cr-admin-nav`** — Admin's rail: the logo (to the review queue), "Admin · {name}", Review
+  with its count, "Back to site" (a plain link to `siteUrl`, left out when there is none) and
+  "Sign out" (a button; output `signOut`).
+- **`cr-sign-in`** and **`cr-admin-gate`** — the sign-in form of either application and Admin's
+  ink page around a card ([sign-in-and-sessions](../sign-in-and-sessions/README.md)).
 - **`cr-skip-link`** — the first focusable element, "Skip to content". It moves focus to
   `<main id="main" tabindex="-1">` itself, because a bare `#main` would resolve against
   `<base href>` and leave the current route.
@@ -97,8 +142,8 @@ Dependency direction: `rent` → `admin`, `components`, `api`, `domain`; `admin`
   and the buttons.
 - Pages compose these components and never hand-code a design-system block; global styles hold
   only the foundations and the layout primitives (`container`, `stack`, `cluster`).
-- Until sign-in is designed, `SESSION` answers `null` and the header shows no initials
-  ([ADR 0005](../../../adr/0005-authentication-seam.md)).
+- `SESSION` answers who is signed in to the application it is bound in
+  ([ADR 0029](../../../adr/0029-sign-in-and-two-sessions.md)).
 
 **`domain/listings` formatting** (L2-022)
 
@@ -141,13 +186,11 @@ the product has one language.
 
 **Undecided**
 
-- The budget values in `angular.json` are set in
-  [ADR 0006](../../../adr/0006-bundle-budgets.md) and, since Browse,
-  [ADR 0014](../../../adr/0014-bundle-budgets-after-browse.md): 315 kB warning and 330 kB error
-  for the initial download, and tightened from there.
+- The budget values in `angular.json` are set per application in
+  [ADR 0030](../../../adr/0030-bundle-budgets-per-application.md), and tightened from there.
 - Whether the dark theme has a manual switch in the product: the mocks toggle it from the
   mock bar only.
-- Which host serves the built application: `<TO SUPPLY>`.
+- Which hosts serve the two applications: `<TO SUPPLY>`. Each is a static host as above.
 
 ### Mocks
 
@@ -157,7 +200,10 @@ The mocks are the source of truth for the UI of this feature. The states this de
 - [`docs/mocks/pages/post/default.html`](../../../mocks/pages/post/default.html): the plain header on Post
 - [`docs/mocks/pages/not-found/default.html`](../../../mocks/pages/not-found/default.html): an address that matches no screen
 - [`docs/mocks/pages/brand/default.html`](../../../mocks/pages/brand/default.html): the mark and the wordmark
-- [`docs/mocks/pages/admin/forbidden.html`](../../../mocks/pages/admin/forbidden.html): the shell for a member who is not an admin
+- [`docs/mocks/pages/browse/signed-out.html`](../../../mocks/pages/browse/signed-out.html): the site header when nobody is signed in
+- [`docs/mocks/pages/sign-in/default.html`](../../../mocks/pages/sign-in/default.html): the header on the sign-in page, Post alone
+- [`docs/mocks/pages/admin/default.html`](../../../mocks/pages/admin/default.html): Admin's rail, with Back to site and Sign out
+- [`docs/mocks/pages/admin/forbidden.html`](../../../mocks/pages/admin/forbidden.html): Admin's own page for a signed-in person who is not an admin
 
 ## Requirements
 
@@ -170,9 +216,10 @@ acceptance criteria in the specification remain authoritative.
 |-------|--------------|-------------|
 | `L2-022` | `L1-009` | Prices shall be shown in Canadian dollars with their period, with cents only when not zero and a thousands separator. Distances shall be in kilometres. Dates shall write the month as a word, ranges shall use "to", and times shall be in 12-hour form. Copy shall use Canadian spelling. An area shall be a place in Canada. |
 | `L2-023` | `L1-009` | The wordmark shall read "christian.rent" in lowercase on every screen. |
-| `L2-036` | `L1-001` | The header shall show the wordmark, which leads to Browse, the member's initials as text, and a "Post" button. On Post it shall show the wordmark and a close button. On Admin the navigation shall show the wordmark, the admin's name, Review with its count and "Back to site". No header shall have a Messages button or a sign-in control. |
+| `L2-041` | `L1-017` | `rent` and `admin` shall each build into their own folder, without the other's screens, and be served from their own origin by a static host that falls back to `index.html`, proxies `/api` to the one backend and sends the CSP; Admin shall read the site's address at deploy time and not be indexed. |
+| `L2-036` | `L1-001` | The header shall show the wordmark, which leads to Browse, a "Post" button and, once known, "Sign in" or the member's initials as text with "Sign out". On Post it shall show the wordmark and a close button. On Admin the navigation shall show the wordmark, the admin's name, Review with its count, "Back to site" on christian.rent's origin and "Sign out". No header shall have a Messages button; nothing shall scroll sideways at 320 px. |
 | `L2-024` | `L1-010` | No screen shall offer a way to pay, take a deposit or enter a card. A listing shall show no booking calendar, review, rating or advert. A message with dates shall not change the listing's availability or reserve anything. |
-| `L2-029` | `L1-012` | On a mid-range phone on 4G, Browse shall paint its largest content within 2.5 s with layout shift under 0.1. The code for Listing, Post and Admin shall not be in the initial download. A card's photo shall be sized to the card, reserve its space and load lazily below the fold. A control shall respond within 200 ms. |
+| `L2-029` | `L1-012` | On a mid-range phone on 4G, Browse shall paint its largest content within 2.5 s with layout shift under 0.1. The code for Listing, Post and Sign in shall not be in `rent`'s initial download, and no code of Admin in `rent` at all; the review queue's code shall not be in Admin's initial download. Each application shall stay within its own budget. A card's photo shall be sized to the card, reserve its space and load lazily below the fold. A control shall respond within 200 ms. |
 | `L2-031` | `L1-013` | No screen shall be cut off or scroll sideways from 320 px. Browse shall show one column of cards under 576 px, two from 576 px, three from 768 px and four from 1200 px, with wider gutters from 992 px. From 768 px the message box, the live preview and the Admin detail panel shall sit beside their main column; below it they shall sit under it, and Admin shall show only the queue and a note that deciding needs a wider screen. A dialog shall be a bottom sheet under 640 px. Every touch target shall be at least 44 × 44 px. |
 | `L2-032` | `L1-014` | Every screen shall meet WCAG 2.2 level AA. Every action shall be completable by keyboard with visible focus. A state shall be carried by text or an announced attribute, never by colour alone. Confirmations and errors shall be announced. Every field shall have a visible label with its error tied to it. Reduced motion shall be honoured, and text at 200% shall lose nothing. "Skip to content" shall be the first control, and a dialog shall hold focus and return it on close. |
 | `L2-033` | `L1-015` | A waiting screen shall show a loading state in the shape of what will arrive, and none when the request answers within 300 ms. An unreachable backend shall produce a plain message and "Try again". An address that matches no screen shall show "not found" with a way back to Browse. An unhandled backend error shall be a ProblemDetails with no stack trace, recorded with a trace id. |

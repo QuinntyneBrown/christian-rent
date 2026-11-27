@@ -3,30 +3,30 @@
 LAYOUT_WITH_LEGEND()
 title Components — View the review queue
 
-Container_Boundary(spa, "rent application (Angular workspace)") {
-  Component(guard, "adminGuard", "CanMatchFn in rent", "Matches /admin only for an admin")
+Container_Boundary(spa, "admin application (its own origin)") {
+  Component(guard, "adminGuard", "CanMatchFn in admin", "Sign-in page, forbidden page, or the review page for an admin")
   Component(forbid, "ForbiddenPage", "Angular page in rent", "'This page is for admins'")
   Component(ui, "cr-admin-nav, cr-queue-item, cr-review-detail", "components library", "Rail, queue rows and detail panel")
 }
-Container_Boundary(admlib, "admin library (lazy chunk)") {
+Container_Boundary(admlib, "admin application: review page (lazy chunk)") {
   Component(page, "ReviewPage", "Angular page", "Queue beside the detail panel")
   Component(store, "ReviewQueueStore", "Signal store provided by the page", "Pages of 50, selection, detail")
   Component(client, "HttpReviewQueueApi", "REVIEW_QUEUE_API, bound by the route", "Typed HTTP client")
 }
 Container_Boundary(api, "ChristianRent backend") {
-  Component(ctrl, "ReviewQueueController", "ASP.NET Core controller, Admin policy", "GET /api/review-queue, /{id}")
+  Component(ctrl, "ReviewQueueController", "ASP.NET Core controller, Admin policy", "GET /api/admin/review-queue, /{id}")
   Component(list, "GetReviewQueueQueryHandler", "MediatR handler", "Waiting items, oldest first")
   Component(det, "GetReviewItemQueryHandler", "MediatR handler", "Detail by kind")
   Component(item, "ReviewItem", "Domain entity", "Kind, subject and decision")
 }
 ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
 ContainerDb(files, "File storage", "<TO SUPPLY>", "Photo renditions")
-Rel(guard, page, "Lets the router load @rent/admin")
+Rel(guard, page, "Lets the router load the review page")
 Rel(guard, forbid, "Falls through to")
 Rel(page, store, "Reads state, select(id)")
 Rel(page, ui, "Renders")
 Rel(store, client, "page(cursor), item(id)")
-Rel(client, ctrl, "GET /api/review-queue", "JSON/HTTPS")
+Rel(client, ctrl, "GET /api/admin/review-queue", "JSON/HTTPS")
 Rel(ctrl, list, "Sends GetReviewQueueQuery")
 Rel(ctrl, det, "Sends GetReviewItemQuery")
 Rel(list, item, "Reads waiting")

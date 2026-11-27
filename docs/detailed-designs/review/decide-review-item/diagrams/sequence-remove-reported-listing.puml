@@ -15,7 +15,7 @@ skinparam package {
   BackgroundColor #F9FAFB
 }
 actor "Admin" as actor
-box "Frontend — admin library (lazy)" #E0F2FE
+box "Frontend — admin application (review page, lazy)" #E0F2FE
   participant "ReviewPage" as page
   participant "ConfirmRemoveDialog" as dialog
   participant "ReviewQueueStore" as store
@@ -37,7 +37,7 @@ dialog --> actor : Names the listing and what follows
 alt confirms "Remove listing"
   actor -> dialog : Confirm
   dialog -> store : decide(Remove)
-  store -> ctrl : POST /api/review-queue/{id}/decision {Remove, version}
+  store -> ctrl : POST /api/admin/review-queue/{id}/decision {Remove, version}
   ctrl -> handler : Send DecideReviewItemCommand
   handler -> db : Item, report, listing, other waiting items on the listing
   handler -> listing : Remove(), no longer public (L2-020 criterion 2)

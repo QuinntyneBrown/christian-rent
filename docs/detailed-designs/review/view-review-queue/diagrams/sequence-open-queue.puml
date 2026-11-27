@@ -15,11 +15,11 @@ skinparam package {
   BackgroundColor #F9FAFB
 }
 actor "Admin" as actor
-box "Frontend — rent application" #E0F2FE
+box "Frontend — admin application" #E0F2FE
   participant "Router + adminGuard" as router
   participant "ForbiddenPage" as forbid
 end box
-box "Frontend — admin library (lazy)" #E0F2FE
+box "Frontend — admin application (review page, lazy)" #E0F2FE
   participant "ReviewPage" as page
   participant "ReviewQueueStore" as store
 end box
@@ -33,12 +33,12 @@ box "Backend — ChristianRent.Infrastructure" #FFF4E5
   database "Database" as db
 end box
 actor -> router : Open /admin
-router -> router : adminGuard awaits SESSION.refresh(), reads member().isAdmin
+router -> router : adminGuard awaits SESSION.refresh(): signed out -> /sign-in, not an admin -> forbidden
 alt admin
-  router -> page : Load the @rent/admin chunk
+  router -> page : Load the review page chunk
   page -> store : load()
   page --> actor : Skeleton rows (L2-033)
-  store -> ctrl : GET /api/review-queue
+  store -> ctrl : GET /api/admin/review-queue
   ctrl -> ctrl : Admin policy (L2-019 criterion 5)
   ctrl -> handler : Send GetReviewQueueQuery
   handler -> db : Waiting items, oldest first, 51 rows

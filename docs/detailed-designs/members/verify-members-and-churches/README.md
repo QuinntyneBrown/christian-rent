@@ -38,8 +38,9 @@ does, and who may change them. The admin's Approve and Remove buttons are design
   without rewriting the listings (L2-018, criterion 4). `BrowseListingsQueryHandler`,
   `GetListingQueryHandler` and `GetPhotoQueryHandler` share the rule.
 - **`ICurrentMember`** — reports `IsMember = false` for a removed member, so every handler
-  that requires a member refuses with `not_a_member`. Refusing sign-in itself belongs to the
-  sign-in design.
+  that requires a member refuses with `not_a_member`. From their next request their
+  session stops working and signing in is refused
+  ([sign-in-and-sessions](../../platform/sign-in-and-sessions/README.md)).
 - **`PosterDto.IsVerified`**, **`ChurchDto.IsVerified`** — projected from the entities at
   read time by `GetListingQueryHandler` and `GetReviewItemQueryHandler`. Because the flags
   are read on every request, a church confirmed today marks the listings of all its members

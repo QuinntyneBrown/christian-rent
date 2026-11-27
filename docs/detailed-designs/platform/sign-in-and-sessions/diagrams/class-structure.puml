@@ -1,0 +1,57 @@
+@startuml
+title Class structure — Sign in and sessions
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+package "ChristianRent.Domain" {
+  class SignInLockout <<static>> {
+    +MaxFailures = 5
+    +Duration = 15 min
+    +IsLocked(lockedUntil, now) : bool
+    +AfterFailure(failures, now) : (failures, lockedUntil)
+  }
+}
+package "ChristianRent.Application" {
+  enum SessionKind { Member
+Admin }
+  class SignInCommand { +Kind +Email +Password }
+  class SignOutCommand { +Kind }
+  class CreateAccountCommand { +Email +Password +MemberId? }
+  interface IAccounts {
+    +FindByEmailAsync(email) : AccountState?
+    +CheckPasswordAsync(id, password) : bool
+    +CheckNothingAsync(password)
+    +RecordFailureAsync(id, failures, lockedUntil)
+    +RecordSuccessAsync(id)
+    +CreateAsync(email, password) : AccountCreation
+    +EndSessionsAsync(id)
+  }
+  interface ISessionCookies {
+    +SignInAsync(kind, accountId, stamp)
+    +SignOutAsync(kind)
+  }
+  class SignInRefusedException <<sign_in_failed>>
+}
+package "ChristianRent.Infrastructure" {
+  class Account <<IdentityUser>>
+  class IdentityAccounts
+  class CookieSessions
+  class SessionCookieEvents <<CookieAuthenticationEvents>>
+  class AppDbContext <<IdentityUserContext<Account>, IDataProtectionKeyContext>>
+}
+package "ChristianRent.Api" {
+  class SessionController { POST/DELETE /api/session }
+  class AdminSessionController { GET/POST/DELETE /api/admin/session }
+  class AccessExtensions { Session policy scheme\nMember, Admin cookies\nfallback, AdminSession, Admin }
+}
+IAccounts <|.. IdentityAccounts
+ISessionCookies <|.. CookieSessions
+IdentityAccounts --> Account
+SignInCommand ..> SessionKind
+SessionController ..> SignInCommand
+AdminSessionController ..> SignInCommand
+SignInCommand ..> IAccounts
+SignInCommand ..> ISessionCookies
+SignInCommand ..> SignInLockout
+SessionCookieEvents --> AppDbContext
+@enduml

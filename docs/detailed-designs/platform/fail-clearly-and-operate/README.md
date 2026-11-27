@@ -34,7 +34,7 @@ holds no personal data.
   [send-message](../../messages/send-message/README.md).
 - **Cancellation** — every store passes an `AbortSignal` or unsubscribes on destroy, so a
   request a person has navigated away from is dropped.
-- **`GlobalErrorHandler`** (`rent`) — an Angular `ErrorHandler` that shows a generic toast
+- **`GlobalErrorHandler`** (`shell` library, bound by both applications) — an Angular `ErrorHandler` that shows a generic toast
   for an unexpected client error: "Something went wrong", with Reload and Dismiss. The toast
   sits in `App`'s `toast-region`, is announced, never dismisses itself and shows one at a
   time. It logs the error to the browser console only and sends nothing to a third party
@@ -76,14 +76,25 @@ holds no personal data.
   database statement text and any status description from every span; exception events are
   never recorded. EF Core is configured without sensitive data
   logging. Log messages use structured templates whose arguments are identifiers, counts
-  and codes; no template takes a name, a contact detail, a token or message text.
+  and codes; no template takes a name, a contact detail, a token or message text. Sign-in
+  adds nothing to them: no email, password or cookie is logged or tagged, and a span's route
+  is `/api/session` or `/api/admin/session` with no body
+  ([ADR 0029](../../../adr/0029-sign-in-and-two-sessions.md)).
 
 **Backend — migrations and seed** (L2-034, criterion 3)
 
 - **`ChristianRent.Cli`** — a console project beside the four layers. It references
   `ChristianRent.Infrastructure` and `ChristianRent.Application`. Commands: `migrate`
   applies pending EF Core migrations; `seed` inserts idempotent seed data; `purge-departed`
-  is designed in [handle-member-data](../handle-member-data/README.md).
+  is designed in [handle-member-data](../handle-member-data/README.md); `create-account
+  <email> [<member-id>]` reads the password from standard input and creates an account, safe
+  to run again; `grant-admin <member-id>` makes an admin
+  ([sign-in-and-sessions](../sign-in-and-sessions/README.md)).
+- **Deployment** — the backend once, and each application on its own static host
+  ([present-app-shell](../present-app-shell/README.md)). The settings a deployment adds for
+  sign-in are `Site:AdminOrigin`, `AllowedHosts`, `Sessions:MemberLifetime`,
+  `Sessions:AdminLifetime`, and Admin's `config.json`; data protection keys are kept in the
+  database and need no setting. The README's Settings table lists them all.
 - `ChristianRent.Api` never calls `Database.Migrate()`. Deployment runs `migrate` before
   the new API version takes traffic.
 
