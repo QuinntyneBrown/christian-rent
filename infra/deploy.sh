@@ -303,6 +303,9 @@ expect() { # what, expected status, url
 expect "rent's first screen" 200 "https://$RENT_HOST/"
 expect "rent's API, through its host, with the database" 200 "https://$RENT_HOST/api/listings"
 expect "rent's API, through Azure's host" 200 "https://$RENT_AZURE_HOST/api/listings"
+if [ -n "$RENT_WWW_HOST" ]; then
+  expect "rent's other name redirecting to its host" 308 "https://$RENT_WWW_HOST/"
+fi
 expect "Admin's first screen" 200 "https://$ADMIN_HOST/"
 expect "Admin's API, through its host" 401 "https://$ADMIN_HOST/api/admin/session"
 expect "Admin's host refusing the rest of the API" 404 "https://$ADMIN_HOST/api/listings"

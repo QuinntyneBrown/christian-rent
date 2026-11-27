@@ -146,7 +146,7 @@ members; only an admin can set either mark
 not chosen.
 [ADR 0030](docs/adr/0030-bundle-budgets-per-application.md)). It is deployed to Azure, and
 every commit to `main` that passes CI is released ([ADR 0031](docs/adr/0031-hosting-on-azure-and-deploying-each-commit.md));
-christian.rent's own domains are not bound yet.
+it is served at <https://christian.rent> and Admin at <https://admin.christian.rent>.
 
 - The requirements are in `docs/specs/`, the mocks in `docs/mocks/`, the design system in
   `docs/design-system/` and the detailed designs in `docs/detailed-designs/`.
@@ -299,7 +299,8 @@ deployed** once CI has passed on it ([ADR 0031](docs/adr/0031-hosting-on-azure-a
 | | `rent` | `admin` |
 |---|---|---|
 | Container app | `ca-christian-rent` | `ca-christian-rent-admin` |
-| Address | <https://ca-christian-rent.ambitioustree-c8dfdd8c.canadacentral.azurecontainerapps.io> | <https://ca-christian-rent-admin.ambitioustree-c8dfdd8c.canadacentral.azurecontainerapps.io> |
+| Address | <https://christian.rent> | <https://admin.christian.rent> |
+| Azure's address | <https://ca-christian-rent.ambitioustree-c8dfdd8c.canadacentral.azurecontainerapps.io> | <https://ca-christian-rent-admin.ambitioustree-c8dfdd8c.canadacentral.azurecontainerapps.io> |
 
 Each container app holds the application's static host (nginx) and the API beside it. The
 database is Azure Database for PostgreSQL, with no public address; photos are on an Azure Files
@@ -328,8 +329,13 @@ az containerapp exec -g rg-christian-rent -n ca-christian-rent --container api -
 
 `seed` enters the mocks' cast, which is sample data: leave it out of a system real members use.
 
-**christian.rent's own domains.** `christian.rent` is bound to `rent`'s container app; Admin
-keeps the host Azure gave it. To bind a domain, add it to its container app with a managed
+**christian.rent's own domains.** `christian.rent` is bound to `rent`'s container app and
+`admin.christian.rent` to Admin's. `www.christian.rent` is bound to `rent`'s container app too,
+and `rent`'s static host answers it with a redirect to `christian.rent`, so the site has one
+origin. The domain's DNS is at Namecheap: an A record for `christian.rent` to the Container Apps
+environment's address, a CNAME for `www` and for `admin` to each container app's Azure address,
+and a TXT record `asuid` (`asuid.www`, `asuid.admin`) that proves the domain is ours. To bind a
+domain, add it to its container app with a managed
 certificate, then set it as `RENT_HOST` or `ADMIN_HOST` in `infra/names.sh` (or as the
 repository variable of that name) in the same change, and release. `infra/deploy.sh` derives
 `Site:Origin`, `Site:AdminOrigin`, `AllowedHosts` and Admin's `config.json` from the two; a
