@@ -55,8 +55,8 @@ internal sealed class GetReviewItemQueryHandler(IAppDbContext database) : IReque
             ? found.Photos
                 .OrderBy(photo => photo.Position)
                 .Select(photo => new ReviewPhotoDto(
-                    PhotoRenditions.Url(photo.PhotoId, PhotoRenditions.Gallery),
-                    PhotoRenditions.Url(photo.PhotoId, PhotoRenditions.Thumb),
+                    PhotoRenditions.AdminUrl(photo.PhotoId, PhotoRenditions.Gallery),
+                    PhotoRenditions.AdminUrl(photo.PhotoId, PhotoRenditions.Thumb),
                     photo.Description))
                 .ToList()
             : [];

@@ -1,6 +1,6 @@
 // Acceptance Test
 // Traces to: L2-020, L2-025
-// Description: What POST /api/review-queue/{id}/decision refuses: anyone but an admin, a second decision, a pair the table does not allow, an item that no longer waits, and a stale version.
+// Description: What POST /api/admin/review-queue/{id}/decision refuses: anyone but an admin, a second decision, a pair the table does not allow, an item that no longer waits, and a stale version.
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -159,7 +159,7 @@ public sealed class DecisionRefusalTests : IDisposable
         using var naomi = Admin(_naomi);
 
         using var response = await naomi.PostAsJsonAsync(
-            $"/api/review-queue/{id}/decision", new { decision = "approve", version = 0 }, TestContext.Current.CancellationToken);
+            $"/api/admin/review-queue/{id}/decision", new { decision = "approve", version = 0 }, TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Equal("not_found", (await Problem.ReadAsync(response)).Code);
@@ -192,7 +192,7 @@ public sealed class DecisionRefusalTests : IDisposable
         using var naomi = Admin(_naomi);
 
         using var response = await naomi.PostAsJsonAsync(
-            $"/api/review-queue/{item.Id}/decision", new { decision, version }, TestContext.Current.CancellationToken);
+            $"/api/admin/review-queue/{item.Id}/decision", new { decision, version }, TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal(code, (await Problem.ReadAsync(response)).Code);
@@ -210,7 +210,7 @@ public sealed class DecisionRefusalTests : IDisposable
     }
 
     private static Task<HttpResponseMessage> DecideAsync(HttpClient client, Guid id, string decision) =>
-        client.PostAsJsonAsync($"/api/review-queue/{id}/decision", new { decision, version = 0 }, TestContext.Current.CancellationToken);
+        client.PostAsJsonAsync($"/api/admin/review-queue/{id}/decision", new { decision, version = 0 }, TestContext.Current.CancellationToken);
 
     private static async Task<List<Guid>> ClosedAsync(HttpResponseMessage response)
     {

@@ -7,11 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace ChristianRent.Api.Review;
 
 /// <summary>
-/// The review queue, for an admin alone: anyone else is answered 401 <c>not_signed_in</c> or 403
-/// <c>not_an_admin</c>, with no queue data (L2-019, criterion 5).
+/// The review queue, for an admin signed in to Admin alone: anyone else, including a member
+/// session, is answered 401 <c>not_signed_in</c> or 403 <c>not_an_admin</c>, with no queue data
+/// (L2-019, criterion 5; ADR 0029).
 /// </summary>
 [ApiController]
-[Route("api/review-queue")]
+[Route("api/admin/review-queue")]
 [Authorize(Policy = AccessExtensions.AdminPolicy)]
 public sealed class ReviewQueueController(ISender sender) : ControllerBase
 {

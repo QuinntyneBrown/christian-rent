@@ -1,6 +1,6 @@
 // Acceptance Test
 // Traces to: L2-020, L2-025
-// Description: POST /api/review-queue/{id}/decision lets an admin approve or remove a new listing, records who decided what and when, and takes the item out of the queue.
+// Description: POST /api/admin/review-queue/{id}/decision lets an admin approve or remove a new listing, records who decided what and when, and takes the item out of the queue.
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -33,7 +33,7 @@ public sealed class DecideNewListingTests : IDisposable
         using var admin = _factory.CreateMemberClient(_naomi, admin: true);
         using var anyone = _factory.CreateHttpsClient();
 
-        var detail = await ReadAsync(admin, $"/api/review-queue/{item.Id}");
+        var detail = await ReadAsync(admin, $"/api/admin/review-queue/{item.Id}");
         Assert.Equal(["approve", "remove"], detail.GetProperty("allowedDecisions").EnumerateArray().Select(value => value.GetString()));
         _factory.Clock.Advance(TimeSpan.FromMinutes(5));
         using var response = await DecideAsync(admin, item.Id, "approve", detail.GetProperty("version").GetInt32());
@@ -45,10 +45,10 @@ public sealed class DecideNewListingTests : IDisposable
         Assert.Equal(
             ["Backyard garden for gatherings"],
             browse.GetProperty("items").EnumerateArray().Select(row => row.GetProperty("title").GetString()));
-        var queue = await ReadAsync(admin, "/api/review-queue");
+        var queue = await ReadAsync(admin, "/api/admin/review-queue");
         Assert.Equal(0, queue.GetProperty("waitingCount").GetInt32());
         Assert.Empty(queue.GetProperty("items").EnumerateArray());
-        using var gone = await admin.GetAsync($"/api/review-queue/{item.Id}", TestContext.Current.CancellationToken);
+        using var gone = await admin.GetAsync($"/api/admin/review-queue/{item.Id}", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.NotFound, gone.StatusCode);
         var record = await StoredAsync(database => database.ReviewItems.SingleAsync(stored => stored.Id == item.Id));
         Assert.Equal(ReviewDecision.Approve, record.Decision);
@@ -65,7 +65,7 @@ public sealed class DecideNewListingTests : IDisposable
     }
 
     private static Task<HttpResponseMessage> DecideAsync(HttpClient client, Guid id, string decision, int version) =>
-        client.PostAsJsonAsync($"/api/review-queue/{id}/decision", new { decision, version }, TestContext.Current.CancellationToken);
+        client.PostAsJsonAsync($"/api/admin/review-queue/{id}/decision", new { decision, version }, TestContext.Current.CancellationToken);
 
     private async Task<T> StoredAsync<T>(Func<AppDbContext, Task<T>> read)
     {

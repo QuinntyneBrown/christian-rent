@@ -1,6 +1,6 @@
 // Acceptance Test
 // Traces to: L2-019, L2-025
-// Description: The first page of the review queue says when it was read, and GET /api/review-queue/arrivals counts by kind what has begun to wait since then, for an admin alone.
+// Description: The first page of the review queue says when it was read, and GET /api/admin/review-queue/arrivals counts by kind what has begun to wait since then, for an admin alone.
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -30,7 +30,7 @@ public sealed class ReviewArrivalsTests : IDisposable
         var old = TestData.ForRent(_dan, "Backyard garden for gatherings", approvedAt: null);
         await _factory.SeedAsync(TestData.Grace, TestData.StPauls, _dan, _alicia, _sarah, old, ReviewItem.ForNewListing(old.Id, TestData.At(7)));
         using var admin = Admin();
-        var page = await ReadAsync(admin, "/api/review-queue");
+        var page = await ReadAsync(admin, "/api/admin/review-queue");
         Assert.Equal(_factory.Clock.GetUtcNow(), page.GetProperty("asOf").GetDateTimeOffset());
         var since = Uri.EscapeDataString(page.GetProperty("asOf").GetString()!);
         Assert.Equal((0, 0, 0), await ArrivalsAsync(admin, since));
@@ -63,7 +63,7 @@ public sealed class ReviewArrivalsTests : IDisposable
         using var client = signInId is null ? _factory.CreateHttpsClient() : _factory.CreateSignedInClient(signInId, session: "admin");
 
         using var response = await client.GetAsync(
-            "/api/review-queue/arrivals?since=2026-06-08T15%3A00%3A00Z", TestContext.Current.CancellationToken);
+            "/api/admin/review-queue/arrivals?since=2026-06-08T15%3A00%3A00Z", TestContext.Current.CancellationToken);
 
         Assert.Equal(status, response.StatusCode);
         Assert.Equal(code, (await Problem.ReadAsync(response)).Code);
@@ -78,7 +78,7 @@ public sealed class ReviewArrivalsTests : IDisposable
     {
         using var admin = Admin();
 
-        using var response = await admin.GetAsync($"/api/review-queue/arrivals{query}", TestContext.Current.CancellationToken);
+        using var response = await admin.GetAsync($"/api/admin/review-queue/arrivals{query}", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal("since_invalid", (await Problem.ReadAsync(response)).Code);
@@ -93,7 +93,7 @@ public sealed class ReviewArrivalsTests : IDisposable
 
     private static async Task<(int, int, int)> ArrivalsAsync(HttpClient client, string since)
     {
-        var answer = await ReadAsync(client, $"/api/review-queue/arrivals?since={since}");
+        var answer = await ReadAsync(client, $"/api/admin/review-queue/arrivals?since={since}");
         return (
             answer.GetProperty("newListings").GetInt32(),
             answer.GetProperty("reports").GetInt32(),

@@ -39,7 +39,7 @@ public sealed class DecideReportTests : IDisposable
         await DecideAsync(admin, item.Id, "remove");
 
         await AssertNotPublicAsync(garden.Id);
-        Assert.Equal(0, (await ReadAsync(admin, "/api/review-queue")).GetProperty("waitingCount").GetInt32());
+        Assert.Equal(0, (await ReadAsync(admin, "/api/admin/review-queue")).GetProperty("waitingCount").GetInt32());
         var notice = Assert.Single(await StoredAsync(database => database.ListingRemovalNotices.ToListAsync()));
         Assert.Equal((_dan.Id, garden.Id, _factory.Clock.GetUtcNow()), (notice.MemberId, notice.ListingId, notice.CreatedAt));
     }
@@ -56,7 +56,7 @@ public sealed class DecideReportTests : IDisposable
         var secondItem = ReviewItem.ForReport(second.Id, TestData.At(7));
         await _factory.SeedAsync(TestData.Grace, TestData.NewSong, _dan, _sarah, _marcus, hall, first, second, firstItem, secondItem);
         using var admin = Admin();
-        var detail = await ReadAsync(admin, $"/api/review-queue/{firstItem.Id}");
+        var detail = await ReadAsync(admin, $"/api/admin/review-queue/{firstItem.Id}");
         Assert.Equal(["keep", "remove"], detail.GetProperty("allowedDecisions").EnumerateArray().Select(value => value.GetString()));
 
         var closed = await DecideAsync(admin, firstItem.Id, "keep");
@@ -65,7 +65,7 @@ public sealed class DecideReportTests : IDisposable
         using var anyone = _factory.CreateHttpsClient();
         using var read = await anyone.GetAsync($"/api/listings/{hall.Id}", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, read.StatusCode);
-        var queue = await ReadAsync(admin, "/api/review-queue");
+        var queue = await ReadAsync(admin, "/api/admin/review-queue");
         Assert.Equal([secondItem.Id], queue.GetProperty("items").EnumerateArray().Select(row => row.GetProperty("id").GetGuid()));
         var reports = await StoredAsync(database => database.Reports.ToDictionaryAsync(report => report.Id, report => report.Status));
         Assert.Equal((ReportStatus.Closed, ReportStatus.Open), (reports[first.Id], reports[second.Id]));
@@ -94,7 +94,7 @@ public sealed class DecideReportTests : IDisposable
 
         Assert.Equal(new[] { firstItem.Id, secondItem.Id }.Order(), closed.Order());
         await AssertNotPublicAsync(hall.Id);
-        var queue = await ReadAsync(admin, "/api/review-queue");
+        var queue = await ReadAsync(admin, "/api/admin/review-queue");
         Assert.Equal([otherItem.Id], queue.GetProperty("items").EnumerateArray().Select(row => row.GetProperty("id").GetGuid()));
         var items = await StoredAsync(database => database.ReviewItems.Where(item => item.Id != otherItem.Id).ToListAsync());
         Assert.All(items, item => Assert.Equal(
@@ -125,7 +125,7 @@ public sealed class DecideReportTests : IDisposable
     private static async Task<List<Guid>> DecideAsync(HttpClient client, Guid id, string decision)
     {
         using var response = await client.PostAsJsonAsync(
-            $"/api/review-queue/{id}/decision", new { decision, version = 0 }, TestContext.Current.CancellationToken);
+            $"/api/admin/review-queue/{id}/decision", new { decision, version = 0 }, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var answer = await response.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken);
         return answer.GetProperty("closedItemIds").EnumerateArray().Select(value => value.GetGuid()).ToList();

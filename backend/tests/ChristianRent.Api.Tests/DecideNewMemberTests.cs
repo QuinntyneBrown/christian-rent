@@ -39,7 +39,7 @@ public sealed class DecideNewMemberTests : IDisposable
         var poster = listing.GetProperty("poster");
         Assert.True(poster.GetProperty("isVerified").GetBoolean());
         Assert.False(poster.GetProperty("church").GetProperty("isVerified").GetBoolean());
-        Assert.Equal(0, (await ReadAsync(admin, "/api/review-queue")).GetProperty("waitingCount").GetInt32());
+        Assert.Equal(0, (await ReadAsync(admin, "/api/admin/review-queue")).GetProperty("waitingCount").GetInt32());
     }
 
     // L2-018 criterion 4: a removed member can no longer post or message, and their listings are
@@ -60,7 +60,7 @@ public sealed class DecideNewMemberTests : IDisposable
         using var anyone = _factory.CreateHttpsClient();
         using var read = await anyone.GetAsync($"/api/listings/{hall.Id}", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.NotFound, read.StatusCode);
-        Assert.Equal(0, (await ReadAsync(admin, "/api/review-queue")).GetProperty("waitingCount").GetInt32());
+        Assert.Equal(0, (await ReadAsync(admin, "/api/admin/review-queue")).GetProperty("waitingCount").GetInt32());
         using var alicia = _factory.CreateSignedInClient("alicia-gomez");
         using var message = await alicia.PostAsJsonAsync(
             $"/api/listings/{dansHall.Id}/messages",
@@ -86,7 +86,7 @@ public sealed class DecideNewMemberTests : IDisposable
     private static async Task DecideAsync(HttpClient client, Guid id, string decision)
     {
         using var response = await client.PostAsJsonAsync(
-            $"/api/review-queue/{id}/decision", new { decision, version = 0 }, TestContext.Current.CancellationToken);
+            $"/api/admin/review-queue/{id}/decision", new { decision, version = 0 }, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 }

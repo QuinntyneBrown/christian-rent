@@ -1,6 +1,6 @@
 // Acceptance Test
 // Traces to: L2-019, L2-021, L2-025
-// Description: GET /api/review-queue/{id} answers an admin everything needed to decide on a new listing, a report or a new member, never naming who reported, and not_found for an item that does not wait.
+// Description: GET /api/admin/review-queue/{id} answers an admin everything needed to decide on a new listing, a report or a new member, never naming who reported, and not_found for an item that does not wait.
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -62,9 +62,9 @@ public sealed class ReviewItemTests : IDisposable
         Assert.Equal(Minute(2), listing.GetProperty("postedAt").GetDateTimeOffset());
         var photos = listing.GetProperty("photos").EnumerateArray().ToList();
         Assert.Equal(
-            [$"/api/photos/{first}/gallery", $"/api/photos/{second}/gallery"],
+            [$"/api/admin/photos/{first}/gallery", $"/api/admin/photos/{second}/gallery"],
             photos.Select(photo => photo.GetProperty("url").GetString()));
-        Assert.Equal($"/api/photos/{first}/thumb", photos[0].GetProperty("thumbUrl").GetString());
+        Assert.Equal($"/api/admin/photos/{first}/thumb", photos[0].GetProperty("thumbUrl").GetString());
         Assert.Equal("A long table on a lawn", photos[0].GetProperty("description").GetString());
         var poster = listing.GetProperty("poster");
         Assert.Equal("Pastor Dan Whitaker", poster.GetProperty("name").GetString());
@@ -153,7 +153,7 @@ public sealed class ReviewItemTests : IDisposable
         _factory.Clock.Advance(TimeSpan.FromMinutes(1));
         await JoinAsync(second, new { name = "Mike Rentals", newChurchName = "open door", newChurchCity = "Surrey", declaresChristian = true });
         using var admin = Admin();
-        using var queue = await admin.GetAsync("/api/review-queue", TestContext.Current.CancellationToken);
+        using var queue = await admin.GetAsync("/api/admin/review-queue", TestContext.Current.CancellationToken);
         var items = (await queue.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken))
             .GetProperty("items").EnumerateArray().Select(item => item.GetProperty("id").GetGuid()).ToList();
 
@@ -192,7 +192,7 @@ public sealed class ReviewItemTests : IDisposable
 
         foreach (var id in new[] { item.Id.ToString(), Guid.NewGuid().ToString(), "nonsense" })
         {
-            using var response = await admin.GetAsync($"/api/review-queue/{id}", TestContext.Current.CancellationToken);
+            using var response = await admin.GetAsync($"/api/admin/review-queue/{id}", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
             Assert.Equal("not_found", (await Problem.ReadAsync(response)).Code);
@@ -209,7 +209,7 @@ public sealed class ReviewItemTests : IDisposable
         await _factory.SeedAsync(TestData.Grace, _sarah, item);
         using var client = signInId is null ? _factory.CreateHttpsClient() : _factory.CreateSignedInClient(signInId, session: "admin");
 
-        using var response = await client.GetAsync($"/api/review-queue/{item.Id}", TestContext.Current.CancellationToken);
+        using var response = await client.GetAsync($"/api/admin/review-queue/{item.Id}", TestContext.Current.CancellationToken);
 
         Assert.Equal(status, response.StatusCode);
         var problem = await Problem.ReadAsync(response);
@@ -225,7 +225,7 @@ public sealed class ReviewItemTests : IDisposable
 
     private static async Task<JsonElement> ReadAsync(HttpClient client, Guid id)
     {
-        using var response = await client.GetAsync($"/api/review-queue/{id}", TestContext.Current.CancellationToken);
+        using var response = await client.GetAsync($"/api/admin/review-queue/{id}", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         return await response.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken);
     }

@@ -100,6 +100,6 @@ internal sealed class GetReviewQueueQueryHandler(IAppDbContext database, TimePro
         var first = listing.Offer == ListingOffer.ForRent
             ? listing.Photos.OrderBy(photo => photo.Position).FirstOrDefault()
             : null;
-        return first is null ? null : PhotoRenditions.Url(first.PhotoId, PhotoRenditions.Thumb);
+        return first is null ? null : PhotoRenditions.AdminUrl(first.PhotoId, PhotoRenditions.Thumb);
     }
 }

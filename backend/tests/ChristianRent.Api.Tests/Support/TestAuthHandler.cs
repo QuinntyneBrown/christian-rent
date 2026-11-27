@@ -15,9 +15,10 @@ namespace ChristianRent.Api.Tests.Support;
 /// (ADR 0005). It exists only in the tests; without a header nobody is signed in.
 /// <c>ProbeApiFactory</c> makes it the handler of both session schemes (ADR 0029), and it keeps
 /// them apart: <c>X-Test-Session</c> says which session the caller holds, <c>member</c> (the
-/// default) or <c>admin</c>, and each scheme signs in only its own. Until journey 13 moves
-/// Admin's endpoints under <c>/api/admin/</c>, <c>X-Test-Admin: true</c> with no
-/// <c>X-Test-Session</c> is accepted by both.
+/// default) or <c>admin</c>, and each scheme signs in only its own. With no
+/// <c>X-Test-Session</c>, <c>X-Test-Admin: true</c> is an admin signed in to both applications,
+/// as an admin who is also a member may be. The real separation is proved with cookies
+/// (<c>SessionSeparationTests</c>).
 /// </summary>
 public sealed class TestAuthHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
