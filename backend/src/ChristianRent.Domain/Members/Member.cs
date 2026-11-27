@@ -55,6 +55,12 @@ public sealed class Member
     /// <summary>When the purge made the departed member anonymous; null until then.</summary>
     public DateTimeOffset? AnonymizedAt { get; private set; }
 
+    /// <summary>
+    /// The operator links an account to the member, so the person who signs in with it is this
+    /// member (ADR 0029). A member who already has that account is unchanged.
+    /// </summary>
+    public void LinkSignIn(string signInId) => SignInId = signInId;
+
     /// <summary>The operator lets the member work through the review queue (L2-019, criterion 23).</summary>
     public void MakeAdmin() => IsAdmin = true;
 

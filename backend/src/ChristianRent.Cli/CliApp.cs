@@ -18,9 +18,12 @@ namespace ChristianRent.Cli;
 public static class CliApp
 {
     public const string Usage = """
-        Usage: ChristianRent.Cli <migrate|seed|grant-admin|purge-departed|purge-photos>
+        Usage: ChristianRent.Cli <migrate|seed|create-account|grant-admin|purge-departed|purge-photos>
           migrate         Apply the pending EF Core migrations to the database in ConnectionStrings:Default.
           seed            Enter the sample data of the mocks' cast and its photos. Safe to run again: it changes nothing twice.
+          create-account  create-account <email> [<member-id>] reads the password, one line, from standard input, never
+                          from an argument, and creates the account; with <member-id> it links it to that active
+                          member. An account that exists keeps its password. Safe to run again.
           grant-admin     grant-admin <member-id> makes an active member an admin, who may then use Admin. Nothing else
                           makes anyone an admin. Safe to run again.
           purge-departed  Make members who left Members:PurgeAfterDays (at most 30) days ago anonymous, and delete
@@ -29,7 +32,11 @@ public static class CliApp
                           their files. Run it hourly. Safe to run again: it changes nothing twice.
         """;
 
-    public static async Task<int> RunAsync(string[] args, IServiceProvider services, TextWriter output, CancellationToken cancellationToken)
+    public static Task<int> RunAsync(string[] args, IServiceProvider services, TextWriter output, CancellationToken cancellationToken) =>
+        RunAsync(args, services, TextReader.Null, output, cancellationToken);
+
+    /// <summary>Runs one command; <paramref name="input"/> is standard input, which only create-account reads.</summary>
+    public static async Task<int> RunAsync(string[] args, IServiceProvider services, TextReader input, TextWriter output, CancellationToken cancellationToken)
     {
         using var scope = services.CreateScope();
         var database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -48,6 +55,37 @@ public static class CliApp
                 await output.WriteLineAsync(
                     $"Seeded {entered.Churches} churches, {entered.Members} members, {entered.Listings} listings, " +
                     $"{entered.Photos} photos and {entered.ReviewItems} review items.");
+                return 0;
+
+            case ["create-account", var email, .. var rest] when rest.Length <= 1:
+                Guid? member = null;
+                if (rest is [var memberText])
+                {
+                    if (!Guid.TryParse(memberText, out var linkTo))
+                    {
+                        await output.WriteLineAsync("No active member has that identifier.");
+                        return 1;
+                    }
+
+                    member = linkTo;
+                }
+
+                var password = await input.ReadLineAsync(cancellationToken) ?? "";
+                var made = await scope.ServiceProvider.GetRequiredService<ISender>()
+                    .Send(new CreateAccountCommand(email, password, member), cancellationToken);
+                // It names neither the email nor the password (L2-028, criterion 3).
+                if (made.Refused)
+                {
+                    await output.WriteLineAsync(string.Join(Environment.NewLine, made.Problems));
+                    return 1;
+                }
+
+                await output.WriteLineAsync(made.Created ? "Created the account." : "The account exists; its password is unchanged.");
+                if (made.Linked)
+                {
+                    await output.WriteLineAsync($"Linked it to member {member}.");
+                }
+
                 return 0;
 
             case ["grant-admin", var given]:

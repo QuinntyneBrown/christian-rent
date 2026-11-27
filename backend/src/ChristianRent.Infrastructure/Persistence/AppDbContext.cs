@@ -6,12 +6,23 @@ using ChristianRent.Domain.Messages;
 using ChristianRent.Domain.Notices;
 using ChristianRent.Domain.Reports;
 using ChristianRent.Domain.Review;
+using ChristianRent.Infrastructure.Identity;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChristianRent.Infrastructure.Persistence;
 
-public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IAppDbContext
+/// <summary>
+/// The one database: the product's tables, ASP.NET Core Identity's accounts, and the data
+/// protection keys that protect the session cookies, so they survive a restart and a second
+/// instance (ADR 0029).
+/// </summary>
+public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
+    : IdentityUserContext<Account>(options), IAppDbContext, IDataProtectionKeyContext
 {
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
+
     public DbSet<Church> Churches => Set<Church>();
 
     public DbSet<Member> Members => Set<Member>();
@@ -31,10 +42,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public Task<bool> CanConnectAsync(CancellationToken cancellationToken) =>
         Database.CanConnectAsync(cancellationToken);
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder builder)
     {
+        base.OnModelCreating(builder);
         // pg_trgm serves a search's Contains on listings."SearchText" (ADR 0015).
-        modelBuilder.HasPostgresExtension("pg_trgm");
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        builder.HasPostgresExtension("pg_trgm");
+        builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
     }
 }

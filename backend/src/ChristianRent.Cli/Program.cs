@@ -20,4 +20,5 @@ Console.CancelKeyPress += (_, eventArgs) =>
     cancellation.Cancel();
 };
 
-return await CliApp.RunAsync(args, host.Services, Console.Out, cancellation.Token);
+// create-account reads the password from standard input, never from an argument (ADR 0029).
+return await CliApp.RunAsync(args, host.Services, Console.In, Console.Out, cancellation.Token);

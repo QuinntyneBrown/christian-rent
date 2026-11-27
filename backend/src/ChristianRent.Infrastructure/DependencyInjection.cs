@@ -28,6 +28,8 @@ public static class DependencyInjection
         services.AddSingleton<IPhotoInspector, SkiaPhotoInspector>();
         services.AddSingleton<IPhotoProcessor, SkiaPhotoProcessor>();
 
+        services.AddAccounts();
+
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentMember, HttpCurrentMember>();
         services.AddScoped<Microsoft.AspNetCore.Authentication.IClaimsTransformation, MemberClaimsTransformation>();
