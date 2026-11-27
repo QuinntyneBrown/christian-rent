@@ -149,7 +149,7 @@ The requirements and the mocks leave these undecided. Each design marks where it
 | Where a member reads messages and replies (the Messages inbox) | send-message, decide-review-item |
 | How a poster is told that their listing was removed | decide-review-item |
 | How a member manages their own listings ("My listings") | read-listing |
-| The Admin control that confirms a church, and the one that removes a member who has left the review queue | verify-members-and-churches |
+| The Admin control that removes a member who has left the review queue, and the one that confirms a church none of whose members waits there | verify-members-and-churches |
 | How a person's area is set and a distance measured; the source of Canadian place names | browse-listings, search-and-filter-listings, compose-listing |
 | Who writes the description that is a photo's text alternative | read-listing, add-photos |
 | How the short name in the message box is derived from a member's name | send-message |

@@ -123,8 +123,8 @@ test.describe('The detail of a review item', () => {
       'Listings: 1 wanted listing, public',
       'Messages sent: None',
     ]);
-    // Confirming a church comes with its own journey: there is no control for it.
-    await expect(admin.detailControls).toHaveText(['Approve', 'Remove']);
+    // The church is not verified, so it can be confirmed here (L2-018, criterion 7).
+    await expect(admin.detailControls).toHaveText(['Confirm church', 'Approve', 'Remove']);
   });
 
   // L2-026 criterion 1: what members write is text, never HTML.

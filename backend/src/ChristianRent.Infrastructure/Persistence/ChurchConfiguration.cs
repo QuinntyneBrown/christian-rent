@@ -18,6 +18,10 @@ internal sealed class ChurchConfiguration : IEntityTypeConfiguration<Church>
         // Not a foreign key: members already point at churches, and the purge keeps a departed
         // member's row (ADR 0024).
         builder.Property(church => church.EnteredById);
+
+        // Not a foreign key either: who confirmed the church, and when (ADR 0031).
+        builder.Property(church => church.VerifiedBy);
+        builder.Property(church => church.VerifiedAt);
         builder.Property(church => church.MatchKey).HasMaxLength(ChurchMatch.MaxKeyLength).IsRequired();
         builder.HasIndex(church => church.MatchKey).IsUnique();
     }

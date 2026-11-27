@@ -69,6 +69,18 @@
             @if (fact.verified; as subject) {
               <cr-verified [subject]="subject" />
             }
+            @if (fact.action === 'confirm-church') {
+              <button
+                cr-button
+                size="sm"
+                type="button"
+                [busy]="confirming()"
+                [disabled]="conflict() !== null || (off() && !confirming())"
+                (click)="confirmChurch.emit()"
+              >
+                Confirm church
+              </button>
+            }
           </dd>
         </div>
       }

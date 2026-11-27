@@ -5,15 +5,15 @@ Journey 12 of `docs/journeys.md` (Admin): Confirm a member or church so its veri
 ## Goal
 
 An admin confirms a member (by approving the new-member item, from journey 11) or a church, and the verified
-mark then shows beside that member's name and that church on all of its members' listings, on Browse and the
-Listing screen. A member who is verified but whose church is not shows only the member's mark. Only an admin can
+mark then shows beside that member's name and that church on all of its members' listings, on the Listing
+screen. A card on Browse names the church and draws no mark, as its mocks do. A member who is verified but whose church is not shows only the member's mark. Only an admin can
 set a mark. Today members are verified through Approve; churches cannot be confirmed.
 
 ### In scope
 
 - `POST /api/admin/churches/{id}/verification` (Admin session, admin only; ADR 0029); the mark then appears on the listings of all the church's members.
 - The Admin control that confirms a church, from the new-member detail (`pages/admin/new-member.html`), as the design places it.
-- The verified marks on Browse and Listing read the member's and the church's state; the unverified listing mock shows only the member marked.
+- The verified marks on Listing read the member's and the church's state; `pages/listing/wanted.html` shows only the member marked, and `unverified.html` neither.
 - Every other caller is refused, including a member setting their own mark.
 
 Admin is its own application (`frontend/projects/admin`, ADR 0028) with its own sign-in and session (ADR 0029);
@@ -105,6 +105,7 @@ are in `rent`.
   - `docs/mocks/pages/admin/new-member.html`
   - `docs/mocks/pages/listing/default.html`
   - `docs/mocks/pages/listing/unverified.html`
+  - `docs/mocks/pages/listing/church-verified.html`
   - `docs/mocks/pages/listing/wanted.html`
 - Check each state you will build exists and is complete (light and dark, phone to desktop, keyboard focus,
   real copy). If a state the design or the criteria need is missing, draw it before any code, add it to
@@ -127,7 +128,7 @@ are in `rent`.
   2. Backend: a member or non-member is refused; an unknown church reveals nothing.
   3. Backend: a verified member in an unverified church shows only the member's mark (L2-018 criterion 3).
   4. Frontend: the confirm-church control on the new-member detail, with a toast.
-  5. Frontend: Browse and Listing show the marks with text, not colour alone, as the listing mocks draw them.
+  5. Frontend: Listing shows the marks with text, not colour alone, as the listing mocks draw them.
 - For each slice:
   - Write the Given-When-Then criteria, citing the L2 criteria they prove.
   - Write the acceptance test first: backend through the API (`WebApplicationFactory`, EF Core InMemory);

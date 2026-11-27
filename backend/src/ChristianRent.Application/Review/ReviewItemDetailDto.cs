@@ -65,8 +65,11 @@ public sealed record NewMemberDetailDto(
     int PublicCount,
     int MessageCount);
 
-/// <summary>A new member's church, and who entered it when that is recorded.</summary>
-public sealed record NewMemberChurchDto(string Name, string City, bool IsVerified, ChurchEntrantDto? EnteredBy);
+/// <summary>
+/// A new member's church, and who entered it when that is recorded. <c>Id</c> is what "Confirm
+/// church" sends (L2-018, criterion 7; ADR 0031).
+/// </summary>
+public sealed record NewMemberChurchDto(Guid Id, string Name, string City, bool IsVerified, ChurchEntrantDto? EnteredBy);
 
 /// <summary>The member who entered a church, and whether that is the member being decided on.</summary>
 public sealed record ChurchEntrantDto(string Name, bool IsThisMember);

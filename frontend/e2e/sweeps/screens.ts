@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import type { ApiFixtures } from '../fixtures/api';
-import { answerListing, gym, hall, office, van } from '../fixtures/listing';
+import { answerListing, churchVerified, gym, hall, office, van } from '../fixtures/listing';
 import {
   answerListings,
   answerPhotos,
@@ -21,13 +21,16 @@ import {
   MEMBER_ROW,
   REPORT_ROW,
   REVIEW_NOW,
+  ST_PAULS,
   type ReviewRowFixture,
   answerAdmin,
+  answerChurchConfirmed,
   answerDecision,
   decisionOf,
   refuseDecided,
   manyRows,
   queuePage,
+  verificationOf,
 } from '../fixtures/review';
 import { ADMIN_ORIGIN } from '../fixtures/origins';
 import { CREDENTIALS } from '../fixtures/session';
@@ -194,6 +197,30 @@ const DECIDING_SCREENS: readonly Screen[] = [
     'admin-toast-danger',
     (api) => api.refuse('POST', decisionOf(GARDEN_ROW.id), 500, 'server_error'),
     (page) => onDecisionBar(page, GARDEN_ROW, (admin) => admin.approve.click()),
+  ),
+  // "Confirm church" on the detail of a new member, and what follows it (journey 12).
+  adminScreen(
+    'admin-church-confirming',
+    (api) => void api.hold('POST', verificationOf(ST_PAULS.id)),
+    (page) => onDecisionBar(page, MEMBER_ROW, (admin) => admin.confirmChurch.click()),
+  ),
+  adminScreen(
+    'admin-church-confirmed',
+    (api) => answerChurchConfirmed(api),
+    (page) =>
+      onDecisionBar(page, MEMBER_ROW, async (admin) => {
+        await admin.confirmChurch.click();
+        await admin.toasts.first().waitFor();
+      }),
+  ),
+  adminScreen(
+    'admin-church-failed',
+    (api) => api.refuse('POST', verificationOf(ST_PAULS.id), 500, 'server_error'),
+    (page) =>
+      onDecisionBar(page, MEMBER_ROW, async (admin) => {
+        await admin.confirmChurch.click();
+        await admin.tryChurchAgain.waitFor();
+      }),
   ),
   {
     // The look for new items comes a minute on, so this screen's clock is moved there.
@@ -426,6 +453,12 @@ export const SCREENS: readonly Screen[] = [
     name: 'listing-unverified',
     path: `/listings/${office().id}`,
     answer: (api) => answerListing(api, office()),
+  },
+  {
+    // A new member of a church an admin has confirmed (journey 12).
+    name: 'listing-church-verified',
+    path: `/listings/${office().id}`,
+    answer: (api) => answerListing(api, churchVerified(office())),
   },
   {
     name: 'listing-edge',

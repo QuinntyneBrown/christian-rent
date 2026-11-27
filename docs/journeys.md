@@ -13,6 +13,6 @@
 | 9 | Main | Report a listing | Report a listing so an admin reviews it. | 3 | 100 |
 | 10 | Admin | View the review queue | See new listings, reports and new members awaiting review. | 4 | 100 |
 | 11 | Admin | Decide a review item | Open an item's detail, then Approve, Keep or Remove. | 4 | 100 |
-| 12 | Admin | Verify members and churches | Confirm a member or church so its verified mark shows. | 3 | 0 |
+| 12 | Admin | Verify members and churches | Confirm a member or church so its verified mark shows. | 3 | 100 |
 | 13 | Both | Two applications and sign-in | `rent` and `admin` deployed separately, each with its own sign-in page and session. | 10 | 100 |
-| | | **Total** | | **62** | **95** |
+| | | **Total** | | **62** | **100** |

@@ -61,6 +61,7 @@ function member(overrides: Partial<ReviewMember> = {}): ReviewMember {
     name: 'Dr. Alicia Gomez',
     joinedAt: noon(2026, 6, 8),
     church: {
+      id: 'st-pauls',
       name: 'St. Paul’s Anglican',
       city: 'Fort Langley',
       isVerified: false,
@@ -93,12 +94,12 @@ describe('toReviewDetailView', () => {
       tag: 'For rent · space',
       note: 'Seats 30.',
       facts: [
-        { term: 'Posted by', value: 'The Okafor family', verified: 'member' },
-        { term: 'Church', value: 'Redeemer Presbyterian', verified: null },
-        { term: 'When', value: 'Fridays', verified: null },
-        { term: 'Where', value: 'Brookswood, Langley', verified: null },
-        { term: 'Member since', value: 'Apr 2025', verified: null },
-        { term: 'Posted', value: 'Jun 8, 2026, 12:00 p.m.', verified: null },
+        { term: 'Posted by', value: 'The Okafor family', verified: 'member', action: null },
+        { term: 'Church', value: 'Redeemer Presbyterian', verified: null, action: null },
+        { term: 'When', value: 'Fridays', verified: null, action: null },
+        { term: 'Where', value: 'Brookswood, Langley', verified: null, action: null },
+        { term: 'Member since', value: 'Apr 2025', verified: null, action: null },
+        { term: 'Posted', value: 'Jun 8, 2026, 12:00 p.m.', verified: null, action: null },
       ],
       siteHref: null,
       decisions: [
@@ -187,16 +188,22 @@ describe('toReviewDetailView', () => {
       name: 'Dr. Alicia Gomez',
       joined: 'Joined Jun 8, 2026, 12:00 p.m.',
       facts: [
-        { term: 'Name', value: 'Dr. Alicia Gomez', verified: null },
-        { term: 'Church', value: 'St. Paul’s Anglican, Fort Langley', verified: null },
-        { term: 'Declared', value: '“I am a Christian”', verified: null },
+        { term: 'Name', value: 'Dr. Alicia Gomez', verified: null, action: null },
+        {
+          term: 'Church',
+          value: 'St. Paul’s Anglican, Fort Langley',
+          verified: null,
+          action: null,
+        },
+        { term: 'Declared', value: '“I am a Christian”', verified: null, action: null },
         {
           term: 'Church status',
           value: 'New to christian.rent, entered by this member',
           verified: null,
+          action: 'confirm-church',
         },
-        { term: 'Listings', value: '1 wanted listing, public', verified: null },
-        { term: 'Messages sent', value: 'None', verified: null },
+        { term: 'Listings', value: '1 wanted listing, public', verified: null, action: null },
+        { term: 'Messages sent', value: 'None', verified: null, action: null },
       ],
       decisions: [
         { decision: 'approve', label: 'Approve' },
@@ -221,11 +228,31 @@ describe('toReviewDetailView', () => {
     ],
     [false, null, 'Not verified'],
   ])('writes a church (verified %s, entered by %o) as "%s"', (isVerified, enteredBy, words) => {
-    const church = { name: 'Open Door', city: 'Surrey', isVerified, enteredBy };
+    const church = { id: 'open-door', name: 'Open Door', city: 'Surrey', isVerified, enteredBy };
 
     expect(factsOf(item({ kind: 'new-member', member: member({ church }) }))['Church status']).toBe(
       words,
     );
+  });
+
+  // L2-018 criterion 7: "Confirm church" beside the status of a church that is not verified.
+  it.each([
+    [false, 'confirm-church'],
+    [true, null],
+  ])('offers to confirm a church (verified %s): %s', (isVerified, action) => {
+    const church = { ...member().church, isVerified };
+    const view = toReviewDetailView(item({ kind: 'new-member', member: member({ church }) }), NOW);
+
+    expect(view.facts.filter((fact) => fact.action !== null).map((fact) => fact.term)).toEqual(
+      action === null ? [] : ['Church status'],
+    );
+    expect(view.facts.find((fact) => fact.term === 'Church status')!.action).toBe(action);
+  });
+
+  it('offers nothing to do to a listing’s facts', () => {
+    const view = toReviewDetailView(item({ listing: listing() }), NOW);
+
+    expect(view.facts.every((fact) => fact.action === null)).toBe(true);
   });
 
   // L2-019 criterion 17: listings that are not removed (all, for rent, public).

@@ -125,6 +125,22 @@ export function toArrivalsToast({ newListings, reports, newMembers }: ReviewArri
   };
 }
 
+/** The notification of a church that was confirmed (L2-018, criterion 8). */
+export function toChurchConfirmedToast(church: string): Notice {
+  return {
+    title: 'Church confirmed',
+    text: `${church} is now marked Verified on its members’ listings.`,
+  };
+}
+
+/** The notification of a church that could not be confirmed (L2-018, criterion 9). */
+export function toChurchFailedToast(church: string): Notice {
+  return {
+    title: 'The church wasn’t confirmed',
+    text: `We couldn’t reach christian.rent. ${church} is still not verified.`,
+  };
+}
+
 /** "a report", "2 reports"; null for none. */
 function counted(count: number, noun: string): string | null {
   return count === 0 ? null : count === 1 ? `a ${noun}` : `${count} ${noun}s`;

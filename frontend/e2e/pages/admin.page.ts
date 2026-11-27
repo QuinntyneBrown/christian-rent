@@ -59,12 +59,17 @@ export class AdminPage {
   readonly keep: Locator;
   readonly remove: Locator;
 
+  /** "Confirm church", beside the status of a new member's church that is not verified. */
+  readonly confirmChurch: Locator;
+
   /** What the panel says of an item another admin decided first. */
   readonly conflictTitle: Locator;
   readonly conflictText: Locator;
   readonly nextItem: Locator;
   /** "Try again" on the notification of a decision that failed. */
   readonly tryDecisionAgain: Locator;
+  /** "Try again" on the notification of a church that was not confirmed. */
+  readonly tryChurchAgain: Locator;
 
   /** Admin's notifications, newest at the bottom; the shell has a region of its own. */
   readonly toastRegion: Locator;
@@ -138,6 +143,10 @@ export class AdminPage {
     this.keep = bar.getByRole('button', { name: 'Keep listing', exact: true });
     this.remove = bar.getByRole('button', { name: 'Remove', exact: true });
 
+    this.confirmChurch = this.detail
+      .locator('.review__facts')
+      .getByRole('button', { name: 'Confirm church', exact: true });
+
     const conflict = this.detail.locator('.review__conflict');
     this.conflictTitle = conflict.locator('.alert__title');
     this.conflictText = conflict.locator('.alert__text');
@@ -145,6 +154,7 @@ export class AdminPage {
 
     this.toastRegion = page.locator('cr-review-page .toast-region');
     this.tryDecisionAgain = this.toastRegion.getByRole('button', { name: 'Try again' });
+    this.tryChurchAgain = this.tryDecisionAgain;
     this.toasts = this.toastRegion.locator('.toast');
     this.dismissToast = this.toastRegion.getByRole('button', { name: 'Dismiss' });
     this.showThem = this.toastRegion.getByRole('button', { name: 'Show them' });
@@ -174,14 +184,23 @@ export class AdminPage {
     await this.queue.evaluate((element) => element.scrollTo(0, 0));
   }
 
-  /** The detail's facts as "term: value", in order. */
+  /** The detail's facts as "term: value", in order, without any control beside a value. */
   async detailFacts(): Promise<string[]> {
     return this.facts.evaluateAll((facts) =>
       facts.map((fact) => {
-        const text = (selector: string) =>
-          (fact.querySelector(selector)?.textContent ?? '').replace(/\s+/g, ' ').trim();
+        const text = (selector: string) => {
+          const part = fact.querySelector(selector)?.cloneNode(true) as Element | undefined;
+          part?.querySelectorAll('button').forEach((control) => control.remove());
+          return (part?.textContent ?? '').replace(/\s+/g, ' ').trim();
+        };
         return `${text('dt')}: ${text('dd')}`;
       }),
     );
+  }
+
+  /** The value of the fact called `term`, for example "Church status". */
+  async fact(term: string): Promise<string | undefined> {
+    const facts = await this.detailFacts();
+    return facts.find((fact) => fact.startsWith(`${term}: `))?.slice(term.length + 2);
   }
 }

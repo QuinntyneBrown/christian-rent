@@ -1,0 +1,61 @@
+@startuml
+title UML sequence behaviour — Confirm a church
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Admin" as actor
+box "Frontend — admin application (review page, lazy)" #E0F2FE
+  participant "cr-review-detail" as detail
+  participant "ReviewQueueStore" as store
+  participant "ChurchVerificationApi" as client
+end box
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "AdminChurchesController" as ctrl
+end box
+box "Backend — ChristianRent.Application and Domain" #ECFDF3
+  participant "VerifyChurchCommandHandler" as handler
+  participant "Church" as church
+end box
+box "Backend — ChristianRent.Infrastructure" #FFF4E5
+  database "Database" as db
+end box
+actor -> detail : Confirm church (L2-018 criterion 7)
+detail -> store : confirmChurch()
+store -> store : confirmingChurch = true; decisions off (criterion 8)
+store -> client : verify(churchId, signal)
+client -> ctrl : POST /api/admin/churches/{id}/verification
+ctrl -> ctrl : Admin session and Admin policy (L2-018 criterion 5)
+ctrl -> handler : Send VerifyChurchCommand
+handler -> db : Church by id
+alt no such church
+  handler --> ctrl : NotFoundException
+  ctrl --> client : 404 not_found (criterion 11)
+else found
+  handler -> church : Verify(adminId, now)
+  note right of church : Sets IsVerified, VerifiedBy and VerifiedAt once;\nan already verified church is unchanged (criterion 10)
+  handler -> db : Save
+  handler --> ctrl : done
+  ctrl --> client : 204 No Content
+end
+alt answered 204
+  client --> store : resolved
+  store -> detail : Church status "Verified", no control
+  store --> actor : Notification "Church confirmed" (criterion 8)
+else failed
+  client --> store : ApiError
+  store --> actor : Notification "The church wasn't confirmed", "Try again" (criterion 9)
+end
+... later, anyone opens a listing of any member of the church ...
+note over ctrl, db : GetListingQueryHandler reads Church.IsVerified:\nthe church's mark shows (criterion 2), and the member's\nmark still follows the member alone (criterion 3)
+@enduml

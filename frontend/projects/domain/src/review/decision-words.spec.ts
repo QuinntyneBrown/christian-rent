@@ -2,6 +2,8 @@ import type { ReviewDecision, ReviewKind } from '@rent/api';
 import {
   decisionLabel,
   toArrivalsToast,
+  toChurchConfirmedToast,
+  toChurchFailedToast,
   toConflictCopy,
   toConflictToast,
   toDecisionToast,
@@ -30,6 +32,21 @@ describe('decision words', () => {
     ['remove', 'new-member', 'Removed', 'Garden is no longer a member.'],
   ])('says what %s did to a %s', (decision, kind, title, text) => {
     expect(toDecisionToast(decision, { kind, name: 'Garden' })).toEqual({ title, text });
+  });
+
+  // L2-018 criteria 8 and 9: what confirming a church says.
+  it('says that a church was confirmed, naming it', () => {
+    expect(toChurchConfirmedToast('St. Paul’s Anglican')).toEqual({
+      title: 'Church confirmed',
+      text: 'St. Paul’s Anglican is now marked Verified on its members’ listings.',
+    });
+  });
+
+  it('says that a church was not confirmed, naming it', () => {
+    expect(toChurchFailedToast('St. Paul’s Anglican')).toEqual({
+      title: 'The church wasn’t confirmed',
+      text: 'We couldn’t reach christian.rent. St. Paul’s Anglican is still not verified.',
+    });
   });
 
   // L2-020 criteria 9 and 10: the confirmation names what is removed and what follows.

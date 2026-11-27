@@ -138,6 +138,12 @@ Core Identity's, made by the operator; sign-in refuses alike, locks out and thro
 removed member's session stops
 ([ADR 0028](docs/adr/0028-two-applications-deployed-separately.md),
 [ADR 0029](docs/adr/0029-sign-in-and-two-sessions.md),
+[ADR 0030](docs/adr/0030-bundle-budgets-per-application.md)). Verifying members and churches
+is built (journey 12): approving a new member verifies them, and "Confirm church" on the detail
+of a new member verifies their church, whose mark then shows on the listings of all its
+members; only an admin can set either mark
+([ADR 0031](docs/adr/0031-confirming-a-church.md)). Nothing is deployed: the hosts are
+not chosen.
 [ADR 0030](docs/adr/0030-bundle-budgets-per-application.md)). It is deployed to Azure, and
 every commit to `main` that passes CI is released ([ADR 0031](docs/adr/0031-hosting-on-azure-and-deploying-each-commit.md));
 christian.rent's own domains are not bound yet.
@@ -146,8 +152,8 @@ christian.rent's own domains are not bound yet.
   `docs/design-system/` and the detailed designs in `docs/detailed-designs/`.
 - The journeys and their slices are in `docs/journeys.md` and `docs/detailed-journeys.md`, with
   **% complete**; the architecture decisions are in `docs/adr/`.
-- What comes next is journey 12, Verify members and churches: one slice at a time, each with its
-  failing acceptance test first.
+- Every journey in `docs/journeys.md` is built. What comes next needs its design first: a
+  Messages inbox, "My listings", sign-up and password reset have none yet.
 
 ## How it works
 
