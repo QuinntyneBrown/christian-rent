@@ -12,6 +12,9 @@ public class ProbeApiFactory : ApiFactory
 {
     public CapturedLogs Logs { get; } = new();
 
+    /// <summary>Whether <c>TestAuthHandler</c> stands in for the cookies; false keeps the real sign-in.</summary>
+    protected virtual bool TestSignIn => true;
+
     /// <summary>
     /// A member by identifier, holding the member session, or the Admin session with
     /// <paramref name="session"/> <c>admin</c> (ADR 0029).
@@ -54,6 +57,11 @@ public class ProbeApiFactory : ApiFactory
         // TestAuthHandler stands in for both cookie schemes, which the path still chooses (ADR 0029).
         services.Configure<AuthenticationOptions>(options =>
         {
+            if (!TestSignIn)
+            {
+                return;
+            }
+
             options.SchemeMap[SessionSchemes.Member].HandlerType = typeof(TestAuthHandler);
             options.SchemeMap[SessionSchemes.Admin].HandlerType = typeof(TestAuthHandler);
         });

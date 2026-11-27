@@ -18,6 +18,7 @@ namespace ChristianRent.Api.Tests.Support;
 public class ApiFactory : WebApplicationFactory<Program>
 {
     public const string SiteOrigin = "https://christian.rent";
+    public const string AdminOrigin = "https://admin.christian.rent";
 
     private readonly string _databaseName = $"christian-rent-{Guid.NewGuid()}";
 
@@ -41,6 +42,7 @@ public class ApiFactory : WebApplicationFactory<Program>
         builder.UseEnvironment(EnvironmentName);
         builder.UseSetting("ConnectionStrings:Default", "Host=not-used-by-tests");
         builder.UseSetting("Site:Origin", SiteOrigin);
+        builder.UseSetting("Site:AdminOrigin", AdminOrigin);
         builder.UseSetting("https_port", "443");
 
         builder.ConfigureTestServices(services =>
