@@ -38,7 +38,7 @@ and Remove buttons are designed in
   is unchanged, and the answer is 204 either way (L2-018, criterion 10). A church that does not
   exist is `not_found` (criterion 11). The request has no body.
 - **`NewMemberChurchDto.Id`** — the church's identifier in the detail of a new member, which
-  the control sends. No answer to a member carries it.
+  the control sends.
 - **`ListingVisibility.CanBeSeenBy`** — treats a listing as public only when its poster's
   `Status` is `Active`. A removal therefore hides every listing of the member at once,
   without rewriting the listings (L2-018, criterion 4). `BrowseListingsQueryHandler`,

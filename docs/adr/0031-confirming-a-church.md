@@ -48,7 +48,7 @@ criterion 6). The verify-members-and-churches design left open:
   Sample churches entered as verified have neither. `VerifiedBy` is not a foreign key, as
   `EnteredById` is not ([0024](0024-viewing-the-review-queue-open-decisions.md)).
 - **The detail of a new member carries the church's identifier**, which the control sends. It is
-  not in any answer to a member.
+  the identifier the join dialog's list of churches already gives.
 - **The marks are read, never copied.** The Listing screen and Admin's detail read
   `Member.IsVerified` and `Church.IsVerified` on every request, so a confirmation marks every
   listing of every member of the church on its next load, and the two marks stay independent

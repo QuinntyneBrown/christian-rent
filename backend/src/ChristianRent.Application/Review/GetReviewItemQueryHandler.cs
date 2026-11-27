@@ -119,7 +119,7 @@ internal sealed class GetReviewItemQueryHandler(IAppDbContext database) : IReque
         return new NewMemberDetailDto(
             row.Name,
             row.JoinedAt,
-            new NewMemberChurchDto(row.Church.Name, row.Church.City, row.Church.IsVerified, entrant),
+            new NewMemberChurchDto(row.Church.Id, row.Church.Name, row.Church.City, row.Church.IsVerified, entrant),
             listings.Count,
             listings.Count(listing => listing.Offer == ListingOffer.ForRent),
             listings.Count(listing => listing.Status == ListingStatus.Approved),
