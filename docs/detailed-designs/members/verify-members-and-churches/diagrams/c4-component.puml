@@ -4,6 +4,8 @@ LAYOUT_WITH_LEGEND()
 title Components — Verify members and churches
 
 Container_Boundary(spa, "rent application (Angular workspace)") {
+  Component(review, "cr-review-detail", "components library", "Offers Confirm church")
+  Component(store, "ReviewQueueStore", "admin library (lazy)", "Confirms through ReviewQueueApi")
   Component(poster, "cr-poster", "components library", "Member, church and their marks")
   Component(mark, "cr-verified", "components library", "Icon and the word Verified")
 }
@@ -17,6 +19,8 @@ Container_Boundary(api, "ChristianRent backend") {
 }
 ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
 Rel(poster, mark, "Renders when a flag is true")
+Rel(review, store, "confirmChurch")
+Rel(store, vch, "POST /api/churches/{id}/verification", "JSON/HTTPS")
 Rel(poster, get, "Receives PosterDto from", "JSON/HTTPS")
 Rel(dec, member, "Verify() or Remove()")
 Rel(vch, church, "Verify()")

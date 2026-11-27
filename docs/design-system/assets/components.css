@@ -490,6 +490,7 @@ a.listing-card:hover, a.listing-card[data-state="hover"] { transform: translateY
 .review__facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4) var(--space-6); margin: var(--space-6) 0 0; padding-top: var(--space-6); border-top: 1px solid var(--color-border-default); font: var(--text-body-sm); }
 .review__facts dt { color: var(--color-fg-muted); }
 .review__facts dd { margin: var(--space-0-5) 0 0; font-weight: var(--font-weight-semibold); display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); }
+.review__church-status { overflow-wrap: anywhere; }
 .decision-bar { position: sticky; bottom: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-top: var(--space-8); padding-block: var(--space-4); background: var(--color-bg-surface-sunken); }
 .decision-bar__view { margin-left: auto; display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--target-min); color: var(--color-fg-muted); font: var(--text-label); }
 .phone-only-note { margin: 0 var(--space-5) var(--space-4); }

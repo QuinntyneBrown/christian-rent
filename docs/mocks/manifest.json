@@ -169,7 +169,10 @@
         "detail-gone",
         "more-loading",
         "more-error",
-        "forbidden-signed-out"
+        "forbidden-signed-out",
+        "church-confirming",
+        "church-confirmed",
+        "church-failed"
       ]
     },
     {

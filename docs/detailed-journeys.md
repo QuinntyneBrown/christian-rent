@@ -158,7 +158,7 @@ Design: [verify-members-and-churches](detailed-designs/members/verify-members-an
 |---|---|---|
 | 12.1 | Approving a new member verifies them | L2-018 |
 | 12.2 | `VerifyChurchCommand` confirms a church | L2-018, L2-025 |
-| 12.3 | Verified marks follow on Browse and Listing | L2-008, L2-018 |
+| 12.3 | `cr-review-detail` offers "Confirm church", and the verified marks follow on Listing | L2-008, L2-018 |
 
 ## Total
 

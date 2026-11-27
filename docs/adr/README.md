@@ -38,3 +38,4 @@ record giving its reason (`AGENTS.md`, *Prefer best practice*).
 | [0025](0025-telling-a-poster-their-listing-was-removed.md) | A removal records a notice for the poster in the same unit of work; nothing is sent until a channel is designed | Accepted |
 | [0026](0026-two-admins-deciding-one-item.md) | A review item's version is a concurrency token; a second decision is refused as `already_decided`, unless the same admin repeats the same one | Accepted |
 | [0027](0027-deciding-a-review-item-open-decisions.md) | Deciding: 3 toasts at most, arrivals polled every 60 s, the three confirmations, focus, a removed member, and what "already reported" says | Accepted |
+| [0028](0028-confirming-a-church.md) | Confirming a church: "Confirm church" on a new member's detail, no dialog, idempotent, `not_found` for an admin alone, and no mark on a Browse card | Accepted |

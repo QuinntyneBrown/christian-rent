@@ -5,15 +5,16 @@ Journey 12 of `docs/journeys.md` (Admin): Confirm a member or church so its veri
 ## Goal
 
 An admin confirms a member (by approving the new-member item, from journey 11) or a church, and the verified
-mark then shows beside that member's name and that church on all of its members' listings, on Browse and the
-Listing screen. A member who is verified but whose church is not shows only the member's mark. Only an admin can
-set a mark. Today members are verified through Approve; churches cannot be confirmed.
+mark then shows beside that member's name and that church on all of its members' listings, on the Listing screen
+and in Admin; a Browse card draws no mark. A member who is verified but whose church is not shows only the
+member's mark. Only an admin can set a mark. Approve already verifies a member; this journey adds confirming a
+church, with "Confirm church" on the new member's detail (ADR 0028).
 
 ### In scope
 
 - `POST /api/churches/{id}/verification` (admin only); the mark then appears on the listings of all the church's members.
 - The Admin control that confirms a church, from the new-member detail (`pages/admin/new-member.html`), as the design places it.
-- The verified marks on Browse and Listing read the member's and the church's state; the unverified listing mock shows only the member marked.
+- The verified marks on Listing read the member's and the church's state: the wanted listing mock shows only the member marked, and the unverified one marks neither.
 - Every other caller is refused, including a member setting their own mark.
 
 ### Deferred (not in this run)
@@ -96,7 +97,8 @@ set a mark. Today members are verified through Approve; churches cannot be confi
 
 ## Phase 3: Mocks and design system (`writing-html-mocks`, `extracting-design-systems`)
 - The mocks for this journey are:
-  - `docs/mocks/pages/admin/new-member.html`
+  - `docs/mocks/pages/admin/new-member.html`, `church-confirming.html`, `church-confirmed.html` and
+    `church-failed.html`
   - `docs/mocks/pages/listing/default.html`
   - `docs/mocks/pages/listing/unverified.html`
   - `docs/mocks/pages/listing/wanted.html`
@@ -108,10 +110,10 @@ set a mark. Today members are verified through Approve; churches cannot be confi
 
 ## Phase 4: Detailed design and ADRs (`writing-software-design-documents`)
 - The design is [`docs/detailed-designs/members/verify-members-and-churches/README.md`](../detailed-designs/members/verify-members-and-churches/README.md). Follow it; it names the types, endpoints, tokens and files.
-- Resolve every `<TO SUPPLY>` this journey needs, choosing the simplest option that fits, and record each
-  decision as an ADR in `docs/adr/` (numbered, in the house style of the existing ADRs) and in the design.
-  For this journey these are:
-  - The Admin control that confirms a church: the mocks do not settle it (open decision). If it needs a new control or state, draw it in `docs/mocks/pages/admin/new-member.html` (or a new state) first, then align `L2-018`, the ADR and the design, before any code.
+- The Admin control that confirms a church is settled by [ADR 0028](../adr/0028-confirming-a-church.md),
+  drawn in `docs/mocks/pages/admin/new-member.html`, `church-confirming.html`, `church-confirmed.html` and
+  `church-failed.html` and stated in `L2-018`, criteria 7 to 11. Record any further `<TO SUPPLY>` this journey
+  needs in an ADR and in the design.
 - Re-render any diagram you change (`python .claude/skills/writing-software-design-documents/scripts/render_puml.py docs/detailed-designs`)
   and commit the `.png` with its `.puml`.
 
@@ -121,7 +123,7 @@ set a mark. Today members are verified through Approve; churches cannot be confi
   2. Backend: a member or non-member is refused; an unknown church reveals nothing.
   3. Backend: a verified member in an unverified church shows only the member's mark (L2-018 criterion 3).
   4. Frontend: the confirm-church control on the new-member detail, with a toast.
-  5. Frontend: Browse and Listing show the marks with text, not colour alone, as the listing mocks draw them.
+  5. Frontend: Listing shows the marks with text, not colour alone, as the listing mocks draw them.
 - For each slice:
   - Write the Given-When-Then criteria, citing the L2 criteria they prove.
   - Write the acceptance test first: backend through the API (`WebApplicationFactory`, EF Core InMemory);

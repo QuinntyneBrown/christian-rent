@@ -35,7 +35,7 @@ enum MemberStatus {
   Departed
 }
 class VerifyChurchCommand {
-  +Guid ChurchId
+  +string Id
 }
 class VerifyChurchCommandHandler {
   +Handle(command: VerifyChurchCommand): Task
