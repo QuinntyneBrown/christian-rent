@@ -10,8 +10,9 @@
 # them, and asks each origin for a page and for the API. What each container app and job is, is
 # written here, so a change to a setting is released like a change to the code.
 #
-# RENT_HOST and ADMIN_HOST name the two public hosts; without them the hosts are the ones Azure
-# gave the container apps.
+# RENT_HOST and ADMIN_HOST name the two public hosts (names.sh); a host left empty is the one
+# Azure gave its container app. The API answers the public hosts and Azure's own, so each app's
+# Azure address keeps working once a domain is bound; writes are accepted from the public origins.
 set -euo pipefail
 cd "$(dirname "$0")"
 source ./names.sh
@@ -27,8 +28,12 @@ IDENTITY_ID=$(az identity show -g "$RESOURCE_GROUP" -n "$APP_IDENTITY" --query i
 REGISTRY_SERVER=$(az acr show -g "$RESOURCE_GROUP" -n "$REGISTRY" --query loginServer -o tsv)
 KEY_VAULT_URI=$(az keyvault show -g "$RESOURCE_GROUP" -n "$KEY_VAULT" --query properties.vaultUri -o tsv)
 
-RENT_HOST=${RENT_HOST:-$RENT_APP.$DEFAULT_DOMAIN}
-ADMIN_HOST=${ADMIN_HOST:-$ADMIN_APP.$DEFAULT_DOMAIN}
+RENT_AZURE_HOST=$RENT_APP.$DEFAULT_DOMAIN
+ADMIN_AZURE_HOST=$ADMIN_APP.$DEFAULT_DOMAIN
+RENT_HOST=${RENT_HOST:-$RENT_AZURE_HOST}
+ADMIN_HOST=${ADMIN_HOST:-$ADMIN_AZURE_HOST}
+# Without a host here, the API refuses the request (400) before it reaches a controller.
+ALLOWED_HOSTS=$(printf '%s\n' "$RENT_HOST" "$ADMIN_HOST" "$RENT_AZURE_HOST" "$ADMIN_AZURE_HOST" | awk '!seen[$0]++' | paste -sd ';' -)
 BACKEND_IMAGE=$REGISTRY_SERVER/backend:$TAG
 
 # Beside this script, as a relative path: one the Azure CLI reads the same way on every system.
@@ -116,7 +121,7 @@ $(shared_configuration)
           - name: Site__AdminOrigin
             value: https://$ADMIN_HOST
           - name: AllowedHosts
-            value: "$RENT_HOST;$ADMIN_HOST"
+            value: "$ALLOWED_HOSTS"
 $(backend_env)
         resources:
           cpu: 0.5
@@ -297,6 +302,7 @@ expect() { # what, expected status, url
 }
 expect "rent's first screen" 200 "https://$RENT_HOST/"
 expect "rent's API, through its host, with the database" 200 "https://$RENT_HOST/api/listings"
+expect "rent's API, through Azure's host" 200 "https://$RENT_AZURE_HOST/api/listings"
 expect "Admin's first screen" 200 "https://$ADMIN_HOST/"
 expect "Admin's API, through its host" 401 "https://$ADMIN_HOST/api/admin/session"
 expect "Admin's host refusing the rest of the API" 404 "https://$ADMIN_HOST/api/listings"

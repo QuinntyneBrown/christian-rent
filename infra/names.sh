@@ -23,6 +23,12 @@ DATABASE_NAME=christian_rent
 DATABASE_ADMIN=cradmin
 DATABASE_DNS_ZONE=christian-rent.private.postgres.database.azure.com
 
+# The public hosts. christian.rent is bound to the rent container app; Admin keeps the host Azure
+# gave it until its own domain is bound (deploy.sh fills that in when ADMIN_HOST is empty). The
+# deploy workflow can override either with the repository variables RENT_HOST and ADMIN_HOST.
+RENT_HOST=${RENT_HOST:-christian.rent}
+ADMIN_HOST=${ADMIN_HOST:-}
+
 RENT_APP=ca-christian-rent
 ADMIN_APP=ca-christian-rent-admin
 MIGRATE_JOB=caj-christian-rent-migrate

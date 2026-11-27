@@ -44,9 +44,11 @@ on a disk path. The API and the CLI need ICU. The launch is in Canada.
   else. Each container app runs one replica, so each rate limit counts in one place for its
   application; more replicas would need the limits kept outside the process.
 - **The hosts are the ones Azure gives** (`<app>.<environment>.canadacentral.azurecontainerapps.io`)
-  until christian.rent's own domains are bound. `deploy.sh` takes `RENT_HOST` and `ADMIN_HOST`
-  for that day and derives `Site:Origin`, `Site:AdminOrigin`, `AllowedHosts` and Admin's
-  `config.json` (the host's `SITE_URL`) from them.
+  until christian.rent's own domains are bound. `names.sh` holds `RENT_HOST` and `ADMIN_HOST`
+  (`christian.rent` for `rent` now; Admin's is still Azure's), which the repository variables
+  of the same names can override, and `deploy.sh` derives `Site:Origin`, `Site:AdminOrigin`,
+  `AllowedHosts` and Admin's `config.json` (the host's `SITE_URL`) from them. `AllowedHosts`
+  keeps the Azure hosts too, so a bound domain never takes the Azure address away.
 - **The database is Azure Database for PostgreSQL flexible server** (version 17, Burstable
   B1ms), with no public address: it and the container apps share a virtual network. Its
   `azure.extensions` allows `pg_trgm` and `unaccent`. Azure backs it up daily and keeps 14 days,
