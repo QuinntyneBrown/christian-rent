@@ -15,7 +15,13 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { Dialog } from '@angular/cdk/dialog';
-import { type ReviewDecision, SESSION, SITE_LINKS } from '@rent/api';
+import {
+  CHURCH_VERIFICATION_API,
+  HttpChurchVerificationApi,
+  type ReviewDecision,
+  SESSION,
+  SITE_LINKS,
+} from '@rent/api';
 import {
   AdminLayout,
   AdminNav,
@@ -68,7 +74,12 @@ const WIDE = '(min-width: 48rem)';
   changeDetection: ChangeDetectionStrategy.OnPush,
   // Provided here, not by the route, whose providers would outlive the screen: leaving Admin
   // destroys the store, which aborts what it was loading.
-  providers: [ReviewQueueStore, ToastQueue],
+  // The client that confirms a church is bound here too, so its code comes with this page.
+  providers: [
+    ReviewQueueStore,
+    ToastQueue,
+    { provide: CHURCH_VERIFICATION_API, useClass: HttpChurchVerificationApi },
+  ],
   host: {
     '[style.--review-before.px]': 'store.before()',
     '[style.--review-after.px]': 'store.after()',
@@ -141,6 +152,11 @@ export class ReviewPage {
     } else {
       void this.store.decide(decision).then((outcome) => this.decided(outcome));
     }
+  }
+
+  /** "Confirm church": the button goes once it has worked, so focus follows the queue. */
+  protected confirmChurch(): void {
+    void this.store.confirmChurch().then((outcome) => this.decided(outcome));
   }
 
   /** Remove takes effect only once it is confirmed (L2-020, criterion 4). */

@@ -20,11 +20,13 @@ export interface QueueItemView {
   readonly thumb: QueueThumbView;
 }
 
-/** One fact of a detail: "Church", its value, and what of it is verified. */
+/** One fact of a detail: "Church", its value, what of it is verified, and what can be done to it. */
 export interface ReviewFactView {
   readonly term: string;
   readonly value: string;
   readonly verified: 'member' | 'church' | null;
+  /** "Confirm church", beside the status of a church that is not verified (L2-018, criterion 7). */
+  readonly action: 'confirm-church' | null;
 }
 
 /** One button of the decision bar. */

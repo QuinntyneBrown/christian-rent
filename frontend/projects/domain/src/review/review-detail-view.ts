@@ -101,7 +101,10 @@ function memberView(member: ReviewMember): Subject<ReviewMemberView> {
       fact('Church', `${member.church.name}, ${member.church.city}`),
       // Joining takes this declaration (L2-017), so every member has made it.
       fact('Declared', '“I am a Christian”'),
-      fact('Church status', churchStatus(member.church)),
+      {
+        ...fact('Church status', churchStatus(member.church)),
+        action: member.church.isVerified ? null : 'confirm-church',
+      },
       fact('Listings', listingsOf(member)),
       fact('Messages sent', member.messageCount === 0 ? 'None' : String(member.messageCount)),
     ],
@@ -150,5 +153,5 @@ function fact(
   value: string,
   verified: ReviewFactView['verified'] = null,
 ): ReviewFactView {
-  return { term, value, verified };
+  return { term, value, verified, action: null };
 }

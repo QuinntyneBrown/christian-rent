@@ -27,6 +27,7 @@ public sealed class VerifyChurchTests : IDisposable
     // L2-018 criteria 2 and 3: the church's mark appears on the listings of all its members, and
     // each member's own mark stays as it was.
     [Fact]
+    [Trait("Category", "Critical")]
     public async Task A_confirmed_church_is_marked_on_the_listings_of_all_its_members()
     {
         var hall = TestData.ForRent(_alicia, "Parish hall with a kitchen", TestData.At(5));

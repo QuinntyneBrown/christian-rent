@@ -100,6 +100,8 @@ export interface ReviewMember {
   readonly name: string;
   readonly joinedAt: string;
   readonly church: {
+    /** What "Confirm church" sends (ADR 0031). */
+    readonly id: string;
     readonly name: string;
     readonly city: string;
     readonly isVerified: boolean;

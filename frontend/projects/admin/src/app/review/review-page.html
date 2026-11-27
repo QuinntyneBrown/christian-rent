@@ -88,9 +88,11 @@
           [view]="store.detail()"
           [siteUrl]="siteUrl()"
           [deciding]="decidingHere()"
-          [off]="store.deciding() !== null"
+          [off]="store.busy()"
+          [confirming]="store.confirmingHere()"
           [conflict]="store.conflict()"
           (decide)="decide($event)"
+          (confirmChurch)="confirmChurch()"
           (next)="goToNext()"
         />
       }

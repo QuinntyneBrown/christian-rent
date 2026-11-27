@@ -64,8 +64,8 @@ and Remove buttons are designed in
   beside it (L2-018, criterion 7). It takes `confirming` (the button is busy) and emits
   `confirmChurch`; `off` turns the button off while a decision is in flight.
 - **`ChurchVerificationApi`** / **`CHURCH_VERIFICATION_API`** (`api`) — `verify(churchId,
-  signal)`, over HTTP as `HttpChurchVerificationApi`, which Admin's review route provides
-  beside `HttpReviewQueueApi`, so its code is in the review chunk.
+  signal)`, over HTTP as `HttpChurchVerificationApi`, which Admin's review page provides, so
+  its code is in the review page's lazy chunk and Admin's first download does not grow.
 - **`ReviewQueueStore.confirmChurch()`** (`admin`) — confirms the church of the new member
   whose detail is shown. One change is in flight at a time: it is ignored while a decision or
   another confirmation is, and a decision is ignored while it is. On success the detail shown

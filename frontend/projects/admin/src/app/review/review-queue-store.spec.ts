@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import {
+  CHURCH_VERIFICATION_API,
   REVIEW_QUEUE_API,
   type ApiError,
   type ReviewDecided,
@@ -31,6 +32,7 @@ export function fakeApi() {
   const items: Asked<ReviewItemDetail>[] = [];
   const decisions: Asked<ReviewDecided>[] = [];
   const arrivals: Asked<ReviewArrivals>[] = [];
+  const churches: Asked<void>[] = [];
   const ask = <T>(into: Asked<T>[], about: string | null, signal: AbortSignal) =>
     new Promise<T>((resolve, reject) => {
       signal.addEventListener('abort', () => reject(new DOMException('', 'AbortError')));
@@ -55,6 +57,8 @@ export function fakeApi() {
     items,
     decisions,
     arrivals,
+    churches,
+    churchApi: { verify: (id: string, signal: AbortSignal) => ask(churches, id, signal) },
     api: {
       arrivals: (since: string, signal: AbortSignal) => ask(arrivals, since, signal),
       page: (cursor: string | null, signal: AbortSignal) => ask(pages, cursor, signal),
@@ -83,6 +87,34 @@ export function page(
   waitingCount = ids.length,
 ): ReviewQueuePage {
   return { items: ids.map(row), nextCursor, waitingCount, asOf: '2026-06-08T19:00:00Z' };
+}
+
+/** A new member of St. Paul's, which no admin has confirmed unless `verified`. */
+export function memberDetail(
+  id: string,
+  verified = false,
+  churchId = 'st-pauls',
+): ReviewItemDetail {
+  return {
+    ...detail(id),
+    kind: 'new-member',
+    listing: null,
+    member: {
+      name: `Member ${id}`,
+      joinedAt: '2026-06-08T18:20:00Z',
+      church: {
+        id: churchId,
+        name: 'St. Paul’s Anglican',
+        city: 'Fort Langley',
+        isVerified: verified,
+        enteredBy: null,
+      },
+      listingCount: 0,
+      forRentCount: 0,
+      publicCount: 0,
+      messageCount: 0,
+    },
+  };
 }
 
 export function detail(id: string): ReviewItemDetail {
@@ -125,7 +157,12 @@ describe('ReviewQueueStore', () => {
     vi.setSystemTime(new Date('2026-06-08T19:00:00Z'));
     fake = fakeApi();
     TestBed.configureTestingModule({
-      providers: [ReviewQueueStore, ToastQueue, { provide: REVIEW_QUEUE_API, useValue: fake.api }],
+      providers: [
+        ReviewQueueStore,
+        ToastQueue,
+        { provide: REVIEW_QUEUE_API, useValue: fake.api },
+        { provide: CHURCH_VERIFICATION_API, useValue: fake.churchApi },
+      ],
     });
     store = TestBed.inject(ReviewQueueStore);
   });
@@ -768,5 +805,143 @@ describe('ReviewQueueStore', () => {
     TestBed.resetTestingModule();
 
     await expect(shown).resolves.toBe('ignored');
+  });
+
+  // verify-members-and-churches design: "Confirm church" (L2-018, criteria 7 to 9; ADR 0031).
+  describe('confirming a church', () => {
+    /** The queue loaded, with the detail of a new member selected. */
+    async function showingMember(verified = false, ids = ['a', 'b', 'c']): Promise<void> {
+      await loaded(ids);
+      await fake.items.at(-1)!.answer(memberDetail(ids[0]!, verified));
+    }
+
+    const churchStatus = () => {
+      const shown = store.detail();
+      return shown?.facts.find((fact) => fact.term === 'Church status');
+    };
+
+    it('confirms the church of the new member shown, says so, and decides nothing', async () => {
+      await showingMember();
+      expect(churchStatus()).toMatchObject({ value: 'Not verified', action: 'confirm-church' });
+
+      const outcome = store.confirmChurch();
+      expect(store.confirmingHere()).toBe(true);
+      expect(store.busy()).toBe(true);
+      expect(fake.churches[0]!.about).toBe('st-pauls');
+      await fake.churches[0]!.answer();
+
+      await expect(outcome).resolves.toBe('done');
+      expect(churchStatus()).toMatchObject({ value: 'Verified', action: null });
+      expect(store.confirmingHere()).toBe(false);
+      expect(store.busy()).toBe(false);
+      expect(toasts().map((toast) => [toast.tone, toast.title, toast.text])).toEqual([
+        [
+          'success',
+          'Church confirmed',
+          'St. Paul’s Anglican is now marked Verified on its members’ listings.',
+        ],
+      ]);
+      expect(idsHeld()).toEqual(['a', 'b', 'c']);
+      expect(store.selectedId()).toBe('a');
+      expect(fake.items).toHaveLength(1);
+      expect(fake.decisions).toEqual([]);
+    });
+
+    it.each([
+      ['a church already verified', () => showingMember(true)],
+      ['a listing', () => showing()],
+      ['no detail', () => loaded(['a'], false)],
+    ])('confirms nothing for %s', async (_, arrange) => {
+      await arrange();
+
+      await expect(store.confirmChurch()).resolves.toBe('ignored');
+
+      expect(fake.churches).toEqual([]);
+    });
+
+    it('has one confirmation in flight at a time, and no decision beside it', async () => {
+      await showingMember();
+
+      void store.confirmChurch();
+      await expect(store.confirmChurch()).resolves.toBe('ignored');
+      await expect(store.decide('approve')).resolves.toBe('ignored');
+      await fake.churches[0]!.answer();
+
+      expect(fake.churches).toHaveLength(1);
+      expect(fake.decisions).toEqual([]);
+    });
+
+    it('confirms nothing while a decision is in flight', async () => {
+      await showingMember();
+
+      void store.decide('approve');
+      await expect(store.confirmChurch()).resolves.toBe('ignored');
+
+      expect(fake.churches).toEqual([]);
+      await fake.decisions[0]!.answer({ closedItemIds: ['a'] });
+    });
+
+    it('offers a failed confirmation again, for the same church', async () => {
+      await showingMember();
+      const outcome = store.confirmChurch();
+      await fake.churches[0]!.refuse('server_error');
+      await expect(outcome).resolves.toBe('failed');
+      expect(toasts().map((toast) => [toast.tone, toast.title, toast.text])).toEqual([
+        [
+          'danger',
+          'The church wasn’t confirmed',
+          'We couldn’t reach christian.rent. St. Paul’s Anglican is still not verified.',
+        ],
+      ]);
+      expect(churchStatus()).toMatchObject({ action: 'confirm-church' });
+      expect(store.busy()).toBe(false);
+
+      const again = toasts()[0]!.action!.run();
+
+      expect(fake.churches[1]!.about).toBe('st-pauls');
+      expect(toasts()).toEqual([]);
+      await fake.churches[1]!.answer();
+      await expect(again).resolves.toBe('done');
+      expect(titles()).toEqual(['Church confirmed']);
+      expect(churchStatus()).toMatchObject({ value: 'Verified', action: null });
+    });
+
+    it('keeps confirming when another item is selected, and leaves that item as it is', async () => {
+      await showingMember();
+      const outcome = store.confirmChurch();
+      store.select('b');
+      await fake.items.at(-1)!.answer(detail('b'));
+      expect(fake.churches[0]!.signal.aborted).toBe(false);
+      expect(store.confirmingHere()).toBe(false);
+      expect(store.busy()).toBe(true);
+
+      await fake.churches[0]!.answer();
+
+      await expect(outcome).resolves.toBe('done');
+      expect(titles()).toEqual(['Church confirmed']);
+      expect(store.detail()).toMatchObject({ type: 'listing', title: 'Listing b' });
+    });
+
+    it('shows another new member of the church as busy while it is confirmed', async () => {
+      await showingMember();
+      void store.confirmChurch();
+
+      store.select('b');
+      await fake.items.at(-1)!.answer(memberDetail('b'));
+      expect(store.confirmingHere()).toBe(true);
+      await fake.churches[0]!.answer();
+
+      expect(churchStatus()).toMatchObject({ value: 'Verified', action: null });
+    });
+
+    it('aborts a confirmation on its way when the admin leaves, and says nothing', async () => {
+      await showingMember();
+      const outcome = store.confirmChurch();
+
+      TestBed.resetTestingModule();
+
+      expect(fake.churches[0]!.signal.aborted).toBe(true);
+      await expect(outcome).resolves.toBe('ignored');
+    });
   });
 });

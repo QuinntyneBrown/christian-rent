@@ -142,6 +142,13 @@ export const PARTY_BUS_LISTING = {
   postedAt: '2026-06-06T17:00:00Z',
 };
 
+/** The church Dr. Alicia Gomez entered as she joined, which no admin has confirmed. */
+export const ST_PAULS = {
+  id: 'c4a7e1f0-0006-4000-8000-000000000006',
+  name: 'St. Paul’s Anglican',
+  city: 'Fort Langley',
+};
+
 /** The decision table: what each kind of item takes (L2-020). */
 const ALLOWED: Record<ReviewKindFixture, string[]> = {
   'new-listing': ['approve', 'remove'],
@@ -159,8 +166,7 @@ export const DETAILS = new Map<string, object>([
         name: 'Dr. Alicia Gomez',
         joinedAt: '2026-06-08T18:20:00Z',
         church: {
-          name: 'St. Paul’s Anglican',
-          city: 'Fort Langley',
+          ...ST_PAULS,
           isVerified: false,
           enteredBy: { name: 'Dr. Alicia Gomez', isThisMember: true },
         },
@@ -245,6 +251,14 @@ export function refuseDecided(
     },
     headers: { 'content-type': 'application/problem+json' },
   });
+}
+
+/** Where a church is confirmed (ADR 0031). */
+export const verificationOf = (churchId: string) => `/api/admin/churches/${churchId}/verification`;
+
+/** A church the API confirms: 204, with nothing to say. */
+export function answerChurchConfirmed(api: ApiFixtures, churchId: string = ST_PAULS.id): void {
+  api.answer('POST', verificationOf(churchId), { status: 204 });
 }
 
 /** The photos of the review fixtures, served from localhost. */
