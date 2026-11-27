@@ -4,7 +4,7 @@ Extracted from [docs/mocks](../mocks/README.md) on Nov 26, 2026. Open [index.htm
 
 The mocks are the source of truth for the UI; this system is what they have in common, written down once. The mocks link `tokens/tokens.css` and `assets/components.css` from here, so the two cannot drift apart.
 
-christian.rent is four screens and narrow on purpose. The system documents the components those screens use and no others: it has no table, tabs, menu, tooltip, breadcrumb, pagination or switch, because no screen has one. Add a component here when a mock first needs it.
+christian.rent is two applications of a few screens, and narrow on purpose. The system documents the components those screens use and no others: it has no table, tabs, menu, tooltip, breadcrumb, pagination or switch, because no screen has one. Add a component here when a mock first needs it.
 
 ## Foundations
 
@@ -75,7 +75,7 @@ christian.rent is four screens and narrow on purpose. The system documents the c
 | [Forms](patterns/forms.html) | How a member fills something in on christian.rent, and what happens when it goes wrong. |
 | [Feedback and loading](patterns/feedback-and-loading.html) | Which kind of feedback answers which action, and how waiting looks. |
 | [Empty and error states](patterns/empty-and-error-states.html) | What to show when there is nothing to show, and how to word it. |
-| [Navigation and page structure](patterns/navigation-and-page-structure.html) | How the four screens are put together and how a person moves between them. |
+| [Navigation and page structure](patterns/navigation-and-page-structure.html) | How the screens of the two applications are put together and how a person moves between them. |
 | [Dialogs and overlays](patterns/dialogs-and-overlays.html) | When something opens over the page, and how it behaves. |
 | [Lists of listings and the queue](patterns/lists.html) | How Browse’s grid and Admin’s queue load, grow and stay bounded. |
 | [Notifications](patterns/notifications.html) | How christian.rent tells someone that something happened. |

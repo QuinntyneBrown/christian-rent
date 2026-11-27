@@ -72,8 +72,8 @@ Sign-up, password reset and password change are not designed.
 ## What christian.rent leaves out
 
 Payment, a booking calendar, reviews and ratings, a social feed and adverts. A Messages inbox, a
-"My listings" screen and sign-in are not designed yet, and none is built before its design
-exists.
+"My listings" screen, sign-up, password reset and password change are not designed yet, and none
+is built before its design exists.
 
 ## Design
 

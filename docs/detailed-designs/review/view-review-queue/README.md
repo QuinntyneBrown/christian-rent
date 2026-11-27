@@ -2,7 +2,7 @@
 
 ## Overview
 
-Admin, at `/admin`, is the screen an admin works through. It holds the **review queue**:
+Admin, at the root of its own origin, is the screen an admin works through. It holds the **review queue**:
 every new listing, every report and every new member that waits for a decision, oldest
 first. Selecting an item shows a detail panel with everything needed to decide. When
 nothing waits, the screen says "All caught up".
@@ -145,7 +145,8 @@ The mocks are the source of truth for the UI of this feature. The states this de
 - [`docs/mocks/pages/admin/more-error.html`](../../../mocks/pages/admin/more-error.html): the next page failed
 - [`docs/mocks/pages/admin/detail-error.html`](../../../mocks/pages/admin/detail-error.html): the detail failed to load
 - [`docs/mocks/pages/admin/detail-gone.html`](../../../mocks/pages/admin/detail-gone.html): the item is no longer waiting
-- [`docs/mocks/pages/admin/forbidden-signed-out.html`](../../../mocks/pages/admin/forbidden-signed-out.html): a person nobody knows as a member
+- [`docs/mocks/pages/admin/unreachable.html`](../../../mocks/pages/admin/unreachable.html): Admin cannot ask who is signed in
+- [`docs/mocks/pages/admin-sign-in/default.html`](../../../mocks/pages/admin-sign-in/default.html): anyone not signed in to Admin, who gets its sign-in page
 - [`docs/mocks/notifications/review-toast/info.html`](../../../mocks/notifications/review-toast/info.html): new items arrived in the queue (journey 11)
 
 ## Requirements

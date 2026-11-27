@@ -7,7 +7,7 @@ namespace ChristianRent.Infrastructure.Identity;
 /// <summary>
 /// Reads the caller from the authenticated principal: the sign-in identifier <c>sub</c>, and the
 /// claim <c>member_id</c> and role <c>admin</c> that <see cref="MemberClaimsTransformation"/>
-/// adds for an active member (ADR 0005, ADR 0017). Nobody is signed in until sign-in is designed.
+/// adds for an active member (ADR 0017, ADR 0029). The principal is the request's own session's.
 /// </summary>
 public sealed class HttpCurrentMember(IHttpContextAccessor accessor) : ICurrentMember
 {

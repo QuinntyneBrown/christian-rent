@@ -2,8 +2,8 @@
 
 ## Overview
 
-The application shell is everything the four screens share: the Angular application that
-starts in the browser, its routes, the header with the wordmark, the design tokens and
+The application shell is everything the screens of each application share: the two Angular
+applications, `rent` and `admin`, each starting in the browser on its own origin, its routes, the header with the wordmark, the design tokens and
 fonts, the helpers that format prices, distances and dates for Canada, and the "not found"
 screen. It is what a person downloads first, so its size decides how fast Browse appears on
 a phone.
