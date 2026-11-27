@@ -76,6 +76,7 @@ Each journey's entry has three parts:
 | L60 | A client only a lazy page uses is bound in that page's `providers`: a route's `providers` in `app.routes.ts` import its class statically, into the initial chunk. | 12 |
 | L61 | When a control joins a value a page object reads as text (a fact's `dd`), the page object leaves the control's label out, so the specs of the value keep saying what it is. | 12 |
 | L62 | A change that makes a new combination of drawn parts possible (a verified church with an unverified member) gets its own mock state and spec, though the component already renders it. | 12 |
+| L63 | Check a production build under the host's own CSP: Angular's critical-CSS inlining loads the stylesheet with an inline script that `script-src 'self'` blocks, so production showed no gutters and the hidden text; `inlineCritical` is off. Binding a domain changes the hosts the API allows in the same change. | Release |
 
 ## Journeys
 

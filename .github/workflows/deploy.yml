@@ -88,4 +88,8 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       - name: Migrate, release and ask each origin
+        env:
+          # Optional repository variables; empty, names.sh decides (christian.rent for rent).
+          RENT_HOST: ${{ vars.RENT_HOST }}
+          ADMIN_HOST: ${{ vars.ADMIN_HOST }}
         run: bash infra/deploy.sh "$COMMIT"

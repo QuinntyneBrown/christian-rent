@@ -328,10 +328,13 @@ az containerapp exec -g rg-christian-rent -n ca-christian-rent --container api -
 
 `seed` enters the mocks' cast, which is sample data: leave it out of a system real members use.
 
-**christian.rent's own domains** are not bound yet. To bind them, add each domain to its
-container app with a managed certificate, and release with `RENT_HOST` and `ADMIN_HOST` set to
-them in `infra/deploy.sh`, which derives `Site:Origin`, `Site:AdminOrigin`, `AllowedHosts` and
-Admin's `config.json` from the two.
+**christian.rent's own domains.** `christian.rent` is bound to `rent`'s container app; Admin
+keeps the host Azure gave it. To bind a domain, add it to its container app with a managed
+certificate, then set it as `RENT_HOST` or `ADMIN_HOST` in `infra/names.sh` (or as the
+repository variable of that name) in the same change, and release. `infra/deploy.sh` derives
+`Site:Origin`, `Site:AdminOrigin`, `AllowedHosts` and Admin's `config.json` from the two; a
+domain bound but missing there is refused by the API, and Browse says "We couldn't load the
+listings." `AllowedHosts` also keeps each container app's Azure host.
 
 Still open: a backup of the photo share to a separate store, the telemetry backend and the
 restore drill. The database is backed up by Azure daily, kept 14 days.
