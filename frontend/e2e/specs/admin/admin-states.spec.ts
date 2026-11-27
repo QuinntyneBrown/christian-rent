@@ -20,7 +20,7 @@ test.describe('The states of the review queue', () => {
 
   // L2-033 criteria 1 and 5.
   test('shows a loading state in the shape of the queue while it waits', async ({ page, api }) => {
-    const release = api.hold('GET', '/api/review-queue');
+    const release = api.hold('GET', '/api/admin/review-queue');
     const admin = new AdminPage(page);
 
     await admin.open();
@@ -37,7 +37,7 @@ test.describe('The states of the review queue', () => {
 
   // L2-019 criterion 3.
   test('says "All caught up" when nothing waits', async ({ page, api }) => {
-    api.answer('GET', '/api/review-queue', { body: queuePage([]) });
+    api.answer('GET', '/api/admin/review-queue', { body: queuePage([]) });
     const admin = new AdminPage(page);
 
     await admin.open();
@@ -51,12 +51,14 @@ test.describe('The states of the review queue', () => {
     await expect(admin.phoneNote).toHaveCount(0);
     await expect(admin.waitingCount).toHaveCount(0);
     await expect(admin.detail).toBeEmpty();
-    expect(api.requests.filter((request) => request.includes('/api/review-queue/'))).toEqual([]);
+    expect(api.requests.filter((request) => request.includes('/api/admin/review-queue/'))).toEqual(
+      [],
+    );
   });
 
   // L2-033 criterion 2.
   test('says that the queue did not load, and loads it on "Try again"', async ({ page, api }) => {
-    api.refuse('GET', '/api/review-queue', 500, 'server_error');
+    api.refuse('GET', '/api/admin/review-queue', 500, 'server_error');
     const admin = new AdminPage(page);
     await admin.open();
 
@@ -64,7 +66,7 @@ test.describe('The states of the review queue', () => {
     await expect(admin.queueMessageTitle).toHaveText('We couldn’t load the queue.');
     await expect(admin.queueMessageText).toHaveText('Check your connection and try again.');
     await expect(admin.waitingCount).toHaveCount(0);
-    api.answer('GET', '/api/review-queue', { body: queuePage(QUEUE) });
+    api.answer('GET', '/api/admin/review-queue', { body: queuePage(QUEUE) });
 
     await admin.queueTryAgain.click();
 
@@ -74,14 +76,16 @@ test.describe('The states of the review queue', () => {
 
   // L2-019 criterion 21: the panel says so; the queue stays.
   test('says that an item did not load, and loads it on "Try again"', async ({ page, api }) => {
-    api.refuse('GET', `/api/review-queue/${GARDEN_ROW.id}`, 500, 'server_error');
+    api.refuse('GET', `/api/admin/review-queue/${GARDEN_ROW.id}`, 500, 'server_error');
     const admin = new AdminPage(page);
     await admin.open();
 
     await expect(admin.detailAlert).toContainText('We couldn’t load this item.');
     await expect(admin.detailAlert).toContainText('Check your connection and try again.');
     await expect(admin.rows).toHaveCount(4);
-    api.answer('GET', `/api/review-queue/${GARDEN_ROW.id}`, { body: DETAILS.get(GARDEN_ROW.id) });
+    api.answer('GET', `/api/admin/review-queue/${GARDEN_ROW.id}`, {
+      body: DETAILS.get(GARDEN_ROW.id),
+    });
 
     await admin.detailTryAgain.click();
 
@@ -94,7 +98,7 @@ test.describe('The states of the review queue', () => {
     page,
     api,
   }) => {
-    api.refuse('GET', `/api/review-queue/${GARDEN_ROW.id}`, 404, 'not_found');
+    api.refuse('GET', `/api/admin/review-queue/${GARDEN_ROW.id}`, 404, 'not_found');
     const admin = new AdminPage(page);
     await admin.open();
 
@@ -102,7 +106,7 @@ test.describe('The states of the review queue', () => {
     await expect(admin.detailAlert).toContainText(
       'What it was about is no longer there to review.',
     );
-    api.answer('GET', '/api/review-queue', { body: queuePage(QUEUE.slice(1)) });
+    api.answer('GET', '/api/admin/review-queue', { body: queuePage(QUEUE.slice(1)) });
 
     await admin.reloadQueue.click();
 
@@ -113,7 +117,7 @@ test.describe('The states of the review queue', () => {
   // L2-036 criterion 4; ADR 0028: "Back to site" crosses to the site's own origin, even while
   // Admin is still loading; the page that held the request is gone with it.
   test('can be left for the site while it is still loading', async ({ page, api }) => {
-    const release = api.hold('GET', `/api/review-queue/${GARDEN_ROW.id}`);
+    const release = api.hold('GET', `/api/admin/review-queue/${GARDEN_ROW.id}`);
     const admin = new AdminPage(page);
     await admin.open();
     await expect(admin.rows).toHaveCount(4);

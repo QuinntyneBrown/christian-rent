@@ -6,7 +6,7 @@ import { AdminPage } from '../../pages/admin.page';
 test.use({ timezoneId: 'America/Vancouver' });
 
 const detailRequests = (requests: string[]) =>
-  requests.filter((request) => request.startsWith('GET /api/review-queue/'));
+  requests.filter((request) => request.startsWith('GET /api/admin/review-queue/'));
 
 test.describe('The review queue', () => {
   test.beforeEach(async ({ page, api }) => {
@@ -33,7 +33,7 @@ test.describe('The review queue', () => {
       'Marcus Lee · 12 min',
     ]);
     await expect(admin.rowTags).toHaveText(['New', 'New member', 'Reported', 'New']);
-    await expect(admin.rowThumbs.nth(0)).toHaveAttribute('src', '/api/photos/garden/thumb');
+    await expect(admin.rowThumbs.nth(0)).toHaveAttribute('src', '/api/admin/photos/garden/thumb');
     await expect(admin.rowThumbs.nth(1)).toHaveText('AG');
     await expect(admin.rowThumbs.nth(3)).toHaveText('Want');
 
@@ -51,7 +51,7 @@ test.describe('The review queue', () => {
       'Member since: Apr 2025',
       'Posted: Jun 8, 2026, 9:12 a.m.',
     ]);
-    expect(detailRequests(api.requests)).toEqual([`GET /api/review-queue/${GARDEN_ROW.id}`]);
+    expect(detailRequests(api.requests)).toEqual([`GET /api/admin/review-queue/${GARDEN_ROW.id}`]);
 
     await expect(admin.navLabel).toHaveText('Admin · Naomi Friesen');
     await expect(admin.reviewLink).toHaveAttribute('aria-current', 'page');
@@ -68,7 +68,7 @@ test.describe('The review queue', () => {
 
     await admin.open();
 
-    await expect(admin.detailPhoto).toHaveAttribute('src', '/api/photos/garden/gallery');
+    await expect(admin.detailPhoto).toHaveAttribute('src', '/api/admin/photos/garden/gallery');
     await expect(admin.detailPhoto).toHaveAttribute(
       'alt',
       'A long table set for dinner on a lawn under string lights',
@@ -87,7 +87,7 @@ test.describe('The review queue', () => {
   // L2-019 criterion 15: a listing for rent with none says so.
   test('says that a listing for rent has no photo', async ({ page, api }) => {
     const garden = DETAILS.get(GARDEN_ROW.id) as { listing: object };
-    api.answer('GET', `/api/review-queue/${GARDEN_ROW.id}`, {
+    api.answer('GET', `/api/admin/review-queue/${GARDEN_ROW.id}`, {
       body: { ...garden, listing: { ...garden.listing, photos: [] } },
     });
     const admin = new AdminPage(page);

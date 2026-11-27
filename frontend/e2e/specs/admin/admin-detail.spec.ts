@@ -133,7 +133,7 @@ test.describe('The detail of a review item', () => {
     const report = DETAILS.get(REPORT_ROW.id) as {
       report: { listing: object };
     };
-    api.answer('GET', `/api/review-queue/${REPORT_ROW.id}`, {
+    api.answer('GET', `/api/admin/review-queue/${REPORT_ROW.id}`, {
       body: {
         ...report,
         report: {
@@ -159,7 +159,7 @@ test.describe('The detail of a review item', () => {
     const admin = new AdminPage(page);
     await admin.open();
     await expect(admin.detailTitle).toHaveText('Backyard garden for gatherings');
-    const release = api.hold('GET', `/api/review-queue/${REPORT_ROW.id}`);
+    const release = api.hold('GET', `/api/admin/review-queue/${REPORT_ROW.id}`);
 
     await admin.select(REPORT_ROW.title);
     await admin.select(LOCKER_ROW.title);

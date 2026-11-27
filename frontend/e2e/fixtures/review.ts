@@ -15,7 +15,7 @@ export const REVIEW_NOW = new Date('2026-06-08T19:00:00Z');
 
 export type ReviewKindFixture = 'new-listing' | 'report' | 'new-member';
 
-/** A row as `GET /api/review-queue` answers it (ReviewItemSummaryDto). */
+/** A row as `GET /api/admin/review-queue` answers it (ReviewItemSummaryDto). */
 export interface ReviewRowFixture {
   id: string;
   kind: ReviewKindFixture;
@@ -31,8 +31,8 @@ const minutesAgo = (minutes: number) =>
   new Date(REVIEW_NOW.getTime() - minutes * 60_000).toISOString();
 
 const photo = (name: string, description: string | null) => ({
-  url: `/api/photos/${name}/gallery`,
-  thumbUrl: `/api/photos/${name}/thumb`,
+  url: `/api/admin/photos/${name}/gallery`,
+  thumbUrl: `/api/admin/photos/${name}/thumb`,
   description,
 });
 
@@ -43,7 +43,7 @@ export const GARDEN_ROW: ReviewRowFixture = {
   who: 'The Okafor family',
   waitingSince: minutesAgo(190),
   offer: 'for-rent',
-  thumbUrl: '/api/photos/garden/thumb',
+  thumbUrl: '/api/admin/photos/garden/thumb',
 };
 
 export const MEMBER_ROW: ReviewRowFixture = {
@@ -149,7 +149,7 @@ const ALLOWED: Record<ReviewKindFixture, string[]> = {
   'new-member': ['approve', 'remove'],
 };
 
-/** The details of `QUEUE`, as `GET /api/review-queue/{id}` answers them, by row. */
+/** The details of `QUEUE`, as `GET /api/admin/review-queue/{id}` answers them, by row. */
 export const DETAILS = new Map<string, object>([
   [GARDEN_ROW.id, detailOf(GARDEN_ROW, { listing: GARDEN_LISTING })],
   [
@@ -220,7 +220,7 @@ export function queuePage(
 }
 
 /** Where an item is decided. */
-export const decisionOf = (id: string) => `/api/review-queue/${id}/decision`;
+export const decisionOf = (id: string) => `/api/admin/review-queue/${id}/decision`;
 
 /** A decision the API makes: it names every item that closed, the one decided first. */
 export function answerDecision(api: ApiFixtures, id: string, alsoClosed: string[] = []): void {
@@ -251,7 +251,7 @@ export function refuseDecided(
 export function answerReviewPhotos(api: ApiFixtures): void {
   for (const name of ['garden', 'garden-2', 'garden-3']) {
     for (const rendition of ['gallery', 'thumb']) {
-      api.answer('GET', `/api/photos/${name}/${rendition}`, {
+      api.answer('GET', `/api/admin/photos/${name}/${rendition}`, {
         path: photoFile('hall.jpg'),
         headers: { 'content-type': 'image/jpeg' },
       });
@@ -260,13 +260,13 @@ export function answerReviewPhotos(api: ApiFixtures): void {
 }
 
 export function answerDetail(api: ApiFixtures, id: string, detail: object): void {
-  api.answer('GET', `/api/review-queue/${id}`, { body: detail });
+  api.answer('GET', `/api/admin/review-queue/${id}`, { body: detail });
 }
 
 /** Admin as the backend answers it to an admin: who they are, the queue and each item. */
 export function answerAdmin(api: ApiFixtures, rows: ReviewRowFixture[] = QUEUE): void {
   answerMember(api, NAOMI);
-  api.answer('GET', '/api/review-queue', { body: queuePage(rows) });
+  api.answer('GET', '/api/admin/review-queue', { body: queuePage(rows) });
   for (const [id, detail] of DETAILS) {
     answerDetail(api, id, detail);
   }

@@ -21,7 +21,7 @@ describe('HttpReviewQueueApi', () => {
   it('asks for the first page with no cursor, and for a later one by its cursor', async () => {
     const signal = new AbortController().signal;
     const first = api.page(null, signal);
-    const request = http.expectOne('/api/review-queue');
+    const request = http.expectOne('/api/admin/review-queue');
     request.flush({ items: [], nextCursor: null, waitingCount: 0 });
     await expect(first).resolves.toEqual({ items: [], nextCursor: null, waitingCount: 0 });
 
@@ -29,7 +29,7 @@ describe('HttpReviewQueueApi', () => {
 
     http
       .expectOne(
-        (sent) => sent.url === '/api/review-queue' && sent.params.get('cursor') === 'next+1',
+        (sent) => sent.url === '/api/admin/review-queue' && sent.params.get('cursor') === 'next+1',
       )
       .flush({ items: [], nextCursor: null, waitingCount: 0 });
   });
@@ -37,7 +37,7 @@ describe('HttpReviewQueueApi', () => {
   it('asks for one item by its identifier, as a path segment', async () => {
     const item = api.item('a/b', new AbortController().signal);
 
-    http.expectOne('/api/review-queue/a%2Fb').flush({ id: 'a/b' });
+    http.expectOne('/api/admin/review-queue/a%2Fb').flush({ id: 'a/b' });
 
     await expect(item).resolves.toEqual({ id: 'a/b' });
   });
@@ -45,7 +45,7 @@ describe('HttpReviewQueueApi', () => {
   it('sends a decision with the version of the item it was made on', async () => {
     const decided = api.decide('a/b', 'keep', 3, new AbortController().signal);
 
-    const sent = http.expectOne('/api/review-queue/a%2Fb/decision');
+    const sent = http.expectOne('/api/admin/review-queue/a%2Fb/decision');
     expect(sent.request.method).toBe('POST');
     expect(sent.request.body).toEqual({ decision: 'keep', version: 3 });
     sent.flush({ closedItemIds: ['a/b'] });
@@ -58,7 +58,7 @@ describe('HttpReviewQueueApi', () => {
     const arrived = api.arrivals('2026-06-08T19:00:00+00:00', new AbortController().signal);
 
     http
-      .expectOne('/api/review-queue/arrivals?since=2026-06-08T19%3A00%3A00%2B00%3A00')
+      .expectOne('/api/admin/review-queue/arrivals?since=2026-06-08T19%3A00%3A00%2B00%3A00')
       .flush({ newListings: 1, reports: 0, newMembers: 0 });
 
     await expect(arrived).resolves.toEqual({ newListings: 1, reports: 0, newMembers: 0 });
@@ -68,7 +68,7 @@ describe('HttpReviewQueueApi', () => {
   it('cancels the request in flight when it is aborted', async () => {
     const abort = new AbortController();
     const item = api.item('1', abort.signal);
-    const request = http.expectOne('/api/review-queue/1');
+    const request = http.expectOne('/api/admin/review-queue/1');
 
     abort.abort();
 
@@ -82,6 +82,6 @@ describe('HttpReviewQueueApi', () => {
 
     await expect(api.page(null, abort.signal)).rejects.toMatchObject({ name: 'AbortError' });
 
-    http.expectNone('/api/review-queue');
+    http.expectNone('/api/admin/review-queue');
   });
 });

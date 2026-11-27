@@ -11,7 +11,7 @@ import { AdminPage } from '../../pages/admin.page';
 
 test.use({ timezoneId: 'America/Vancouver' });
 
-const ARRIVALS = '/api/review-queue/arrivals';
+const ARRIVALS = '/api/admin/review-queue/arrivals';
 
 // L2-019 criterion 12: the screen's clock is the test's, which moves it on a minute.
 test('says that new items arrived, and shows them when asked', async ({ page, api }) => {
@@ -31,7 +31,7 @@ test('says that new items arrived, and shows them when asked', async ({ page, ap
   ]);
   await expect(admin.rows).toHaveCount(1);
   expect(api.requests).toContain(`GET ${ARRIVALS}?since=${encodeURIComponent(queuePage([]).asOf)}`);
-  api.answer('GET', '/api/review-queue', { body: queuePage([...QUEUE, later]) });
+  api.answer('GET', '/api/admin/review-queue', { body: queuePage([...QUEUE, later]) });
 
   await admin.showThem.click();
 

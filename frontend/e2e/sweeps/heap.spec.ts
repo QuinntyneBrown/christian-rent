@@ -365,12 +365,12 @@ test('deciding on Admin and leaving it keeps the heap stable', async ({ page, ap
 test('scrolling Admin’s queue and leaving it keeps the heap stable', async ({ page, api }) => {
   const rows = manyRows(200);
   answerAdmin(api);
-  api.answer('GET', '/api/review-queue', (url) => {
+  api.answer('GET', '/api/admin/review-queue', (url) => {
     const start = Number(url.searchParams.get('cursor') ?? 0);
     const next = start + 50 < rows.length ? String(start + 50) : null;
     return { body: queuePage(rows.slice(start, start + 50), next, rows.length) };
   });
-  api.answer('GET', `/api/review-queue/${rows[0]!.id}`, {
+  api.answer('GET', `/api/admin/review-queue/${rows[0]!.id}`, {
     body: detailOf(rows[0]!, { listing: LOCKER_LISTING }),
   });
   const heapAfterGc = await heapMeter(page);

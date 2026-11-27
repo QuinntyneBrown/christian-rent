@@ -17,7 +17,7 @@ test.use({ timezoneId: 'America/Vancouver' });
 /** The queue as the API pages `total` rows: 50 a page, each cursor naming where the next starts. */
 function answerPages(api: ApiFixtures, total: number) {
   const rows = manyRows(total);
-  api.answer('GET', '/api/review-queue', (url) => {
+  api.answer('GET', '/api/admin/review-queue', (url) => {
     const from = Number(url.searchParams.get('cursor') ?? 0);
     const next = from + 50 < total ? String(from + 50) : null;
     return { body: queuePage(rows.slice(from, from + 50), next, total) };
@@ -27,7 +27,7 @@ function answerPages(api: ApiFixtures, total: number) {
 }
 
 const pageRequests = (requests: string[]) =>
-  requests.filter((request) => /^GET \/api\/review-queue(\?|$)/.test(request));
+  requests.filter((request) => /^GET \/api\/admin\/review-queue(\?|$)/.test(request));
 
 test.describe('A queue of more than one page', () => {
   test.beforeEach(async ({ page, api }) => {
@@ -45,7 +45,7 @@ test.describe('A queue of more than one page', () => {
     await expect(admin.moreText).toHaveText('Showing 50 of 63');
     await expect(admin.moreButton).toHaveText('Load 13 more');
     await expect(admin.waitingCount).toHaveText('63');
-    const release = api.hold('GET', '/api/review-queue');
+    const release = api.hold('GET', '/api/admin/review-queue');
 
     await admin.scrollToEnd();
 
@@ -57,8 +57,8 @@ test.describe('A queue of more than one page', () => {
     await expect(admin.summary).toHaveText('63 waiting · oldest first');
     await expect(admin.more).toHaveCount(0);
     expect(pageRequests(api.requests)).toEqual([
-      'GET /api/review-queue',
-      'GET /api/review-queue?cursor=50',
+      'GET /api/admin/review-queue',
+      'GET /api/admin/review-queue?cursor=50',
     ]);
   });
 
@@ -71,7 +71,7 @@ test.describe('A queue of more than one page', () => {
     const admin = new AdminPage(page);
     await admin.open();
     await expect(admin.rows).toHaveCount(50);
-    api.refuse('GET', '/api/review-queue', 500, 'server_error');
+    api.refuse('GET', '/api/admin/review-queue', 500, 'server_error');
 
     await admin.scrollToEnd();
 

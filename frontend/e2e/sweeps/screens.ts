@@ -198,7 +198,7 @@ const DECIDING_SCREENS: readonly Screen[] = [
     ...adminScreen(
       'admin-toast-info',
       (api) =>
-        api.answer('GET', '/api/review-queue/arrivals', {
+        api.answer('GET', '/api/admin/review-queue/arrivals', {
           body: { newListings: 1, reports: 1, newMembers: 0 },
         }),
       async (page) => {
@@ -220,24 +220,24 @@ const ADMIN_SCREENS: readonly Screen[] = [
   adminScreen(
     'admin-long',
     (api) =>
-      api.answer('GET', '/api/review-queue', {
+      api.answer('GET', '/api/admin/review-queue', {
         body: queuePage(manyRows(50), 'next', 63),
       }),
     (page) => new AdminPage(page).moreButton.waitFor(),
   ),
   adminScreen(
     'admin-loading',
-    (api) => void api.hold('GET', '/api/review-queue'),
+    (api) => void api.hold('GET', '/api/admin/review-queue'),
     (page) => new AdminPage(page).skeletonRows.first().waitFor(),
   ),
   adminScreen(
     'admin-error',
-    (api) => api.refuse('GET', '/api/review-queue', 500, 'server_error'),
+    (api) => api.refuse('GET', '/api/admin/review-queue', 500, 'server_error'),
     (page) => new AdminPage(page).queueTryAgain.waitFor(),
   ),
   adminScreen(
     'admin-empty',
-    (api) => api.answer('GET', '/api/review-queue', { body: queuePage([]) }),
+    (api) => api.answer('GET', '/api/admin/review-queue', { body: queuePage([]) }),
     (page) => new AdminPage(page).queueMessageTitle.waitFor(),
   ),
   {
