@@ -81,7 +81,7 @@ both.
   | `` (`canMatch: adminGuard`) | `ReviewPage` | review |
   | `` | `ForbiddenPage` | forbidden |
   | `sign-in` | `AdminSignInPage` | sign-in |
-  | `**` | `NotFoundPage` | not-found |
+  | `**` | redirects to `` | — |
 
 - **`App`** — the skip link, the outlet and the toast region, as `rent`'s. Titles end in
   "Admin · christian.rent".

@@ -1,0 +1,7 @@
+<cr-admin-gate>
+  <cr-plain-page icon="lock" title="This page is for admins." [text]="text()">
+    @if (siteUrl(); as siteUrl) {
+      <a cr-button variant="outline" [href]="siteUrl + '/'">Go to christian.rent</a>
+    }
+  </cr-plain-page>
+</cr-admin-gate>

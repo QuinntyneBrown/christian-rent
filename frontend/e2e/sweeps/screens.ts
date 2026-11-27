@@ -29,6 +29,7 @@ import {
   manyRows,
   queuePage,
 } from '../fixtures/review';
+import { ADMIN_ORIGIN } from '../fixtures/origins';
 import { AdminPage } from '../pages/admin.page';
 import { ConfirmRemoveDialogPart } from '../pages/confirm-remove-dialog.part';
 import { ListingPage } from '../pages/listing.page';
@@ -112,7 +113,7 @@ function adminScreen(
 ): Screen {
   return {
     name,
-    path: '/admin',
+    path: `${ADMIN_ORIGIN}/`,
     answer: (api) => {
       answerAdmin(api);
       answer(api);
@@ -241,7 +242,7 @@ const ADMIN_SCREENS: readonly Screen[] = [
   ),
   {
     name: 'admin-forbidden',
-    path: '/admin',
+    path: `${ADMIN_ORIGIN}/`,
     answer: (api) => answerMember(api),
     then: (page) => page.getByRole('heading', { name: 'This page is for admins' }).waitFor(),
   },

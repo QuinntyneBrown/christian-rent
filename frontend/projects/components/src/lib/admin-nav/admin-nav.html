@@ -1,9 +1,9 @@
 <nav class="admin-nav" aria-label="Admin">
-  <cr-logo [inverse]="true" />
+  <cr-logo [inverse]="true" label="Admin home" />
   <p class="admin-nav__label">Admin · {{ name() }}</p>
   <ul class="admin-nav__links">
     <li>
-      <a class="admin-nav__link" routerLink="/admin" aria-current="page" aria-label="Review queue">
+      <a class="admin-nav__link" routerLink="/" aria-current="page" aria-label="Review queue">
         <cr-icon name="inbox" />
         <span class="admin-nav__text">Review</span>
         @if (waiting(); as waiting) {
@@ -14,8 +14,12 @@
       </a>
     </li>
   </ul>
-  <a class="admin-nav__link admin-nav__exit" routerLink="/" aria-label="Back to site">
-    <cr-icon name="logout" />
-    <span class="admin-nav__text">Back to site</span>
-  </a>
+  <div class="admin-nav__end">
+    @if (siteUrl(); as siteUrl) {
+      <a class="admin-nav__link admin-nav__exit" [href]="siteUrl + '/'" aria-label="Back to site">
+        <cr-icon name="arrow-left" />
+        <span class="admin-nav__text">Back to site</span>
+      </a>
+    }
+  </div>
 </nav>

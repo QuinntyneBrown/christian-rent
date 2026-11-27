@@ -20,6 +20,7 @@ import {
   manyRows,
   queuePage,
 } from '../fixtures/review';
+import { ADMIN_ORIGIN } from '../fixtures/origins';
 import { AdminPage } from '../pages/admin.page';
 import { ConfirmRemoveDialogPart } from '../pages/confirm-remove-dialog.part';
 import { answerUploads, photoFile } from '../fixtures/photos';
@@ -46,6 +47,12 @@ async function heapMeter(page: Page) {
 
 async function leaveForNotFound(page: Page) {
   await page.evaluate(() => history.pushState({}, '', '/no-such-page'));
+  await page.evaluate(() => dispatchEvent(new PopStateEvent('popstate')));
+}
+
+/** In Admin, the screen the review queue is left for. */
+async function leaveForSignIn(page: Page) {
+  await page.evaluate(() => history.pushState({}, '', '/sign-in'));
   await page.evaluate(() => dispatchEvent(new PopStateEvent('popstate')));
 }
 
@@ -328,17 +335,18 @@ test('deciding on Admin and leaving it keeps the heap stable', async ({ page, ap
   const heapAfterGc = await heapMeter(page);
   const admin = new AdminPage(page);
   const dialog = new ConfirmRemoveDialogPart(page);
-  await page.goto('/no-such-page');
+  // Admin is its own application (ADR 0028): the review queue is left for Admin's sign-in page.
+  await page.goto(`${ADMIN_ORIGIN}/sign-in`);
 
   const roundTrip = async () => {
-    await page.evaluate(() => history.pushState({}, '', '/admin'));
+    await page.evaluate(() => history.pushState({}, '', '/'));
     await page.evaluate(() => dispatchEvent(new PopStateEvent('popstate')));
     await expect(admin.detailTitle).toHaveText(GARDEN_ROW.title);
     await admin.approve.click();
     await expect(admin.toasts).toHaveCount(1);
     await admin.remove.click();
     await dialog.keepIt.click();
-    await leaveForNotFound(page);
+    await leaveForSignIn(page);
     await expect(admin.rows).toHaveCount(0);
   };
 
@@ -367,17 +375,18 @@ test('scrolling Admin’s queue and leaving it keeps the heap stable', async ({ 
   });
   const heapAfterGc = await heapMeter(page);
   const admin = new AdminPage(page);
-  await page.goto('/no-such-page');
+  // Admin is its own application (ADR 0028): the review queue is left for Admin's sign-in page.
+  await page.goto(`${ADMIN_ORIGIN}/sign-in`);
 
   const roundTrip = async () => {
-    await page.evaluate(() => history.pushState({}, '', '/admin'));
+    await page.evaluate(() => history.pushState({}, '', '/'));
     await page.evaluate(() => dispatchEvent(new PopStateEvent('popstate')));
     await expect(admin.rows.first()).toBeVisible();
     for (const last of [rows[99]!, rows[149]!, rows[199]!]) {
       await admin.scrollToEnd();
       await expect(admin.rowTitles.last()).toHaveText(last.title);
     }
-    await leaveForNotFound(page);
+    await leaveForSignIn(page);
     await expect(admin.rows).toHaveCount(0);
   };
 

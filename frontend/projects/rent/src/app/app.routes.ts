@@ -1,6 +1,5 @@
 import type { Routes } from '@angular/router';
 import { devRoutes } from './dev-routes';
-import { adminGuard } from './members/admin-guard';
 
 /**
  * Every route is lazy (L2-029, criterion 2).
@@ -22,19 +21,6 @@ export const routes: Routes = [
     path: 'post',
     title: 'Post',
     loadChildren: () => import('./pages/post/post.routes'),
-  },
-  {
-    // Matched for an admin alone, so nobody else is sent Admin's code (L2-018, criterion 3).
-    path: 'admin',
-    title: 'Admin',
-    canMatch: [adminGuard],
-    loadChildren: () => import('@rent/admin').then((m) => m.ADMIN_ROUTES),
-  },
-  {
-    // The same address for anyone else.
-    path: 'admin',
-    title: 'Admin',
-    loadComponent: () => import('./pages/forbidden/forbidden-page').then((m) => m.ForbiddenPage),
   },
   ...devRoutes,
   {

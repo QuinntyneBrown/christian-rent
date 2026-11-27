@@ -133,7 +133,7 @@ nobody can create their own account.
 **Frontend — `admin`**
 
 - Routes: `''` with `canMatch: [adminGuard]` loading the review page; `''` again loading
-  `ForbiddenPage`; `sign-in` loading the Admin sign-in page; `**` not found.
+  `ForbiddenPage`; `sign-in` loading the Admin sign-in page; `**` redirecting to `''`.
 - `adminGuard` awaits `SESSION.refresh()`: `signed-out` → `/sign-in?return=<address>`;
   `signed-in` without `member()?.isAdmin` → `false`, so the forbidden page loads; an admin →
   `true`. A failure to ask shows the forbidden page's "We couldn't reach Admin." with "Try

@@ -26,8 +26,10 @@ routes with `routerLink` (`cr-logo`, `cr-admin-nav`, `cr-review-detail`).
   proxy configuration. `npm start` serves `rent`, `npm run start:admin` serves `admin`;
   `npm run build` builds both, `build:rent` and `build:admin` one each.
 - **Admin owns its origin.** Its review queue is at `/`, its sign-in page at `/sign-in`, its
-  forbidden page at `/` for a signed-in person who is not an admin, and anything else is "not
-  found". `rent` has no `/admin`; it is "not found" there.
+  forbidden page at `/` for a signed-in person who is not an admin, and any other address leads
+  back to `/`, which shows whichever of the three applies: Admin has one screen, so a "not
+  found" page there would only offer the way back. `rent` has no `/admin`; it is "not found"
+  there.
 - **Each origin proxies `/api`** to the one backend, so each application is same-origin with
   its API: no CORS, and the Content-Security-Policy keeps `connect-src 'self'`. Admin's host
   proxies only `/api/admin/`, because Admin calls nothing else

@@ -23,7 +23,7 @@ import {
   SiteHeader,
 } from '@rent/components';
 import { MemberGate } from '../../members/member-gate';
-import { RentTitleStrategy } from '../../shell/rent-title-strategy';
+import { ShellTitleStrategy } from '@rent/shell';
 import { ListingStore } from './listing-store';
 import { MessageComposer } from './message-composer';
 
@@ -65,7 +65,7 @@ export class ListingPage {
   protected readonly composer = inject(MessageComposer);
   private readonly box = viewChild(MessageBox);
   private readonly injector = inject(Injector);
-  private readonly titles = inject(RentTitleStrategy);
+  private readonly titles = inject(ShellTitleStrategy);
   private readonly gate = inject(MemberGate);
   private reporting = false;
   private destroyed = false;

@@ -28,10 +28,11 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "projects/rent/public"
+                "input": "projects/components/public"
               }
             ],
-            "styles": ["projects/rent/src/styles.scss"]
+            "styles": ["projects/components/foundations/foundations.scss"],
+            "outputPath": "dist/rent"
           },
           "configurations": {
             "production": {
@@ -93,6 +94,88 @@
           "builder": "@angular-eslint/builder:lint",
           "options": {
             "lintFilePatterns": ["projects/rent/**/*.ts", "projects/rent/**/*.html"]
+          }
+        }
+      }
+    },
+    "admin": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss",
+          "changeDetection": "OnPush"
+        }
+      },
+      "root": "projects/admin",
+      "sourceRoot": "projects/admin/src",
+      "prefix": "cr",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "projects/admin/src/main.ts",
+            "tsConfig": "projects/admin/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "projects/components/public"
+              },
+              {
+                "glob": "**/*",
+                "input": "projects/admin/public"
+              }
+            ],
+            "styles": ["projects/components/foundations/foundations.scss"],
+            "outputPath": "dist/admin"
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "325kB",
+                  "maximumError": "340kB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "admin:build:production"
+            },
+            "development": {
+              "buildTarget": "admin:build:development"
+            }
+          },
+          "defaultConfiguration": "development",
+          "options": {
+            "proxyConfig": "projects/admin/proxy.conf.json",
+            "port": 4300
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test"
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["projects/admin/**/*.ts", "projects/admin/**/*.html"]
           }
         }
       }
@@ -217,16 +300,16 @@
         }
       }
     },
-    "admin": {
+    "shell": {
       "projectType": "library",
-      "root": "projects/admin",
-      "sourceRoot": "projects/admin",
+      "root": "projects/shell",
+      "sourceRoot": "projects/shell",
       "prefix": "cr",
       "architect": {
         "build": {
           "builder": "@angular/build:library",
           "options": {
-            "tsConfig": "projects/admin/tsconfig.lib.json"
+            "tsConfig": "projects/shell/tsconfig.lib.json"
           },
           "configurations": {
             "production": {},
@@ -240,13 +323,13 @@
         "test": {
           "builder": "@angular/build:unit-test",
           "options": {
-            "tsConfig": "projects/admin/tsconfig.spec.json"
+            "tsConfig": "projects/shell/tsconfig.spec.json"
           }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": ["projects/admin/**/*.ts", "projects/admin/**/*.html"]
+            "lintFilePatterns": ["projects/shell/**/*.ts", "projects/shell/**/*.html"]
           }
         }
       },

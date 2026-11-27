@@ -1,6 +1,7 @@
 /*
  * Public API of @rent/components: presentation components, named as in the design system.
  */
+export * from './lib/admin-gate/admin-gate';
 export * from './lib/admin-layout/admin-layout';
 export * from './lib/admin-nav/admin-nav';
 export * from './lib/alert/alert';

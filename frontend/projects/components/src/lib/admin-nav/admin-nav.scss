@@ -7,6 +7,7 @@
 .admin-nav {
   display: flex;
   flex: 1;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
@@ -55,6 +56,12 @@
   background: color-mix(in srgb, var(--color-fg-inverse) 12%, transparent);
 }
 
+.admin-nav__end {
+  display: flex;
+  gap: var(--space-1);
+  margin-left: auto;
+}
+
 .admin-nav__link:focus-visible {
   outline-color: var(--color-fg-inverse);
 }
@@ -80,6 +87,7 @@
 @media (min-width: 48rem) {
   .admin-nav {
     flex-direction: column;
+    flex-wrap: nowrap;
     align-items: stretch;
     justify-content: flex-start;
     width: 4.5rem;
@@ -100,8 +108,10 @@
     padding: 0;
   }
 
-  .admin-nav__exit {
+  .admin-nav__end {
+    flex-direction: column;
     margin-top: auto;
+    margin-left: 0;
   }
 }
 

@@ -151,7 +151,7 @@ export class AdminPage {
   }
 
   async open(): Promise<void> {
-    await this.page.goto('/admin');
+    await this.page.goto('/');
   }
 
   /** The row of the item with this title or name. */
