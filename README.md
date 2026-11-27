@@ -31,6 +31,7 @@ Canada.
 - [Getting started](#getting-started)
 - [Build and test](#build-and-test)
 - [Settings](#settings)
+- [Deploying](#deploying)
 - [Repository structure](#repository-structure)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
@@ -41,7 +42,8 @@ Canada.
 
 ## The app
 
-Four screens:
+Two applications, each built and deployed on its own origin, and one backend. `rent`, the site,
+has four screens:
 
 1. **Browse.** "Rent it from your church family." A search bar, a switch between Everything,
    For rent and Wanted, and two buttons that lead straight to posting: *I have something to
@@ -53,8 +55,19 @@ Four screens:
 3. **Post.** One sentence, "I **have / need** **a space / a thing** to rent out", whose
    highlighted words switch. A few fields follow (title, price, when, photos and a note), with a
    live preview of the card beside them.
-4. **Admin.** The review queue for new posts, reports and new members, with a detail panel and
+4. **Sign in.** An email and a password, and back to where the member was, with what they wrote
+   kept. Browsing, searching and reading a listing need no sign-in.
+
+`admin` has two:
+
+1. **Admin.** The review queue for new posts, reports and new members, with a detail panel and
    Approve, Keep or Remove.
+2. **Admin sign-in.** Admin's own sign-in page, on its own ink page. A signed-in member who is not
+   an admin is told the page is for admins.
+
+Each application has its own session and its own "Sign out". **Nobody can create their own
+account yet**: an operator creates each account with `ChristianRent.Cli create-account`.
+Sign-up, password reset and password change are not designed.
 
 ## What christian.rent leaves out
 
@@ -91,8 +104,8 @@ For rent and Wanted, and the Spaces and Things filter, all kept in the address, 
 ask for what a search did not find. Reading a listing is built (journey 4): its photos, what it
 is, who posted it and their church, each marked when verified. Becoming a member is built (journey 5): the join dialog and
 the gate that opens it, the backend that lists churches, makes a signed-in person an unverified
-member waiting in the review queue, and lets a member leave; sign-in itself is not designed, so
-nobody can sign in yet ([ADR 0017](docs/adr/0017-identifying-a-person-until-sign-in.md)).
+member waiting in the review queue, and lets a member leave
+([ADR 0017](docs/adr/0017-identifying-a-person-until-sign-in.md)).
 Posting is built (journey 6): Post's sentence, its fields with their rules, the live preview,
 the draft kept in the tab, and the backend that saves a listing as waiting for review, once per
 client request and at most 10 a member in 24 hours. Adding photos is built (journey 7): up to 6
@@ -108,7 +121,7 @@ Messages inbox is not designed, so a message waits in the database
 note, and the backend that files one report for each member and listing in the review queue and
 never says who filed it
 ([ADR 0023](docs/adr/0023-reporting-a-listing-open-decisions.md)). Viewing the review queue is
-built (journey 10): Admin, a library only an admin downloads, with the new listings, reports and
+built (journey 10): Admin, with the new listings, reports and
 new members that wait, oldest first, a page at a time, and from tablet width the selected item's
 detail beside them. The operator makes an admin with the CLI
 ([ADR 0024](docs/adr/0024-viewing-the-review-queue-open-decisions.md)). Deciding an item is built
@@ -118,33 +131,43 @@ refused, notifications say what came of it, and the screen says when new items a
 removal records a notice for the poster, but nothing is sent yet
 ([ADR 0025](docs/adr/0025-telling-a-poster-their-listing-was-removed.md),
 [ADR 0026](docs/adr/0026-two-admins-deciding-one-item.md),
-[ADR 0027](docs/adr/0027-deciding-a-review-item-open-decisions.md)).
+[ADR 0027](docs/adr/0027-deciding-a-review-item-open-decisions.md)). Two applications and
+sign-in are built (journey 13): `rent` and `admin` are separate Angular applications, each with
+its own build, origin, sign-in page and cookie session, using one backend; accounts are ASP.NET
+Core Identity's, made by the operator; sign-in refuses alike, locks out and throttles, and a
+removed member's session stops
+([ADR 0028](docs/adr/0028-two-applications-deployed-separately.md),
+[ADR 0029](docs/adr/0029-sign-in-and-two-sessions.md),
+[ADR 0030](docs/adr/0030-bundle-budgets-per-application.md)). Nothing is deployed: the hosts are
+not chosen.
 
 - The requirements are in `docs/specs/`, the mocks in `docs/mocks/`, the design system in
   `docs/design-system/` and the detailed designs in `docs/detailed-designs/`.
 - The journeys and their slices are in `docs/journeys.md` and `docs/detailed-journeys.md`, with
   **% complete**; the architecture decisions are in `docs/adr/`.
-- What comes next is journey 11, Decide a review item: one slice at a time, each with its failing
-  acceptance test first.
+- What comes next is journey 12, Verify members and churches: one slice at a time, each with its
+  failing acceptance test first.
 
 ## How it works
 
 ```
-Member ──▶ rent (screens) ──▶ api clients (HTTP) ──▶ backend (.NET) ──▶ database and photo storage
-                │
-           components (presentation)
+Member ──▶ rent  (its own origin, /api/ proxied) ──┐
+                                                   ├─▶ backend (.NET) ──▶ database and photo storage
+Admin  ──▶ admin (its own origin, /api/admin/ proxied) ┘
+           both built from shell, components, domain and api
 ```
 
 | Project | Responsibility |
 |---|---|
 | `frontend/projects/api` (`@rent/api`) | Contracts, types, injection tokens, and the HTTP clients for the backend |
 | `frontend/projects/domain` (`@rent/domain`) | Rules the browser applies itself: `listings/`, `search/`, `storage/` |
-| `frontend/projects/components` (`@rent/components`) | Presentation components, named as in the design system |
-| `frontend/projects/rent` | The app: pages, dialogs and the composition root |
+| `frontend/projects/components` (`@rent/components`) | Presentation components, named as in the design system; the foundations and fonts both applications use |
+| `frontend/projects/shell` (`@rent/shell`) | The app shell both applications share: errors, focus, titles, the session, the sign-in store |
+| `frontend/projects/rent` | The site: Browse, Listing, Post, Sign in, its dialogs and composition root |
+| `frontend/projects/admin` | Admin: the review queue, Admin's sign-in and forbidden pages, its composition root |
 | `backend/src/ChristianRent.*` | `Domain` ← `Application` ← `Infrastructure` ← `Api` |
 
-The `admin` library joins these when journey 10 adds it.
-Dependencies run one way, and ESLint enforces it. Every route is lazy-loaded, and the backend
+No application imports the other. Dependencies run one way, and ESLint enforces it. Every route is lazy-loaded, and the backend
 decides what a member or an admin may do. The full rules are in [`AGENTS.md`](AGENTS.md).
 
 ## Prerequisites
@@ -162,10 +185,14 @@ git clone https://github.com/QuinntyneBrown/christian-rent.git
 cd christian-rent
 ```
 
-Run the frontend alone (it needs no backend to show the shell):
+Run each application alone (neither needs a backend to show its first screen):
 
 ```shell
-cd frontend && npm ci && npm start        # http://localhost:4200
+cd frontend && npm ci && npm start        # rent, http://localhost:4200
+```
+
+```shell
+cd frontend && npm run start:admin        # admin, http://localhost:4300
 ```
 
 Run the backend against a local PostgreSQL. The connection string is a secret and never goes in
@@ -178,16 +205,30 @@ dotnet run --project src/ChristianRent.Cli -- migrate   # apply the schema; the 
 dotnet run --project src/ChristianRent.Cli -- seed      # the mocks' cast: churches, members, listings, photos; safe to repeat
 dotnet run --project src/ChristianRent.Cli -- purge-departed   # daily: anonymise members who left and clear the messages and report notes they wrote; safe to repeat
 dotnet run --project src/ChristianRent.Cli -- purge-photos     # hourly: delete photos no posted listing names after 24 hours (ADR 0021); safe to repeat
+dotnet run --project src/ChristianRent.Cli -- create-account <email> [<member-id>]   # reads the password from standard input; safe to repeat
 dotnet run --project src/ChristianRent.Cli -- grant-admin <member-id>   # make an active member an admin; safe to repeat
 dotnet run --project src/ChristianRent.Api              # http://localhost:5080/health/ready
 ```
 
+**Creating an account.** Nobody can create their own account yet. The operator creates one, and
+may link it to an existing member so that person signs in as that member; the password is read
+from standard input, never from an argument, so it stays out of the shell's history
+([ADR 0029](docs/adr/0029-sign-in-and-two-sessions.md)). A password has at least 12 characters.
+For example, to let the seeded admin-to-be sign in:
+
+```shell
+read -rs PASSWORD && printf '%s\n' "$PASSWORD" | dotnet run --project src/ChristianRent.Cli -- create-account naomi@example.ca <member-id>
+```
+
+Running it again changes nothing: an account that exists keeps its password. An account with no
+member signs in and is asked to join.
+
 Only `grant-admin` makes someone an admin: no screen or endpoint does, the seed makes nobody one,
 and nothing takes it back yet ([ADR 0024](docs/adr/0024-viewing-the-review-queue-open-decisions.md)).
-It prints the member's identifier, never a name.
+It prints the member's identifier, never a name. An admin signs in to Admin with their account;
+signing in to `rent` with it is a separate session.
 
-`npm start` sends `/api` to the API on port 5080. Nobody can sign in yet: sign-in is not designed
-([ADR 0005](docs/adr/0005-authentication-seam.md)), so every member action answers 401.
+`npm start` and `npm run start:admin` send `/api` to the API on port 5080.
 
 ## Build and test
 
@@ -195,8 +236,8 @@ It prints the member's identifier, never a name.
 |---|---|---|
 | Format and lint | `cd frontend && npm run format:check && npm run lint` | Prettier, angular-eslint and its dependency boundaries, and a type check of `e2e/` |
 | Unit tests | `cd frontend && npm test` | The unit tests of every frontend project, on a fake clock |
-| Build | `cd frontend && npm run build` | The production build, within the `angular.json` bundle budgets |
-| Behaviour specs | `cd frontend && npx playwright install chromium && npm run e2e` | Playwright on Chromium, with page objects, against fixtures, with no request off localhost |
+| Build | `cd frontend && npm run build` | Both production builds, each within its own `angular.json` budgets (`build:rent`, `build:admin` for one) |
+| Behaviour specs | `cd frontend && npx playwright install chromium && npm run e2e` | Playwright on Chromium, with page objects, against fixtures, with no request off localhost; `rent`'s and `admin`'s specs against their own dev servers |
 | Backend | `cd backend && dotnet format --verify-no-changes && dotnet test` | Format, build and acceptance tests through the API on EF Core InMemory |
 | Everything | `node tools/verify/verify.mjs` | All of the above, side by side; run it before you push |
 
@@ -216,13 +257,18 @@ variables, `:` is written `__`.
 |---|---|---|
 | `ConnectionStrings:Default` | yes | The PostgreSQL connection string, read by the API and `ChristianRent.Cli` ([ADR 0003](docs/adr/0003-database-engine.md)) |
 | `PhotoStorage:RootPath` | no | Where photo renditions are kept on disk, as `{photoId}/{rendition}.jpg`; default `App_Data/photos` under the content root ([ADR 0004](docs/adr/0004-file-storage.md), [ADR 0011](docs/adr/0011-photo-renditions-and-serving.md)). The production storage product is not chosen |
-| `Site:Origin` | no | The origin the frontend is served from, e.g. `https://christian.rent`; a write from any other origin is refused |
+| `Site:Origin` | no | The origin `rent` is served from, e.g. `https://christian.rent`; a write to `rent`'s endpoints from any other origin is refused |
+| `Site:AdminOrigin` | no | The origin Admin is served from, e.g. `https://admin.christian.rent`; a write under `/api/admin/` from any other origin is refused ([ADR 0029](docs/adr/0029-sign-in-and-two-sessions.md)) |
+| `AllowedHosts` | no | The public hosts the API answers, separated by `;`, e.g. `christian.rent;admin.christian.rent`; each static host forwards its own `Host` |
+| `Sessions:MemberLifetime` | no | How long a member session lasts without a request, each request extending it; default `14.00:00:00` (L2-040) |
+| `Sessions:AdminLifetime` | no | How long an Admin session lasts from sign-in; default `08:00:00` (L2-040) |
+| Data protection keys | no | The keys that protect the session cookies are kept in the database (`DataProtectionKeys`), so they survive a restart and every instance shares them; nothing to set |
+| Admin's `config.json` | no | `{ "siteUrl": "https://christian.rent" }`, written beside Admin's files when it is deployed: where "Back to site", "View on site" and "Go to christian.rent" lead. Only an absolute `http` or `https` origin is used ([ADR 0028](docs/adr/0028-two-applications-deployed-separately.md)) |
 | `HTTPS_PORT` | no | The public HTTPS port the API redirects HTTP to, usually `443` |
 | `ForwardedHeaders:KnownProxies` | no | The addresses of the reverse proxies whose `X-Forwarded-*` headers are trusted |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | no | Where traces, metrics and logs are sent over OTLP; when unset, nothing is exported. The telemetry backend is not chosen |
 | `ASPNETCORE_ENVIRONMENT` | no | `Production` when deployed: HTTPS redirection and HSTS are on outside `Development` |
 | `Members:PurgeAfterDays` | no | Days after a member leaves before `ChristianRent.Cli purge-departed` makes them anonymous, deletes their listings and photos and the reports about them, and clears the text of the messages they sent and the notes of their reports; 0 to 30, default 30 ([L2-028](docs/specs/L2.md), criterion 2). Schedule the command daily |
-| The sign-in secret | yes | Not yet: sign-in is not designed ([ADR 0005](docs/adr/0005-authentication-seam.md)) |
 
 `ChristianRent.Cli purge-photos` needs no setting; schedule it hourly. A reverse proxy in front of
 the API must accept a request body of at least 10.1 MB for `POST /api/photos`, a 10 MB photo and
@@ -232,9 +278,36 @@ Deployment runs `ChristianRent.Cli migrate` before the new API takes traffic; th
 it uses may create the `pg_trgm` and `unaccent` extensions, or they are created beforehand
 ([ADR 0015](docs/adr/0015-search-matching-and-browse-query.md)). The API and the CLI need ICU
 (`libicu`) on the host, as Microsoft's non-Alpine .NET images have, because a search ignores
-accents through Unicode normalisation. The host that
-serves the built frontend (`frontend/dist/rent/browser`) should send the same
-Content-Security-Policy as the API; hosting is not chosen yet.
+accents through Unicode normalisation.
+
+## Deploying
+
+Nothing is deployed, and no host is chosen. Each piece is deployed on its own
+([ADR 0028](docs/adr/0028-two-applications-deployed-separately.md)):
+
+| | `rent` | `admin` |
+|---|---|---|
+| Build | `cd frontend && npm run build:rent` | `cd frontend && npm run build:admin` |
+| Output folder | `frontend/dist/rent/browser` | `frontend/dist/admin/browser` |
+| Origin | e.g. `https://christian.rent` | e.g. `https://admin.christian.rent` |
+| Proxy to the API | `/api/` | `/api/admin/` |
+| Written at deploy | nothing | `config.json` with `siteUrl` |
+| Indexing | indexed | `X-Robots-Tag: noindex, nofollow` (and its meta tag and `robots.txt`) |
+
+Each static host:
+
+- serves its output folder, and answers any path that is not a file with `index.html` (the SPA
+  fallback), with `Cache-Control: no-cache` on `index.html` and a long cache on hashed files;
+- proxies its `/api` paths to the one API on the same origin, forwarding `Host`,
+  `X-Forwarded-For` and `X-Forwarded-Proto`, and its address is in `ForwardedHeaders:KnownProxies`;
+- sends `Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
+  'unsafe-inline'; img-src 'self' blob:; font-src 'self'; connect-src 'self'; object-src 'none';
+  base-uri 'self'; frame-ancestors 'none'; form-action 'self'`, `X-Content-Type-Options: nosniff`,
+  `Referrer-Policy: strict-origin-when-cross-origin` and HSTS.
+
+The API is deployed once, with `Site:Origin`, `Site:AdminOrigin` and `AllowedHosts` naming both
+origins. Release order does not matter between the two applications; the API's migrations run
+first.
 
 ## Repository structure
 
@@ -245,16 +318,17 @@ christian-rent/
 ├── frontend/                        The Angular workspace and its Playwright specs
 │   ├── projects/api/                  Contracts, types, injection tokens, HTTP clients (@rent/api)
 │   ├── projects/domain/               Rules the browser applies itself (@rent/domain)
-│   ├── projects/components/           Presentation components, cr-* (@rent/components)
-│   ├── projects/admin/                Admin, downloaded only by an admin (@rent/admin)
-│   ├── projects/rent/                 The app: pages, shell, routes and the composition root
+│   ├── projects/components/           Presentation components, cr-*, and the foundations (@rent/components)
+│   ├── projects/shell/                The app shell both applications share (@rent/shell)
+│   ├── projects/rent/                 The site: pages, routes and its composition root
+│   ├── projects/admin/                Admin: its pages, routes and composition root, on its own origin
 │   └── e2e/                           Behaviour specs, fixtures, page objects and the sweeps
 ├── backend/                         The .NET service
 │   ├── src/ChristianRent.Domain/      Entities
 │   ├── src/ChristianRent.Application/ MediatR handlers, validators, contracts
 │   ├── src/ChristianRent.Infrastructure/ EF Core, migrations, storage, identity, seed
 │   ├── src/ChristianRent.Api/         Controllers, middleware, error handlers, telemetry, health
-│   ├── src/ChristianRent.Cli/         migrate, seed, grant-admin, purge-departed and purge-photos
+│   ├── src/ChristianRent.Cli/         migrate, seed, create-account, grant-admin, purge-departed and purge-photos
 │   └── tests/                         Acceptance tests through the API, and the CLI's tests
 ├── docs/
 │   ├── journeys.md                  The journeys, by value added, with % complete

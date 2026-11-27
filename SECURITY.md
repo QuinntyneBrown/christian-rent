@@ -26,8 +26,10 @@ through their [GitHub profile](https://github.com/QuinntyneBrown).
 Include as much of the following as you can:
 
 - the kind of issue (for example, reading or changing another member's listing or messages, reaching
-  Admin without being an admin, a malicious upload, a Content-Security-Policy bypass, injection
-  or cross-site scripting);
+  Admin without being an admin, one application's session working on the other's endpoints,
+  signing someone in to an account they did not choose, learning whether an account exists,
+  getting around the sign-in lockout or throttling, a malicious upload, a Content-Security-Policy
+  bypass, injection or cross-site scripting);
 - the affected page, endpoint or source file, with the branch or commit;
 - the steps to reproduce it, and the browser and host it needs;
 - a proof of concept, if you have one;
@@ -44,8 +46,10 @@ Please give us reasonable time to fix an issue before you disclose it publicly.
 
 ## Scope
 
-In scope: the code in this repository, the app and its backend, and anything that lets one member read or change what belongs to
-another, reach the review queue, or learn a member's contact details.
+In scope: the code in this repository, its two applications (`rent` and Admin) and their
+backend, and anything that lets one member read or change what belongs to another, reach the
+review queue, take over or keep a session, or learn a member's contact details, an account's
+email or its password.
 
 Out of scope: denial-of-service testing, social engineering, physical attacks, and findings in
 third-party dependencies that are already publicly known (report those to the dependency's
