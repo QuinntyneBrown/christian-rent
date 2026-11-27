@@ -3,7 +3,8 @@
 **Status:** Accepted. Supersedes the parts of [0001](0001-frontend-workspace-and-libraries.md)
 that make `rent` the one application and add an `admin` library, and the part of
 [0024](0024-viewing-the-review-queue-open-decisions.md) on how `/admin` keeps Admin's code out of
-`rent` (`adminGuard`, `ForbiddenPage` in `rent`).
+`rent` (`adminGuard`, `ForbiddenPage` in `rent`). The hosts it leaves unchosen are named by
+[0031](0031-hosting-on-azure-and-deploying-each-commit.md).
 
 ## Context
 

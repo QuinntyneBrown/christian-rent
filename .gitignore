@@ -21,3 +21,6 @@ backend/**/TestResults/
 
 # Worktrees of parallel Claude Code sessions
 .claude/worktrees/
+
+# What infra/deploy.sh writes while it runs
+infra/.deploy.*/

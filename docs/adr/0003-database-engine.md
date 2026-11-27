@@ -1,6 +1,7 @@
 # 0003. The database engine
 
-**Status:** Open. Development uses PostgreSQL; the production service is not chosen.
+**Status:** Accepted. Production's service is settled by
+[0031](0031-hosting-on-azure-and-deploying-each-commit.md): Azure Database for PostgreSQL.
 
 ## Context
 

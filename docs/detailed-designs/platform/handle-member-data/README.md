@@ -90,9 +90,9 @@ when a member leaves.
 
 **Undecided**
 
-- Which host serves `index.html`, and so whether a nonce can be issued for styles:
-  `<TO SUPPLY>`. Until then `style-src` is `'self' 'unsafe-inline'`; `script-src` is not
-  weakened.
+- Whether a nonce is issued for styles: `<TO SUPPLY>`. nginx serves `index.html`
+  ([ADR 0031](../../../adr/0031-hosting-on-azure-and-deploying-each-commit.md)) and issues none, so `style-src` is
+  `'self' 'unsafe-inline'`; `script-src` is not weakened.
 - The origin of file storage, when photos are served from an origin other than the API's;
   `img-src` then names it: `<TO SUPPLY>`.
 - The screen from which a member asks to leave: `<TO SUPPLY>`; no mock exists, and no screen

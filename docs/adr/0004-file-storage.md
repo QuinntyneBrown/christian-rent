@@ -1,6 +1,7 @@
 # 0004. The file storage for photos
 
-**Status:** Open. Development uses local disk; the production product is not chosen.
+**Status:** Accepted. Production's product is settled by
+[0031](0031-hosting-on-azure-and-deploying-each-commit.md): an Azure Files share, mounted as a disk path.
 
 ## Context
 

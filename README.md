@@ -138,8 +138,9 @@ Core Identity's, made by the operator; sign-in refuses alike, locks out and thro
 removed member's session stops
 ([ADR 0028](docs/adr/0028-two-applications-deployed-separately.md),
 [ADR 0029](docs/adr/0029-sign-in-and-two-sessions.md),
-[ADR 0030](docs/adr/0030-bundle-budgets-per-application.md)). Nothing is deployed: the hosts are
-not chosen.
+[ADR 0030](docs/adr/0030-bundle-budgets-per-application.md)). It is deployed to Azure, and
+every commit to `main` that passes CI is released ([ADR 0031](docs/adr/0031-hosting-on-azure-and-deploying-each-commit.md));
+christian.rent's own domains are not bound yet.
 
 - The requirements are in `docs/specs/`, the mocks in `docs/mocks/`, the design system in
   `docs/design-system/` and the detailed designs in `docs/detailed-designs/`.
@@ -244,7 +245,8 @@ signing in to `rent` with it is a separate session.
 No automated test uses a real backend or database, or a network beyond localhost. CI
 (`.github/workflows/ci.yml`) runs lint, the builds and the critical acceptance path of each feature
 (`npm run e2e:ci`, `dotnet test --filter-trait "Category=Critical"`) in under 5 minutes. Unit
-tests run only locally. The visual, responsive, accessibility and heap sweeps run only when a
+tests run only locally. Once CI passes on `main`, `.github/workflows/deploy.yml` releases that
+commit to Azure ([Deploying](#deploying)). The visual, responsive, accessibility and heap sweeps run only when a
 person asks: `cd frontend && npm run e2e:sweeps`.
 
 ## Settings
@@ -256,7 +258,7 @@ variables, `:` is written `__`.
 | Setting | Secret | What it is |
 |---|---|---|
 | `ConnectionStrings:Default` | yes | The PostgreSQL connection string, read by the API and `ChristianRent.Cli` ([ADR 0003](docs/adr/0003-database-engine.md)) |
-| `PhotoStorage:RootPath` | no | Where photo renditions are kept on disk, as `{photoId}/{rendition}.jpg`; default `App_Data/photos` under the content root ([ADR 0004](docs/adr/0004-file-storage.md), [ADR 0011](docs/adr/0011-photo-renditions-and-serving.md)). The production storage product is not chosen |
+| `PhotoStorage:RootPath` | no | Where photo renditions are kept on disk, as `{photoId}/{rendition}.jpg`; default `App_Data/photos` under the content root ([ADR 0004](docs/adr/0004-file-storage.md), [ADR 0011](docs/adr/0011-photo-renditions-and-serving.md)). In Azure it is `/data/photos`, where the Azure Files share is mounted |
 | `Site:Origin` | no | The origin `rent` is served from, e.g. `https://christian.rent`; a write to `rent`'s endpoints from any other origin is refused |
 | `Site:AdminOrigin` | no | The origin Admin is served from, e.g. `https://admin.christian.rent`; a write under `/api/admin/` from any other origin is refused ([ADR 0029](docs/adr/0029-sign-in-and-two-sessions.md)) |
 | `AllowedHosts` | no | The public hosts the API answers, separated by `;`, e.g. `christian.rent;admin.christian.rent`; each static host forwards its own `Host` |
@@ -264,11 +266,14 @@ variables, `:` is written `__`.
 | `Sessions:AdminLifetime` | no | How long an Admin session lasts from sign-in; default `08:00:00` (L2-040) |
 | Data protection keys | no | The keys that protect the session cookies are kept in the database (`DataProtectionKeys`), so they survive a restart and every instance shares them; nothing to set |
 | Admin's `config.json` | no | `{ "siteUrl": "https://christian.rent" }`, written beside Admin's files when it is deployed: where "Back to site", "View on site" and "Go to christian.rent" lead. Only an absolute `http` or `https` origin is used ([ADR 0028](docs/adr/0028-two-applications-deployed-separately.md)) |
-| `HTTPS_PORT` | no | The public HTTPS port the API redirects HTTP to, usually `443` |
-| `ForwardedHeaders:KnownProxies` | no | The addresses of the reverse proxies whose `X-Forwarded-*` headers are trusted |
+| `HTTPS_PORT` | no | The public HTTPS port the API redirects HTTP to, usually `443`. Not set in Azure, whose ingress redirects ([ADR 0031](docs/adr/0031-hosting-on-azure-and-deploying-each-commit.md)) |
+| `ForwardedHeaders:KnownProxies` | no | The addresses of the reverse proxies whose `X-Forwarded-*` headers are trusted, besides loopback, which always is. Not set in Azure: each static host reaches the API on loopback |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | no | Where traces, metrics and logs are sent over OTLP; when unset, nothing is exported. The telemetry backend is not chosen |
 | `ASPNETCORE_ENVIRONMENT` | no | `Production` when deployed: HTTPS redirection and HSTS are on outside `Development` |
 | `Members:PurgeAfterDays` | no | Days after a member leaves before `ChristianRent.Cli purge-departed` makes them anonymous, deletes their listings and photos and the reports about them, and clears the text of the messages they sent and the notes of their reports; 0 to 30, default 30 ([L2-028](docs/specs/L2.md), criterion 2). Schedule the command daily |
+
+In Azure every one of these is set by `infra/deploy.sh`, and the connection string is a key vault
+secret that `infra/provision.sh` writes.
 
 `ChristianRent.Cli purge-photos` needs no setting; schedule it hourly. A reverse proxy in front of
 the API must accept a request body of at least 10.1 MB for `POST /api/photos`, a 10 MB photo and
@@ -282,8 +287,52 @@ accents through Unicode normalisation.
 
 ## Deploying
 
-Nothing is deployed, and no host is chosen. Each piece is deployed on its own
-([ADR 0028](docs/adr/0028-two-applications-deployed-separately.md)):
+christian.rent runs on Azure Container Apps in Canada Central, and **every commit to `main` is
+deployed** once CI has passed on it ([ADR 0031](docs/adr/0031-hosting-on-azure-and-deploying-each-commit.md)).
+
+| | `rent` | `admin` |
+|---|---|---|
+| Container app | `ca-christian-rent` | `ca-christian-rent-admin` |
+| Address | <https://ca-christian-rent.ambitioustree-c8dfdd8c.canadacentral.azurecontainerapps.io> | <https://ca-christian-rent-admin.ambitioustree-c8dfdd8c.canadacentral.azurecontainerapps.io> |
+
+Each container app holds the application's static host (nginx) and the API beside it. The
+database is Azure Database for PostgreSQL, with no public address; photos are on an Azure Files
+share; `ChristianRent.Cli` runs as three jobs (`migrate` on every release, `purge-departed`
+daily and `purge-photos` hourly). Everything is in the resource group `rg-christian-rent` and is
+made with the Azure CLI:
+
+| | When | What it does |
+|---|---|---|
+| `bash infra/provision.sh` | Once, by an operator signed in with `az login` as an owner of the subscription; safe to repeat | Creates the registry, the network, the Container Apps environment, the database, the photo share, the key vault with the database's password and connection string, and the two identities; lets this repository's `main` deploy with GitHub's OIDC token; sets the repository variables `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` and `AZURE_SUBSCRIPTION_ID` (identifiers, not secrets) |
+| `.github/workflows/deploy.yml` | Every commit to `main`, after CI passes; or by hand from the Actions tab | Builds and pushes the `backend`, `rent` and `admin` images, tagged with the commit, then runs `infra/deploy.sh` |
+| `bash infra/deploy.sh <commit>` | By the workflow; by an operator to go back to an earlier commit | Runs `migrate` and stops if it fails; releases both applications and the scheduled jobs; waits until both are ready; asks each origin for its first screen and for the API |
+
+A release that fails leaves the last one serving. Going back does not undo a migration, so a
+migration stays compatible with the release before it. A setting of a container app is changed
+in `infra/deploy.sh`, not in the portal: the next release overwrites what the portal changed.
+
+**After the first release** the database is empty and nobody has an account. An operator runs
+the CLI in a running API container, for example:
+
+```shell
+az containerapp exec -g rg-christian-rent -n ca-christian-rent --container api --command "dotnet /app/cli/ChristianRent.Cli.dll seed"
+az containerapp exec -g rg-christian-rent -n ca-christian-rent --container api --command "dotnet /app/cli/ChristianRent.Cli.dll create-account <email> <member-id>"   # type the password, then Enter
+az containerapp exec -g rg-christian-rent -n ca-christian-rent --container api --command "dotnet /app/cli/ChristianRent.Cli.dll grant-admin <member-id>"
+```
+
+`seed` enters the mocks' cast, which is sample data: leave it out of a system real members use.
+
+**christian.rent's own domains** are not bound yet. To bind them, add each domain to its
+container app with a managed certificate, and release with `RENT_HOST` and `ADMIN_HOST` set to
+them in `infra/deploy.sh`, which derives `Site:Origin`, `Site:AdminOrigin`, `AllowedHosts` and
+Admin's `config.json` from the two.
+
+Still open: a backup of the photo share to a separate store, the telemetry backend and the
+restore drill. The database is backed up by Azure daily, kept 14 days.
+
+What any host of the two applications has to do is below
+([ADR 0028](docs/adr/0028-two-applications-deployed-separately.md)); `infra/host.Dockerfile` and
+`infra/nginx/` are how Azure's do it:
 
 | | `rent` | `admin` |
 |---|---|---|
@@ -305,8 +354,8 @@ Each static host:
   base-uri 'self'; frame-ancestors 'none'; form-action 'self'`, `X-Content-Type-Options: nosniff`,
   `Referrer-Policy: strict-origin-when-cross-origin` and HSTS.
 
-The API is deployed once, with `Site:Origin`, `Site:AdminOrigin` and `AllowedHosts` naming both
-origins. Release order does not matter between the two applications; the API's migrations run
+The API is one image with `Site:Origin`, `Site:AdminOrigin` and `AllowedHosts` naming both
+origins; in Azure it runs beside each static host. Release order does not matter between the two applications; the API's migrations run
 first.
 
 ## Repository structure
@@ -339,9 +388,10 @@ christian-rent/
 │   ├── mocks/                       HTML mocks, the source of truth for the UI
 │   ├── design-system/               Tokens and components extracted from the mocks
 │   └── adr/                         Architecture decision records
+├── infra/                           Azure: the images' Dockerfiles, the nginx hosts, provision.sh and deploy.sh
 ├── tools/verify/                    verify.mjs: every check, side by side
 ├── .claude/skills/, .agents/skills/ The skills, for Claude Code and other coding agents
-└── .github/                         CI workflow, issue and pull request templates
+└── .github/                         CI and deploy workflows, issue and pull request templates
 ```
 
 ## Documentation
