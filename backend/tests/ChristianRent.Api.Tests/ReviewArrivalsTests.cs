@@ -60,7 +60,7 @@ public sealed class ReviewArrivalsTests : IDisposable
     public async Task Only_an_admin_asks_what_arrived(string? signInId, HttpStatusCode status, string code)
     {
         await _factory.SeedAsync(TestData.Grace, _sarah);
-        using var client = signInId is null ? _factory.CreateHttpsClient() : _factory.CreateSignedInClient(signInId);
+        using var client = signInId is null ? _factory.CreateHttpsClient() : _factory.CreateSignedInClient(signInId, session: "admin");
 
         using var response = await client.GetAsync(
             "/api/review-queue/arrivals?since=2026-06-08T15%3A00%3A00Z", TestContext.Current.CancellationToken);

@@ -40,10 +40,22 @@ public sealed class AccessTests(ProbeApiFactory factory) : IClassFixture<ProbeAp
         Assert.Equal("anonymous", body);
     }
 
+    // ADR 0029; L2-040 criterion 3: the member session lends nothing to an Admin endpoint.
     [Fact]
-    public async Task An_admin_endpoint_answers_403_not_an_admin_to_a_member()
+    public async Task An_admin_endpoint_answers_401_not_signed_in_to_the_member_session()
     {
         using var client = factory.CreateMemberClient(SarahKim);
+
+        using var response = await client.GetAsync("/api/test-probe/admin", TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal("not_signed_in", (await Problem.ReadAsync(response)).Code);
+    }
+
+    [Fact]
+    public async Task An_admin_endpoint_answers_403_not_an_admin_to_a_member_signed_in_to_Admin()
+    {
+        using var client = factory.CreateMemberClient(SarahKim, session: "admin");
 
         using var response = await client.GetAsync("/api/test-probe/admin", TestContext.Current.CancellationToken);
 

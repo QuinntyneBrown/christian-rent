@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using ChristianRent.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -12,6 +13,11 @@ namespace ChristianRent.Api.Tests.Support;
 /// <c>MemberClaimsTransformation</c>. For the tests of cross-cuts, <c>X-Test-Member</c> signs in
 /// a member by identifier without their row, and <c>X-Test-Admin: true</c> makes them an admin
 /// (ADR 0005). It exists only in the tests; without a header nobody is signed in.
+/// <c>ProbeApiFactory</c> makes it the handler of both session schemes (ADR 0029), and it keeps
+/// them apart: <c>X-Test-Session</c> says which session the caller holds, <c>member</c> (the
+/// default) or <c>admin</c>, and each scheme signs in only its own. Until journey 13 moves
+/// Admin's endpoints under <c>/api/admin/</c>, <c>X-Test-Admin: true</c> with no
+/// <c>X-Test-Session</c> is accepted by both.
 /// </summary>
 public sealed class TestAuthHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
@@ -22,9 +28,15 @@ public sealed class TestAuthHandler(
     public const string MemberHeader = "X-Test-Member";
     public const string AdminHeader = "X-Test-Admin";
     public const string SignInHeader = "X-Test-Sign-In";
+    public const string SessionHeader = "X-Test-Session";
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        if (!HoldsThisSession())
+        {
+            return Task.FromResult(AuthenticateResult.NoResult());
+        }
+
         if (Request.Headers.TryGetValue(SignInHeader, out var signInId))
         {
             var person = new ClaimsPrincipal(new ClaimsIdentity([new Claim("sub", signInId.ToString())], SchemeName));
@@ -44,5 +56,17 @@ public sealed class TestAuthHandler(
 
         var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, SchemeName));
         return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(principal, SchemeName)));
+    }
+
+    private bool HoldsThisSession()
+    {
+        var session = Request.Headers[SessionHeader].ToString();
+        var admin = Scheme.Name == SessionSchemes.Admin;
+        if (session.Length > 0)
+        {
+            return admin == (session == "admin");
+        }
+
+        return !admin || Request.Headers[AdminHeader] == "true";
     }
 }

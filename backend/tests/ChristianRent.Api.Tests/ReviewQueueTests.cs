@@ -116,7 +116,7 @@ public sealed class ReviewQueueTests : IDisposable
     public async Task Anyone_but_an_admin_is_refused_with_no_queue_data(string? signInId, HttpStatusCode status, string code)
     {
         await _factory.SeedAsync(TestData.Grace, _sarah, ReviewItem.ForNewMember(_sarah.Id, Minute(0)));
-        using var client = signInId is null ? _factory.CreateHttpsClient() : _factory.CreateSignedInClient(signInId);
+        using var client = signInId is null ? _factory.CreateHttpsClient() : _factory.CreateSignedInClient(signInId, session: "admin");
 
         using var response = await client.GetAsync("/api/review-queue", TestContext.Current.CancellationToken);
 

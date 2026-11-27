@@ -207,7 +207,7 @@ public sealed class ReviewItemTests : IDisposable
     {
         var item = ReviewItem.ForNewMember(_sarah.Id, Minute(0));
         await _factory.SeedAsync(TestData.Grace, _sarah, item);
-        using var client = signInId is null ? _factory.CreateHttpsClient() : _factory.CreateSignedInClient(signInId);
+        using var client = signInId is null ? _factory.CreateHttpsClient() : _factory.CreateSignedInClient(signInId, session: "admin");
 
         using var response = await client.GetAsync($"/api/review-queue/{item.Id}", TestContext.Current.CancellationToken);
 

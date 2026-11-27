@@ -18,6 +18,7 @@ internal sealed partial class ProblemExceptionHandler : IExceptionHandler
         {
             ValidationException validation => ValidationFailed(validation),
             NotFoundException notFound => Problems.Create(StatusCodes.Status404NotFound, notFound.Code, "Not found"),
+            SignInRefusedException refused => Problems.Create(StatusCodes.Status401Unauthorized, refused.Code, "Not signed in"),
             ForbiddenException forbidden => Problems.Create(StatusCodes.Status403Forbidden, forbidden.Code, "Not allowed"),
             ConflictException conflict => Problems.Create(StatusCodes.Status409Conflict, conflict.Code, "Already done"),
             AlreadyReportedException reported => AlreadyReported(reported),

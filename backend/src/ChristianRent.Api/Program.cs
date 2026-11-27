@@ -14,7 +14,7 @@ builder.AddTelemetry();
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddAccess();
+builder.Services.AddAccess(builder.Configuration, builder.Environment);
 builder.Services.AddRateLimits();
 builder.Services.AddHealthEndpoints();
 

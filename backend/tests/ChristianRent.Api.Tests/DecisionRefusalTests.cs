@@ -33,7 +33,7 @@ public sealed class DecisionRefusalTests : IDisposable
     public async Task Only_an_admin_decides(string? signInId, HttpStatusCode status, string code)
     {
         var item = await SeedNewListingAsync();
-        using var client = signInId is null ? _factory.CreateHttpsClient() : _factory.CreateSignedInClient(signInId);
+        using var client = signInId is null ? _factory.CreateHttpsClient() : _factory.CreateSignedInClient(signInId, session: "admin");
 
         using var response = await DecideAsync(client, item.Id, "approve");
 
