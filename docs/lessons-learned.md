@@ -60,6 +60,10 @@ Each journey's entry has three parts:
 | L44 | On Windows, stopping the shell that ran `ng serve` can leave its Node process holding the port, and a new server then fails at once; check the port is free before reading any spec result. | 10 |
 | L45 | When a screen gains a request that depends on the viewport (a detail shown only from 768 px), the specs that open it at the default width need its answer too; a fixture that also answers generated items keeps them short (L9). | 10 |
 | L46 | A script that splices a template between two markers searches for the end marker after the start: a block's class can appear earlier, in its loading branch, and the splice duplicates the template. | 10 |
+| L47 | Before drawing a fixed overlay (a toast, a banner) over a screen, check what it covers at every width: a toast in the corner of a panel whose controls stick to the bottom hides them, focused or not (WCAG 2.2, 2.4.11). A spec that clicks there finds it. | 11 |
+| L48 | A spec that installs the browser's clock (`page.clock.install`) runs every timer on it: a toast's 8 s passes inside a 60 s `runFor`. Assert what is shown before the clock passes its time; the same holds for `vi.advanceTimersByTime` in a unit test. | 11 |
+| L49 | Apply one mutation per run and check it applied (`git diff --stat`) before reading the result: two at once that break the build leave the dev server on the old bundle, and a text holding `|` or a quote can fail to apply in a shell loop; either way the specs pass and prove nothing. | 11 |
+| L50 | Before a version travels to the client for a concurrency check, ask what changes it: when only the decision itself does, the server's own check and the token on save refuse a second decision, and the client sends nothing extra. | 11 |
 
 ## Journeys
 
@@ -698,3 +702,56 @@ Slices 10.1 to 10.4, finished on Nov 26, 2026, on Windows, stacked on journey 9'
   before it did, removing the abort alone passed.
 - L38: the Admin specs and sweeps fix the clock on the mocks' today, 3 p.m. on Jun 8, 2026.
 - L40: dotnet ran with `MSBUILDDISABLENODEREUSE=1`, and the checkout stayed LF.
+
+### 11. Decide a review item
+
+Slices 11.1 to 11.4, finished on Nov 26, 2026, on Windows, stacked on journey 10's branch.
+
+**What slowed it**
+
+- The prototype raises Admin's toasts in the bottom right, over the decision bar; a spec that
+  pressed Remove after Keep dismissed the toast lying over it instead. The mocks, the design
+  system and ADR 0025 moved Admin's toasts to the top right (`toast-region--top`) before the code
+  (L47).
+- The clock a spec installs ran the 8 s toasts out inside the 60 s checks, and a 60 s fake timer
+  did the same in a unit test; the expectations were wrong, not the code (L48).
+- Two mutations applied at once, and one whose text held `|`, proved nothing until each was run
+  alone (L49).
+- ADR 0025 first sent the item's version with each decision; nothing but a decision changes it,
+  so the request carries only the decision, and the token is still checked on save (L50).
+- Journey 10's spec said a new member's detail has no buttons; with decisions it has Approve and
+  Remove, and the spec now says so.
+
+**New lessons**: L47 to L50 above, and these details for journey 12:
+
+- `Member.Verify()` sets the verified mark; approving a new member calls it and leaves the church
+  as it was. A church has no confirm step yet.
+- `cr-review-detail` projects a warning with `slot="notice"` and draws the decisions from
+  `ReviewItemDetail.decisions`; a church control belongs beside the "Church" fact of a new
+  member, not in the decision bar.
+- Removing a listing records a `MemberNotice` through `IMemberNotifier`; nothing delivers it.
+
+**Earlier lessons applied**
+
+- L2: the confirmations for a new listing and a new member were drawn, and the toasts moved, in
+  the mocks before their code.
+- L3 and L20: on the backend, deciding no other item, telling nobody, not verifying, keeping a
+  departed member's notices and dropping either refusal each failed only its test; on the
+  frontend, focus on the confirm button, no focus move, no drop, no busy state, no failed state,
+  a timed failure, a fourth toast, no hold, no warning toast, a retry that does nothing, a hidden
+  page polled, a decision counted as an arrival and "Show them" doing nothing each failed only
+  its spec or unit test.
+- L4: every slice's commit followed a run of `verify.mjs`, the last in 196.1 s.
+- L8: the page composes `cr-review-detail`, `cr-decision-bar`, `cr-dialog`, `cr-alert`,
+  `cr-toast` and `cr-toast-region`; `cr-dialog` gained its danger tone and `cr-toast` its
+  progress, both from the design system.
+- L11 and L27: the initial total went from 323.67 kB to 324.64 kB (`ApiError.decided`, the top
+  toast region and the toast's progress). The confirmation's code loads only when Remove is
+  pressed. No budget changed.
+- L12: the decisions' words, the confirmation, the failure and the arrivals are `@rent/domain`,
+  with a test per row.
+- L13: the sweeps visit the confirmation's five states, the decided panel and the success,
+  danger and info toasts; none was run.
+- L19: each new spec ran 5 times before its commit.
+- L37: the backend mutations kept their imports in use.
+- L40: dotnet ran with `MSBUILDDISABLENODEREUSE=1`.
