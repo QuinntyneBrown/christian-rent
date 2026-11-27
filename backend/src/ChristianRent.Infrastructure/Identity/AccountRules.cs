@@ -1,5 +1,4 @@
 using ChristianRent.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ChristianRent.Infrastructure.Identity;
