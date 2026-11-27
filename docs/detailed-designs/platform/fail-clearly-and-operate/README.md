@@ -90,8 +90,10 @@ holds no personal data.
   <email> [<member-id>]` reads the password from standard input and creates an account, safe
   to run again; `grant-admin <member-id>` makes an admin
   ([sign-in-and-sessions](../sign-in-and-sessions/README.md)).
-- **Deployment** — the backend once, and each application on its own static host
-  ([present-app-shell](../present-app-shell/README.md)). The settings a deployment adds for
+- **Deployment** — Azure Container Apps, a container app for each application: its static host
+  with the API beside it ([present-app-shell](../present-app-shell/README.md);
+  [ADR 0031](../../../adr/0031-hosting-on-azure-and-deploying-each-commit.md)). Every commit to `main` that passes CI is
+  released by `.github/workflows/deploy.yml`, which runs `infra/deploy.sh`. The settings a deployment adds for
   sign-in are `Site:AdminOrigin`, `AllowedHosts`, `Sessions:MemberLifetime`,
   `Sessions:AdminLifetime`, and Admin's `config.json`; data protection keys are kept in the
   database and need no setting. The README's Settings table lists them all.
@@ -102,17 +104,16 @@ holds no personal data.
 
 A daily job backs up the database and the file storage to a separate store. A restore drill
 restores listings, members, messages and photos into an empty environment and is repeated
-after any change to either store.
+after any change to either store. The database's backup is Azure's own: daily, kept 14 days and
+restorable to a point in time ([ADR 0031](../../../adr/0031-hosting-on-azure-and-deploying-each-commit.md)).
 
 **Undecided**
 
-- The database engine in production, the file storage product and their backup mechanisms:
-  `<TO SUPPLY>`. Development uses PostgreSQL ([ADR 0003](../../../adr/0003-database-engine.md))
-  and local disk ([ADR 0004](../../../adr/0004-file-storage.md)). Until production's are
-  chosen, the backup job has no implementation.
-- The backup retention period: `<TO SUPPLY>`.
-- The telemetry backend: `<TO SUPPLY>`; only its OTLP endpoint is a setting.
-- The hosting platform and its deployment pipeline: `<TO SUPPLY>`.
+- The backup of the photo share to a separate store, and its retention: `<TO SUPPLY>`. A
+  deleted share can be recovered for 14 days; nothing copies the photos elsewhere yet.
+- The restore drill has not been run.
+- The telemetry backend: `<TO SUPPLY>`; only its OTLP endpoint is a setting. The containers'
+  console logs go to a Log Analytics workspace.
 
 ### Mocks
 

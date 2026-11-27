@@ -13,12 +13,12 @@ record giving its reason (`AGENTS.md`, *Prefer best practice*).
 |---|---|---|
 | [0001](0001-frontend-workspace-and-libraries.md) | The frontend is one Angular workspace: the libraries `api`, `domain` and `components` and the app `rent` | Accepted; one application superseded by 0028 |
 | [0002](0002-backend-layers-and-cli.md) | The backend is four layers plus `ChristianRent.Cli`, which alone migrates and seeds | Accepted |
-| [0003](0003-database-engine.md) | PostgreSQL for development and the first migration; the production service is open | Open |
-| [0004](0004-file-storage.md) | Photos behind `IPhotoStorage`, on local disk in development; the production product is open | Open |
+| [0003](0003-database-engine.md) | PostgreSQL for development and the first migration; production is Azure Database for PostgreSQL (0031) | Accepted |
+| [0004](0004-file-storage.md) | Photos behind `IPhotoStorage`, on local disk in development; production is an Azure Files share (0031) | Accepted |
 | [0005](0005-authentication-seam.md) | An authentication seam that signs nobody in until sign-in is designed | Superseded by 0029 |
 | [0006](0006-bundle-budgets.md) | The `angular.json` budget values | Accepted; values superseded by 0014 |
 | [0007](0007-test-approach.md) | Tests use fixtures, EF Core InMemory and fake clocks, never a real backend, database or sleep | Accepted |
-| [0008](0008-ci-scope.md) | CI runs lint, the builds and one acceptance path per feature, in under 5 minutes | Accepted |
+| [0008](0008-ci-scope.md) | CI runs lint, the builds and one acceptance path per feature, in under 5 minutes | Accepted; a deploy workflow added by 0031 |
 | [0009](0009-health-endpoints-and-rate-limiter.md) | The health endpoints are anonymous and outside the rate limiter; the limiter reads `TimeProvider` | Accepted |
 | [0010](0010-mediatr-version.md) | MediatR stays on the 12.x line, the last under the Apache 2.0 licence | Accepted |
 | [0011](0011-photo-renditions-and-serving.md) | Photos are stored as `card`, `gallery` and `thumb` JPEG renditions and served anonymously only for an approved listing | Accepted |
@@ -38,6 +38,7 @@ record giving its reason (`AGENTS.md`, *Prefer best practice*).
 | [0025](0025-telling-a-poster-their-listing-was-removed.md) | A removal records a notice for the poster in the same unit of work; nothing is sent until a channel is designed | Accepted |
 | [0026](0026-two-admins-deciding-one-item.md) | A review item's version is a concurrency token; a second decision is refused as `already_decided`, unless the same admin repeats the same one | Accepted |
 | [0027](0027-deciding-a-review-item-open-decisions.md) | Deciding: 3 toasts at most, arrivals polled every 60 s, the three confirmations, focus, a removed member, and what "already reported" says | Accepted |
-| [0028](0028-two-applications-deployed-separately.md) | `rent` and `admin` are two applications on two origins, each proxying `/api` to the one backend; a `shell` library and shared foundations; Admin reads the site's address at deploy time | Accepted |
+| [0028](0028-two-applications-deployed-separately.md) | `rent` and `admin` are two applications on two origins, each proxying `/api` to the one backend; a `shell` library and shared foundations; Admin reads the site's address at deploy time | Accepted; its hosts named by 0031 |
 | [0029](0029-sign-in-and-two-sessions.md) | Sign-in with ASP.NET Core Identity and one cookie session per application, chosen by path (`/api/admin/`); lockout on `TimeProvider`; accounts made by `create-account` | Accepted |
 | [0030](0030-bundle-budgets-per-application.md) | A budget for each application | Accepted |
+| [0031](0031-hosting-on-azure-and-deploying-each-commit.md) | Azure Container Apps in Canada Central: a container app for each application, its static host with the API beside it; PostgreSQL flexible server, an Azure Files share for photos, and a workflow that deploys every commit to `main` with the Azure CLI and no stored credential | Accepted |

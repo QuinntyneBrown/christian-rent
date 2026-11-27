@@ -1,6 +1,7 @@
 # 0008. CI scope
 
-**Status:** Accepted
+**Status:** Accepted. [0031](0031-hosting-on-azure-and-deploying-each-commit.md) adds a deploy
+workflow that runs after this one on `main`.
 
 ## Context
 

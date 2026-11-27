@@ -1,0 +1,3 @@
+# The scripts run in bash on Linux in the deploy workflow: always line feeds.
+*.sh text eol=lf
+infra/** text eol=lf
