@@ -142,6 +142,13 @@ export const PARTY_BUS_LISTING = {
   postedAt: '2026-06-06T17:00:00Z',
 };
 
+/** The decision table: what each kind of item takes (L2-020). */
+const ALLOWED: Record<ReviewKindFixture, string[]> = {
+  'new-listing': ['approve', 'remove'],
+  report: ['keep', 'remove'],
+  'new-member': ['approve', 'remove'],
+};
+
 /** The details of `QUEUE`, as `GET /api/review-queue/{id}` answers them, by row. */
 export const DETAILS = new Map<string, object>([
   [GARDEN_ROW.id, detailOf(GARDEN_ROW, { listing: GARDEN_LISTING })],
@@ -182,6 +189,8 @@ export const DETAILS = new Map<string, object>([
 export function detailOf(row: ReviewRowFixture, part: object): object {
   return {
     id: row.id,
+    version: 0,
+    allowedDecisions: ALLOWED[row.kind],
     kind: row.kind,
     waitingSince: row.waitingSince,
     listing: null,
@@ -207,7 +216,35 @@ export function queuePage(
   nextCursor: string | null = null,
   waitingCount = items.length,
 ) {
-  return { items, nextCursor, waitingCount };
+  return { items, nextCursor, waitingCount, asOf: REVIEW_NOW.toISOString() };
+}
+
+/** Where an item is decided. */
+export const decisionOf = (id: string) => `/api/review-queue/${id}/decision`;
+
+/** A decision the API makes: it names every item that closed, the one decided first. */
+export function answerDecision(api: ApiFixtures, id: string, alsoClosed: string[] = []): void {
+  api.answer('POST', decisionOf(id), { body: { closedItemIds: [id, ...alsoClosed] } });
+}
+
+/** The refusal of a second decision, made at 12:14 p.m. in Langley (ADR 0026). */
+export function refuseDecided(
+  api: ApiFixtures,
+  id: string,
+  first: { decision: 'approve' | 'keep' | 'remove'; decidedByYou: boolean },
+): void {
+  api.answer('POST', decisionOf(id), {
+    status: 409,
+    body: {
+      type: 'about:blank',
+      title: 'Already done',
+      status: 409,
+      code: 'already_decided',
+      decidedAt: '2026-06-08T19:14:00Z',
+      ...first,
+    },
+    headers: { 'content-type': 'application/problem+json' },
+  });
 }
 
 /** The photos of the review fixtures, served from localhost. */

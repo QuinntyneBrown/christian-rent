@@ -14,10 +14,14 @@ namespace ChristianRent.Application.Review;
 /// page to learn whether another follows, then the subjects of the page's rows, each kind at
 /// once. Who may ask is the controller's policy.
 /// </summary>
-internal sealed class GetReviewQueueQueryHandler(IAppDbContext database) : IRequestHandler<GetReviewQueueQuery, ReviewQueuePageDto>
+internal sealed class GetReviewQueueQueryHandler(IAppDbContext database, TimeProvider clock)
+    : IRequestHandler<GetReviewQueueQuery, ReviewQueuePageDto>
 {
     public async Task<ReviewQueuePageDto> Handle(GetReviewQueueQuery query, CancellationToken cancellationToken)
     {
+        // Taken before anything is read, so an item that arrives during the reading is counted
+        // as an arrival rather than lost.
+        var asOf = clock.GetUtcNow();
         var waiting = WaitingReviewItems.Of(database);
         var waitingCount = await waiting.CountAsync(cancellationToken);
 
@@ -39,7 +43,7 @@ internal sealed class GetReviewQueueQueryHandler(IAppDbContext database) : IRequ
             ? new KeysetCursor(page[^1].CreatedAt, page[^1].Id).Encode()
             : null;
 
-        return new ReviewQueuePageDto(await SummariesAsync(page, cancellationToken), nextCursor, waitingCount);
+        return new ReviewQueuePageDto(await SummariesAsync(page, cancellationToken), nextCursor, waitingCount, asOf);
     }
 
     private async Task<List<ReviewItemSummaryDto>> SummariesAsync(List<ReviewItem> page, CancellationToken cancellationToken)

@@ -67,6 +67,24 @@ describe('toApiError', () => {
       },
     ],
     [
+      'a second decision with the first, when it was made and whose it was',
+      problem(409, {
+        status: 409,
+        code: 'already_decided',
+        decision: 'approve',
+        decidedAt: '2026-06-08T19:14:00Z',
+        decidedByYou: false,
+      }),
+      {
+        status: 409,
+        code: 'already_decided',
+        retryAt: null,
+        reportedAt: null,
+        fields: null,
+        decided: { decision: 'approve', at: '2026-06-08T19:14:00Z', byYou: false },
+      },
+    ],
+    [
       'a second report with when the first was filed',
       problem(409, { status: 409, code: 'already_reported', reportedAt: '2026-06-06T12:00:00Z' }),
       {

@@ -56,6 +56,23 @@ describe('Toast', () => {
     expect(actions).toEqual(['action', 'dismissed']);
   });
 
+  // A toast that dismisses itself draws the time it has left, which stops while paused.
+  it('draws its time only when it dismisses itself, and stops it while paused', () => {
+    const fixture = render('success');
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('.toast__progress')).toBeNull();
+
+    fixture.componentRef.setInput('timed', true);
+    fixture.detectChanges();
+    const progress = element.querySelector('.toast__progress');
+    expect(progress?.getAttribute('aria-hidden')).toBe('true');
+    expect(element.querySelector('.toast')?.classList).not.toContain('toast--paused');
+
+    fixture.componentRef.setInput('paused', true);
+    fixture.detectChanges();
+    expect(element.querySelector('.toast')?.classList).toContain('toast--paused');
+  });
+
   it('has no action button without an action', () => {
     expect(
       (render('info').nativeElement as HTMLElement).querySelector('.toast__action'),

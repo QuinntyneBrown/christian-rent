@@ -31,13 +31,21 @@ class ReviewItem {
   +Guid? DecidedBy
   +DateTimeOffset? DecidedAt
   +int Version
-  +Allows(decision: ReviewDecision): bool
+  {static} +AllowedDecisions(kind): ReviewDecision[]
   +Decide(decision, adminId, now): void
 }
 class DecideReviewItemCommand {
-  +Guid ItemId
-  +ReviewDecision Decision
+  +string Id
+  +string? Decision
   +int Version
+}
+class DecidedDto {
+  +IReadOnlyList<Guid> ClosedItemIds
+}
+class ReviewItemDecidedException <<Application>> {
+  +string Decision
+  +DateTimeOffset DecidedAt
+  +bool DecidedByYou
 }
 class DecideReviewItemCommandHandler {
   +Handle(command: DecideReviewItemCommand): Task<DecidedDto>
@@ -45,7 +53,15 @@ class DecideReviewItemCommandHandler {
 class AlreadyDecidedException {
   +ReviewDecision Decision
   +DateTimeOffset DecidedAt
+  +Guid DecidedBy
 }
+class ListingRemovalNotice {
+  +Guid Id
+  +Guid MemberId
+  +Guid ListingId
+  +DateTimeOffset CreatedAt
+}
+class RecordedMemberNotifier
 class Listing {
   +ListingStatus Status
   +DateTimeOffset? ApprovedAt
@@ -63,18 +79,32 @@ class Member {
 interface IMemberNotifier {
   +ListingRemovedAsync(memberId: Guid, listingId: Guid): Task
 }
+class GetReviewArrivalsQuery {
+  +string? Since
+}
+class ReviewQueueStore <<Angular>> {
+  +decide(decision): Promise<DecisionOutcome>
+  +goToNext(): void
+}
 class ToastQueue <<Angular>> {
-  +toasts: Signal<Toast[]>
-  +push(toast: Toast): void
-  +dismiss(id: string): void
+  +toasts: Signal<ToastView[]>
+  +push(request: ToastRequest): void
+  +dismiss(id: number): void
+  +dismissKey(key: string): void
+  +hold(id: number, by, on: boolean): void
 }
 ReviewItem --> ReviewItemKind
 ReviewItem --> ReviewDecision
 ReviewItem ..> AlreadyDecidedException : raises
 DecideReviewItemCommandHandler ..> DecideReviewItemCommand : handles
+DecideReviewItemCommandHandler ..> DecidedDto : answers
+DecideReviewItemCommandHandler ..> ReviewItemDecidedException : 409 already_decided
 DecideReviewItemCommandHandler --> ReviewItem : decides
 DecideReviewItemCommandHandler --> Listing : approves / removes
 DecideReviewItemCommandHandler --> Report : closes
 DecideReviewItemCommandHandler --> Member : verifies / removes
 DecideReviewItemCommandHandler ..> IMemberNotifier
+RecordedMemberNotifier ..|> IMemberNotifier
+RecordedMemberNotifier --> ListingRemovalNotice : records
+ReviewQueueStore --> ToastQueue : pushes
 @enduml

@@ -110,8 +110,15 @@ never says who filed it
 ([ADR 0023](docs/adr/0023-reporting-a-listing-open-decisions.md)). Viewing the review queue is
 built (journey 10): Admin, a library only an admin downloads, with the new listings, reports and
 new members that wait, oldest first, a page at a time, and from tablet width the selected item's
-detail beside them. The operator makes an admin with the CLI. Deciding an item comes with
-journey 11 ([ADR 0024](docs/adr/0024-viewing-the-review-queue-open-decisions.md)).
+detail beside them. The operator makes an admin with the CLI
+([ADR 0024](docs/adr/0024-viewing-the-review-queue-open-decisions.md)). Deciding an item is built
+(journey 11): from tablet width an admin approves, keeps or removes the selected item, with a
+confirmation before a removal; each decision records who made it and when, a second one is
+refused, notifications say what came of it, and the screen says when new items arrive. A
+removal records a notice for the poster, but nothing is sent yet
+([ADR 0025](docs/adr/0025-telling-a-poster-their-listing-was-removed.md),
+[ADR 0026](docs/adr/0026-two-admins-deciding-one-item.md),
+[ADR 0027](docs/adr/0027-deciding-a-review-item-open-decisions.md)).
 
 - The requirements are in `docs/specs/`, the mocks in `docs/mocks/`, the design system in
   `docs/design-system/` and the detailed designs in `docs/detailed-designs/`.

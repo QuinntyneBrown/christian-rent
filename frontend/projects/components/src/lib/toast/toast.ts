@@ -12,8 +12,9 @@ const TONE_ICONS: Record<ToastTone, IconName> = {
 };
 
 /**
- * A short message that rises from the corner (docs/design-system/components/toast.html). It
- * never dismisses itself; the person dismisses it. The region that holds it announces it.
+ * A short message that rises from the corner (docs/design-system/components/toast.html). The
+ * person may dismiss it; whoever shows one that also goes by itself times it, and says so with
+ * `timed` and `paused`, which it draws. The region that holds it announces it.
  */
 @Component({
   selector: 'cr-toast',
@@ -28,6 +29,10 @@ export class Toast {
   readonly text = input('');
   /** The label of the one action, if any. */
   readonly actionLabel = input<string | null>(null);
+  /** It dismisses itself, so it draws the time it has left. */
+  readonly timed = input(false);
+  /** That time stands still. */
+  readonly paused = input(false);
 
   protected readonly icon = computed(() => TONE_ICONS[this.tone()]);
   /** A failure or a warning interrupts; anything else waits its turn. */

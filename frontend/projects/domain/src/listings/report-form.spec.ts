@@ -77,8 +77,7 @@ describe('the report form', () => {
 
     expect(toReportDialogCopy('already', 'Dan', reportedAt)).toEqual({
       title: 'You’ve already reported this listing.',
-      description:
-        'Your report from Jun 6, 2026 is with an admin. There’s no need to send it again.',
+      description: 'You reported this listing on Jun 6, 2026. There’s no need to send it again.',
     });
   });
 });

@@ -16,6 +16,8 @@ interface Slot<T> {
   /** The cursor of the page after it, or null when it is the last. */
   next: string | null;
   items: readonly T[] | null;
+  /** How many items it holds, or held when it was released. */
+  count: number;
   /** The height it measured when it was released. */
   height: number;
 }
@@ -100,10 +102,17 @@ export class ListingWindow<T> {
       return;
     }
     if (index === this.slots.length) {
-      this.slots.push({ cursor: request.cursor, next: nextCursor, items, height: 0 });
+      this.slots.push({
+        cursor: request.cursor,
+        next: nextCursor,
+        items,
+        count: items.length,
+        height: 0,
+      });
     } else {
       const slot = this.slots[index]!;
       slot.items = items;
+      slot.count = items.length;
       slot.next = nextCursor;
     }
 
@@ -120,6 +129,28 @@ export class ListingWindow<T> {
         this.last--;
       }
     }
+  }
+
+  /** How many items the pages from the first to the last one held have. */
+  get upTo(): number {
+    return this.slots.slice(0, this.last + 1).reduce((total, slot) => total + slot.count, 0);
+  }
+
+  /**
+   * Takes the items `gone` matches out of the pages held, and answers how many left. Every page
+   * keeps its cursors, so the pages around it are asked for as before.
+   */
+  remove(gone: (item: T) => boolean): number {
+    let removed = 0;
+    for (const slot of this.slots) {
+      if (slot.items) {
+        const kept = slot.items.filter((item) => !gone(item));
+        removed += slot.items.length - kept.length;
+        slot.items = kept;
+        slot.count = kept.length;
+      }
+    }
+    return removed;
   }
 
   /** Forgets every page, as before the first request. */

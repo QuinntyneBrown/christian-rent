@@ -55,10 +55,14 @@
 </section>
 <section class="ds-section" id="sizes" data-na="Review detail has one size."><h2><a href="#sizes">Sizes</a></h2><p class="ds-na">Review detail has one size.</p></section>
 <section class="ds-section" id="states"><h2><a href="#states">States</a></h2>
-<p>When another admin has already decided, both buttons are off and an alert says who decided what and when.</p><div class="ds-matrix"><table><thead><tr><th scope="col">Variant</th><th scope="col">Default</th><th scope="col">Already decided</th></tr></thead><tbody><tr><th scope="row">Decision bar</th><td><div class="decision-bar">
+<p>While a decision is in flight, the button pressed is busy (<code>aria-busy</code>) and the other is off. When the item has already been decided, both buttons are off and an alert above the item says what was decided and when, and offers “Go to the next item”.</p><div class="ds-matrix"><table><thead><tr><th scope="col">Variant</th><th scope="col">Default</th><th scope="col">Deciding</th><th scope="col">Already decided</th></tr></thead><tbody><tr><th scope="row">Decision bar</th><td><div class="decision-bar">
         <button class="btn btn--success" type="button"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg>Approve</button>
         <a class="btn btn--danger-quiet" href="#states"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>Remove</a>
         
+      </div></td><td><div class="decision-bar">
+        <button class="btn btn--success" type="button" aria-busy="true">Approve</button>
+        <a class="btn btn--danger-quiet" href="#states" aria-disabled="true">Remove</a>
+
       </div></td><td><div class="decision-bar">
         <button class="btn btn--success" type="button" disabled><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg>Approve</button>
         <a class="btn btn--danger-quiet" href="#states" aria-disabled="true"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>Remove</a>

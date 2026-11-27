@@ -23,8 +23,18 @@ public sealed class ReviewQueueController(ISender sender) : ControllerBase
         [FromQuery] int size = GetReviewQueueQuery.MaxSize) =>
         sender.Send(new GetReviewQueueQuery(cursor, size), cancellationToken);
 
+    /// <summary>What has arrived since the queue was read (L2-019, criterion 12).</summary>
+    [HttpGet("arrivals")]
+    public Task<ReviewArrivalsDto> Arrivals([FromQuery] string? since, CancellationToken cancellationToken) =>
+        sender.Send(new GetReviewArrivalsQuery(since), cancellationToken);
+
     /// <summary>Everything needed to decide on one waiting item (L2-019, criterion 2).</summary>
     [HttpGet("{id}")]
     public Task<ReviewItemDetailDto> Get(string id, CancellationToken cancellationToken) =>
         sender.Send(new GetReviewItemQuery(id), cancellationToken);
+
+    /// <summary>The admin decides the item; the answer names every item that closed (L2-020).</summary>
+    [HttpPost("{id}/decision")]
+    public Task<DecidedDto> Decide(string id, DecisionRequest request, CancellationToken cancellationToken) =>
+        sender.Send(new DecideReviewItemCommand(id, request.Decision, request.Version), cancellationToken);
 }

@@ -113,4 +113,17 @@ describe('ListingWindow', () => {
     expect(window.before).toBe(0);
     expect(window.nextRequest('down')).toEqual({ index: 0, cursor: null });
   });
+
+  it('takes removed items out of the pages held, which ask for their neighbours as before', () => {
+    const window = filled(4);
+    const gone = new Set(['11', '22', '23']);
+
+    expect(window.remove((item) => gone.has(item))).toBe(3);
+
+    expect(window.items).toEqual(['12', '13', '21', ...items(3)]);
+    // Every page up to the last one held, less what left them.
+    expect(window.upTo).toBe(9);
+    expect(window.nextRequest('up')).toEqual({ index: 0, cursor: null });
+    expect(window.atEnd).toBe(true);
+  });
 });

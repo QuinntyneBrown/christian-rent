@@ -2,6 +2,7 @@ using ChristianRent.Domain.Churches;
 using ChristianRent.Domain.Listings;
 using ChristianRent.Domain.Members;
 using ChristianRent.Domain.Messages;
+using ChristianRent.Domain.Notices;
 using ChristianRent.Domain.Reports;
 using ChristianRent.Domain.Review;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,8 @@ public interface IAppDbContext
     DbSet<Report> Reports { get; }
 
     DbSet<ReviewItem> ReviewItems { get; }
+
+    DbSet<ListingRemovalNotice> ListingRemovalNotices { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 

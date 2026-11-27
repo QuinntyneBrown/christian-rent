@@ -12,6 +12,6 @@
 | 8 | Main | Send a message | Message the person who posted, with dates when for rent. | 4 | 100 |
 | 9 | Main | Report a listing | Report a listing so an admin reviews it. | 3 | 100 |
 | 10 | Admin | View the review queue | See new listings, reports and new members awaiting review. | 4 | 100 |
-| 11 | Admin | Decide a review item | Open an item's detail, then Approve, Keep or Remove. | 4 | 0 |
+| 11 | Admin | Decide a review item | Open an item's detail, then Approve, Keep or Remove. | 4 | 100 |
 | 12 | Admin | Verify members and churches | Confirm a member or church so its verified mark shows. | 3 | 0 |
-| | | **Total** | | **52** | **87** |
+| | | **Total** | | **52** | **94** |

@@ -139,15 +139,16 @@ items arrived, are journey 11.
 | 10.3 | `ReviewPage` with the queue, paged and held to three pages, and its loading, error and "All caught up" states | L2-019, L2-029, L2-033 | Yes |
 | 10.4 | The detail panel from 768 px, by kind, with its failed and gone states; the queue only, with a note, below it | L2-019, L2-031 | Yes |
 
-## 11. Decide a review item (Admin) — 4 days — 0% complete
+## 11. Decide a review item (Admin) — 4 days — 100% complete
 
-Design: [decide-review-item](detailed-designs/review/decide-review-item/README.md).
+Design: [decide-review-item](detailed-designs/review/decide-review-item/README.md). A removal
+records a notice for the poster; nothing is sent until a channel is designed (ADR 0025).
 
-| # | Slice | L2 |
-|---|---|---|
-| 11.1 | `DecideReviewItemCommand`: Approve, Keep, Remove, by item kind | L2-019, L2-020 |
-| 11.2 | Approve, Keep and Remove in the detail panel; `ConfirmRemoveDialog` | L2-020, L2-032 |
-| 11.3 | Toasts after a decision, announced, with `ToastQueue` | L2-032 |
+| # | Slice | L2 | Done |
+|---|---|---|---|
+| 11.1 | `DecideReviewItemCommand`: Approve, Keep, Remove, by item kind, with its refusals and the record of each decision | L2-019, L2-020 | Yes |
+| 11.2 | Approve, Keep and Remove in the detail panel; `ConfirmRemoveDialog`; already decided, gone and failed | L2-020, L2-032 | Yes |
+| 11.3 | Toasts after a decision, announced, with `ToastQueue`, and the notification that new items arrived | L2-019, L2-020, L2-032 | Yes |
 
 ## 12. Verify members and churches (Admin) — 3 days — 0% complete
 
@@ -163,4 +164,4 @@ Design: [verify-members-and-churches](detailed-designs/members/verify-members-an
 
 | Journeys | Effort (days) | % complete |
 |---|---|---|
-| 12 | 52 | 87 |
+| 12 | 52 | 94 |

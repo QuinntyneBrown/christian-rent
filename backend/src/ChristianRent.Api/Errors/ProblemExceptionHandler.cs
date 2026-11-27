@@ -21,6 +21,7 @@ internal sealed partial class ProblemExceptionHandler : IExceptionHandler
             ForbiddenException forbidden => Problems.Create(StatusCodes.Status403Forbidden, forbidden.Code, "Not allowed"),
             ConflictException conflict => Problems.Create(StatusCodes.Status409Conflict, conflict.Code, "Already done"),
             AlreadyReportedException reported => AlreadyReported(reported),
+            ReviewItemDecidedException decided => Decided(decided),
             LimitReachedException limit => LimitReached(limit),
             _ => null,
         };
@@ -46,6 +47,15 @@ internal sealed partial class ProblemExceptionHandler : IExceptionHandler
     {
         var problem = Problems.Create(StatusCodes.Status409Conflict, exception.Code, "Already done");
         problem.Extensions["reportedAt"] = exception.ReportedAt;
+        return problem;
+    }
+
+    private static Microsoft.AspNetCore.Mvc.ProblemDetails Decided(ReviewItemDecidedException exception)
+    {
+        var problem = Problems.Create(StatusCodes.Status409Conflict, exception.Code, "Already done");
+        problem.Extensions["decision"] = exception.Decision;
+        problem.Extensions["decidedAt"] = exception.DecidedAt;
+        problem.Extensions["decidedByYou"] = exception.DecidedByYou;
         return problem;
     }
 

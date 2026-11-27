@@ -118,12 +118,13 @@ so. `rent` imports it only with `import('@rent/admin')`.
 - **`GrantAdminCommand`** — `ChristianRent.Cli grant-admin <member-id>` makes an active
   member an admin (criterion 23). Nothing else does.
 
-**Later**
+**Deciding**
 
 - Approve, Keep and Remove, their toasts and the notification that new items arrived
   (L2-019, criterion 12), with how the store learns of them, are
-  [journey 11](../decide-review-item/README.md). Until then the panel's decision bar holds
-  only "View on site".
+  [decide-review-item](../decide-review-item/README.md). It adds `Decision`, `DecidedBy`,
+  `DecidedAt` and `Version` to `ReviewItem`, which `WaitingReviewItems` uses to leave decided
+  items out, `version` and `allowedDecisions` to the detail, and `asOf` to a page.
 
 ### Mocks
 

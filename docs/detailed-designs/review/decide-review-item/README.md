@@ -21,71 +21,119 @@ The queue and the detail panel are designed in
 
 **Frontend — `admin` library**
 
-- **`cr-review-detail`** (`components`) — its `decision-bar` shows the buttons named in
-  `ReviewItemDetail.allowedDecisions`: "Approve" and "Remove", or "Keep listing" and
-  "Remove" (L2-020, criterion 8). It emits `decide`. The bar is not shown under 768 px.
-- **`ConfirmRemoveDialog`** (`admin`, selector `cr-confirm-remove-dialog`) — CDK dialog
-  opened for Remove (L2-020, criterion 4). It names what is removed and what follows: the
-  listing stops being public, every open report on it is closed, the poster is told, and
-  the admin's name and the time are recorded (criterion 9). The same dialog confirms the
-  removal of a new listing and of a new member. Focus starts on "Keep it". States:
-  `default`, `busy`, `failed`. In `busy` the confirm button carries `aria-busy` and "Keep
-  it" is off; in `failed` an alert says nothing has changed and the button reads "Try
-  again" (criterion 10). It has no input, so Remove takes no reason.
-- **`ReviewQueueStore.decide(id, decision)`** — calls
-  `REVIEW_QUEUE_API.decide(id, decision, version)`. On success it drops the item, lowers
-  `waitingCount`, selects the next item and pushes a success toast that names the decision
-  and the item; no undo is offered (criterion 11). On `already_decided` it sets
-  `detail.conflict` with the other admin's decision and time; the panel shows a warning with
-  "Go to the next item", the decision buttons are disabled, and a warning toast says the
-  decision was not applied (criterion 13). On any other failure it keeps the selection and
-  pushes a danger toast with "Try again", which repeats the same decision (criterion 12).
-- **`ToastQueue`** (`admin`) — route-scoped list of toasts, newest last. A toast dismisses
-  itself after 8 s; the timer pauses on hover and focus; a danger toast stays until
-  dismissed (L2-020, criterion 14). Timers are cleared on dismissal and on destroy. `cr-toast` renders inside a
-  live region so that a screen reader announces each (L2-032, criterion 4).
+- **`cr-review-detail`** (`components`) — its `decision-bar` shows the buttons of
+  `ReviewDetailView.decisions`, written from `ReviewItemDetail.allowedDecisions`: "Approve"
+  and "Remove", or "Keep listing" and "Remove" (L2-020, criterion 8), beside "View on site"
+  for a report. It emits `decide`. While `deciding` names a decision, that button carries
+  `aria-busy` and every decision button is off (criterion 16); `off` turns them off while
+  another item's decision is in flight. Given a `conflict`, it draws a
+  warning above the item, turns the buttons off, and emits `next` from "Go to the next item"
+  (criterion 13). The panel is not shown under 768 px.
+- **`ReviewPage`** — for Remove it opens `ConfirmRemoveDialog`; it calls the store for
+  anything else. It draws the store's toasts in a `cr-toast-region` that is on the page before
+  any toast arrives (L2-032, criterion 4), and after a decision, or "Go to the next item",
+  moves focus to the row then selected, or to the heading "Review" when none is left
+  (criterion 15). It provides `ReviewQueueStore` and `ToastQueue`, which go with it.
+- **`ConfirmRemoveDialog`** (selector `cr-confirm-remove-dialog`) — a CDK dialog in
+  `cr-dialog` with the danger icon. `toRemoveCopy` (`domain`) writes its title, description,
+  button and failure for a reported listing, a new listing and a new member (criterion 9).
+  Focus starts on "Keep it" and returns to Remove when it is kept. States: `default`, `busy`,
+  `failed`. In `busy` the confirm button carries `aria-busy`, "Keep it" and Close are off and
+  Escape does nothing; in `failed` an alert says nothing has changed and the button reads "Try
+  again" (criterion 10). It closes once the removal is made, or the item turns out decided or
+  gone. It has no input, so Remove takes no reason.
+- **`ReviewQueueStore.decide(decision)`** — decides the selected item: it calls
+  `REVIEW_QUEUE_API.decide(id, decision, version)` and answers what came of it (`done`,
+  `conflict`, `gone`, `failed` or `ignored`). One decision is in flight at a time, in
+  `deciding`; destroying the store aborts it.
+  - On success it drops every item in `closedItemIds` from the window, lowers `waitingCount`
+    by as many, selects the row that followed the decided one, or the one before, and pushes a success toast that `toDecisionToast` writes;
+    no undo is offered (criteria 11 and 15). A selection the admin made meanwhile stays. When
+    the rows held run out while more wait, it reads the queue again; with none waiting it
+    shows "All caught up". A page on its way, above or below, is aborted: it may have been
+    read before the decision.
+  - On `already_decided` it sets `conflict` for that item with the first decision, its time
+    and whether it was the admin's own, and pushes a warning toast (criteria 13 and 17).
+    `goToNext()` then drops the item.
+  - On `not_found` the detail is `gone` (criterion 18).
+  - On any other failure it keeps the selection. For Approve and Keep it pushes a danger toast
+    with "Try again", which repeats the same decision on the same item (criterion 12); a
+    removal's failure is answered to the dialog.
+- **New items** (L2-019, criterion 12) — the store keeps the `asOf` of the first page. While
+  the queue is shown or empty and the page is visible, every 60 s it asks
+  `REVIEW_QUEUE_API.arrivals(asOf)`. When more have arrived than it has said, it pushes an
+  info toast that `toArrivalsToast` writes, with "Show them", which loads the queue again.
+  Loading again and destroying the store stop the timer and abort the request.
+- **`ToastQueue`** — the toasts, newest last, at most 3. A toast with the `key` of one shown
+  replaces it; a fourth drops the oldest that would dismiss itself, or the oldest. A toast
+  dismisses itself after 8 s; the time is paused while the pointer or the focus is on it; a
+  danger toast stays until dismissed (L2-020, criterion 14). Timers are cleared on dismissal
+  and on destroy.
+- **`cr-toast`** — gains `timed` and `paused`: a toast that dismisses itself draws
+  `toast__progress`, which stops while paused.
+
+**Frontend — `api` and `domain`**
+
+`ReviewQueuePage` gains `asOf`, and `ReviewItemDetail` gains `version` and `allowedDecisions`.
+`ReviewQueueApi` gains `decide` and `arrivals`. An `ApiError` of `already_decided` carries
+`decided`. `domain/review/decision-words` writes every word of the buttons, the
+confirmation, the conflict and the toasts, with a test per case.
 
 **Backend**
 
 - **`ReviewQueueController.Decide`** — `POST /api/review-queue/{id}/decision` with
-  `{ decision, version }`, under the `Admin` policy. It sends one
-  `DecideReviewItemCommand`.
-- **`DecideReviewItemCommandHandler`** — loads the item and its subject, calls
+  `{ decision, version }` (`approve`, `keep` or `remove`), under the `Admin` policy. It sends
+  one `DecideReviewItemCommand` and answers `DecidedDto { ClosedItemIds }`: the item, and every
+  other item the decision closed.
+- **`DecideReviewItemCommandHandler`** — loads the item; refuses a decided one; refuses one
+  that no longer waits (`WaitingReviewItems`) with `not_found`; calls
   `ReviewItem.Decide(decision, adminId, now)`, applies the effect from the table, and saves
   everything in one unit of work.
 
   | Item kind | Decision | Effect |
   |---|---|---|
   | new listing | Approve | `Listing.Approve(now)`: status `Approved`, `ApprovedAt` set |
-  | new listing | Remove | `Listing.Remove()`; the poster is told |
+  | new listing | Remove | `Listing.Remove()`; a notice is recorded for the poster |
   | report | Keep | `Report.Close()`; the listing stays public |
-  | report | Remove | `Listing.Remove()`; every waiting review item about the listing is decided as Remove and its report closed; the poster is told |
-  | new member | Approve | `Member.Verify()` |
-  | new member | Remove | `Member.Remove()` |
+  | report | Remove | `Listing.Remove()`; every waiting review item about the listing is decided as Remove and its report closed; one notice is recorded for the poster |
+  | new member | Approve | `Member.Verify()`; the church is not touched (L2-018, criterion 6) |
+  | new member | Remove | `Member.Remove()`: no longer a member, and their listings are not public (L2-018, criterion 4) |
 
-  Any other pair is refused with `decision_not_allowed`.
-- **`ReviewItem.Decide`** — sets `Decision`, `DecidedBy` and `DecidedAt` and raises
-  `AlreadyDecidedException` when a decision exists. These three fields are the record of
-  who decided what and when (L2-020, criterion 6); a review item is never deleted.
-- **Concurrency** — `ReviewItem.Version` is an EF Core concurrency token. Of two admins who
-  decide the same item, the second either finds a decision already set or fails the token
-  check on save. Both cases return 409 with the code `already_decided`, the first decision
-  and its time, and change nothing (L2-020, criterion 5).
+  Any other pair is refused with 409 `decision_not_allowed`.
+- **`ReviewItem`** — gains `Decision`, `DecidedBy`, `DecidedAt` and `Version`.
+  `AllowedDecisions(kind)` is the table's pairs. `Decide` sets the three fields, raises
+  `Version`, and raises `AlreadyDecidedException` when a decision exists. The three fields are
+  the record of who decided what and when (L2-020, criterion 6); a decision never deletes an
+  item. `WaitingReviewItems` leaves decided items out, so the queue, its count and the detail
+  do.
+- **Concurrency** ([ADR 0026](../../../adr/0026-two-admins-deciding-one-item.md)) —
+  `Version` is an EF Core concurrency token. A second decision, found on reading or by the
+  token on saving, is a 409 `already_decided` with `decision`, `decidedAt` and
+  `decidedByYou`, and changes nothing. The same admin repeating the same decision is answered
+  as made. An undecided item sent another version is refused with `version_unknown`.
 - **`IMemberNotifier`** (`ChristianRent.Application`) — `ListingRemovedAsync(memberId,
-  listingId)`. The handler calls it after a listing is removed (L2-020, criterion 7). The
-  notice names the listing and never a reporter (L2-021, criterion 4).
+  listingId)`. The handler calls it before it saves. `RecordedMemberNotifier`
+  (`ChristianRent.Infrastructure`) adds a `ListingRemovalNotice` and sends nothing
+  ([ADR 0025](../../../adr/0025-telling-a-poster-their-listing-was-removed.md); criteria 7 and
+  20). The notice names the listing and never a reporter (L2-021, criterion 4).
+  `purge-departed` deletes a departed member's notices.
+- **`GetReviewItemQueryHandler`** — its answer gains `version` and `allowedDecisions`.
+- **Arrivals** — `GET /api/review-queue` answers `asOf`, and
+  `GET /api/review-queue/arrivals?since=` sends `GetReviewArrivalsQuery`, which answers
+  `{ newListings, reports, newMembers }`: the waiting items made after `since`
+  (`since_invalid` when it is not an instant).
 
 **Tests**
 
 The acceptance tests decide through the API. The decision table has a direct handler test,
-one case per row, and one test for the refused pairs.
+one case per row, and one test for the refused pairs. The toast times and the 60 s look are
+unit-tested on a fake clock.
 
-**Undecided**
-
-- How the poster is told that a listing was removed: `<TO SUPPLY>`. The Messages inbox and
-  sign-in are not designed, so `IMemberNotifier` has no implementation yet; the first
-  implementation records the notice for later delivery.
-- The largest number of toasts shown at once: `<TO SUPPLY>`.
+**Decided where this design left it open** — telling a poster
+([ADR 0025](../../../adr/0025-telling-a-poster-their-listing-was-removed.md)); two admins
+([ADR 0026](../../../adr/0026-two-admins-deciding-one-item.md)); at most 3 toasts, the look for
+new items, the three confirmations, focus and a removed member
+([ADR 0027](../../../adr/0027-deciding-a-review-item-open-decisions.md)).
 
 ### Mocks
 
@@ -94,8 +142,11 @@ The mocks are the source of truth for the UI of this feature. The states this de
 - [`docs/mocks/pages/admin/default.html`](../../../mocks/pages/admin/default.html): Approve and Remove on a new listing
 - [`docs/mocks/pages/admin/report.html`](../../../mocks/pages/admin/report.html): Keep listing and Remove on a report
 - [`docs/mocks/pages/admin/new-member.html`](../../../mocks/pages/admin/new-member.html): Approve and Remove on a new member
+- [`docs/mocks/pages/admin/deciding.html`](../../../mocks/pages/admin/deciding.html): a decision is in flight
 - [`docs/mocks/pages/admin/decided.html`](../../../mocks/pages/admin/decided.html): the item was already decided by another admin
-- [`docs/mocks/dialogs/confirm-remove/default.html`](../../../mocks/dialogs/confirm-remove/default.html): the confirmation, focus on "Keep it"
+- [`docs/mocks/dialogs/confirm-remove/default.html`](../../../mocks/dialogs/confirm-remove/default.html): the confirmation for a reported listing, focus on "Keep it"
+- [`docs/mocks/dialogs/confirm-remove/new-listing.html`](../../../mocks/dialogs/confirm-remove/new-listing.html): the confirmation for a new listing
+- [`docs/mocks/dialogs/confirm-remove/new-member.html`](../../../mocks/dialogs/confirm-remove/new-member.html): the confirmation for a new member
 - [`docs/mocks/dialogs/confirm-remove/busy.html`](../../../mocks/dialogs/confirm-remove/busy.html): the removal is in flight
 - [`docs/mocks/dialogs/confirm-remove/failed.html`](../../../mocks/dialogs/confirm-remove/failed.html): the removal failed
 - [`docs/mocks/notifications/review-toast/success.html`](../../../mocks/notifications/review-toast/success.html): after Approve, Keep or Remove
@@ -135,9 +186,10 @@ The rent application calls `ChristianRent.Api` over JSON/HTTPS. The API persists
 
 ### Components
 
-The decision bar emits to `ReviewPage`, which opens `ConfirmRemoveDialog` for Remove and
-then calls `ReviewQueueStore`. The handler records the decision on `ReviewItem`, applies the
-effect to the subject, and calls `IMemberNotifier` when a listing is removed.
+The decision bar emits to `ReviewPage`, which opens `ConfirmRemoveDialog` for Remove; the
+decision goes to `ReviewQueueStore`, which pushes to `ToastQueue`. The handler records the
+decision on `ReviewItem`, applies the effect to the subject, and calls `IMemberNotifier`
+when a listing is removed.
 
 ![C4 component view for Decide a review item](diagrams/c4-component.png)
 

@@ -1,10 +1,12 @@
 namespace ChristianRent.Application.Review;
 
 /// <summary>
-/// At most one page of review items, the cursor of the next page, and how many wait in all
-/// (view-review-queue design).
+/// At most one page of review items, the cursor of the next page, how many wait in all
+/// (view-review-queue design), and when it was read, from which arrivals are counted
+/// (decide-review-item design).
 /// </summary>
-public sealed record ReviewQueuePageDto(IReadOnlyList<ReviewItemSummaryDto> Items, string? NextCursor, int WaitingCount);
+public sealed record ReviewQueuePageDto(
+    IReadOnlyList<ReviewItemSummaryDto> Items, string? NextCursor, int WaitingCount, DateTimeOffset AsOf);
 
 /// <summary>
 /// One row of the review queue (L2-019, criterion 6). <c>Kind</c> is <c>new-listing</c>,

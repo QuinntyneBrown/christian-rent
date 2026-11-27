@@ -24,6 +24,20 @@ public sealed class AlreadyReportedException(DateTimeOffset reportedAt) : AppExc
     public DateTimeOffset ReportedAt { get; } = reportedAt;
 }
 
+/// <summary>
+/// The review item has a decision, which stands (L2-020, criteria 5 and 13): which one, when,
+/// and whether it was the caller's own. It names no admin (ADR 0026).
+/// </summary>
+public sealed class ReviewItemDecidedException(string decision, DateTimeOffset decidedAt, bool decidedByYou)
+    : AppException("already_decided", "Conflict.")
+{
+    public string Decision { get; } = decision;
+
+    public DateTimeOffset DecidedAt { get; } = decidedAt;
+
+    public bool DecidedByYou { get; } = decidedByYou;
+}
+
 /// <summary>The action was already taken (already_decided, decision_not_allowed).</summary>
 public sealed class ConflictException(string code) : AppException(code, "Conflict.");
 

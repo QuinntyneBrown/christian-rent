@@ -52,6 +52,28 @@ export class AdminPage {
   readonly detailMember: Locator;
   readonly detailControls: Locator;
   readonly viewOnSite: Locator;
+  /** The decision bar under the item. */
+  readonly decisionButtons: Locator;
+  readonly approve: Locator;
+  readonly keep: Locator;
+  readonly remove: Locator;
+
+  /** What the panel says of an item another admin decided first. */
+  readonly conflictTitle: Locator;
+  readonly conflictText: Locator;
+  readonly nextItem: Locator;
+  /** "Try again" on the notification of a decision that failed. */
+  readonly tryDecisionAgain: Locator;
+
+  /** Admin's notifications, newest at the bottom; the shell has a region of its own. */
+  readonly toastRegion: Locator;
+  readonly toasts: Locator;
+  readonly toastTitles: Locator;
+  readonly toastTexts: Locator;
+  readonly dismissToast: Locator;
+  /** The one action of the notification that new items arrived. */
+  readonly showThem: Locator;
+
   private readonly facts: Locator;
   private readonly queue: Locator;
 
@@ -107,6 +129,25 @@ export class AdminPage {
     this.detailControls = this.detail.locator('button, a');
     this.viewOnSite = this.detail.getByRole('link', { name: 'View on site' });
     this.facts = this.detail.locator('.review__facts > div');
+
+    const bar = this.detail.locator('.decision-bar');
+    this.decisionButtons = bar.getByRole('button');
+    this.approve = bar.getByRole('button', { name: 'Approve', exact: true });
+    this.keep = bar.getByRole('button', { name: 'Keep listing', exact: true });
+    this.remove = bar.getByRole('button', { name: 'Remove', exact: true });
+
+    const conflict = this.detail.locator('.review__conflict');
+    this.conflictTitle = conflict.locator('.alert__title');
+    this.conflictText = conflict.locator('.alert__text');
+    this.nextItem = conflict.getByRole('button', { name: 'Go to the next item' });
+
+    this.toastRegion = page.locator('cr-review-page .toast-region');
+    this.tryDecisionAgain = this.toastRegion.getByRole('button', { name: 'Try again' });
+    this.toasts = this.toastRegion.locator('.toast');
+    this.dismissToast = this.toastRegion.getByRole('button', { name: 'Dismiss' });
+    this.showThem = this.toastRegion.getByRole('button', { name: 'Show them' });
+    this.toastTitles = this.toastRegion.locator('.toast__title');
+    this.toastTexts = this.toastRegion.locator('.toast__text');
   }
 
   async open(): Promise<void> {

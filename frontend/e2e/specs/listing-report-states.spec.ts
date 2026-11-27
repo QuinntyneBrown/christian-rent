@@ -18,8 +18,7 @@ const NOTE = 'It asks people to pay a deposit before they have seen the hall.';
 /** Noon in the browser's own time zone, so the date reads the same wherever the spec runs. */
 const REPORTED_AT = new Date(2026, 5, 6, 12);
 const ALREADY = 'You’ve already reported this listing.';
-const ALREADY_TEXT =
-  'Your report from Jun 6, 2026 is with an admin. There’s no need to send it again.';
+const ALREADY_TEXT = 'You reported this listing on Jun 6, 2026. There’s no need to send it again.';
 
 test.describe('Listing: what else reporting comes to', () => {
   test.beforeEach(async ({ api }) => {

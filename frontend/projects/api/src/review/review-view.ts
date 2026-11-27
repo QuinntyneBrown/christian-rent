@@ -1,5 +1,5 @@
 import type { AvatarTint } from '../listings/listing-view';
-import type { ReviewKind } from './review-item';
+import type { ReviewDecision, ReviewKind } from './review-item';
 
 /** What stands at the start of a queue row. */
 export type QueueThumbView =
@@ -27,6 +27,13 @@ export interface ReviewFactView {
   readonly verified: 'member' | 'church' | null;
 }
 
+/** One button of the decision bar. */
+export interface ReviewDecisionView {
+  readonly decision: ReviewDecision;
+  /** "Approve", "Keep listing", "Remove". */
+  readonly label: string;
+}
+
 /** A new listing, or a reported one, as `cr-review-detail` draws it. */
 export interface ReviewListingView {
   readonly type: 'listing';
@@ -44,6 +51,7 @@ export interface ReviewListingView {
   readonly facts: readonly ReviewFactView[];
   /** The listing's screen, for one that is public; null for a new listing. */
   readonly siteHref: string | null;
+  readonly decisions: readonly ReviewDecisionView[];
 }
 
 /** A new member as `cr-review-detail` draws them. */
@@ -55,6 +63,7 @@ export interface ReviewMemberView {
   /** "Joined Jun 8, 2026, 11:20 a.m." */
   readonly joined: string;
   readonly facts: readonly ReviewFactView[];
+  readonly decisions: readonly ReviewDecisionView[];
 }
 
 /** The selected item in full, as the detail panel draws it. */

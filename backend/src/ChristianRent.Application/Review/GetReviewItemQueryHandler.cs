@@ -27,7 +27,9 @@ internal sealed class GetReviewItemQueryHandler(IAppDbContext database) : IReque
             .SingleOrDefaultAsync(item => item.Id == id, cancellationToken)
             ?? throw new NotFoundException();
 
-        var detail = new ReviewItemDetailDto(item.Id, ReviewWords.Of(item.Kind), item.CreatedAt, null, null, null);
+        var detail = new ReviewItemDetailDto(
+            item.Id, ReviewWords.Of(item.Kind), item.CreatedAt, null, null, null,
+            item.Version, ReviewItem.AllowedDecisions(item.Kind).Select(ReviewWords.Of).ToList());
         return item.Kind switch
         {
             ReviewItemKind.NewListing => detail with { Listing = (await ListingAsync(item.SubjectId, cancellationToken)).Listing },

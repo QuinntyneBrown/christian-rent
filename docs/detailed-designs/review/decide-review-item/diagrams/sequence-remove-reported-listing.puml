@@ -36,14 +36,15 @@ page -> dialog : Open, focus on "Keep it" (L2-020 criterion 4)
 dialog --> actor : Names the listing and what follows
 alt confirms "Remove listing"
   actor -> dialog : Confirm
-  dialog -> store : decide(id, Remove)
+  dialog -> store : decide(Remove)
   store -> ctrl : POST /api/review-queue/{id}/decision {Remove, version}
   ctrl -> handler : Send DecideReviewItemCommand
   handler -> db : Item, report, listing, other waiting items on the listing
   handler -> listing : Remove(), no longer public (L2-020 criterion 2)
   handler -> handler : Decide every waiting item on the listing, close each report
+  handler -> notify : ListingRemovedAsync(poster, listing) (L2-020 criterion 20)
+  notify -> db : Add a notice to the unit of work
   handler -> db : Save in one unit of work
-  handler -> notify : ListingRemovedAsync(poster, listing) (L2-020 criterion 7)
   handler --> ctrl : DecidedDto with the closed item ids
   ctrl --> store : 200 OK
   store -> store : Drop every closed item, select the next

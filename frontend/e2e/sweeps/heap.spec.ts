@@ -11,8 +11,17 @@ import {
 import { answerJoining, answerMember } from '../fixtures/members';
 import { refuseSendingAtLimit } from '../fixtures/messages';
 import { answerReporting } from '../fixtures/reports';
-import { LOCKER_LISTING, answerAdmin, detailOf, manyRows, queuePage } from '../fixtures/review';
+import {
+  GARDEN_ROW,
+  LOCKER_LISTING,
+  answerAdmin,
+  answerDecision,
+  detailOf,
+  manyRows,
+  queuePage,
+} from '../fixtures/review';
 import { AdminPage } from '../pages/admin.page';
+import { ConfirmRemoveDialogPart } from '../pages/confirm-remove-dialog.part';
 import { answerUploads, photoFile } from '../fixtures/photos';
 import { ListingPage } from '../pages/listing.page';
 import { PostPage } from '../pages/post.page';
@@ -299,6 +308,38 @@ test('adding and removing photos on Post and leaving it keeps the heap stable', 
     await leaveForNotFound(page);
     await expect(post.form).toHaveCount(0);
     release();
+  };
+
+  await roundTrip();
+  const before = await heapAfterGc();
+  for (let round = 0; round < ROUNDS; round++) {
+    await roundTrip();
+  }
+  const after = await heapAfterGc();
+
+  expect(after - before).toBeLessThan(ALLOWED_GROWTH_BYTES);
+});
+
+// decide-review-item design: deciding an item, opening the confirmation and leaving Admin, again
+// and again, releases the notifications and their timers, the look for new items and the dialog.
+test('deciding on Admin and leaving it keeps the heap stable', async ({ page, api }) => {
+  answerAdmin(api);
+  answerDecision(api, GARDEN_ROW.id);
+  const heapAfterGc = await heapMeter(page);
+  const admin = new AdminPage(page);
+  const dialog = new ConfirmRemoveDialogPart(page);
+  await page.goto('/no-such-page');
+
+  const roundTrip = async () => {
+    await page.evaluate(() => history.pushState({}, '', '/admin'));
+    await page.evaluate(() => dispatchEvent(new PopStateEvent('popstate')));
+    await expect(admin.detailTitle).toHaveText(GARDEN_ROW.title);
+    await admin.approve.click();
+    await expect(admin.toasts).toHaveCount(1);
+    await admin.remove.click();
+    await dialog.keepIt.click();
+    await leaveForNotFound(page);
+    await expect(admin.rows).toHaveCount(0);
   };
 
   await roundTrip();

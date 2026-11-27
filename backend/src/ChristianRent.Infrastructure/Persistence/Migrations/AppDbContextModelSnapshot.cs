@@ -248,6 +248,30 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
                     b.ToTable("messages", (string)null);
                 });
 
+            modelBuilder.Entity("ChristianRent.Domain.Notices.ListingRemovalNotice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("MemberId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ListingId")
+                        .IsUnique();
+
+                    b.HasIndex("MemberId");
+
+                    b.ToTable("listing_removal_notices", (string)null);
+                });
+
             modelBuilder.Entity("ChristianRent.Domain.Reports.Report", b =>
                 {
                     b.Property<Guid>("Id")
@@ -294,6 +318,16 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTimeOffset?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DecidedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Decision")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
                     b.Property<string>("Kind")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -301,6 +335,10 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid>("SubjectId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -412,6 +450,15 @@ namespace ChristianRent.Infrastructure.Persistence.Migrations
                     b.HasOne("ChristianRent.Domain.Members.Member", null)
                         .WithMany()
                         .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ChristianRent.Domain.Notices.ListingRemovalNotice", b =>
+                {
+                    b.HasOne("ChristianRent.Domain.Members.Member", null)
+                        .WithMany()
+                        .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

@@ -8,7 +8,8 @@ using ChristianRent.Domain.Review;
 namespace ChristianRent.Application.Review;
 
 /// <summary>
-/// The review items that still wait: those whose subject does (L2-019, criterion 18; ADR 0024).
+/// The review items that still wait: those not decided (L2-020) whose subject still waits
+/// (L2-019, criterion 18; ADR 0024).
 /// A new listing waits for review and its poster is active; a report is open on a public
 /// listing; a new member is active. What a subject has lost since, such as the listings of a
 /// member who left, is not for an admin to decide.
@@ -18,7 +19,7 @@ internal static class WaitingReviewItems
     public static IQueryable<ReviewItem> Of(IAppDbContext database)
     {
         var publicListings = PublicListings.Of(database);
-        return database.ReviewItems.Where(item =>
+        return database.ReviewItems.Where(item => item.Decision == null && (
             (item.Kind == ReviewItemKind.NewListing && database.Listings.Any(listing =>
                 listing.Id == item.SubjectId &&
                 listing.Status == ListingStatus.WaitingForReview &&
@@ -28,6 +29,6 @@ internal static class WaitingReviewItems
                 report.Status == ReportStatus.Open &&
                 publicListings.Any(listing => listing.Id == report.ListingId))) ||
             (item.Kind == ReviewItemKind.NewMember && database.Members.Any(member =>
-                member.Id == item.SubjectId && member.Status == MemberStatus.Active)));
+                member.Id == item.SubjectId && member.Status == MemberStatus.Active))));
     }
 }

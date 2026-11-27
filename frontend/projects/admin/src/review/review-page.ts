@@ -12,7 +12,9 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { SESSION } from '@rent/api';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Dialog } from '@angular/cdk/dialog';
+import { type ReviewDecision, SESSION } from '@rent/api';
 import {
   AdminLayout,
   AdminNav,
@@ -24,9 +26,13 @@ import {
   QueueList,
   QueueMore,
   ReviewDetail,
+  Toast,
+  ToastRegion,
 } from '@rent/components';
-import { queueSummary } from '@rent/domain';
-import { ReviewQueueStore } from './review-queue-store';
+import { queueSummary, toRemoveCopy } from '@rent/domain';
+import { openConfirmRemoveDialog } from './confirm-remove-dialog';
+import { type DecisionOutcome, ReviewQueueStore } from './review-queue-store';
+import { ToastQueue, type ToastView } from './toast-queue';
 
 /** From this width the detail panel sits beside the queue (L2-031, criterion 5). */
 const WIDE = '(min-width: 48rem)';
@@ -53,13 +59,15 @@ const WIDE = '(min-width: 48rem)';
     QueueList,
     QueueMore,
     ReviewDetail,
+    Toast,
+    ToastRegion,
   ],
   templateUrl: './review-page.html',
   styleUrl: './review-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   // Provided here, not by the route, whose providers would outlive the screen: leaving Admin
   // destroys the store, which aborts what it was loading.
-  providers: [ReviewQueueStore],
+  providers: [ReviewQueueStore, ToastQueue],
   host: {
     '[style.--review-before.px]': 'store.before()',
     '[style.--review-after.px]': 'store.after()',
@@ -69,6 +77,7 @@ export class ReviewPage {
   protected readonly skeletons = Array.from({ length: 6 });
 
   protected readonly store = inject(ReviewQueueStore);
+  protected readonly toasts = inject(ToastQueue);
   private readonly member = inject(SESSION).member;
   protected readonly name = computed(() => this.member()?.name ?? '');
 
@@ -77,6 +86,8 @@ export class ReviewPage {
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private readonly injector = inject(Injector);
+  private readonly dialogs = inject(Dialog);
+  private readonly destroyed = inject(DestroyRef);
   private readonly above = viewChild<ElementRef<HTMLElement>>('above');
   private readonly top = viewChild<ElementRef<HTMLElement>>('top');
   private readonly bottom = viewChild<ElementRef<HTMLElement>>('bottom');
@@ -111,6 +122,67 @@ export class ReviewPage {
       this.ends();
       afterNextRender(() => this.watch(), { injector: this.injector });
     });
+  }
+
+  /** The decision on the selected item that is in flight. */
+  protected readonly decidingHere = computed(() => {
+    const deciding = this.store.deciding();
+    return deciding !== null && deciding.id === this.store.selectedId() ? deciding.decision : null;
+  });
+
+  protected decide(decision: ReviewDecision): void {
+    if (decision === 'remove') {
+      this.confirmRemove();
+    } else {
+      void this.store.decide(decision).then((outcome) => this.decided(outcome));
+    }
+  }
+
+  /** Remove takes effect only once it is confirmed (L2-020, criterion 4). */
+  private confirmRemove(): void {
+    const subject = this.store.subject();
+    if (subject === null) {
+      return;
+    }
+    openConfirmRemoveDialog(
+      this.dialogs,
+      { copy: toRemoveCopy(subject), confirm: () => this.store.decide('remove') },
+      this.injector,
+    )
+      .closed.pipe(takeUntilDestroyed(this.destroyed))
+      .subscribe((outcome) => this.decided(outcome));
+  }
+
+  protected goToNext(): void {
+    this.store.goToNext();
+    this.focusQueue();
+  }
+
+  /** A notification's one action; "Try again" answers with what came of the decision. */
+  protected act(toast: ToastView): void {
+    void Promise.resolve(toast.action?.run()).then((outcome) =>
+      this.decided(outcome as DecisionOutcome | undefined),
+    );
+  }
+
+  private decided(outcome: DecisionOutcome | undefined): void {
+    if (outcome === 'done') {
+      this.focusQueue();
+    }
+  }
+
+  /**
+   * The button that had focus is gone with its item, so focus goes to the row then selected,
+   * or to the heading when none is (L2-020, criterion 15).
+   */
+  private focusQueue(): void {
+    afterNextRender(
+      () => {
+        const row = this.host.querySelector<HTMLElement>('.queue-item[aria-current="true"]');
+        (row ?? this.host.querySelector<HTMLElement>('#queue-title'))?.focus();
+      },
+      { injector: this.injector },
+    );
   }
 
   /** The line under the heading. */
