@@ -16,6 +16,8 @@ import {
   type RemoveSubject,
   type Notice,
   toArrivalsToast,
+  toChurchConfirmedToast,
+  toChurchFailedToast,
   toConflictCopy,
   toConflictToast,
   toDecisionToast,
@@ -42,6 +44,18 @@ export interface Deciding {
 
 /** What came of a decision; `ignored` when it could not be started. */
 export type DecisionOutcome = 'done' | 'conflict' | 'gone' | 'failed' | 'ignored';
+
+/**
+ * What came of a church confirmation: `church-shown` when the detail on the panel is of that
+ * church and now says so, `done-elsewhere` when it is not.
+ */
+export type ConfirmOutcome = 'church-shown' | 'done-elsewhere' | 'failed' | 'ignored';
+
+/** The church a confirmation is of, kept so that "Try again" can send the same. */
+interface ChurchSubject {
+  readonly id: string;
+  readonly name: string;
+}
 
 /** What one decision sends, kept so that "Try again" can send the same. */
 interface Decision extends Deciding {
@@ -74,7 +88,8 @@ export type MeasurePage = (index: number) => number;
  * that item's detail; selecting another aborts the detail still on its way. Nothing is selected,
  * and no detail asked for, while the screen shows no detail panel (L2-019, criterion 13).
  * It decides the selected item, one decision at a time, and what a decision closes leaves the
- * queue (decide-review-item design). While the queue is shown or empty and the page visible, it
+ * queue (decide-review-item design). It confirms the church of the new member shown, never
+ * beside a decision (verify-members-and-churches design). While the queue is shown or empty and the page visible, it
  * looks every 60 s for items that arrived since the queue was read. Destroying it aborts its
  * requests and clears its timers.
  */
@@ -97,10 +112,12 @@ export class ReviewQueueStore {
   private readonly _detailSkeleton = signal(false);
   private readonly _deciding = signal<Deciding | null>(null);
   private readonly _conflict = signal<Notice | null>(null);
+  private readonly _confirming = signal<string | null>(null);
 
   private request: AbortController | null = null;
   private detailRequest: AbortController | null = null;
   private decisionRequest: AbortController | null = null;
+  private churchRequest: AbortController | null = null;
   /** The detail shown, as the API answered it: a decision sends its version. */
   private shownItem: ReviewItemDetail | null = null;
   /** Counts the readings of the queue from its oldest item. */
@@ -143,11 +160,14 @@ export class ReviewQueueStore {
   readonly deciding = this._deciding.asReadonly();
   /** What the panel says when another decision on its item came first. */
   readonly conflict = this._conflict.asReadonly();
+  /** The item from whose detail a church is being confirmed. */
+  readonly confirming = this._confirming.asReadonly();
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
       this.request?.abort();
       this.decisionRequest?.abort();
+      this.churchRequest?.abort();
       this.stopLooking();
       this.clearSelection();
       this.stopSkeletonTimer();
@@ -264,6 +284,16 @@ export class ReviewQueueStore {
     return this.send({ id: item.id, decision, version: item.version, subject: subjectOf(item) });
   }
 
+  /** Confirms the church of the new member whose detail is shown (L2-018, criterion 7). */
+  confirmChurch(): Promise<ConfirmOutcome> {
+    const item = this._detailState() === 'loaded' ? this.shownItem : null;
+    const church = item?.member?.church;
+    if (!church || church.isVerified || this._conflict() !== null) {
+      return Promise.resolve('ignored');
+    }
+    return this.sendConfirmation({ id: church.id, name: church.name });
+  }
+
   /** Drops the item decided first and selects the one that followed it. */
   goToNext(): void {
     const id = this._selectedId();
@@ -325,8 +355,58 @@ export class ReviewQueueStore {
     }
   }
 
+  /** One thing at a time: no decision and confirmation are in flight together (ADR 0028). */
+  private busy(): boolean {
+    return this._deciding() !== null || this._confirming() !== null;
+  }
+
+  private async sendConfirmation(church: ChurchSubject): Promise<ConfirmOutcome> {
+    if (this.busy()) {
+      return 'ignored';
+    }
+    const request = new AbortController();
+    this.churchRequest = request;
+    this._confirming.set(this._selectedId() ?? '');
+    // What was said of this church's last try no longer holds.
+    this.toasts.dismissKey(church.id);
+    try {
+      await this.api.confirmChurch(church.id, request.signal);
+      this.toasts.push({ key: church.id, tone: 'success', ...toChurchConfirmedToast(church.name) });
+      return this.showConfirmed(church.id) ? 'church-shown' : 'done-elsewhere';
+    } catch (error) {
+      // Whatever the refusal, the church is not verified, and the same one can be sent again.
+      this.fail(error, request, () =>
+        this.toasts.push({
+          key: church.id,
+          tone: 'danger',
+          ...toChurchFailedToast(church.name),
+          action: { label: 'Try again', run: () => this.sendConfirmation(church) },
+        }),
+      );
+      return 'failed';
+    } finally {
+      this.churchRequest = null;
+      this._confirming.set(null);
+    }
+  }
+
+  /** Writes the detail on the panel again when it is of the church just confirmed. */
+  private showConfirmed(churchId: string): boolean {
+    const item = this._detailState() === 'loaded' ? this.shownItem : null;
+    const member = item?.member;
+    if (!item || !member || member.church.id !== churchId) {
+      return false;
+    }
+    this.shownItem = {
+      ...item,
+      member: { ...member, church: { ...member.church, isVerified: true } },
+    };
+    this._detail.set(toReviewDetailView(this.shownItem, new Date()));
+    return true;
+  }
+
   private async send(sent: Decision): Promise<DecisionOutcome> {
-    if (this._deciding() !== null) {
+    if (this.busy()) {
       return 'ignored';
     }
     const request = new AbortController();

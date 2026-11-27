@@ -149,28 +149,35 @@ const ALLOWED: Record<ReviewKindFixture, string[]> = {
   'new-member': ['approve', 'remove'],
 };
 
+/** St. Paul's, the church the new member entered. */
+export const ALICIA_CHURCH = 'c4a7e1f0-0006-4000-8000-000000000006';
+
+/** The new member's detail, with their church as `church` leaves it. */
+export function memberDetail(church: { isVerified?: boolean } = {}): object {
+  return detailOf(MEMBER_ROW, {
+    member: {
+      name: 'Dr. Alicia Gomez',
+      joinedAt: '2026-06-08T18:20:00Z',
+      church: {
+        id: ALICIA_CHURCH,
+        name: 'St. Paul’s Anglican',
+        city: 'Fort Langley',
+        isVerified: false,
+        enteredBy: { name: 'Dr. Alicia Gomez', isThisMember: true },
+        ...church,
+      },
+      listingCount: 1,
+      forRentCount: 0,
+      publicCount: 1,
+      messageCount: 0,
+    },
+  });
+}
+
 /** The details of `QUEUE`, as `GET /api/review-queue/{id}` answers them, by row. */
 export const DETAILS = new Map<string, object>([
   [GARDEN_ROW.id, detailOf(GARDEN_ROW, { listing: GARDEN_LISTING })],
-  [
-    MEMBER_ROW.id,
-    detailOf(MEMBER_ROW, {
-      member: {
-        name: 'Dr. Alicia Gomez',
-        joinedAt: '2026-06-08T18:20:00Z',
-        church: {
-          name: 'St. Paul’s Anglican',
-          city: 'Fort Langley',
-          isVerified: false,
-          enteredBy: { name: 'Dr. Alicia Gomez', isThisMember: true },
-        },
-        listingCount: 1,
-        forRentCount: 0,
-        publicCount: 1,
-        messageCount: 0,
-      },
-    }),
-  ],
+  [MEMBER_ROW.id, memberDetail()],
   [
     REPORT_ROW.id,
     detailOf(REPORT_ROW, {
@@ -245,6 +252,14 @@ export function refuseDecided(
     },
     headers: { 'content-type': 'application/problem+json' },
   });
+}
+
+/** Where a church is confirmed. */
+export const churchVerification = (id: string) => `/api/churches/${id}/verification`;
+
+/** The API confirms the church, answering with no body (ADR 0028). */
+export function answerChurchConfirmation(api: ApiFixtures, id: string = ALICIA_CHURCH): void {
+  api.answer('POST', churchVerification(id), { status: 204 });
 }
 
 /** The photos of the review fixtures, served from localhost. */

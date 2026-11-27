@@ -13,8 +13,12 @@ import { refuseSendingAtLimit } from '../fixtures/messages';
 import { answerReporting } from '../fixtures/reports';
 import {
   GARDEN_ROW,
+  MEMBER_ROW,
   LOCKER_LISTING,
+  ALICIA_CHURCH,
   answerAdmin,
+  answerChurchConfirmation,
+  churchVerification,
   answerDecision,
   detailOf,
   manyRows,
@@ -340,6 +344,42 @@ test('deciding on Admin and leaving it keeps the heap stable', async ({ page, ap
     await dialog.keepIt.click();
     await leaveForNotFound(page);
     await expect(admin.rows).toHaveCount(0);
+  };
+
+  await roundTrip();
+  const before = await heapAfterGc();
+  for (let round = 0; round < ROUNDS; round++) {
+    await roundTrip();
+  }
+  const after = await heapAfterGc();
+
+  expect(after - before).toBeLessThan(ALLOWED_GROWTH_BYTES);
+});
+
+// verify-members-and-churches design: confirming a church and leaving Admin while it is in
+// flight, again and again, releases the request, the notification and its timer.
+test('confirming a church and leaving Admin keeps the heap stable', async ({ page, api }) => {
+  answerAdmin(api);
+  answerChurchConfirmation(api);
+  const heapAfterGc = await heapMeter(page);
+  const admin = new AdminPage(page);
+  await page.goto('/no-such-page');
+
+  const roundTrip = async () => {
+    await page.evaluate(() => history.pushState({}, '', '/admin'));
+    await page.evaluate(() => dispatchEvent(new PopStateEvent('popstate')));
+    await admin.select(MEMBER_ROW.title);
+    await admin.confirmChurch.click();
+    await expect(admin.toasts).toHaveCount(1);
+    // Choosing another item and coming back reads the church again, so it can be confirmed.
+    await admin.select(GARDEN_ROW.title);
+    await expect(admin.detailTitle).toHaveText(GARDEN_ROW.title);
+    await admin.select(MEMBER_ROW.title);
+    const release = api.hold('POST', churchVerification(ALICIA_CHURCH));
+    await admin.confirmChurch.click();
+    await leaveForNotFound(page);
+    await expect(admin.rows).toHaveCount(0);
+    release();
   };
 
   await roundTrip();

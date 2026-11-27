@@ -31,7 +31,7 @@ import {
 } from '@rent/components';
 import { queueSummary, toRemoveCopy } from '@rent/domain';
 import { openConfirmRemoveDialog } from './confirm-remove-dialog';
-import { type DecisionOutcome, ReviewQueueStore } from './review-queue-store';
+import { type ConfirmOutcome, type DecisionOutcome, ReviewQueueStore } from './review-queue-store';
 import { ToastQueue, type ToastView } from './toast-queue';
 
 /** From this width the detail panel sits beside the queue (L2-031, criterion 5). */
@@ -130,11 +130,21 @@ export class ReviewPage {
     return deciding !== null && deciding.id === this.store.selectedId() ? deciding.decision : null;
   });
 
+  /** Whether the church confirmation in flight was made from the selected item. */
+  protected readonly confirmingHere = computed(() => {
+    const confirming = this.store.confirming();
+    return confirming !== null && confirming === this.store.selectedId();
+  });
+
+  protected confirmChurch(): void {
+    void this.store.confirmChurch().then((outcome) => this.finished(outcome));
+  }
+
   protected decide(decision: ReviewDecision): void {
     if (decision === 'remove') {
       this.confirmRemove();
     } else {
-      void this.store.decide(decision).then((outcome) => this.decided(outcome));
+      void this.store.decide(decision).then((outcome) => this.finished(outcome));
     }
   }
 
@@ -150,7 +160,7 @@ export class ReviewPage {
       this.injector,
     )
       .closed.pipe(takeUntilDestroyed(this.destroyed))
-      .subscribe((outcome) => this.decided(outcome));
+      .subscribe((outcome) => this.finished(outcome));
   }
 
   protected goToNext(): void {
@@ -158,17 +168,26 @@ export class ReviewPage {
     this.focusQueue();
   }
 
-  /** A notification's one action; "Try again" answers with what came of the decision. */
+  /** A notification's one action; "Try again" answers with what came of what it repeats. */
   protected act(toast: ToastView): void {
     void Promise.resolve(toast.action?.run()).then((outcome) =>
-      this.decided(outcome as DecisionOutcome | undefined),
+      this.finished(outcome as DecisionOutcome | ConfirmOutcome | undefined),
     );
   }
 
-  private decided(outcome: DecisionOutcome | undefined): void {
+  private finished(outcome: DecisionOutcome | ConfirmOutcome | undefined): void {
     if (outcome === 'done') {
       this.focusQueue();
+    } else if (outcome === 'church-shown') {
+      this.focusChurchStatus();
     }
+  }
+
+  /** "Confirm church" is gone, so focus goes to what it changed (L2-018, criterion 9). */
+  private focusChurchStatus(): void {
+    afterNextRender(() => this.host.querySelector<HTMLElement>('.review__church-status')?.focus(), {
+      injector: this.injector,
+    });
   }
 
   /**

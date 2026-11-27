@@ -101,7 +101,10 @@ function memberView(member: ReviewMember): Subject<ReviewMemberView> {
       fact('Church', `${member.church.name}, ${member.church.city}`),
       // Joining takes this declaration (L2-017), so every member has made it.
       fact('Declared', '“I am a Christian”'),
-      fact('Church status', churchStatus(member.church)),
+      {
+        ...fact('Church status', churchStatus(member.church)),
+        churchStatus: { confirmable: !member.church.isVerified },
+      },
       fact('Listings', listingsOf(member)),
       fact('Messages sent', member.messageCount === 0 ? 'None' : String(member.messageCount)),
     ],

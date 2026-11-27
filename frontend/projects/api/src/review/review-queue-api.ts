@@ -33,6 +33,12 @@ export interface ReviewQueueApi {
     version: number,
     signal: AbortSignal,
   ): Promise<ReviewDecided>;
+
+  /**
+   * Confirms a new member's church, which marks it on every listing of its members (L2-018). One
+   * already confirmed is answered the same, and an unknown one rejects with `not_found`.
+   */
+  confirmChurch(churchId: string, signal: AbortSignal): Promise<void>;
 }
 
 export const REVIEW_QUEUE_API = new InjectionToken<ReviewQueueApi>('REVIEW_QUEUE_API');

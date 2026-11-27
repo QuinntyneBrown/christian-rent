@@ -85,9 +85,11 @@
         <cr-review-detail
           [view]="store.detail()"
           [deciding]="decidingHere()"
-          [off]="store.deciding() !== null"
+          [confirming]="confirmingHere()"
+          [off]="store.deciding() !== null || store.confirming() !== null"
           [conflict]="store.conflict()"
           (decide)="decide($event)"
+          (confirmChurch)="confirmChurch()"
           (next)="goToNext()"
         />
       }

@@ -31,6 +31,7 @@ export function fakeApi() {
   const items: Asked<ReviewItemDetail>[] = [];
   const decisions: Asked<ReviewDecided>[] = [];
   const arrivals: Asked<ReviewArrivals>[] = [];
+  const confirmations: Asked<void>[] = [];
   const ask = <T>(into: Asked<T>[], about: string | null, signal: AbortSignal) =>
     new Promise<T>((resolve, reject) => {
       signal.addEventListener('abort', () => reject(new DOMException('', 'AbortError')));
@@ -55,7 +56,10 @@ export function fakeApi() {
     items,
     decisions,
     arrivals,
+    confirmations,
     api: {
+      confirmChurch: (churchId: string, signal: AbortSignal) =>
+        ask(confirmations, churchId, signal),
       arrivals: (since: string, signal: AbortSignal) => ask(arrivals, since, signal),
       page: (cursor: string | null, signal: AbortSignal) => ask(pages, cursor, signal),
       item: (id: string, signal: AbortSignal) => ask(items, id, signal),
@@ -768,5 +772,160 @@ describe('ReviewQueueStore', () => {
     TestBed.resetTestingModule();
 
     await expect(shown).resolves.toBe('ignored');
+  });
+});
+
+// verify-members-and-churches design: confirming the church of the new member shown.
+describe('ReviewQueueStore, confirming a church', () => {
+  let fake: ReturnType<typeof fakeApi>;
+  let store: ReviewQueueStore;
+  let toastQueue: ToastQueue;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-08T19:00:00Z'));
+    fake = fakeApi();
+    TestBed.configureTestingModule({
+      providers: [ReviewQueueStore, ToastQueue, { provide: REVIEW_QUEUE_API, useValue: fake.api }],
+    });
+    store = TestBed.inject(ReviewQueueStore);
+    toastQueue = TestBed.inject(ToastQueue);
+  });
+
+  afterEach(() => vi.useRealTimers());
+
+  function newMember(id: string, churchId = 'c1', isVerified = false): ReviewItemDetail {
+    return {
+      ...detail(id),
+      kind: 'new-member',
+      listing: null,
+      member: {
+        name: `Member ${id}`,
+        joinedAt: '2026-06-08T16:00:00Z',
+        church: { id: churchId, name: 'Open Door', city: 'Surrey', isVerified, enteredBy: null },
+        listingCount: 0,
+        forRentCount: 0,
+        publicCount: 0,
+        messageCount: 0,
+      },
+    };
+  }
+
+  async function showing(shown: ReviewItemDetail): Promise<void> {
+    store.showDetail(true);
+    void store.load();
+    await fake.pages[0]!.answer(page([shown.id, 'z']));
+    await fake.items[0]!.answer(shown);
+  }
+
+  const titles = () => toastQueue.toasts().map((toast) => toast.title);
+  const confirmable = () =>
+    store.detail()?.facts.find((fact) => fact.churchStatus)?.churchStatus?.confirmable;
+
+  it('marks the church verified on the panel and says so', async () => {
+    await showing(newMember('a'));
+
+    const outcome = store.confirmChurch();
+    expect(store.confirming()).toBe('a');
+    await fake.confirmations[0]!.answer();
+
+    await expect(outcome).resolves.toBe('church-shown');
+    expect(fake.confirmations.map((asked) => asked.about)).toEqual(['c1']);
+    expect(confirmable()).toBe(false);
+    expect(store.confirming()).toBeNull();
+    expect(titles()).toEqual(['Church confirmed']);
+    expect(store.items()).toHaveLength(2);
+  });
+
+  it.each([
+    ['a listing', detail('a')],
+    ['a member of a verified church', newMember('a', 'c1', true)],
+  ])('confirms nothing for %s', async (_, shown) => {
+    await showing(shown);
+
+    await expect(store.confirmChurch()).resolves.toBe('ignored');
+
+    expect(fake.confirmations).toHaveLength(0);
+  });
+
+  it('starts nothing else while a confirmation is in flight', async () => {
+    await showing(newMember('a'));
+    void store.confirmChurch();
+
+    await expect(store.confirmChurch()).resolves.toBe('ignored');
+    await expect(store.decide('approve')).resolves.toBe('ignored');
+
+    expect(fake.confirmations).toHaveLength(1);
+    expect(fake.decisions).toHaveLength(0);
+  });
+
+  it('confirms nothing while a decision is in flight, or after one came first', async () => {
+    await showing(newMember('a'));
+    void store.decide('approve');
+
+    await expect(store.confirmChurch()).resolves.toBe('ignored');
+    await fake.decisions[0]!.refuse('already_decided', {
+      decided: { decision: 'approve', at: '2026-06-08T19:14:00Z', byYou: false },
+    });
+    await expect(store.confirmChurch()).resolves.toBe('ignored');
+
+    expect(fake.confirmations).toHaveLength(0);
+  });
+
+  it('leaves another member’s panel as it is, and says what was confirmed', async () => {
+    await showing(newMember('a'));
+    const outcome = store.confirmChurch();
+    store.select('z');
+    await fake.items[1]!.answer(newMember('z', 'c2'));
+
+    await fake.confirmations[0]!.answer();
+
+    await expect(outcome).resolves.toBe('done-elsewhere');
+    expect(confirmable()).toBe(true);
+    expect(titles()).toEqual(['Church confirmed']);
+  });
+
+  it('keeps the church unverified on a failure and sends the same one again', async () => {
+    await showing(newMember('a'));
+    const outcome = store.confirmChurch();
+
+    await fake.confirmations[0]!.refuse('server_error');
+
+    await expect(outcome).resolves.toBe('failed');
+    expect(confirmable()).toBe(true);
+    expect(titles()).toEqual(['The church wasn’t confirmed']);
+    expect(toastQueue.toasts()[0]!.tone).toBe('danger');
+
+    store.select('z');
+    const again = toastQueue.toasts()[0]!.action!.run();
+    expect(titles()).toEqual([]);
+    await fake.confirmations[1]!.answer();
+
+    await expect(again).resolves.toBe('done-elsewhere');
+    expect(fake.confirmations[1]!.about).toBe('c1');
+    expect(titles()).toEqual(['Church confirmed']);
+  });
+
+  it('keeps the notification when it cannot try again yet', async () => {
+    await showing(newMember('a'));
+    void store.confirmChurch();
+    await fake.confirmations[0]!.refuse('server_error');
+    void store.decide('approve');
+
+    await toastQueue.toasts()[0]!.action!.run();
+
+    expect(fake.confirmations).toHaveLength(1);
+    expect(titles()).toEqual(['The church wasn’t confirmed']);
+  });
+
+  it('aborts a confirmation on its way when the screen goes, and says nothing', async () => {
+    await showing(newMember('a'));
+    const outcome = store.confirmChurch();
+
+    TestBed.resetTestingModule();
+
+    await expect(outcome).resolves.toBe('failed');
+    expect(fake.confirmations[0]!.signal.aborted).toBe(true);
+    expect(titles()).toEqual([]);
   });
 });

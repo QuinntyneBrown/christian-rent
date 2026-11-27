@@ -2,6 +2,8 @@ import type { ReviewDecision, ReviewKind } from '@rent/api';
 import {
   decisionLabel,
   toArrivalsToast,
+  toChurchConfirmedToast,
+  toChurchFailedToast,
   toConflictCopy,
   toConflictToast,
   toDecisionToast,
@@ -125,4 +127,23 @@ describe('decision words', () => {
       });
     },
   );
+});
+
+// verify-members-and-churches design: what is said of a church confirmation.
+describe('church confirmation words', () => {
+  // L2-018 criterion 9.
+  it('says that the church is verified on its members’ listings', () => {
+    expect(toChurchConfirmedToast('Open Door')).toEqual({
+      title: 'Church confirmed',
+      text: 'Open Door is now verified. Its members’ listings show it as verified.',
+    });
+  });
+
+  // L2-018 criterion 10.
+  it('says that the church is not verified when the confirmation fails', () => {
+    expect(toChurchFailedToast('Open Door')).toEqual({
+      title: 'The church wasn’t confirmed',
+      text: 'We couldn’t reach christian.rent. Open Door is not verified yet.',
+    });
+  });
 });
