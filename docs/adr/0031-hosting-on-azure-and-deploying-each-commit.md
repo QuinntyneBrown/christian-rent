@@ -43,12 +43,19 @@ on a disk path. The API and the CLI need ICU. The launch is in Canada.
   that change. Admin's instance receives `/api/admin/` only, because its host proxies nothing
   else. Each container app runs one replica, so each rate limit counts in one place for its
   application; more replicas would need the limits kept outside the process.
-- **The hosts are the ones Azure gives** (`<app>.<environment>.canadacentral.azurecontainerapps.io`)
-  until christian.rent's own domains are bound. `names.sh` holds `RENT_HOST` and `ADMIN_HOST`
-  (`christian.rent` for `rent` now; Admin's is still Azure's), which the repository variables
-  of the same names can override, and `deploy.sh` derives `Site:Origin`, `Site:AdminOrigin`,
-  `AllowedHosts` and Admin's `config.json` (the host's `SITE_URL`) from them. `AllowedHosts`
-  keeps the Azure hosts too, so a bound domain never takes the Azure address away.
+- **The hosts are christian.rent's own domains**, each bound to its container app with a
+  certificate Azure issues and renews: `christian.rent` for `rent` and `admin.christian.rent`
+  for Admin. `names.sh` holds them as `RENT_HOST` and `ADMIN_HOST`, which the repository
+  variables of the same names can override, and `deploy.sh` derives `Site:Origin`,
+  `Site:AdminOrigin`, `AllowedHosts` and Admin's `config.json` (the host's `SITE_URL`) from
+  them. `AllowedHosts` keeps the hosts Azure gave
+  (`<app>.<environment>.canadacentral.azurecontainerapps.io`) too, so a bound domain never
+  takes the Azure address away. A release leaves a container app's bound domains as they are.
+- **`www.christian.rent` is the same site by its other name, and redirects.** It is bound to
+  `rent`'s container app, and `rent`'s static host answers any host that begins `www.` with a
+  308 to the same host without it, before a file is served or `/api` proxied. The site keeps
+  one origin, so `Site:Origin` and the member session stay single, and the API is never asked
+  under a host it does not answer. `deploy.sh` asks for that redirect after each release.
 - **The database is Azure Database for PostgreSQL flexible server** (version 17, Burstable
   B1ms), with no public address: it and the container apps share a virtual network. Its
   `azure.extensions` allows `pg_trgm` and `unaccent`. Azure backs it up daily and keeps 14 days,
@@ -91,9 +98,8 @@ on a disk path. The API and the CLI need ICU. The launch is in Canada.
 - A setting of a container app or a job is changed in `deploy.sh` and released like code; a
   change made in the portal is overwritten by the next release.
 - Still open: a backup of the photo share to a separate store (L2-034, criterion 4; the
-  database's is Azure's own), the telemetry backend (`OTEL_EXPORTER_OTLP_ENDPOINT` stays unset;
-  the containers' console logs go to the Log Analytics workspace `log-christian-rent`), and
-  christian.rent's own domains.
+  database's is Azure's own) and the telemetry backend (`OTEL_EXPORTER_OTLP_ENDPOINT` stays
+  unset; the containers' console logs go to the Log Analytics workspace `log-christian-rent`).
 - Images accumulate in the registry, one set for each commit; nothing removes old ones yet.
 - An operator runs the CLI's other commands in a running API container, for example
   `az containerapp exec -g rg-christian-rent -n ca-christian-rent --container api --command "dotnet /app/cli/ChristianRent.Cli.dll grant-admin <member-id>"`.
