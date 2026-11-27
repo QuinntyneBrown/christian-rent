@@ -1,0 +1,88 @@
+<section class="sign-in" [class.sign-in--admin]="admin()" aria-labelledby="sign-in-title">
+  <div class="sign-in__head">
+    @if (admin()) {
+      <p class="sign-in__overline">Admin</p>
+    }
+    <h1 class="sign-in__title" id="sign-in-title" tabindex="-1">
+      {{ admin() ? 'Sign in to Admin' : 'Sign in' }}
+    </h1>
+    <p class="sign-in__text">
+      {{
+        admin()
+          ? 'For the admins of christian.rent, who review new listings, reports and new members.'
+          : 'Browsing is open to anyone. Sign in to post, send a message or report a listing.'
+      }}
+    </p>
+  </div>
+  @switch (status()) {
+    @case ('refused') {
+      <cr-alert
+        tone="danger"
+        [announce]="true"
+        title="That email and password don’t match an account."
+        text="Check them and try again. After 5 tries in a row, signing in to an account pauses for 15 minutes."
+      />
+    }
+    @case ('limited') {
+      <cr-alert
+        tone="warning"
+        [announce]="true"
+        title="Too many attempts from this device."
+        [text]="limitedText()"
+      />
+    }
+    @case ('error') {
+      <cr-alert
+        tone="danger"
+        [announce]="true"
+        [title]="admin() ? 'We couldn’t reach Admin.' : 'We couldn’t reach christian.rent.'"
+        text="Check your connection and try again. Your email is still here."
+      />
+    }
+    @default {
+      @if (expired()) {
+        <cr-alert
+          title="Your session ended."
+          text="Sign in again to carry on. What you were writing is kept."
+        />
+      }
+    }
+  }
+  <form class="sign-in__form" novalidate (submit)="submit($event)">
+    <cr-text-field
+      #emailField
+      fieldId="sign-in-email"
+      label="Email"
+      type="email"
+      name="email"
+      autocomplete="username"
+      [maxlength]="256"
+      [(value)]="email"
+      [error]="errors().email"
+      [readonly]="busy()"
+    />
+    <cr-text-field
+      #passwordField
+      fieldId="sign-in-password"
+      label="Password"
+      type="password"
+      name="password"
+      autocomplete="current-password"
+      [maxlength]="1024"
+      [(value)]="password"
+      [error]="errors().password"
+      [readonly]="busy()"
+    />
+    <button cr-button variant="primary" type="submit" [block]="true" [busy]="busy()">
+      Sign in
+    </button>
+  </form>
+  <p class="sign-in__note">
+    {{
+      admin()
+        ? 'Admin accounts are created by the christian.rent team.'
+        : 'Accounts are created by the christian.rent team for now. There’s no way to create your own yet.'
+    }}
+  </p>
+  <div class="sign-in__links"><ng-content select="[slot=links]" /></div>
+</section>

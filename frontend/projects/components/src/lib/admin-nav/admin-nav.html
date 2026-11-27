@@ -21,5 +21,9 @@
         <span class="admin-nav__text">Back to site</span>
       </a>
     }
+    <button class="admin-nav__link" type="button" aria-label="Sign out" (click)="signOut.emit()">
+      <cr-icon name="logout" />
+      <span class="admin-nav__text">Sign out</span>
+    </button>
   </div>
 </nav>

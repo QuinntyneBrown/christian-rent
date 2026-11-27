@@ -27,9 +27,10 @@ export class ApiFixtures {
   readonly bodies = new Map<string, unknown[]>();
 
   constructor() {
-    // Every screen asks who is signed in when the app starts (ADR 0017). Unless a spec says
-    // otherwise, nobody signed in is a member.
-    this.answer('GET', '/api/members/me', { status: 204 });
+    // Every screen asks who is signed in when the app starts (ADR 0017, ADR 0029). Unless a spec
+    // says otherwise, nobody is signed in to either application.
+    this.refuse('GET', '/api/members/me', 401, 'not_signed_in');
+    this.refuse('GET', '/api/admin/session', 401, 'not_signed_in');
   }
 
   /** Answers `method path` (path without the query string), for example `GET /api/listings`. */

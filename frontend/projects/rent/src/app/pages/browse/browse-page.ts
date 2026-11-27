@@ -13,7 +13,6 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { SESSION } from '@rent/api';
 import {
   Button,
   EmptyState,
@@ -27,7 +26,6 @@ import {
   SearchBar,
   Segmented,
   type SegmentedOption,
-  SiteHeader,
 } from '@rent/components';
 import { type BrowseOffer, BrowseQuery, formatCount } from '@rent/domain';
 import { BrowseStore } from './browse-store';
@@ -52,9 +50,12 @@ const SWITCH: readonly { offer: BrowseOffer; label: string }[] = [
  * above and below the cards; the pages released from memory leave spacers of their height
  * (ADR 0013). Leaving Browse disconnects the observer, and the store aborts its request.
  */
+import { RentHeader } from '../../shell/rent-header';
+
 @Component({
   selector: 'cr-browse-page',
   imports: [
+    RentHeader,
     Button,
     EmptyState,
     FeedStatus,
@@ -67,7 +68,6 @@ const SWITCH: readonly { offer: BrowseOffer; label: string }[] = [
     RouterLink,
     SearchBar,
     Segmented,
-    SiteHeader,
   ],
   providers: [BrowseStore],
   templateUrl: './browse-page.html',
@@ -79,7 +79,6 @@ const SWITCH: readonly { offer: BrowseOffer; label: string }[] = [
   },
 })
 export class BrowsePage {
-  protected readonly member = inject(SESSION).member;
   protected readonly store = inject(BrowseStore);
   /** Eight skeleton cards: two rows at the widest, enough to fill a phone (L2-033, criterion 1). */
   protected readonly skeletons = Array.from({ length: 8 });

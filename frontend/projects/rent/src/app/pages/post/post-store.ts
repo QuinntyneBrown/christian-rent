@@ -25,6 +25,7 @@ import {
   withOffer,
   withPhoto,
   withoutPhoto,
+  sessionStorageOf,
 } from '@rent/domain';
 import { MemberGate } from '../../members/member-gate';
 
@@ -156,14 +157,5 @@ export class PostStore {
   check(): boolean {
     this.checked.set(true);
     return this.summary().length === 0;
-  }
-}
-
-/** The tab's `sessionStorage`, or null where the browser refuses it. */
-function sessionStorageOf(document: Document): Storage | null {
-  try {
-    return document.defaultView?.sessionStorage ?? null;
-  } catch {
-    return null;
   }
 }

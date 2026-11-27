@@ -22,6 +22,12 @@ export const routes: Routes = [
     title: 'Post',
     loadChildren: () => import('./pages/post/post.routes'),
   },
+  {
+    // Signing in to `rent` (L2-037); the address to come back to is `return`.
+    path: 'sign-in',
+    title: 'Sign in',
+    loadComponent: () => import('./pages/sign-in/sign-in-page').then((m) => m.SignInPage),
+  },
   ...devRoutes,
   {
     path: '**',

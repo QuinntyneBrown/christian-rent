@@ -1,5 +1,6 @@
 import { InjectionToken, type Signal } from '@angular/core';
 import type { MemberSummary } from './member-summary';
+import type { Credentials } from './session-api';
 
 /**
  * Whether anyone is signed in to this application: not known yet (or the backend could not be
@@ -18,6 +19,18 @@ export interface Session {
 
   /** Asks the backend again who is signed in; never rejects. */
   refresh(): Promise<void>;
+
+  /** Signs in to this application; a refusal rejects with an `ApiError` (L2-037). */
+  signIn(credentials: Credentials): Promise<void>;
+
+  /** Signs out of this application only, and forgets what it kept in the tab (L2-039). */
+  signOut(): Promise<void>;
+
+  /**
+   * The session ended while a screen was open: nobody is signed in, and the person is taken to the
+   * sign-in page, to come back where they were (L2-040, criterion 2).
+   */
+  expire(): void;
 }
 
 export const SESSION = new InjectionToken<Session>('SESSION');

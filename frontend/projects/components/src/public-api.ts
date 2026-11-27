@@ -41,6 +41,7 @@ export * from './lib/search-bar/search-bar';
 export * from './lib/segmented/segmented';
 export * from './lib/select/select';
 export * from './lib/sentence/sentence';
+export * from './lib/sign-in/sign-in';
 export * from './lib/site-header/site-header';
 export * from './lib/skeleton/skeleton';
 export * from './lib/skip-link/skip-link';

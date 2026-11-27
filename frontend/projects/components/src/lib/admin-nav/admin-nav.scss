@@ -46,6 +46,12 @@
   white-space: nowrap;
 }
 
+button.admin-nav__link {
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
 .admin-nav__link:hover {
   color: var(--color-fg-inverse);
   background: color-mix(in srgb, var(--color-fg-inverse) 6%, transparent);

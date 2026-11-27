@@ -1,0 +1,56 @@
+// Sign in, from docs/design-system/components/sign-in.html.
+.sign-in {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: 28rem;
+  margin-inline: auto;
+  padding-block: var(--space-12) var(--space-16);
+}
+
+.sign-in--admin {
+  padding-block: 0;
+}
+
+.sign-in__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sign-in__overline {
+  font: var(--text-overline);
+  color: var(--color-fg-muted);
+  text-transform: uppercase;
+}
+
+.sign-in__title {
+  font: var(--text-h1);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.sign-in__title:focus {
+  outline: none;
+}
+
+.sign-in__text {
+  color: var(--color-fg-muted);
+}
+
+.sign-in__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sign-in__note {
+  font: var(--text-body-sm);
+  color: var(--color-fg-muted);
+}
+
+.sign-in__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}

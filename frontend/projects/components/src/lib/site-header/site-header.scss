@@ -42,8 +42,37 @@
   flex: none;
 }
 
+// Below 400 px the session control shows its icon alone, keeping its word as its name; below
+// 360 px the initials go and Post shows its word alone, so the bar fits at 320 px (L2-036,
+// criterion 5).
+.site-header__session {
+  min-width: var(--target-min);
+}
+
+@media (max-width: 24.99rem) {
+  .site-header__session {
+    padding-inline: 0;
+    width: var(--target-min);
+  }
+
+  .site-header__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 22.49rem) {
-  .member-chip {
+  .site-header__actions {
+    gap: var(--space-1);
+  }
+
+  .member-chip,
+  .site-header__post-icon {
     display: none;
   }
 }

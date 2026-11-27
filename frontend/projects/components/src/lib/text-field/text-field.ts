@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, input, model } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  type ElementRef,
+  computed,
+  input,
+  model,
+  viewChild,
+} from '@angular/core';
+
+/** What a text field holds: text, an email address, or a password (L2-037, criterion 7). */
+export type TextFieldType = 'text' | 'email' | 'password';
 
 /**
  * One line of text in a bordered box, with its visible label above it and its error tied to it
@@ -16,6 +27,7 @@ export class TextField {
   /** The input's id, unique on the page; the error and help ids follow from it. */
   readonly fieldId = input.required<string>();
   readonly label = input.required<string>();
+  readonly type = input<TextFieldType>('text');
   readonly value = model('');
   readonly name = input<string | null>(null);
   readonly maxlength = input<number | null>(null);
@@ -23,6 +35,12 @@ export class TextField {
   readonly help = input<string | null>(null);
   readonly error = input<string | null | undefined>(null);
   readonly readonly = input(false);
+  private readonly box = viewChild.required<ElementRef<HTMLInputElement>>('box');
+
+  /** Moves focus to the box, as a form does to the first field it marks. */
+  focus(): void {
+    this.box().nativeElement.focus();
+  }
 
   protected readonly describedBy = computed(() =>
     this.error() ? `${this.fieldId()}-error` : this.help() ? `${this.fieldId()}-help` : null,

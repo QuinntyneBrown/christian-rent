@@ -11,7 +11,6 @@ import {
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SESSION } from '@rent/api';
 import {
   Button,
   Icon,
@@ -20,7 +19,6 @@ import {
   ListingToolbar,
   MessageBox,
   PlainPage,
-  SiteHeader,
 } from '@rent/components';
 import { MemberGate } from '../../members/member-gate';
 import { ShellTitleStrategy } from '@rent/shell';
@@ -38,9 +36,12 @@ import { MessageComposer } from './message-composer';
  * listing's title (ADR 0016). Leaving releases the store and the composer, which abort their
  * requests.
  */
+import { RentHeader } from '../../shell/rent-header';
+
 @Component({
   selector: 'cr-listing-page',
   imports: [
+    RentHeader,
     Button,
     Icon,
     Listing,
@@ -49,7 +50,6 @@ import { MessageComposer } from './message-composer';
     MessageBox,
     PlainPage,
     RouterLink,
-    SiteHeader,
   ],
   providers: [ListingStore, MessageComposer],
   templateUrl: './listing-page.html',
@@ -60,7 +60,6 @@ export class ListingPage {
   /** The listing's identifier, from the address. */
   readonly id = input.required<string>();
 
-  protected readonly member = inject(SESSION).member;
   protected readonly store = inject(ListingStore);
   protected readonly composer = inject(MessageComposer);
   private readonly box = viewChild(MessageBox);

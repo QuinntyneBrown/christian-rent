@@ -13,6 +13,7 @@ export class SiteHeaderPart {
   readonly controls: Locator;
   readonly messages: Locator;
   readonly signIn: Locator;
+  readonly signOut: Locator;
 
   constructor(page: Page) {
     this.root = page.locator('.site-header');
@@ -29,5 +30,6 @@ export class SiteHeaderPart {
     this.signIn = this.root
       .getByRole('link', { name: /sign in|log in/i })
       .or(this.root.getByRole('button', { name: /sign in|log in/i }));
+    this.signOut = this.root.getByRole('button', { name: 'Sign out' });
   }
 }

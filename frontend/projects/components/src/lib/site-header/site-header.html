@@ -12,12 +12,45 @@
       /></a>
     } @else {
       <div class="site-header__actions">
-        @if (member(); as member) {
-          <span class="member-chip" role="img" [attr.aria-label]="'Signed in as ' + member.name">{{
-            member.initials
-          }}</span>
+        @if (session()) {
+          @switch (state()) {
+            @case ('signed-in') {
+              @if (member(); as member) {
+                <span
+                  class="member-chip"
+                  role="img"
+                  [attr.aria-label]="'Signed in as ' + member.name"
+                  >{{ member.initials }}</span
+                >
+              }
+              <button
+                cr-button
+                class="site-header__session"
+                variant="ghost"
+                size="sm"
+                type="button"
+                [busy]="signingOut()"
+                (click)="signOut.emit()"
+              >
+                <cr-icon name="logout" /><span class="site-header__label">Sign out</span>
+              </button>
+            }
+            @case ('signed-out') {
+              <a
+                cr-button
+                class="site-header__session"
+                variant="ghost"
+                size="sm"
+                routerLink="/sign-in"
+                [queryParams]="{ return: returnTo() }"
+                ><cr-icon name="login" /><span class="site-header__label">Sign in</span></a
+              >
+            }
+          }
         }
-        <a cr-button variant="primary" size="sm" routerLink="/post"><cr-icon name="plus" />Post</a>
+        <a cr-button variant="primary" size="sm" routerLink="/post"
+          ><cr-icon class="site-header__post-icon" name="plus" />Post</a
+        >
       </div>
     }
   </div>
