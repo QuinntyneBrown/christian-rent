@@ -315,9 +315,9 @@ in `infra/deploy.sh`, not in the portal: the next release overwrites what the po
 the CLI in a running API container, for example:
 
 ```shell
-az containerapp exec -g rg-christian-rent -n ca-christian-rent --container api   --command "dotnet /app/cli/ChristianRent.Cli.dll seed"
-az containerapp exec -g rg-christian-rent -n ca-christian-rent --container api   --command "dotnet /app/cli/ChristianRent.Cli.dll create-account <email> <member-id>"   # type the password, then Enter
-az containerapp exec -g rg-christian-rent -n ca-christian-rent --container api   --command "dotnet /app/cli/ChristianRent.Cli.dll grant-admin <member-id>"
+az containerapp exec -g rg-christian-rent -n ca-christian-rent --container api --command "dotnet /app/cli/ChristianRent.Cli.dll seed"
+az containerapp exec -g rg-christian-rent -n ca-christian-rent --container api --command "dotnet /app/cli/ChristianRent.Cli.dll create-account <email> <member-id>"   # type the password, then Enter
+az containerapp exec -g rg-christian-rent -n ca-christian-rent --container api --command "dotnet /app/cli/ChristianRent.Cli.dll grant-admin <member-id>"
 ```
 
 `seed` enters the mocks' cast, which is sample data: leave it out of a system real members use.
