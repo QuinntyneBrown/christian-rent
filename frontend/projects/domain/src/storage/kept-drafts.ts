@@ -1,5 +1,5 @@
-import { DRAFT_KEY } from './draft-store';
-import { messageDraftKey } from './message-draft-store';
+// The keys alone, so signing out does not bring the stores into the initial bundle (ADR 0030).
+import { DRAFT_KEY, messageDraftKey } from './draft-keys';
 
 /**
  * Forgets what was written and kept in the tab, Post's draft and every message, so the next

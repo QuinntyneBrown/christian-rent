@@ -1,7 +1,8 @@
 import type { DraftPhoto, ListingDraft } from '../listings/listing-draft';
 
-/** Where the draft is kept in `sessionStorage` (compose-listing design). */
-export const DRAFT_KEY = 'cr.post.draft';
+import { DRAFT_KEY } from './draft-keys';
+
+export { DRAFT_KEY } from './draft-keys';
 
 const OFFERS = ['for-rent', 'wanted'];
 const KINDS = ['space', 'thing'];

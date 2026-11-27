@@ -2,10 +2,9 @@ import type { MessageDraft } from '@rent/api';
 
 const ISO_DATE = /^(\d{4}-\d{2}-\d{2})?$/;
 
-/** Where a listing's message draft is kept in `sessionStorage` (send-message design). */
-export function messageDraftKey(listingId: string): string {
-  return `cr.message.draft.${listingId}`;
-}
+import { messageDraftKey } from './draft-keys';
+
+export { messageDraftKey } from './draft-keys';
 
 /**
  * Keeps what a member has written in a listing's message box in the `Storage` it is given, so
