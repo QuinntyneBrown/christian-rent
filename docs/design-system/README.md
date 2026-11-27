@@ -43,8 +43,10 @@ christian.rent is four screens and narrow on purpose. The system documents the c
 | [Switch (Everything, For rent, Wanted)](components/segmented.html) | Navigation | Browse’s switch between everything, what is for rent and what is wanted. |
 | [Kind filter](components/kind-filter.html) | Inputs | Narrows Browse to spaces or to things. |
 | [Logo](components/logo.html) | Brand | The mark, a key whose head is a cross, and the lowercase wordmark with “.rent” in orange. |
-| [Site header](components/site-header.html) | Navigation | The bar at the top of Browse and Listing: the logo, who is signed in, and Post. |
-| [Admin navigation](components/admin-nav.html) | Navigation | The ink rail in Admin: the logo, who the admin is, the review queue with its count, and the way back to the site. |
+| [Site header](components/site-header.html) | Navigation | The bar at the top of Browse, Listing and Sign in: the logo, who is signed in with Sign out, or Sign in, and Post. |
+| [Admin navigation](components/admin-nav.html) | Navigation | The ink rail in Admin: the logo, who the admin is, the review queue with its count, the way back to the site, and Sign out. |
+| [Sign in](components/sign-in.html) | Forms | The sign-in form of either application: email, password, Sign in, and who creates accounts. |
+| [Admin gate](components/admin-gate.html) | Layout | Admin's ink page around one card: its sign-in and its forbidden page. |
 | [Skip link](components/skip-link.html) | Navigation | The first thing the Tab key reaches: a link past the header to the content. |
 | [Dialog](components/dialog.html) | Containers and overlays | A short task over the page: report a listing, confirm Remove, become a member. |
 | [Listing card](components/listing-card.html) | Data display | One listing on Browse: a photo for something for rent, a blue card with no photo for something wanted. |

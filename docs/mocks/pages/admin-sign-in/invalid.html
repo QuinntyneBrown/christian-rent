@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin sign-in · invalid | christian.rent mocks</title>
+<meta name="mock:kind" content="page">
+<meta name="mock:screen" content="admin-sign-in">
+<meta name="mock:state" content="invalid">
+<meta name="mock:requirements" content="L2-038 L2-039 L2-040 L2-032">
+<meta name="description" content="Sign in was sent with no password: the field says why and has focus.">
+<link rel="stylesheet" href="../../../design-system/tokens/tokens.css">
+<link rel="stylesheet" href="../../../design-system/assets/components.css">
+<link rel="stylesheet" href="../../assets/mock.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="admin-gate">
+  <header class="admin-gate__top">
+    <a class="logo logo--inverse" href="default.html" aria-label="Admin home"><svg class="logo__mark" viewBox="0 0 48 48" aria-hidden="true"><rect class="logo__tile" width="48" height="48" rx="14"/><rect class="logo__key" x="21" y="7" width="6" height="34" rx="3"/><rect class="logo__key" x="13" y="14" width="22" height="6" rx="3"/><rect class="logo__key" x="25" y="29" width="8" height="4.5" rx="2.25"/><rect class="logo__key" x="25" y="35.5" width="5.5" height="4.5" rx="2.25"/></svg><span class="wordmark">christian<span class="wordmark__tld">.rent</span></span></a>
+    <span class="admin-gate__label">Admin</span>
+  </header>
+  <main id="main" class="admin-gate__card">
+    
+    <section class="sign-in sign-in--admin" aria-labelledby="sign-in-title">
+      <div class="sign-in__head">
+        <p class="sign-in__overline">Admin</p>
+        <h1 class="sign-in__title" id="sign-in-title">Sign in to Admin</h1>
+        <p class="sign-in__text">For the admins of christian.rent, who review new listings, reports and new members.</p>
+      </div>
+      
+      <form class="sign-in__form" novalidate><div class="field"><label class="field__label" for="ai-email">Email</label><input class="input" id="ai-email" name="email" type="email" autocomplete="username" spellcheck="false" value="naomi.friesen@example.ca"></div><div class="field"><label class="field__label" for="ai-password">Password</label><input class="input" id="ai-password" name="password" type="password" autocomplete="current-password" aria-invalid="true" aria-describedby="ai-password-error" autofocus><p class="field__error" id="ai-password-error">Enter your password.</p></div><button class="btn btn--primary btn--block" type="submit">Sign in</button></form>
+      <p class="sign-in__note">Admin accounts are created by the christian.rent team.</p>
+      <div class="sign-in__links"><a class="btn btn--link" href="../browse/signed-out.html">Go to christian.rent</a></div>
+    </section>
+  </main>
+</div>
+
+<nav class="mock-bar" aria-label="Mock navigation">
+  <a class="mock-bar__home" href="../../index.html" aria-label="All mocks">⌂</a>
+  <span class="mock-bar__screen">Admin sign-in</span>
+  <ul class="mock-bar__states"><li><a href="default.html">default</a></li><li><a href="invalid.html" aria-current="page">invalid</a></li><li><a href="submitting.html">submitting</a></li><li><a href="refused.html">refused</a></li><li><a href="limited.html">limited</a></li><li><a href="error.html">error</a></li><li><a href="expired.html">expired</a></li></ul>
+  <button type="button" data-theme-toggle aria-pressed="false">☾ Dark</button>
+  <button type="button" data-chrome-toggle aria-label="Hide mock chrome">×</button>
+</nav>
+<script src="../../assets/mock.js"></script>
+</body>
+</html>

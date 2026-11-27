@@ -21,7 +21,8 @@
     <a class="logo" href="../../pages/browse/default.html" aria-label="christian.rent home"><svg class="logo__mark" viewBox="0 0 48 48" aria-hidden="true"><rect class="logo__tile" width="48" height="48" rx="14"/><rect class="logo__key" x="21" y="7" width="6" height="34" rx="3"/><rect class="logo__key" x="13" y="14" width="22" height="6" rx="3"/><rect class="logo__key" x="25" y="29" width="8" height="4.5" rx="2.25"/><rect class="logo__key" x="25" y="35.5" width="5.5" height="4.5" rx="2.25"/></svg><span class="wordmark">christian<span class="wordmark__tld">.rent</span></span></a>
     <div class="site-header__actions">
       <span class="member-chip" role="img" aria-label="Signed in as Sarah Kim">SK</span>
-      <a class="btn btn--primary btn--sm" href="../../pages/post/default.html"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Post</a>
+      <button class="btn btn--ghost btn--sm site-header__session" type="button"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M10 4H5v16h5M15 8l4 4-4 4M19 12H9"/></svg><span class="site-header__label">Sign out</span></button>
+      <a class="btn btn--primary btn--sm site-header__post" href="../../pages/post/default.html"><svg class="icon site-header__post-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Post</a>
     </div>
   </div>
 </header>
@@ -106,7 +107,7 @@
   </div>
 </div>
 </main>
-<p class="mock-note" style="top: 1rem; left: 1rem;">Focus starts on the first reason and stays inside the dialog; Escape and Close return it to the Report button. Under 640 px the dialog is a bottom sheet.</p>
+<p class="mock-note" style="top: 1rem; left: 1rem;">Focus starts on the first reason and stays inside the dialog; Escape and Close return it to the Report button. Under 640 px the dialog is a bottom sheet. Someone not signed in who selects Report is taken to the sign-in page first and returns to the listing (L2-021, criterion 5).</p>
 <nav class="mock-bar" aria-label="Mock navigation">
   <a class="mock-bar__home" href="../../index.html" aria-label="All mocks">⌂</a>
   <span class="mock-bar__screen">Report a listing</span>
