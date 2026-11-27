@@ -12,14 +12,24 @@ import {
   withInMemoryScrolling,
 } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
-import { HttpMembersApi, MEMBERS_API, SESSION, apiErrorInterceptor } from '@rent/api';
+import {
+  HttpMemberSessionApi,
+  HttpMembersApi,
+  MEMBERS_API,
+  SESSION,
+  SESSION_API,
+  apiErrorInterceptor,
+} from '@rent/api';
 import { routes } from './app.routes';
-import { AppSession } from './members/app-session';
-import { GlobalErrorHandler } from './shell/global-error-handler';
-import { PageFocus } from './shell/page-focus';
-import { RentTitleStrategy } from './shell/rent-title-strategy';
+import {
+  ApiSession,
+  GlobalErrorHandler,
+  PageFocus,
+  ShellTitleStrategy,
+  sessionExpiryInterceptor,
+} from '@rent/shell';
 
-/** The composition root: binds every token the whole app shares. */
+/** `rent`'s composition root (ADR 0028): binds every token the whole application shares. */
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
@@ -28,15 +38,21 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding(),
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled' }),
     ),
-    provideHttpClient(withFetch(), withInterceptors([apiErrorInterceptor])),
+    // The expiry interceptor sits first, so it sees the ApiError the other makes (ADR 0029).
+    provideHttpClient(
+      withFetch(),
+      withInterceptors([sessionExpiryInterceptor, apiErrorInterceptor]),
+    ),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
-    RentTitleStrategy,
-    { provide: TitleStrategy, useExisting: RentTitleStrategy },
+    ShellTitleStrategy,
+    { provide: TitleStrategy, useExisting: ShellTitleStrategy },
     provideAppInitializer(() => inject(PageFocus).start()),
-    // Who is signed in as a member (ADR 0017), asked at start without holding up the screen.
+    // Who is signed in as a member (ADR 0017, ADR 0029), asked at start without holding up the
+    // screen.
     { provide: MEMBERS_API, useClass: HttpMembersApi },
-    AppSession,
-    { provide: SESSION, useExisting: AppSession },
+    { provide: SESSION_API, useClass: HttpMemberSessionApi },
+    ApiSession,
+    { provide: SESSION, useExisting: ApiSession },
     provideAppInitializer(() => {
       void inject(SESSION).refresh();
     }),

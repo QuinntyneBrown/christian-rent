@@ -1,13 +1,17 @@
 using ChristianRent.Api.Errors;
+using ChristianRent.Infrastructure.Identity;
 using Microsoft.Extensions.Options;
 
 namespace ChristianRent.Api.Security;
 
 /// <summary>
 /// Refuses a data-changing request from another site with 403 <c>cross_site_request</c>
-/// (L2-027, criterion 2). It reads <c>Sec-Fetch-Site</c> when the browser sends it, and otherwise
-/// compares <c>Origin</c> with the configured site origin. A request with neither did not come
-/// from a browser page, which is what the guard protects against.
+/// (L2-027, criteria 2 and 5; ADR 0029): one whose <c>Sec-Fetch-Site</c> is not
+/// <c>same-origin</c> or <c>none</c>, and one whose <c>Origin</c>, when sent, is not the origin of
+/// the application the path belongs to: Admin's for <c>/api/admin/</c>, `rent`'s for any other.
+/// Signing in and out are covered, so nobody is signed in to an account they did not choose. A
+/// request with neither header did not come from a browser page, which is what the guard
+/// protects against.
 /// </summary>
 internal sealed class CrossSiteRequestGuard(RequestDelegate next, IOptions<SiteOptions> site)
 {
@@ -28,12 +32,13 @@ internal sealed class CrossSiteRequestGuard(RequestDelegate next, IOptions<SiteO
     private bool FromAnotherSite(HttpRequest request)
     {
         var fetchSite = request.Headers["Sec-Fetch-Site"].ToString();
-        if (fetchSite.Length > 0)
+        if (fetchSite.Length > 0 && fetchSite is not ("same-origin" or "none"))
         {
-            return fetchSite is not ("same-origin" or "none");
+            return true;
         }
 
         var origin = request.Headers.Origin.ToString();
-        return origin.Length > 0 && !string.Equals(origin, site.Value.Origin.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
+        var expected = SessionSchemes.IsAdminPath(request.Path) ? site.Value.AdminOrigin : site.Value.Origin;
+        return origin.Length > 0 && !string.Equals(origin, expected.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
     }
 }

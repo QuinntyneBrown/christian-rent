@@ -1,0 +1,7 @@
+// Global styles are foundations only: tokens, @font-face, reset and utilities (AGENTS.md). Both
+// applications use this one file (ADR 0028); every component reads tokens by role in its own
+// encapsulated stylesheet.
+@use 'fonts';
+@use 'tokens';
+@use 'reset';
+@use 'utilities';

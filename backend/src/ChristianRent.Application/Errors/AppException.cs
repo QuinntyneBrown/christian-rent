@@ -46,3 +46,9 @@ public sealed class LimitReachedException(string code, DateTimeOffset retryAt) :
 {
     public DateTimeOffset RetryAt { get; } = retryAt;
 }
+
+/// <summary>
+/// A sign-in refused, whatever the reason: a wrong password, an email with no account, a locked
+/// account or a removed member's. One answer, so nothing is revealed (L2-037, criterion 2).
+/// </summary>
+public sealed class SignInRefusedException() : AppException("sign_in_failed", "Sign-in refused.");

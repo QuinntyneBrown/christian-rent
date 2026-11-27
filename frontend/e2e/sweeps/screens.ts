@@ -29,6 +29,9 @@ import {
   manyRows,
   queuePage,
 } from '../fixtures/review';
+import { ADMIN_ORIGIN } from '../fixtures/origins';
+import { CREDENTIALS } from '../fixtures/session';
+import { SignInPage } from '../pages/sign-in.page';
 import { AdminPage } from '../pages/admin.page';
 import { ConfirmRemoveDialogPart } from '../pages/confirm-remove-dialog.part';
 import { ListingPage } from '../pages/listing.page';
@@ -112,7 +115,7 @@ function adminScreen(
 ): Screen {
   return {
     name,
-    path: '/admin',
+    path: `${ADMIN_ORIGIN}/`,
     answer: (api) => {
       answerAdmin(api);
       answer(api);
@@ -197,7 +200,7 @@ const DECIDING_SCREENS: readonly Screen[] = [
     ...adminScreen(
       'admin-toast-info',
       (api) =>
-        api.answer('GET', '/api/review-queue/arrivals', {
+        api.answer('GET', '/api/admin/review-queue/arrivals', {
           body: { newListings: 1, reports: 1, newMembers: 0 },
         }),
       async (page) => {
@@ -219,31 +222,99 @@ const ADMIN_SCREENS: readonly Screen[] = [
   adminScreen(
     'admin-long',
     (api) =>
-      api.answer('GET', '/api/review-queue', {
+      api.answer('GET', '/api/admin/review-queue', {
         body: queuePage(manyRows(50), 'next', 63),
       }),
     (page) => new AdminPage(page).moreButton.waitFor(),
   ),
   adminScreen(
     'admin-loading',
-    (api) => void api.hold('GET', '/api/review-queue'),
+    (api) => void api.hold('GET', '/api/admin/review-queue'),
     (page) => new AdminPage(page).skeletonRows.first().waitFor(),
   ),
   adminScreen(
     'admin-error',
-    (api) => api.refuse('GET', '/api/review-queue', 500, 'server_error'),
+    (api) => api.refuse('GET', '/api/admin/review-queue', 500, 'server_error'),
     (page) => new AdminPage(page).queueTryAgain.waitFor(),
   ),
   adminScreen(
     'admin-empty',
-    (api) => api.answer('GET', '/api/review-queue', { body: queuePage([]) }),
+    (api) => api.answer('GET', '/api/admin/review-queue', { body: queuePage([]) }),
     (page) => new AdminPage(page).queueMessageTitle.waitFor(),
   ),
   {
     name: 'admin-forbidden',
-    path: '/admin',
-    answer: (api) => answerMember(api),
+    path: `${ADMIN_ORIGIN}/`,
+    answer: (api) => api.answer('GET', '/api/admin/session', { body: SARAH_KIM }),
     then: (page) => page.getByRole('heading', { name: 'This page is for admins' }).waitFor(),
+  },
+];
+
+/** A sign-in page in the state of a mock: what its last attempt was answered (journey 13). */
+async function attempt(page: Page, password = CREDENTIALS.password): Promise<void> {
+  const signIn = new SignInPage(page);
+  await signIn.email.fill(CREDENTIALS.email);
+  await signIn.password.fill(password);
+  await signIn.submit.click();
+}
+
+function refused(api: ApiFixtures, path: string, status: number, code: string | null): void {
+  api.answer('POST', path, {
+    status,
+    body: code ? { type: 'about:blank', title: 'Refused', status, code } : undefined,
+    headers: { 'content-type': 'application/problem+json', 'retry-after': '900' },
+  });
+}
+
+/** `rent`'s and Admin's sign-in pages in the states of their mocks, and the header signed out. */
+const SIGN_IN_SCREENS: readonly Screen[] = [
+  {
+    name: 'browse-signed-out',
+    path: '/',
+    answer: (api) => {
+      api.answer('GET', '/api/listings', { body: listingsPage(cast()) });
+      answerPhotos(api);
+    },
+    then: (page) => new SignInPage(page).header.signIn.waitFor(),
+  },
+  ...(
+    [
+      ['', '/sign-in', '/api/session'],
+      ['admin-', `${ADMIN_ORIGIN}/sign-in`, '/api/admin/session'],
+    ] as const
+  ).flatMap(([prefix, path, post]): Screen[] => [
+    { name: `${prefix}sign-in`, path, answer: () => undefined },
+    {
+      name: `${prefix}sign-in-invalid`,
+      path,
+      answer: () => undefined,
+      then: (page) => attempt(page, ''),
+    },
+    {
+      name: `${prefix}sign-in-refused`,
+      path,
+      answer: (api) => refused(api, post, 401, 'sign_in_failed'),
+      then: (page) => attempt(page, 'not the password'),
+    },
+    {
+      name: `${prefix}sign-in-limited`,
+      path,
+      answer: (api) => refused(api, post, 429, 'rate_limited'),
+      then: (page) => attempt(page),
+    },
+    {
+      name: `${prefix}sign-in-error`,
+      path,
+      answer: (api) => refused(api, post, 503, null),
+      then: (page) => attempt(page),
+    },
+    { name: `${prefix}sign-in-expired`, path: `${path}?expired=1`, answer: () => undefined },
+  ]),
+  {
+    name: 'admin-unreachable',
+    path: `${ADMIN_ORIGIN}/`,
+    answer: (api) => api.answer('GET', '/api/admin/session', { status: 503 }),
+    then: (page) => page.getByRole('heading', { name: 'We couldn’t reach Admin.' }).waitFor(),
   },
 ];
 
@@ -787,6 +858,7 @@ export const SCREENS: readonly Screen[] = [
   },
   ...ADMIN_SCREENS,
   ...DECIDING_SCREENS,
+  ...SIGN_IN_SCREENS,
 ];
 
 /** Opens the join dialog from the host page and waits for its churches. */

@@ -15,6 +15,7 @@ export type IconName =
   | 'image-plus'
   | 'image'
   | 'inbox'
+  | 'login'
   | 'logout'
   | 'external'
   | 'alert'

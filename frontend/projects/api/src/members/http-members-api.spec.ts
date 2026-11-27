@@ -26,22 +26,6 @@ describe('HttpMembersApi and HttpChurchesApi', () => {
 
   afterEach(() => backend.verify());
 
-  it('answers the member who is signed in', async () => {
-    const me = TestBed.inject(HttpMembersApi).me();
-
-    backend.expectOne('/api/members/me').flush(sarah);
-
-    expect(await me).toEqual(sarah);
-  });
-
-  it('answers null for a signed-in person who is not a member (204)', async () => {
-    const me = TestBed.inject(HttpMembersApi).me();
-
-    backend.expectOne('/api/members/me').flush(null, { status: 204, statusText: 'No Content' });
-
-    expect(await me).toBeNull();
-  });
-
   it('posts what a person joins with', async () => {
     const request: JoinRequest = {
       name: 'Sarah Kim',

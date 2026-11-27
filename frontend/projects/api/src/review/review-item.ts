@@ -33,7 +33,7 @@ export interface ReviewDecided {
   readonly closedItemIds: readonly string[];
 }
 
-/** One row of the review queue, as `GET /api/review-queue` answers it (view-review-queue design). */
+/** One row of the review queue, as `GET /api/admin/review-queue` answers it (view-review-queue design). */
 export interface ReviewItemSummary {
   readonly id: string;
   readonly kind: ReviewKind;

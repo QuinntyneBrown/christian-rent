@@ -1,0 +1,14 @@
+<cr-skip-link />
+<router-outlet />
+<cr-toast-region>
+  @if (clientErrors.showing()) {
+    <cr-toast
+      tone="danger"
+      title="Something went wrong"
+      text="This page ran into a problem. Reloading it usually helps."
+      actionLabel="Reload"
+      (action)="reload()"
+      (dismissed)="clientErrors.dismiss()"
+    />
+  }
+</cr-toast-region>

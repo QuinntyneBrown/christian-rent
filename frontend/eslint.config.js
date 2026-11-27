@@ -7,9 +7,10 @@ const boundaries = require('eslint-plugin-boundaries');
 
 /**
  * Lint for the whole workspace. Besides angular-eslint's recommendations it enforces:
- * - the dependency direction of AGENTS.md (rent → admin, components, api, domain; admin →
- *   components, api, domain; domain → api; components → api for types only; api → nothing;
- *   nothing imports rent);
+ * - the dependency direction of AGENTS.md and ADR 0028 (rent → shell, components, api, domain;
+ *   admin → shell, components, api, domain; shell → api, domain; domain → api; components →
+ *   api for types only; api → nothing; no application imports the other, and no library imports
+ *   an application);
  * - no [innerHTML] and no bypassSecurityTrust* (L2-026, criterion 1).
  */
 module.exports = defineConfig([
@@ -33,6 +34,7 @@ module.exports = defineConfig([
         { type: 'components', pattern: 'projects/components/**' },
         { type: 'rent', pattern: 'projects/rent/**' },
         { type: 'admin', pattern: 'projects/admin/**' },
+        { type: 'shell', pattern: 'projects/shell/**' },
       ],
     },
     rules: {
@@ -66,12 +68,18 @@ module.exports = defineConfig([
             {
               from: { element: { type: 'rent' } },
               allow: {
-                to: { element: { types: ['rent', 'admin', 'components', 'api', 'domain'] } },
+                to: { element: { types: ['rent', 'shell', 'components', 'api', 'domain'] } },
               },
             },
             {
               from: { element: { type: 'admin' } },
-              allow: { to: { element: { types: ['admin', 'components', 'api', 'domain'] } } },
+              allow: {
+                to: { element: { types: ['admin', 'shell', 'components', 'api', 'domain'] } },
+              },
+            },
+            {
+              from: { element: { type: 'shell' } },
+              allow: { to: { element: { types: ['shell', 'api', 'domain'] } } },
             },
             {
               from: { element: { type: 'domain' } },

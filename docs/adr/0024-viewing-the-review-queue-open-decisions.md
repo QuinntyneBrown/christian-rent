@@ -1,7 +1,7 @@
 # 0024. What viewing the review queue does where its design left it open
 
 **Status:** Accepted. Uses the identity of [0017](0017-identifying-a-person-until-sign-in.md)
-and the paging window of [0013](0013-browse-paging-and-window.md).
+and the paging window of [0013](0013-browse-paging-and-window.md). "The route asks before it loads" and "Not known is not an admin" are superseded by [0028](0028-two-applications-deployed-separately.md) and [0029](0029-sign-in-and-two-sessions.md): Admin is its own application, with its own sign-in and guard.
 
 ## Context
 

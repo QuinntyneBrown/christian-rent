@@ -2,7 +2,7 @@
 
 ## Overview
 
-Admin, at `/admin`, is the screen an admin works through. It holds the **review queue**:
+Admin, at the root of its own origin, is the screen an admin works through. It holds the **review queue**:
 every new listing, every report and every new member that waits for a decision, oldest
 first. Selecting an item shows a detail panel with everything needed to decide. When
 nothing waits, the screen says "All caught up".
@@ -18,26 +18,24 @@ and the browser never downloads Admin's code. Deciding an item is designed in
 
 ## Description
 
-**Frontend — `rent` application**
+**Frontend — `admin` application (`frontend/projects/admin`)**
 
-- **Route `/admin`** — `{ path: 'admin', canMatch: [adminGuard], loadChildren: () =>
-  import('@rent/admin').then(m => m.ADMIN_ROUTES) }`, followed by
-  `{ path: 'admin', loadComponent: ForbiddenPage }`.
-- **`adminGuard`** — a `CanMatchFn` that awaits `SESSION.refresh()` and returns
-  `member()?.isAdmin === true`. When it returns false the route does not match, the
-  `@rent/admin` chunk is never requested (L2-019, criterion 5), and the next route renders
-  "This page is for admins". The guard is a convenience; the backend's refusal is the rule.
-- **`ForbiddenPage`** — small lazy page in `rent`: the header and a `cr-plain-page`. It names
-  the signed-in member, or says that the person is not signed in as an admin, and links back
-  to Browse (L2-019, criteria 11 and 22).
+Admin is its own application on its own origin
+([ADR 0028](../../../adr/0028-two-applications-deployed-separately.md)); `rent` holds none of
+it. Its entry is [sign-in-and-sessions](../../platform/sign-in-and-sessions/README.md):
 
-**Frontend — `admin` library (`frontend/projects/admin`, imported as `@rent/admin`)**
+- **Route `''`** — `{ path: '', canMatch: [adminGuard], loadComponent: ReviewPage, providers:
+  [REVIEW_QUEUE_API] }`, followed by `{ path: '', loadComponent: ForbiddenPage }`.
+- **`adminGuard`** — a `CanMatchFn` that awaits `SESSION.refresh()`. Signed out, it redirects
+  to `/sign-in?return=…`; signed in and not an admin, it returns false and the next route
+  renders "This page is for admins"; an admin matches. Until it matches, the review page's
+  chunk is never requested and no queue data is asked for (L2-019, criterion 5; L2-038,
+  criteria 2 and 3). The guard is a convenience; the backend's refusal is the rule.
+- **`ForbiddenPage`** — Admin's own page in `cr-admin-gate`: it names the signed-in member, or
+  says that the person is signed in but not as an admin, and offers "Sign out" and "Go to
+  christian.rent" (L2-019, criteria 11 and 22).
 
-A new library, loaded only for an admin. Its place in the dependency direction is
-`rent` → `admin` → `components`, `api`, `domain`; `AGENTS.md` and the ESLint boundaries say
-so. `rent` imports it only with `import('@rent/admin')`.
-
-- **`ADMIN_ROUTES`** — one route whose `providers` bind `REVIEW_QUEUE_API` to
+- **The review route** — its `providers` bind `REVIEW_QUEUE_API` to
   `HttpReviewQueueApi`, so its code stays out of the initial bundle. The client holds no
   state.
 - **`ReviewPage`** (selector `cr-review-page`) — lays out `cr-admin-nav`, the queue and the
@@ -84,10 +82,13 @@ so. `rent` imports it only with `import('@rent/admin')`.
 
 **Backend**
 
-- **`ReviewQueueController`** — `[Authorize(Policy = "Admin")]`. `GET /api/review-queue`
-  sends `GetReviewQueueQuery`; `GET /api/review-queue/{id}` sends `GetReviewItemQuery`.
-  Nobody signed in receives 401 `not_signed_in`; anyone else who is not an admin receives
-  403 `not_an_admin`. Neither carries queue data.
+- **`ReviewQueueController`** — `[Authorize(Policy = "Admin")]`, under the `Admin` session
+  only. `GET /api/admin/review-queue` sends `GetReviewQueueQuery`;
+  `GET /api/admin/review-queue/{id}` sends `GetReviewItemQuery`. Nobody signed in to Admin,
+  including a caller with the member session alone, receives 401 `not_signed_in`; anyone else
+  who is not an admin receives 403 `not_an_admin`. Neither carries queue data. Photos named by
+  the queue and its detail are `/api/admin/photos/{id}/{rendition}`, read with the Admin
+  session ([ADR 0029](../../../adr/0029-sign-in-and-two-sessions.md)).
 - **`WaitingReviewItems`** — the items whose subject still waits (ADR 0024; criterion 18):
   a new listing waiting for review, an open report on an approved listing, or a member; the
   poster or member active. Both handlers read through it.
@@ -144,7 +145,8 @@ The mocks are the source of truth for the UI of this feature. The states this de
 - [`docs/mocks/pages/admin/more-error.html`](../../../mocks/pages/admin/more-error.html): the next page failed
 - [`docs/mocks/pages/admin/detail-error.html`](../../../mocks/pages/admin/detail-error.html): the detail failed to load
 - [`docs/mocks/pages/admin/detail-gone.html`](../../../mocks/pages/admin/detail-gone.html): the item is no longer waiting
-- [`docs/mocks/pages/admin/forbidden-signed-out.html`](../../../mocks/pages/admin/forbidden-signed-out.html): a person nobody knows as a member
+- [`docs/mocks/pages/admin/unreachable.html`](../../../mocks/pages/admin/unreachable.html): Admin cannot ask who is signed in
+- [`docs/mocks/pages/admin-sign-in/default.html`](../../../mocks/pages/admin-sign-in/default.html): anyone not signed in to Admin, who gets its sign-in page
 - [`docs/mocks/notifications/review-toast/info.html`](../../../mocks/notifications/review-toast/info.html): new items arrived in the queue (journey 11)
 
 ## Requirements
@@ -172,13 +174,13 @@ The people involved are: admin, member. Each reaches the feature through christi
 
 ### Containers
 
-The rent application calls `ChristianRent.Api` over JSON/HTTPS. The API persists state through EF Core and keeps photo files in file storage, outside the database.
+The admin application calls `ChristianRent.Api` over JSON/HTTPS. The API persists state through EF Core and keeps photo files in file storage, outside the database.
 
 ![C4 container view for View the review queue](diagrams/c4-container.png)
 
 ### Components
 
-`adminGuard` decides whether the lazy `admin` library loads. Inside it, `ReviewPage` renders
+`adminGuard` decides whether Admin's lazy review page loads. Inside it, `ReviewPage` renders
 from `ReviewQueueStore`. `ReviewQueueController` carries the `Admin` policy, and two
 handlers read `ReviewItem` rows and their subjects.
 

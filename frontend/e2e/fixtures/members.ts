@@ -25,6 +25,11 @@ export const CHURCHES = [
   { id: 'c4a7e1f0-0002-4000-8000-000000000002', name: 'Willoughby Baptist', city: 'Langley' },
 ];
 
+/** Someone signed in who is not a member yet (204), who may join. */
+export function answerNotAMember(api: ApiFixtures): void {
+  api.answer('GET', '/api/members/me', { status: 204 });
+}
+
 /** Someone signed in who is already a member. */
 export function answerMember(api: ApiFixtures, member: MemberFixture = SARAH_KIM): void {
   api.answer('GET', '/api/members/me', { body: member });

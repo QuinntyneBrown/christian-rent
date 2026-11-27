@@ -76,6 +76,8 @@ Frontend:
 - Standalone components, signals and OnPush change detection, zoneless.
 - One type per file, and no single-file components: `name.ts` + `name.html` + `name.scss`.
 - Selectors use `cr-*`; class, file and folder names omit the prefix.
+- `rent` and `admin` are two applications; neither imports the other. What both shells need goes
+  in the `shell` library (ADR 0028).
 - Presentation components go in the `components` library, named as in the design system, and
   take inputs and emit outputs; the contracts, their types and the backend's clients go in the
   `api` library; the rules the browser applies go in `domain`; everything else is the `rent`

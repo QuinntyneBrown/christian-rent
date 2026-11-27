@@ -11,6 +11,7 @@ export class AdminPage {
   readonly reviewLink: Locator;
   readonly waitingCount: Locator;
   readonly backToSite: Locator;
+  readonly signOut: Locator;
 
   /** Each row of the queue, a button from tablet width up. */
   readonly rows: Locator;
@@ -88,6 +89,7 @@ export class AdminPage {
     this.reviewLink = this.nav.getByRole('link', { name: 'Review queue' });
     this.waitingCount = this.nav.locator('.admin-nav__count');
     this.backToSite = this.nav.getByRole('link', { name: 'Back to site' });
+    this.signOut = this.nav.getByRole('button', { name: 'Sign out' });
 
     const queue = main.locator('.admin__queue');
     this.rows = queue.locator('.queue-item:not(.queue-item--loading)');
@@ -151,7 +153,7 @@ export class AdminPage {
   }
 
   async open(): Promise<void> {
-    await this.page.goto('/admin');
+    await this.page.goto('/');
   }
 
   /** The row of the item with this title or name. */

@@ -44,7 +44,7 @@ interface Session <<TypeScript>> {
   +member: Signal<MemberSummary | null>
 }
 class adminGuard <<CanMatchFn>> {
-  +(route, segments): Promise<boolean>
+  +(route, segments): Promise<boolean | UrlTree>  (in admin)
 }
 App *-- SiteHeader : pages render
 SiteHeader *-- Logo

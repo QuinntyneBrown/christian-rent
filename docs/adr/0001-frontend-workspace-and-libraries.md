@@ -1,6 +1,6 @@
 # 0001. The frontend workspace and its libraries
 
-**Status:** Accepted
+**Status:** Accepted. Its one application and its `admin` library are superseded by [0028](0028-two-applications-deployed-separately.md), which makes `rent` and `admin` two applications.
 
 ## Context
 

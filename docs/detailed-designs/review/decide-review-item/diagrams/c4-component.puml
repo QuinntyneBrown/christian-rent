@@ -3,10 +3,10 @@
 LAYOUT_WITH_LEGEND()
 title Components — Decide a review item
 
-Container_Boundary(spa, "rent application (Angular workspace)") {
+Container_Boundary(spa, "admin application (its own origin)") {
   Component(ui, "cr-review-detail, cr-toast", "components library", "Decision bar and toasts")
 }
-Container_Boundary(admlib, "admin library (lazy chunk)") {
+Container_Boundary(admlib, "admin application: review page (lazy chunk)") {
   Component(page, "ReviewPage", "Angular page", "Routes decide events")
   Component(dialog, "ConfirmRemoveDialog", "CDK Dialog", "Confirms Remove")
   Component(store, "ReviewQueueStore", "Signal store provided by the page", "decide(), next item, conflict")
@@ -14,7 +14,7 @@ Container_Boundary(admlib, "admin library (lazy chunk)") {
   Component(client, "HttpReviewQueueApi", "REVIEW_QUEUE_API", "Typed HTTP client")
 }
 Container_Boundary(api, "ChristianRent backend") {
-  Component(ctrl, "ReviewQueueController", "ASP.NET Core controller, Admin policy", "POST /api/review-queue/{id}/decision")
+  Component(ctrl, "ReviewQueueController", "ASP.NET Core controller, Admin policy", "POST /api/admin/review-queue/{id}/decision")
   Component(handler, "DecideReviewItemCommandHandler", "MediatR handler", "Applies the decision table")
   Component(item, "ReviewItem", "Domain entity", "Decide(), concurrency token")
   Component(subj, "Listing, Report, Member", "Domain entities", "Approve, Remove, Close, Verify")

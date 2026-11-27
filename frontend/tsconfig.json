@@ -4,10 +4,10 @@
   "compileOnSave": false,
   "compilerOptions": {
     "paths": {
-      "@rent/admin": ["./projects/admin/src/public-api.ts"],
       "@rent/api": ["./projects/api/src/public-api.ts"],
       "@rent/domain": ["./projects/domain/src/public-api.ts"],
-      "@rent/components": ["./projects/components/src/public-api.ts"]
+      "@rent/components": ["./projects/components/src/public-api.ts"],
+      "@rent/shell": ["./projects/shell/src/public-api.ts"]
     },
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
@@ -58,10 +58,16 @@
       "path": "./projects/components/tsconfig.spec.json"
     },
     {
-      "path": "./projects/admin/tsconfig.lib.json"
+      "path": "./projects/admin/tsconfig.app.json"
     },
     {
       "path": "./projects/admin/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/shell/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/shell/tsconfig.spec.json"
     }
   ]
 }

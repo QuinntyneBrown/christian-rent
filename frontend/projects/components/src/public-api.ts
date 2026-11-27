@@ -1,6 +1,7 @@
 /*
  * Public API of @rent/components: presentation components, named as in the design system.
  */
+export * from './lib/admin-gate/admin-gate';
 export * from './lib/admin-layout/admin-layout';
 export * from './lib/admin-nav/admin-nav';
 export * from './lib/alert/alert';
@@ -40,6 +41,7 @@ export * from './lib/search-bar/search-bar';
 export * from './lib/segmented/segmented';
 export * from './lib/select/select';
 export * from './lib/sentence/sentence';
+export * from './lib/sign-in/sign-in';
 export * from './lib/site-header/site-header';
 export * from './lib/skeleton/skeleton';
 export * from './lib/skip-link/skip-link';

@@ -1,0 +1,35 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Sign in and sessions
+
+Container_Boundary(fe, "Frontend (rent and admin)") {
+  Component(page, "SignInPage", "rent page, admin page", "The form, its states, the return address")
+  Component(store, "SignInStore", "shell library", "Validates, sends, maps refusals to a state")
+  Component(session, "SESSION", "api token; AppSession in rent, AdminSession in admin", "state, member, refresh, signIn, signOut")
+  Component(gate, "MemberGate / adminGuard", "rent service / admin CanMatchFn", "Sign-in page, join dialog or forbidden page")
+  Component(expiry, "sessionExpiryInterceptor", "shell library", "401 while signed in -> sign-in page, expired")
+}
+Container_Boundary(be, "Backend") {
+  Component(guard, "CrossSiteRequestGuard", "middleware", "Origin of the path's application")
+  Component(scheme, "Session policy scheme", "ASP.NET Core authentication", "/api/admin/ -> Admin, else Member")
+  Component(cookies, "Member and Admin cookie schemes", "Cookie authentication + SessionCookieEvents", "Validate stamp, removed member")
+  Component(limit, "RateLimits", "middleware", "Global limits, chained with 10 sign-ins per address per 15 min")
+  Component(ctrl, "SessionController, AdminSessionController", "ASP.NET Core", "One MediatR request each")
+  Component(handler, "SignInCommandHandler, SignOutCommandHandler", "MediatR", "Generic refusal, SignInLockout")
+  Component(accounts, "IAccounts / IdentityAccounts", "Application interface / Identity UserManager", "Find, check, record, create, link, end sessions")
+  Component(issue, "ISessionCookies / CookieSessions", "Application interface / HttpContext", "Issue or clear a kind's cookie")
+}
+Rel(page, store, "submit()")
+Rel(store, session, "signIn(email, password)")
+Rel(gate, session, "refresh(), member(), state()")
+Rel(session, guard, "POST /api/session or /api/admin/session", "JSON/HTTPS")
+Rel(guard, scheme, "Same-site request")
+Rel(scheme, cookies, "Forwards to one scheme")
+Rel(cookies, limit, "Principal of that application")
+Rel(limit, ctrl, "Under the limits")
+Rel(ctrl, handler, "SignInCommand")
+Rel(handler, accounts, "Check the password")
+Rel(handler, issue, "Issue the cookie")
+Rel(expiry, session, "Ended")
+@enduml

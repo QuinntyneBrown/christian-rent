@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import type { ReviewDecision, ReviewDetailView } from '@rent/api';
 import { Alert } from '../alert/alert';
 import { Avatar } from '../avatar/avatar';
@@ -17,13 +16,15 @@ import { Verified } from '../verified/verified';
  */
 @Component({
   selector: 'cr-review-detail',
-  imports: [Alert, Avatar, Button, Icon, RouterLink, Skeleton, Tag, Verified],
+  imports: [Alert, Avatar, Button, Icon, Skeleton, Tag, Verified],
   templateUrl: './review-detail.html',
   styleUrl: './review-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReviewDetail {
   readonly view = input.required<ReviewDetailView | null>();
+  /** The site's origin, where "View on site" leads (ADR 0028); without it the link is left out. */
+  readonly siteUrl = input<string | null>(null);
   /** The decision on this item that is in flight: its button is busy. */
   readonly deciding = input<ReviewDecision | null>(null);
   /** No decision can be started, as while one is in flight (L2-020, criterion 16). */

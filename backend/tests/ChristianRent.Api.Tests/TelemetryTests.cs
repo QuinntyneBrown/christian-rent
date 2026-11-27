@@ -138,9 +138,46 @@ public sealed class TelemetryTests : IDisposable
         Assert.DoesNotContain("show=wanted", recorded, StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>The API with in-memory exporters behind the scrubber.</summary>
-    private sealed class TelemetryApiFactory : ProbeApiFactory
+    // L2-028 criterion 3; ADR 0029: signing in, asking who one is and signing out record neither
+    // the email, the password nor the cookie, in either application.
+    [Fact]
+    public async Task Signing_in_and_out_records_no_email_password_or_cookie()
     {
+        using var factory = new TelemetryApiFactory(testSignIn: false);
+        await Accounts.CreateAsync(factory, ContactDetail);
+        using var client = Accounts.Browser(factory, new CookieJar());
+        var cookies = new List<string>();
+
+        foreach (var path in new[] { "/api/session", "/api/admin/session" })
+        {
+            using var signedIn = await client.PostAsJsonAsync(path, new { email = ContactDetail, password = Accounts.Password }, TestContext.Current.CancellationToken);
+            Assert.Equal(HttpStatusCode.NoContent, signedIn.StatusCode);
+            cookies.AddRange(signedIn.Headers.GetValues("Set-Cookie").Select(cookie => cookie.Split(';')[0].Split('=', 2)[1]));
+            using var refused = await client.PostAsJsonAsync(path, new { email = ContactDetail, password = Token }, TestContext.Current.CancellationToken);
+            Assert.Equal(HttpStatusCode.Unauthorized, refused.StatusCode);
+        }
+
+        using var me = await client.GetAsync("/api/members/me", TestContext.Current.CancellationToken);
+        using var signedOut = await client.DeleteAsync("/api/session", TestContext.Current.CancellationToken);
+        await factory.Recorder.WaitForServerSpanAsync("api/session");
+        await factory.Recorder.WaitForServerSpanAsync("api/admin/session");
+        await factory.Recorder.WaitForServerSpanAsync("api/members/me");
+        factory.FlushMetrics();
+        factory.FlushLogs();
+
+        var recorded = string.Join('\n', factory.EverythingRecorded());
+        Assert.Contains("http.route=api/session", recorded, StringComparison.Ordinal);
+        foreach (var secret in cookies.Concat([ContactDetail, "sarah.k", Accounts.Password, Token]))
+        {
+            Assert.DoesNotContain(secret, recorded, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    /// <summary>The API with in-memory exporters behind the scrubber.</summary>
+    private sealed class TelemetryApiFactory(bool testSignIn = true) : ProbeApiFactory
+    {
+        protected override bool TestSignIn => testSignIn;
+
         public SpanRecorder Recorder { get; } = new();
 
         public List<Metric> Metrics { get; } = [];

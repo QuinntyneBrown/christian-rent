@@ -4,7 +4,9 @@
 > thing to rent. It is narrow on purpose: browse, open a listing, message the person who posted
 > it, or post your own. No payment happens here; people agree the details together.
 
-**Direction.** The whole app is four screens, and it stays that small:
+**Direction.** christian.rent is two applications: `rent`, the site where people browse, post
+and message, and `admin`, where admins work through the review queue. Each has its own sign-in
+page. Together they are six screens, and they stay that small:
 
 1. **Browse**: the home screen. A search bar, a switch between Everything, For rent and Wanted,
    and two buttons that lead straight to posting: "I have something to rent" and "I'm looking
@@ -16,15 +18,23 @@
 3. **Post**: one sentence, "I have / need a space / a thing to rent out", whose highlighted
    words switch. Then a few fields (title, price, when, photos and a note) with a live preview of
    the card beside them, and a confirmation once the post is live.
-4. **Admin**: the review queue for new posts, reports and new members, with a detail panel and
+4. **Sign in** (in `rent`): an email and a password, and back to where the member was, with
+   what they had written kept. Browsing, searching and reading a listing need no sign-in.
+5. **Admin**: the review queue for new posts, reports and new members, with a detail panel and
    Approve, Keep or Remove. It has an "All caught up" state when the queue is empty.
+6. **Admin sign-in** (in `admin`): the same, clearly Admin's own. A signed-in member who is not
+   an admin is told the page is for admins.
+
+Sign-in serves posting, asking and finding: posting, messaging and reporting need a known
+member, and the review queue needs a known admin. Each app keeps its own session, and both have
+"Sign out". Nobody can create their own account yet: an operator creates it.
 
 christian.rent launches in Canada: prices are in CAD, distances in km, and the copy uses
 Canadian spelling.
 
 christian.rent takes no payment, holds no booking calendar, and has no reviews or ratings, no
-social feed and no adverts. A Messages inbox, a "My listings" screen and sign-in are not designed
-yet; none is built before its design exists. Before adding or changing anything, ask how it
+social feed and no adverts. A Messages inbox, a "My listings" screen, sign-up, password reset
+and password change are not designed yet; none is built before its design exists. Before adding or changing anything, ask how it
 serves posting something to rent, asking for it, or finding it; if it does not, do not build it,
 and if a request works against it, say so.
 
@@ -35,7 +45,8 @@ Do not invent a mission in its place.
 ## Design
 
 The design is the **Christian Rent** prototype in Magic Patterns (the *Christian Rental
-Marketplace* OS): the frames Browse, Listing, Post and Admin. Beside it is the *Brand* prototype
+Marketplace* OS): the frames Browse, Listing, Post and Admin. It has no sign-in frame: the two
+sign-in pages are drawn in `docs/mocks/` directly, from its tokens, mark and wordmark. Beside it is the *Brand* prototype
 (the frame *Brand Sheet*): the mark and wordmark on white, dark and orange, at sizes down to
 16 px, with the colours and the fonts. The OS's own design thread holds the decisions behind it.
 
@@ -63,8 +74,10 @@ rules.
 
 ## Where things are
 
-- **The frontend is what people use.** `frontend/` is an Angular workspace and holds every
-  screen: Browse, Listing, Post and Admin.
+- **The frontend is what people use.** `frontend/` is an Angular workspace with two
+  applications, each built and deployed on its own, on its own origin: `rent` (Browse, Listing,
+  Post and Sign in) and `admin` (Admin and Admin sign-in). Each origin proxies `/api` to the one
+  backend.
 - **The backend holds the listings.** `backend/` is a .NET service: listings and their photos,
   search, messages between a member and the person who posted, members and their churches, and
   the admin review queue. It takes no payment.
@@ -97,24 +110,28 @@ with best practice, say so and propose the correction; do not work around it sil
 A multi-project workspace under `frontend/projects/`. The baseline is three libraries, `api`
 (contracts, types, injection tokens, and the HTTP clients for the backend), `domain` (rules the
 browser applies itself: `listings/`, `search/`, `storage/`) and `components` (presentation),
-and one application, `rent`.
+and two applications, `rent` and `admin` (ADR 0028). A fourth library, `shell`, holds the app
+shell both applications share: the error handler, the title strategy, focus on navigation, the
+sign-in store and the session's expiry. The foundations (tokens, `@font-face`, reset,
+utilities, the fonts and the favicon) live once, in `components/foundations/` and
+`components/public/`, and both applications use them.
 
 That baseline is where the organisation starts, not a limit on it. When a concern earns its own
-library (an `admin` library, loaded only by the people who review, a `browser` project for
-browser-only implementations, and so on), add it. A smaller, focused library that can be lazy-loaded on its own is
-better than one that keeps growing. A further application needs its own ADR.
+library (a `browser` project for browser-only implementations, and so on), add it. A smaller,
+focused library that can be lazy-loaded on its own is better than one that keeps growing. A
+further application needs its own ADR.
 
-- **Dependency direction.** `rent` → `admin`, `components`, `api`, `domain`; `admin` →
-  `components`, `api`, `domain`; `domain` → `api`; `components` → `api` for types only; `api` →
-  nothing. `rent` imports `admin` only in the lazy `/admin` route behind its admin guard (ADR
-  0024). No library imports an app. `rent`'s
-  `app.config.ts` is the composition root and binds every token, except those a lazy route
-  brings, which that route binds so their code stays out of the initial bundle. ESLint enforces
-  it. A new library takes its place in this direction, and the same change adds it to this rule
-  and to the ESLint boundaries; it never depends on `rent`, and `api` still depends on nothing.
+- **Dependency direction.** `rent` → `shell`, `components`, `api`, `domain`; `admin` →
+  `shell`, `components`, `api`, `domain`; `shell` → `api`, `domain`; `domain` → `api`;
+  `components` → `api` for types only; `api` → nothing. No application imports the other, and
+  no library imports an application. Each application's `app.config.ts` is its own composition
+  root and binds every token, except those a lazy route brings, which that route binds so their
+  code stays out of the initial bundle. ESLint enforces it. A new library takes its place in
+  this direction, and the same change adds it to this rule and to the ESLint boundaries; it
+  never depends on an application, and `api` still depends on nothing.
 - The backend decides what is allowed: who may post, message, approve or remove. The frontend
   shows or hides a control for convenience and never relies on that for a rule. Admin's code is
-  loaded only for an admin.
+  in its own application, and its review queue loads only for a signed-in admin.
 - Prettier and angular-eslint own formatting and lint; CI fails on either.
 - Current Angular: standalone components, signals for state, `OnPush` everywhere, zoneless.
 - **Responsive at every width.** Every screen works from the narrowest phone to the widest
@@ -163,7 +180,11 @@ Clean architecture, strict dependency direction: `ChristianRent.Domain` (entitie
   itself and sends one MediatR request.
 - The API does not apply migrations on startup; a CLI command does. Seed data is idempotent.
 - Endpoints require authentication by default (fallback policy); keep intentional
-  `[AllowAnonymous]` access (browsing and reading a listing) explicit.
+  `[AllowAnonymous]` access (browsing and reading a listing, signing in and out) explicit.
+- Each application has its own cookie session (ADR 0029). Everything `admin` calls is under
+  `/api/admin/` and accepts only the admin session; everything else accepts only the member
+  session. Neither session lends rights to the other. A password is never stored, logged or
+  committed in the clear, and an email address is a contact detail.
 - Errors are ProblemDetails with a `code` extension where a client branches on them.
 - Telemetry is OpenTelemetry. No log, metric or span carries a contact detail, a token, message
   text, a query string or a body; a route is recorded as its template.
@@ -192,7 +213,8 @@ Clean architecture, strict dependency direction: `ChristianRent.Domain` (entitie
 - Only behaviour specs run by default. Visual, responsive and accessibility sweeps are written
   and kept current but run only when a person asks; no agent runs them or updates baselines
   unprompted. Update baselines only for intentional design changes, after changing the mock.
-- Chromium only; never configure or run another browser.
+- Chromium only; never configure or run another browser. Each application's specs run against
+  its own dev server, `rent`'s in `e2e/specs/rent/` and `admin`'s in `e2e/specs/admin/`.
 - In unit tests, time-driven rules (retries, debounced search, a confirmation that dismisses itself) advance a fake clock; never sleep.
 
 ## CI (GitHub Actions)
@@ -210,8 +232,8 @@ Browse has to appear fast and stay smooth however far the list is scrolled. A ch
 the initial bundle or leaks memory is not done, whatever else it achieves.
 
 - **Load only what is needed now.** Every route uses `loadComponent`/`loadChildren`; heavy or
-  below-the-fold UI uses `@defer`; large libraries (a map, an image cropper, a date picker), Admin and
-  whole feature libraries are imported dynamically, never from the initial chunk. Keep the
+  below-the-fold UI uses `@defer`; large libraries (a map, an image cropper, a date picker), Admin's
+  review queue and whole feature libraries are imported dynamically, never from the initial chunk. Keep the
   initial bundle small and the `angular.json` budgets tight; raising a budget needs a reason in
   the change.
 - **Release everything you acquire.** Whatever a component, service or scene creates, it tears

@@ -1,6 +1,6 @@
 // Acceptance Test
 // Traces to: L2-019, L2-025, L2-030
-// Description: GET /api/review-queue answers an admin the review items that still wait, oldest first, 50 a page by cursor, with how many wait, and refuses everyone else with no queue data.
+// Description: GET /api/admin/review-queue answers an admin the review items that still wait, oldest first, 50 a page by cursor, with how many wait, and refuses everyone else with no queue data.
 using System.Net;
 using System.Text.Json;
 using ChristianRent.Api.Tests.Support;
@@ -42,7 +42,7 @@ public sealed class ReviewQueueTests : IDisposable
             ReviewItem.ForNewMember(_alicia.Id, Minute(10)));
         using var admin = Admin();
 
-        var page = await ReadAsync(admin, "/api/review-queue");
+        var page = await ReadAsync(admin, "/api/admin/review-queue");
 
         Assert.Equal(4, page.GetProperty("waitingCount").GetInt32());
         Assert.Equal(JsonValueKind.Null, page.GetProperty("nextCursor").ValueKind);
@@ -56,7 +56,7 @@ public sealed class ReviewQueueTests : IDisposable
             items.Select(item => item.GetProperty("who").GetString()));
         Assert.Equal([Minute(0), Minute(10), Minute(20), Minute(30)], items.Select(item => item.GetProperty("waitingSince").GetDateTimeOffset()));
         Assert.Equal(["for-rent", null, "for-rent", "wanted"], items.Select(item => item.GetProperty("offer").GetString()));
-        Assert.Equal($"/api/photos/{photoId}/thumb", items[0].GetProperty("thumbUrl").GetString());
+        Assert.Equal($"/api/admin/photos/{photoId}/thumb", items[0].GetProperty("thumbUrl").GetString());
         Assert.Equal(JsonValueKind.Null, items[1].GetProperty("thumbUrl").ValueKind);
         Assert.Equal(JsonValueKind.Null, items[3].GetProperty("thumbUrl").ValueKind);
         // L2-019 criterion 8: nothing in the queue names the reporter or carries the note.
@@ -79,8 +79,8 @@ public sealed class ReviewQueueTests : IDisposable
         ]);
         using var admin = Admin();
 
-        var first = await ReadAsync(admin, "/api/review-queue");
-        var second = await ReadAsync(admin, $"/api/review-queue?cursor={first.GetProperty("nextCursor").GetString()}");
+        var first = await ReadAsync(admin, "/api/admin/review-queue");
+        var second = await ReadAsync(admin, $"/api/admin/review-queue?cursor={first.GetProperty("nextCursor").GetString()}");
 
         Assert.Equal(50, first.GetProperty("items").GetArrayLength());
         Assert.Equal(63, first.GetProperty("waitingCount").GetInt32());
@@ -102,7 +102,7 @@ public sealed class ReviewQueueTests : IDisposable
     {
         using var admin = Admin();
 
-        using var response = await admin.GetAsync($"/api/review-queue?{query}", TestContext.Current.CancellationToken);
+        using var response = await admin.GetAsync($"/api/admin/review-queue?{query}", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal(code, (await Problem.ReadAsync(response)).Code);
@@ -116,9 +116,9 @@ public sealed class ReviewQueueTests : IDisposable
     public async Task Anyone_but_an_admin_is_refused_with_no_queue_data(string? signInId, HttpStatusCode status, string code)
     {
         await _factory.SeedAsync(TestData.Grace, _sarah, ReviewItem.ForNewMember(_sarah.Id, Minute(0)));
-        using var client = signInId is null ? _factory.CreateHttpsClient() : _factory.CreateSignedInClient(signInId);
+        using var client = signInId is null ? _factory.CreateHttpsClient() : _factory.CreateSignedInClient(signInId, session: "admin");
 
-        using var response = await client.GetAsync("/api/review-queue", TestContext.Current.CancellationToken);
+        using var response = await client.GetAsync("/api/admin/review-queue", TestContext.Current.CancellationToken);
 
         Assert.Equal(status, response.StatusCode);
         var problem = await Problem.ReadAsync(response);
@@ -158,7 +158,7 @@ public sealed class ReviewQueueTests : IDisposable
             ReviewItem.ForNewListing(waiting.Id, Minute(9)));
         using var admin = Admin();
 
-        var page = await ReadAsync(admin, "/api/review-queue");
+        var page = await ReadAsync(admin, "/api/admin/review-queue");
 
         Assert.Equal(["Still waiting"], page.GetProperty("items").EnumerateArray().Select(item => item.GetProperty("title").GetString()));
         Assert.Equal(1, page.GetProperty("waitingCount").GetInt32());

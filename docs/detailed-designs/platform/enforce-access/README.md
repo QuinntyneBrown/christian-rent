@@ -13,8 +13,9 @@ a refusal into something a screen can branch on.
 - **client** — signed-in member, or the network address of a caller who is not signed in
 - **rate limit** — cap on requests per client per minute
 
-Sign-in itself is not designed yet. The design fixes what happens once the caller is, or is
-not, known.
+Sign-in and the two sessions are [sign-in-and-sessions](../sign-in-and-sessions/README.md)
+([ADR 0029](../../../adr/0029-sign-in-and-two-sessions.md)). This design fixes what happens once
+the caller is, or is not, known.
 
 ## Description
 
@@ -25,29 +26,33 @@ not, known.
    configured proxies only.
 2. **`CrossSiteRequestGuard`** (`ChristianRent.Api` middleware) — for `POST`, `PUT`, `PATCH`
    and `DELETE`, it compares the `Origin` header, or `Sec-Fetch-Site` when present, with the
-   configured site origin, and answers 403 with the code `cross_site_request` on a mismatch
-   (criterion 2). The session cookie, when sign-in is designed, is `SameSite=Lax`,
-   `Secure` and `HttpOnly`.
-3. **Authentication** — until sign-in is designed, one scheme, `NoSignIn`, signs nobody in, so
-   every protected endpoint answers 401 ([ADR 0005](../../../adr/0005-authentication-seam.md)).
-   The sign-in scheme is `<TO SUPPLY>`; whatever it is, it puts the person's sign-in identifier
-   in the claim `sub`, and `MemberClaimsTransformation` adds `member_id` and the role `admin`
-   for the active member with that identifier
+   origin of the application the path belongs to (`Site:AdminOrigin` for `/api/admin/`,
+   `Site:Origin` for any other), and answers 403 with the code `cross_site_request` on a
+   mismatch (criterion 2). Signing in and out are covered. The session cookies are
+   `SameSite=Strict`, `Secure` and `HttpOnly`.
+3. **Authentication** — the default scheme `Session` forwards a path under `/api/admin/` to the
+   `Admin` cookie scheme and any other to `Member`, so the principal is the application's own
+   before the rate limiter runs ([ADR 0029](../../../adr/0029-sign-in-and-two-sessions.md)).
+   The cookie carries the account's id in `sub`, and `MemberClaimsTransformation` adds
+   `member_id` and the role `admin` for the active member with that identifier
    ([ADR 0017](../../../adr/0017-identifying-a-person-until-sign-in.md)).
 4. **Rate limiter** — ASP.NET Core `AddRateLimiter` with one global partitioned limiter. The
-   partition key is the member identifier, or the remote address for an anonymous caller.
+   partition key is the member identifier, of either session, or the remote address for an
+   anonymous caller. It is chained with the sign-in limiter: 10 sign-in attempts per address
+   per 15 minutes.
    `GET` and `HEAD` take a token from the `read` window, 120 per minute; every other method
    takes one from the `write` window, 30 per minute. A rejected request is 429 with a
    `Retry-After` header and the code `rate_limited` (criterion 3). The limiter reads time
    from `TimeProvider`: each partition is a `TimeProviderFixedWindowLimiter`, and the health
    endpoints are outside it ([ADR 0009](../../../adr/0009-health-endpoints-and-rate-limiter.md)).
-5. **Authorization** — the fallback policy requires an authenticated caller. `[AllowAnonymous]`
-   appears on exactly these actions: `ListingsController.Browse`, `ListingsController.Get`,
-   `PhotosController.Get`, and the health endpoints. L2-025, criterion 1 names the first
-   three; L2-034 requires the health endpoints, and no requirement states their exemption.
-   `MembersController.Join`, `MembersController.Me` and `ChurchesController.List` need a
-   signed-in person and not a member (L2-025, criterion 5; ADR 0017). The `Admin` policy
-   requires `ICurrentMember.IsAdmin`.
+5. **Authorization** — the fallback policy requires an authenticated caller of the `Member`
+   scheme. `[AllowAnonymous]` appears on exactly these actions: `ListingsController.Browse`,
+   `ListingsController.Get`, `PhotosController.Get`, the sign-in and sign-out actions of
+   `SessionController` and `AdminSessionController`, and the health endpoints, all named by
+   L2-025, criterion 1. `MembersController.Join`, `MembersController.Me` and
+   `ChurchesController.List` need a signed-in person and not a member (L2-025, criterion 5;
+   ADR 0017). `AdminSession` requires a caller of the `Admin` scheme; `Admin` also requires the
+   role `admin`.
 6. **Controllers** — each action sends one MediatR request and checks nothing itself.
 
 **Backend — application layer**
@@ -70,7 +75,8 @@ not, known.
 |---|---|---|
 | 400 | `validation_failed` | a field breaks a rule; `errors` names each field |
 | 400 | `page_size_out_of_range` | a page size above 50 |
-| 401 | `not_signed_in` | no signed-in caller on a protected endpoint |
+| 401 | `not_signed_in` | no signed-in caller of the endpoint's session on a protected endpoint |
+| 401 | `sign_in_failed` | a sign-in refused, for whatever reason (L2-037, criterion 2) |
 | 403 | `not_a_member` | the caller is not, or is no longer, a member |
 | 403 | `not_an_admin` | the caller is not an admin |
 | 403 | `own_listing` | a message or report on the caller's own listing |
@@ -89,20 +95,19 @@ not, known.
 - **`apiErrorInterceptor`** — functional `HttpInterceptorFn` that converts every failed
   response into an `ApiError`. Screens branch on `code` and show their own generic copy;
   the `title` and `detail` of the ProblemDetails are never rendered (criterion 4).
-- A 401 on a member action leads to `MemberGate`; a 403 `not_an_admin` leads to
-  `ForbiddenPage`.
+- A 401 on a member action leads to `MemberGate`, and a 401 on a request made while signed in
+  to the sign-in page with `expired=1` (`sessionExpiryInterceptor`). In Admin, `adminGuard`
+  chooses between Admin's sign-in page, its forbidden page and the review queue.
 
 **Configuration**
 
-Secrets (the database connection string, the file storage key, the sign-in secret) come
+Secrets (the database connection string, the file storage key, passwords) come
 from environment variables or a secret store and never from the repository (L2-027,
 criterion 4). `appsettings.json` holds names and non-secret defaults only. The change that
 adds each setting documents it.
 
 **Undecided**
 
-- The authentication scheme and how a session is kept: `<TO SUPPLY>`; the seam that stands in
-  for it is [ADR 0005](../../../adr/0005-authentication-seam.md).
 - Where secrets are held in production: `<TO SUPPLY>`.
 - Whether the 120 and 30 per-minute windows are fixed or sliding: the design uses fixed
   windows.

@@ -1,0 +1,30 @@
+@startuml
+title UML sequence behaviour — Two sessions on one backend
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+participant "rent page" as rent
+participant "admin page" as adm
+box "Backend — ChristianRent.Api" #D1FADF
+  participant "Session policy scheme" as scheme
+  participant "Member cookie scheme" as m
+  participant "Admin cookie scheme" as a
+  participant "Policies" as pol
+end box
+note over rent, adm : On localhost both cookies reach both origins; in production each is host-only
+rent -> scheme : POST /api/listings (cr-member, cr-admin)
+scheme -> m : path is not /api/admin/
+m --> pol : member principal (stamp checked, not removed)
+pol --> rent : fallback policy (Member) satisfied
+adm -> scheme : GET /api/admin/review-queue (cr-member, cr-admin)
+scheme -> a : path is /api/admin/
+a --> pol : admin principal + role admin
+pol --> adm : Admin policy (Admin scheme) satisfied
+rent -> scheme : GET /api/admin/review-queue (cr-member only)
+scheme -> a : no cr-admin
+pol --> rent : 401 not_signed_in: the member session lends nothing
+adm -> scheme : DELETE /api/admin/session
+scheme --> adm : cr-admin cleared; cr-member untouched
+@enduml

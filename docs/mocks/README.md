@@ -32,8 +32,12 @@ responsive (try 360, 768 and 1280 px), has a light and a dark theme, and works w
 The prototype's sample listings are the cast, not rules. Every mock uses the same people.
 
 - **Today** is Monday, Jun 8, 2026. **The area** is Langley, BC, within 25 km.
-- **Sarah Kim** (SK), Grace Community Church, is the signed-in member looking at the screens.
-- **Naomi Friesen** is the admin.
+- **Sarah Kim** (SK), Grace Community Church, is the signed-in member looking at the screens. Her
+  account's email is `sarah.kim@example.ca`.
+- **Naomi Friesen** is the admin, signed in to Admin as `naomi.friesen@example.ca`.
+- `rent` and `admin` are two applications on two origins. A mock of `rent` links a mock of Admin
+  only where the product crosses origins: "Back to site", "View on site" and "Go to
+  christian.rent".
 
 | Listing | Kind | Price | Where | When | Posted by | Church | Verified |
 |---|---|---|---|---|---|---|---|
@@ -63,7 +67,10 @@ what accessibility (L2-032) required.
 
 | The prototype | The mocks | Why |
 |---|---|---|
-| The header has a Messages button with an unread count, and the account's initials open Admin. | The header has the wordmark, the member's initials (not a control) and Post. Admin is reached at its own address. | A Messages inbox and sign-in are not designed yet, and Admin is shown only to an admin (L2-019). |
+| The header has a Messages button with an unread count, and the account's initials open Admin. | The header has the wordmark, Post and either "Sign in" (`pages/browse/signed-out.html`) or the member's initials (not a control) and "Sign out". Admin is its own application on its own origin. | A Messages inbox is not designed yet, and Admin is shown only to an admin (L2-019, L2-036, L2-041). |
+| The prototype has no sign-in screen. | `pages/sign-in/` and `pages/admin-sign-in/`, each in seven states, drawn here from the prototype's tokens, mark, wordmark and components (the field, the alert and the button), and Admin's ink colour for Admin's own. | L2-037 and L2-038. Neither page offers to create an account or reset a password: neither is designed. |
+| Admin's rail ends with "Back to site". | "Back to site" leads to christian.rent's origin, and "Sign out" follows it. The logo stays in Admin. Below 768 px the rail is a bar whose links wrap under the logo when there is no room beside it. | L2-036, criterion 4; L2-039. |
+| A person who is not an admin sees the site's header on Admin's address. | `pages/admin/forbidden.html` is Admin's own ink page with "Sign out" and "Go to christian.rent"; someone not signed in to Admin gets Admin's sign-in page instead. | L2-038, criteria 2 and 3. |
 | On a phone the header and Post show the mark alone. | The wordmark is on every screen at every width. | `AGENTS.md`: the wordmark is on every screen (L2-023). |
 | After posting: "You're live! 214 believers within 25 km can see it now." | "Sent for review. Your listing will appear on Browse once an admin has looked at it. It isn't public yet." | A listing is public only once approved (L2-012). |
 | After sending a message: "We'll email you at sarah.k@gmail.com", "They usually reply within a few hours", and an "Edit message" link. | "Dan can read your message and reply to you", the message quoted back, and a way back to Browse. | How a message reaches the person is not decided, an email address is a contact detail, a reply time is not something the product knows, and a delivered message cannot be edited. |
@@ -75,7 +82,7 @@ what accessibility (L2-032) required.
 | One verified tick beside the church, always shown. | "Verified" with an icon, separately for the member and for the church, and only when each is verified. | L2-008 and L2-018. |
 | A Share button beside Report; a "More filters" button on Browse. | Neither. | Neither leads anywhere that has been designed. |
 | Admin's detail shows one photo of a listing. | Every photo of a listing for rent is shown: the first large, the others under it (`pages/admin/photos.html`). A listing for rent with none says so (`pages/admin/report.html`). | L2-019, criterion 15: an admin decides on everything the listing shows. |
-| Admin has no state for a detail or a further page that fails, or for a person nobody knows. | `pages/admin/detail-error.html`, `detail-gone.html`, `more-loading.html`, `more-error.html` and `forbidden-signed-out.html`. | L2-019, criteria 20 to 22, and L2-033. |
+| Admin has no state for a detail or a further page that fails. | `pages/admin/detail-error.html`, `detail-gone.html`, `more-loading.html` and `more-error.html`. | L2-019, criteria 20 and 21, and L2-033. |
 | Admin's navigation has Review, Reports, Members and Churches. | Review only. | The review queue is the one Admin screen (L2-019); reports and new members are items in it. |
 | Admin shows "median wait 38 min · 61 approved this week" and "14 months · 6 rentals". | "4 waiting · oldest first", and "Member since". | Nothing in the requirements measures these, and no rental is recorded here: no payment and no booking happen on christian.rent. |
 | Remove acts at once. | Remove opens a confirmation that names what is removed and what follows, in its own words for a reported listing, a new listing and a new member (`dialogs/confirm-remove/new-listing.html`, `new-member.html`). | L2-020, criterion 9. |
@@ -100,9 +107,12 @@ what accessibility (L2-032) required.
 These are not decided by the prototype or the requirements. The mocks take the most conservative
 reading and mark each with a note on the page.
 
-1. **Sign-in.** Not designed. `dialogs/join` asks only for what L2-017 names (a name, a church and
-   the declaration) and has no credentials. Sign up, sign in, reset password and sign out have no
-   mocks, on purpose.
+1. **Sign-in.** An email and a password on each application's own sign-in page (L2-037, L2-038).
+   Sign up, reset password, change password and multi-factor sign-in are not designed and have no
+   mocks, on purpose: an operator creates each account. `dialogs/join` is for a person who is
+   signed in and not yet a member, and asks only for what L2-017 names. Below 400 px "Sign in"
+   and "Sign out" show their icon alone, and below 360 px Post shows its word alone, so the header
+   fits at 320 px (L2-036, criterion 5).
 2. **Where a member reads messages.** Not designed. The sent confirmation does not say where the
    reply arrives, and the member's own listing (`pages/listing/own.html`) says only that messages
    come to them. Until it is designed a message is stored for the two people and shown to
@@ -141,14 +151,16 @@ Legend: ✅ mock exists · ➖ not applicable (reason in manifest) · ❌ missin
 
 ### Pages
 
-| Screen | default | loading | empty | error | for-rent | wanted | spaces | no-results | more-loading | more-error | edge | no-price | unverified | own | not-found | invalid | submitting | sent | failed | limited | blank | need | dates | success | success-wanted | photos-full | photo-refused | photo-failed | photo-uploading | report | new-member | deciding | decided | forbidden | long | photos | detail-error | detail-gone | forbidden-signed-out | Requirements |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Browse (`browse`) | [✅](pages/browse/default.html) | [✅](pages/browse/loading.html) | [✅](pages/browse/empty.html) | [✅](pages/browse/error.html) | [✅](pages/browse/for-rent.html) | [✅](pages/browse/wanted.html) | [✅](pages/browse/spaces.html) | [✅](pages/browse/no-results.html) | [✅](pages/browse/more-loading.html) | [✅](pages/browse/more-error.html) | [✅](pages/browse/edge.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-001`, `L2-002`, `L2-003`, `L2-004`, `L2-005`, `L2-006`, `L2-022`, `L2-023`, `L2-029`, `L2-031`, `L2-033`, `L2-035` |
-| Listing (`listing`) | [✅](pages/listing/default.html) | [✅](pages/listing/loading.html) | ➖ | [✅](pages/listing/error.html) |  | [✅](pages/listing/wanted.html) |  |  |  |  | [✅](pages/listing/edge.html) | [✅](pages/listing/no-price.html) | [✅](pages/listing/unverified.html) | [✅](pages/listing/own.html) | [✅](pages/listing/not-found.html) | [✅](pages/listing/invalid.html) | [✅](pages/listing/submitting.html) | [✅](pages/listing/sent.html) | [✅](pages/listing/failed.html) | [✅](pages/listing/limited.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-007`, `L2-008`, `L2-015`, `L2-016`, `L2-021`, `L2-022`, `L2-024`, `L2-031`, `L2-033` |
-| Post (`post`) | [✅](pages/post/default.html) | ➖ | ➖ | [✅](pages/post/error.html) |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/post/invalid.html) | [✅](pages/post/submitting.html) |  |  | [✅](pages/post/limited.html) | [✅](pages/post/blank.html) | [✅](pages/post/need.html) | [✅](pages/post/dates.html) | [✅](pages/post/success.html) | [✅](pages/post/success-wanted.html) | [✅](pages/post/photos-full.html) | [✅](pages/post/photo-refused.html) | [✅](pages/post/photo-failed.html) | [✅](pages/post/photo-uploading.html) |  |  |  |  |  |  |  |  |  |  | `L2-009`, `L2-010`, `L2-011`, `L2-012`, `L2-013`, `L2-014`, `L2-022`, `L2-031` |
-| Not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-033`, `L2-007` |
-| Brand sheet (`brand`) | [✅](pages/brand/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-023` |
-| Admin (`admin`) | [✅](pages/admin/default.html) | [✅](pages/admin/loading.html) | [✅](pages/admin/empty.html) | [✅](pages/admin/error.html) |  | [✅](pages/admin/wanted.html) |  |  | [✅](pages/admin/more-loading.html) | [✅](pages/admin/more-error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/admin/report.html) | [✅](pages/admin/new-member.html) | [✅](pages/admin/deciding.html) | [✅](pages/admin/decided.html) | [✅](pages/admin/forbidden.html) | [✅](pages/admin/long.html) | [✅](pages/admin/photos.html) | [✅](pages/admin/detail-error.html) | [✅](pages/admin/detail-gone.html) | [✅](pages/admin/forbidden-signed-out.html) | `L2-018`, `L2-019`, `L2-020`, `L2-031` |
+| Screen | default | loading | empty | error | signed-out | for-rent | wanted | spaces | no-results | more-loading | more-error | edge | no-price | unverified | own | not-found | invalid | submitting | sent | failed | limited | blank | need | dates | success | success-wanted | photos-full | photo-refused | photo-failed | photo-uploading | refused | expired | report | new-member | deciding | decided | forbidden | unreachable | long | photos | detail-error | detail-gone | Requirements |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Browse (`browse`) | [✅](pages/browse/default.html) | [✅](pages/browse/loading.html) | [✅](pages/browse/empty.html) | [✅](pages/browse/error.html) | [✅](pages/browse/signed-out.html) | [✅](pages/browse/for-rent.html) | [✅](pages/browse/wanted.html) | [✅](pages/browse/spaces.html) | [✅](pages/browse/no-results.html) | [✅](pages/browse/more-loading.html) | [✅](pages/browse/more-error.html) | [✅](pages/browse/edge.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-001`, `L2-002`, `L2-003`, `L2-004`, `L2-005`, `L2-006`, `L2-022`, `L2-023`, `L2-029`, `L2-031`, `L2-033`, `L2-035`, `L2-036`, `L2-039` |
+| Listing (`listing`) | [✅](pages/listing/default.html) | [✅](pages/listing/loading.html) | ➖ | [✅](pages/listing/error.html) |  |  | [✅](pages/listing/wanted.html) |  |  |  |  | [✅](pages/listing/edge.html) | [✅](pages/listing/no-price.html) | [✅](pages/listing/unverified.html) | [✅](pages/listing/own.html) | [✅](pages/listing/not-found.html) | [✅](pages/listing/invalid.html) | [✅](pages/listing/submitting.html) | [✅](pages/listing/sent.html) | [✅](pages/listing/failed.html) | [✅](pages/listing/limited.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-007`, `L2-008`, `L2-015`, `L2-016`, `L2-021`, `L2-022`, `L2-024`, `L2-031`, `L2-033` |
+| Post (`post`) | [✅](pages/post/default.html) | ➖ | ➖ | [✅](pages/post/error.html) |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/post/invalid.html) | [✅](pages/post/submitting.html) |  |  | [✅](pages/post/limited.html) | [✅](pages/post/blank.html) | [✅](pages/post/need.html) | [✅](pages/post/dates.html) | [✅](pages/post/success.html) | [✅](pages/post/success-wanted.html) | [✅](pages/post/photos-full.html) | [✅](pages/post/photo-refused.html) | [✅](pages/post/photo-failed.html) | [✅](pages/post/photo-uploading.html) |  |  |  |  |  |  |  |  |  |  |  |  | `L2-009`, `L2-010`, `L2-011`, `L2-012`, `L2-013`, `L2-014`, `L2-022`, `L2-031` |
+| Not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-033`, `L2-007` |
+| Brand sheet (`brand`) | [✅](pages/brand/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-023` |
+| Sign in (`sign-in`) | [✅](pages/sign-in/default.html) | ➖ | ➖ | [✅](pages/sign-in/error.html) |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/sign-in/invalid.html) | [✅](pages/sign-in/submitting.html) |  |  | [✅](pages/sign-in/limited.html) |  |  |  |  |  |  |  |  |  | [✅](pages/sign-in/refused.html) | [✅](pages/sign-in/expired.html) |  |  |  |  |  |  |  |  |  |  | `L2-037`, `L2-039`, `L2-040`, `L2-032`, `L2-036` |
+| Admin (`admin`) | [✅](pages/admin/default.html) | [✅](pages/admin/loading.html) | [✅](pages/admin/empty.html) | [✅](pages/admin/error.html) |  |  | [✅](pages/admin/wanted.html) |  |  | [✅](pages/admin/more-loading.html) | [✅](pages/admin/more-error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/admin/report.html) | [✅](pages/admin/new-member.html) | [✅](pages/admin/deciding.html) | [✅](pages/admin/decided.html) | [✅](pages/admin/forbidden.html) | [✅](pages/admin/unreachable.html) | [✅](pages/admin/long.html) | [✅](pages/admin/photos.html) | [✅](pages/admin/detail-error.html) | [✅](pages/admin/detail-gone.html) | `L2-018`, `L2-019`, `L2-020`, `L2-031`, `L2-038`, `L2-039`, `L2-041` |
+| Admin sign-in (`admin-sign-in`) | [✅](pages/admin-sign-in/default.html) | ➖ | ➖ | [✅](pages/admin-sign-in/error.html) |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/admin-sign-in/invalid.html) | [✅](pages/admin-sign-in/submitting.html) |  |  | [✅](pages/admin-sign-in/limited.html) |  |  |  |  |  |  |  |  |  | [✅](pages/admin-sign-in/refused.html) | [✅](pages/admin-sign-in/expired.html) |  |  |  |  |  |  |  |  |  |  | `L2-038`, `L2-039`, `L2-040`, `L2-032` |
 
 ### Dialogs
 

@@ -15,7 +15,7 @@ skinparam package {
   BackgroundColor #F9FAFB
 }
 actor "Admin" as actor
-box "Frontend — admin library (lazy)" #E0F2FE
+box "Frontend — admin application (review page, lazy)" #E0F2FE
   participant "ReviewPage" as review
 end box
 box "Frontend — rent application" #E0F2FE
@@ -34,7 +34,7 @@ box "Backend — ChristianRent.Infrastructure" #FFF4E5
   database "Database" as db
 end box
 actor -> review : Approve a new member
-review -> ctrl : POST /api/review-queue/{id}/decision
+review -> ctrl : POST /api/admin/review-queue/{id}/decision
 ctrl -> ctrl : Admin policy (L2-018 criterion 5)
 ctrl -> dec : Send DecideReviewItemCommand
 dec -> member : Verify() (L2-018 criterion 1)

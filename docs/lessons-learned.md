@@ -65,6 +65,13 @@ Each journey's entry has three parts:
 | L49 | When a change to a paged list aborts what is on its way, cover every direction: a flag that tracks only the next page misses a released page being asked for again. | 11 |
 | L50 | Prove timed behaviour in the browser (a notification that leaves, a look every minute) with `page.clock.install` before the screen opens and `fastForward`; the spec waits for nothing. | 11 |
 | L51 | A spec that checks which controls a screen offers asserts their texts, not how many there are: the journey that adds controls then changes a list a reader can check. | 11 |
+| L52 | Never `git stash` part of the tree while renames are staged: the stash takes the index too, and popping it conflicts. Commit by path (`git add <paths>`) instead. | 13 |
+| L53 | ASP.NET Core Identity's `UserManager` reads the system clock for lockout: a rule the tests must move through time reads `TimeProvider` itself and stores its outcome in Identity's columns. | 13 |
+| L54 | A test that keeps cookies through `WebApplicationFactory` on a fake clock carries them in a jar of its own: `CookieContainer` reads the real clock and drops a cookie the API still accepts. | 13 |
+| L55 | A page object that reads response bodies swallows a read cut short when the spec ends: a script that arrives after the last assertion otherwise fails the spec at random. | 13 |
+| L56 | Code the initial chunk needs imports constants from a module of their own, never from a module that holds a class: the bundler then keeps the whole module, class and all, in `main`. | 13 |
+| L57 | Before adding a control to a crowded bar, measure the bar's parts in the mock at 320 px, and draw how it fits before building it. | 13 |
+| L58 | When two sessions share one backend, put each one's endpoints under its own path and choose the scheme by path, so the principal is the right one before the rate limiter runs; prove the separation with real cookies, in a table of cases. | 13 |
 
 ## Journeys
 
@@ -752,3 +759,75 @@ Slices 11.1 to 11.3, finished on Nov 26, 2026, on Windows.
   for new items, and clear their timers, when the admin leaves.
 - L46: the build ran before the behaviour specs.
 - L48: missed once; editing scripts were otherwise files.
+
+### 13. Two applications and sign-in
+
+Slices 13.1 to 13.10, finished on Nov 27, 2026.
+
+**What slowed it**
+
+- The container again had no .NET SDK, PlantUML or Graphviz; Ubuntu's packages installed them.
+- The prototype has no sign-in frame, so both sign-in pages, the signed-out header, Admin's
+  rail with Sign out, its forbidden page on the Admin gate, and later its "couldn't reach Admin"
+  state were drawn in `docs/mocks/` first, with two new design-system components.
+- The header had no room for a 44 px control at 320 px. Measuring the mock showed 25 px to
+  spare, so Post shows its word alone below 360 px and Sign in and Sign out their icon below
+  400 px (L57).
+- Committing the frontend while the backend was half-edited with `git stash push -- backend`
+  took the staged renames of slice 13.1 with it; popping it conflicted in nine files. The
+  committed tree was intact, `reset --hard` was refused, and checking the conflicted paths out
+  of `HEAD` recovered it (L52).
+- Identity's lockout reads the system clock, which the acceptance tests cannot move; the rule
+  became `SignInLockout`, on `TimeProvider`, writing Identity's columns (L53).
+- The fixture's clock is in June and the real one in November, so `HttpClient`'s cookie
+  container threw away the 14-day cookie at once. A `CookieJar` handler carries cookies and
+  leaves expiry to the API (L54).
+- `TestAuthHandler` signed in by the default scheme, which the explicit schemes of the new
+  policies bypassed; `ProbeApiFactory` now makes it the handler of both cookie schemes, and it
+  keeps them apart with `X-Test-Session`.
+- Seven existing tests asserted that a member got 403 on Admin's endpoints. Under the new rule
+  a member session there is not signed in (401); they were rewritten to sign in to Admin.
+- The spec that proved leaving Admin aborts a request could no longer leave within the
+  application; it returned in slice 13.9, where Sign out leaves the review page.
+- A sign-in spec that loads the review chunk after its last check failed one run in eight:
+  `ScriptsPart` read a script that arrived as the spec ended (L55).
+- `rent`'s initial chunks first grew 5 kB, half of it the two draft stores, which signing out
+  pulled into `main` by importing their keys (L56).
+
+**New lessons**: L52 to L58 above, and these details for later journeys:
+
+- Admin's endpoints live under `/api/admin/`; a new one goes there, with the `Admin` policy,
+  and its client in `api`. Journey 12's prompt names `POST /api/admin/churches/{id}/verification`.
+- Admin is its own application: its routes, its forbidden page and its `config.json`
+  (`siteUrl`) are in `projects/admin`; links to the site use `SITE_LINKS`, never `routerLink`.
+- The default fixture now answers nobody signed in (401) to both applications; a spec that
+  needs a member answers `answerMember`, one who may join `answerNotAMember` or
+  `answerJoining`, and a sign-in `answerSigningIn`.
+- A screen's request refused as `not_signed_in` while signed in takes the person to sign in:
+  a spec that wants that refusal on screen signs in as no one.
+- The budgets are 330/340 kB for `rent` (326.76 kB) and 320/335 kB for Admin (314.49 kB).
+
+**Earlier lessons applied**
+
+- L1: the branch was checked against `main` first; journey 12 had not landed, so the numbers
+  were L2-037, ADR 0028 and journey 13.
+- L2 and L25: every new state had a mock and a criterion before code, and a missing one (Admin
+  cannot ask who is signed in) was drawn before it was built.
+- L3 and L20: removing the member link, the lockout, the removed-member check, the 14-day
+  lifetime and the Admin policy's scheme were each caught by a test.
+- L4: every commit followed a read, green run; `verify.mjs` ran before each slice that touched
+  both sides.
+- L5: the telemetry test of a real sign-in runs in the telemetry collection, awaiting its spans.
+- L6: `MSBUILDDISABLENODEREUSE=1` for every `dotnet` run beside the two dev servers.
+- L9 and L24: the shared fixture answers who is signed in for both applications by default.
+- L11 and L28: the build stats of `main`, the split and the end were compared; the split did
+  not grow `rent`, and the growth that remained is in ADR 0030.
+- L13: the sweeps cover both sign-in pages in every state, the signed-out header and Admin's
+  unreachable state, and the heap checks leave Admin for its sign-in page; none was run.
+- L19: the new specs were run 5 to 8 times, which found L55.
+- L27: both production builds ran in every slice's checks.
+- L31: every editing script asserted that each text it replaced was there, which caught three
+  misses before they were silent.
+- L33: signing out of Admin observes the detail request's `requestfailed`.
+- L38: the message spec fixes the browser's clock before the page opens.
+

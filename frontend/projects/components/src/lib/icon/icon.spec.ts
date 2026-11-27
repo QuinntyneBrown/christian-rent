@@ -31,6 +31,7 @@ const SET: [IconName, string][] = [
     '<rect x="3" y="4" width="18" height="16" rx="2"></rect><circle cx="9" cy="10" r="2"></circle><path d="m3 17 5-5 4 4 3-3 6 6"></path>',
   ],
   ['inbox', '<path d="M3 13h5l1 3h6l1-3h5M5 5h14l2 8v6H3v-6z"></path>'],
+  ['login', '<path d="M14 4h5v16h-5M9 8l4 4-4 4M13 12H3"></path>'],
   ['logout', '<path d="M10 4H5v16h5M15 8l4 4-4 4M19 12H9"></path>'],
   ['external', '<path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"></path>'],
   ['alert', '<path d="M12 3 2 20h20zM12 10v4M12 17v.5"></path>'],

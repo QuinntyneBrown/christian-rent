@@ -11,12 +11,13 @@ verified and enters the review queue, and may post and message at once.
 - **church** — congregation a member belongs to, with a name and a city
 - **declaration** — statement "I am a Christian", required to join
 - **Join dialog** — dialog titled "Become a member" that collects the three items
-- **member gate** — check made before posting, messaging or reporting, which opens the Join
-  dialog for a person who is not a member
+- **member gate** — check made before posting, messaging or reporting, which sends a person
+  who is not signed in to the sign-in page and opens the Join dialog for a person signed in who
+  is not a member
 
-How a member signs in is not designed yet. This feature designs membership itself and
-isolates sign-in behind one interface on each side, so that the sign-in design can be added
-without changing the slices that depend on membership.
+Signing in is [sign-in-and-sessions](../../platform/sign-in-and-sessions/README.md). This
+feature designs membership itself, behind one interface on each side (`ICurrentMember`,
+`SESSION`), so the slices that depend on membership did not change when sign-in came.
 
 ## Description
 
@@ -24,9 +25,11 @@ without changing the slices that depend on membership.
 
 - **`MemberGate`** — `requireMember(purpose): Promise<boolean>`, where `purpose` is
   `'post'`, `'message'` or `'report'`. It reads `SESSION.member()`. For a member it resolves
-  `true`. Otherwise it asks `SESSION.refresh()` again and, while that answers, imports
-  `JoinDialog` dynamically; for a person who is still not a member it opens the dialog with the
-  CDK `Dialog` and resolves with the result ([ADR 0017](../../../adr/0017-identifying-a-person-until-sign-in.md)). The dialog code stays out of the initial
+  `true`. Otherwise it asks `SESSION.refresh()` again. Signed out, it navigates to
+  `/sign-in?return=<this address>` and resolves `false`; what was written is kept in the tab
+  ([ADR 0029](../../../adr/0029-sign-in-and-two-sessions.md)). Signed in and still not a
+  member, it imports `JoinDialog` dynamically, opens it with the CDK `Dialog` and resolves with
+  the result ([ADR 0017](../../../adr/0017-identifying-a-person-until-sign-in.md)). The dialog code stays out of the initial
   bundle. Post, the message box and the Report button each call it (L2-009 criterion 4,
   L2-015 criterion 5, L2-021 criterion 5).
 - **`JoinDialog`** (`rent/src/app/join/`, selector `cr-join-dialog`) — orchestrating dialog
@@ -113,9 +116,10 @@ mark (L2-017, criterion 4).
 
 **Decided**
 
-- How a person is identified before and after joining: the sign-in identifier is the `sub`
-  claim, stored as `Member.SignInId`; no sign-in screen is built
-  ([ADR 0017](../../../adr/0017-identifying-a-person-until-sign-in.md)).
+- How a person is identified before and after joining: the account's id is the `sub` claim,
+  stored as `Member.SignInId` ([ADR 0017](../../../adr/0017-identifying-a-person-until-sign-in.md),
+  [ADR 0029](../../../adr/0029-sign-in-and-two-sessions.md)). The operator links an existing
+  account to a member with `create-account`.
 - `POST /api/members`, `GET /api/churches` and `GET /api/members/me` need a signed-in person
   and not a member; they are not exceptions to L2-025 criterion 1 (ADR 0017).
 - A new church is matched by its trimmed, single-spaced, lower-cased name and city without
@@ -125,8 +129,8 @@ mark (L2-017, criterion 4).
 
 **Undecided**
 
-- Sign-in, sign-out, and the contact detail needed "to reach them": `<TO SUPPLY>`. The mocks
-  draw no credentials on purpose.
+- The contact detail needed "to reach them", beyond the account's email, which only sign-in
+  uses: `<TO SUPPLY>`. Sign-up is not designed: an operator creates each account.
 - How a member asks to leave (L2-028, criterion 2): the backend part is designed in
   [handle-member-data](../../platform/handle-member-data/README.md) and built; its screen is
   `<TO SUPPLY>`.
@@ -184,7 +188,7 @@ caller is identified.
 ### Class structure
 
 `Member` belongs to one `Church`; both start unverified. `ICurrentMember` on the backend and
-`Session` on the frontend are the two seams behind which sign-in will sit.
+`Session` on the frontend are the two seams behind which sign-in sits.
 
 ![Class diagram for Become a member](diagrams/class-structure.png)
 

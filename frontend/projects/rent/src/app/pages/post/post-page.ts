@@ -25,7 +25,6 @@ import {
   PhotoPicker,
   PostLayout,
   Sentence,
-  SiteHeader,
   Textarea,
   type WordOption,
 } from '@rent/components';
@@ -65,9 +64,12 @@ const PERIODS: readonly WordOption[] = [
  * with invalid fields marks them all, and focus moves to the summary, whose links move focus to
  * their fields (L2-010, criterion 8).
  */
+import { RentHeader } from '../../shell/rent-header';
+
 @Component({
   selector: 'cr-post-page',
   imports: [
+    RentHeader,
     Alert,
     Button,
     Confirmation,
@@ -80,7 +82,6 @@ const PERIODS: readonly WordOption[] = [
     PostLayout,
     RouterLink,
     Sentence,
-    SiteHeader,
     Textarea,
   ],
   providers: [PostStore, PhotoUploads],

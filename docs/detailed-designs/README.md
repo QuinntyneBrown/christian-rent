@@ -7,7 +7,8 @@ level-1 (L1) requirements in [`docs/specs/L1.md`](../specs/L1.md). The mocks in
 mock states it covers.
 
 The frontend is an Angular workspace under `frontend/` with the libraries `api`, `domain`,
-`components` and `admin` and the application `rent`. The backend is a .NET service under
+`components` and `shell` and two applications, `rent` and `admin`, each built and deployed on
+its own origin. The backend is a .NET service under
 `backend/` in four layers: `ChristianRent.Domain`, `ChristianRent.Application`,
 `ChristianRent.Infrastructure` and `ChristianRent.Api`, with `ChristianRent.Cli` for commands.
 
@@ -80,7 +81,7 @@ A member's report of a listing.
 
 ### platform
 
-What every slice shares: access rules, member data, the application shell, failure and operations.
+What every slice shares: access rules, member data, the two applications' shells, sign-in and sessions, failure and operations.
 
 | Feature | L2 requirements |
 |---|---|
@@ -88,6 +89,7 @@ What every slice shares: access rules, member data, the application shell, failu
 | [Handle what members write and who they are](platform/handle-member-data/README.md) | `L2-026`, `L2-028` |
 | [Present the application shell](platform/present-app-shell/README.md) | `L2-022`, `L2-023`, `L2-036`, `L2-024`, `L2-029`, `L2-031`, `L2-032`, `L2-033` |
 | [Fail clearly and operate in production](platform/fail-clearly-and-operate/README.md) | `L2-033`, `L2-034`, `L2-028`, `L2-032` |
+| [Sign in and keep a session in each application](platform/sign-in-and-sessions/README.md) | `L2-037`, `L2-038`, `L2-039`, `L2-040`, `L2-025`, `L2-027`, `L2-028` |
 
 ## Requirement coverage
 
@@ -119,10 +121,10 @@ Every L2 requirement is realized by at least one feature.
 | `L2-022` | `L1-009` | [browse-listings](browse/browse-listings/README.md), [read-listing](listing/read-listing/README.md), [compose-listing](post/compose-listing/README.md), [present-app-shell](platform/present-app-shell/README.md) |
 | `L2-023` | `L1-009` | [present-app-shell](platform/present-app-shell/README.md) |
 | `L2-024` | `L1-010` | [read-listing](listing/read-listing/README.md), [compose-listing](post/compose-listing/README.md), [send-message](messages/send-message/README.md), [present-app-shell](platform/present-app-shell/README.md) |
-| `L2-025` | `L1-011` | [read-listing](listing/read-listing/README.md), [publish-listing](post/publish-listing/README.md), [add-photos](post/add-photos/README.md), [send-message](messages/send-message/README.md), [become-member](members/become-member/README.md), [verify-members-and-churches](members/verify-members-and-churches/README.md), [view-review-queue](review/view-review-queue/README.md), [decide-review-item](review/decide-review-item/README.md), [report-listing](reports/report-listing/README.md), [enforce-access](platform/enforce-access/README.md) |
+| `L2-025` | `L1-011` | [read-listing](listing/read-listing/README.md), [publish-listing](post/publish-listing/README.md), [add-photos](post/add-photos/README.md), [send-message](messages/send-message/README.md), [become-member](members/become-member/README.md), [verify-members-and-churches](members/verify-members-and-churches/README.md), [view-review-queue](review/view-review-queue/README.md), [decide-review-item](review/decide-review-item/README.md), [report-listing](reports/report-listing/README.md), [enforce-access](platform/enforce-access/README.md), [sign-in-and-sessions](platform/sign-in-and-sessions/README.md) |
 | `L2-026` | `L1-011` | [search-and-filter-listings](browse/search-and-filter-listings/README.md), [publish-listing](post/publish-listing/README.md), [send-message](messages/send-message/README.md), [report-listing](reports/report-listing/README.md), [handle-member-data](platform/handle-member-data/README.md) |
-| `L2-027` | `L1-011` | [enforce-access](platform/enforce-access/README.md) |
-| `L2-028` | `L1-011` | [become-member](members/become-member/README.md), [handle-member-data](platform/handle-member-data/README.md), [fail-clearly-and-operate](platform/fail-clearly-and-operate/README.md) |
+| `L2-027` | `L1-011` | [enforce-access](platform/enforce-access/README.md), [sign-in-and-sessions](platform/sign-in-and-sessions/README.md) |
+| `L2-028` | `L1-011` | [become-member](members/become-member/README.md), [handle-member-data](platform/handle-member-data/README.md), [fail-clearly-and-operate](platform/fail-clearly-and-operate/README.md), [sign-in-and-sessions](platform/sign-in-and-sessions/README.md) |
 | `L2-029` | `L1-012` | [browse-listings](browse/browse-listings/README.md), [add-photos](post/add-photos/README.md), [present-app-shell](platform/present-app-shell/README.md) |
 | `L2-030` | `L1-012` | [browse-listings](browse/browse-listings/README.md), [search-and-filter-listings](browse/search-and-filter-listings/README.md), [view-review-queue](review/view-review-queue/README.md) |
 | `L2-031` | `L1-013` | [browse-listings](browse/browse-listings/README.md), [read-listing](listing/read-listing/README.md), [compose-listing](post/compose-listing/README.md), [view-review-queue](review/view-review-queue/README.md), [present-app-shell](platform/present-app-shell/README.md) |
@@ -131,6 +133,11 @@ Every L2 requirement is realized by at least one feature.
 | `L2-034` | `L1-015` | [fail-clearly-and-operate](platform/fail-clearly-and-operate/README.md) |
 | `L2-035` | `L1-001` | [search-and-filter-listings](browse/search-and-filter-listings/README.md) |
 | `L2-036` | `L1-001` | [present-app-shell](platform/present-app-shell/README.md) |
+| `L2-037` | `L1-016`, `L1-011` | [sign-in-and-sessions](platform/sign-in-and-sessions/README.md) |
+| `L2-038` | `L1-016`, `L1-007` | [sign-in-and-sessions](platform/sign-in-and-sessions/README.md), [view-review-queue](review/view-review-queue/README.md) |
+| `L2-039` | `L1-016`, `L1-011` | [sign-in-and-sessions](platform/sign-in-and-sessions/README.md), [present-app-shell](platform/present-app-shell/README.md) |
+| `L2-040` | `L1-016`, `L1-011` | [sign-in-and-sessions](platform/sign-in-and-sessions/README.md), [handle-member-data](platform/handle-member-data/README.md) |
+| `L2-041` | `L1-017`, `L1-012` | [present-app-shell](platform/present-app-shell/README.md) |
 
 ## Open decisions
 
@@ -138,8 +145,7 @@ The requirements and the mocks leave these undecided. Each design marks where it
 
 | Decision | Affects |
 |---|---|
-| How a member signs in, and how a person is identified before joining | become-member, enforce-access, every member action |
-| Whether `POST /api/members` and `GET /api/churches` need an identified person (`L2-025` criterion 5 exempts them from membership only), and where `L2-025` exempts the health endpoints | become-member, enforce-access |
+| Sign-up, password reset and change, email confirmation, other providers and multi-factor sign-in | sign-in-and-sessions |
 | Where a member reads messages and replies (the Messages inbox) | send-message, decide-review-item |
 | How a poster is told that their listing was removed | decide-review-item |
 | How a member manages their own listings ("My listings") | read-listing |
@@ -150,8 +156,7 @@ The requirements and the mocks leave these undecided. Each design marks where it
 | How Admin learns that new items arrived while the queue is open | view-review-queue |
 | The control that reorders photos (no mock) | add-photos |
 | The database engine, the file storage product, the image library | every backend slice, add-photos |
-| Hosting, the telemetry backend, backups and their retention | fail-clearly-and-operate, handle-member-data |
-| The `angular.json` budget values | present-app-shell |
+| Hosting of the backend and of the two static hosts, the telemetry backend, backups and their retention | fail-clearly-and-operate, handle-member-data, present-app-shell |
 
 ## Rendering the diagrams
 

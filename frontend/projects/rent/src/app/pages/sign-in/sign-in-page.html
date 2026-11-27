@@ -1,0 +1,15 @@
+<cr-rent-header [session]="false" />
+<main id="main" class="container" tabindex="-1">
+  <cr-sign-in
+    [(email)]="store.email"
+    [(password)]="store.password"
+    [errors]="store.errors()"
+    [status]="store.status()"
+    [retryAt]="retryAt()"
+    [expired]="expired() !== undefined"
+    [focusOn]="store.focus()"
+    (submitted)="submit()"
+  >
+    <a slot="links" cr-button variant="link" routerLink="/">Back to Browse</a>
+  </cr-sign-in>
+</main>

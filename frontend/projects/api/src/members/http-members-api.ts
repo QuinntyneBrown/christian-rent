@@ -12,11 +12,4 @@ export class HttpMembersApi implements MembersApi {
   join(request: JoinRequest): Promise<Member> {
     return firstValueFrom(this.http.post<Member>('/api/members', request));
   }
-
-  async me(): Promise<Member | null> {
-    const response = await firstValueFrom(
-      this.http.get<Member>('/api/members/me', { observe: 'response' }),
-    );
-    return response.status === 204 ? null : response.body;
-  }
 }

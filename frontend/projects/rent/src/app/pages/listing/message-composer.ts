@@ -16,6 +16,7 @@ import {
   toMessageSentView,
   todayOf,
   validateMessageDraft,
+  sessionStorageOf,
 } from '@rent/domain';
 import { MemberGate } from '../../members/member-gate';
 import { ListingStore } from './listing-store';
@@ -191,14 +192,5 @@ export class MessageComposer {
       clearTimeout(this.reopenTimer);
       this.reopenTimer = null;
     }
-  }
-}
-
-/** The tab's `sessionStorage`, or null where the browser refuses it. */
-function sessionStorageOf(document: Document): Storage | null {
-  try {
-    return document.defaultView?.sessionStorage ?? null;
-  } catch {
-    return null;
   }
 }

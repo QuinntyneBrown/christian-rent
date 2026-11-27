@@ -4,7 +4,7 @@ Extracted from [docs/mocks](../mocks/README.md) on Nov 26, 2026. Open [index.htm
 
 The mocks are the source of truth for the UI; this system is what they have in common, written down once. The mocks link `tokens/tokens.css` and `assets/components.css` from here, so the two cannot drift apart.
 
-christian.rent is four screens and narrow on purpose. The system documents the components those screens use and no others: it has no table, tabs, menu, tooltip, breadcrumb, pagination or switch, because no screen has one. Add a component here when a mock first needs it.
+christian.rent is two applications of a few screens, and narrow on purpose. The system documents the components those screens use and no others: it has no table, tabs, menu, tooltip, breadcrumb, pagination or switch, because no screen has one. Add a component here when a mock first needs it.
 
 ## Foundations
 
@@ -43,8 +43,10 @@ christian.rent is four screens and narrow on purpose. The system documents the c
 | [Switch (Everything, For rent, Wanted)](components/segmented.html) | Navigation | Browse’s switch between everything, what is for rent and what is wanted. |
 | [Kind filter](components/kind-filter.html) | Inputs | Narrows Browse to spaces or to things. |
 | [Logo](components/logo.html) | Brand | The mark, a key whose head is a cross, and the lowercase wordmark with “.rent” in orange. |
-| [Site header](components/site-header.html) | Navigation | The bar at the top of Browse and Listing: the logo, who is signed in, and Post. |
-| [Admin navigation](components/admin-nav.html) | Navigation | The ink rail in Admin: the logo, who the admin is, the review queue with its count, and the way back to the site. |
+| [Site header](components/site-header.html) | Navigation | The bar at the top of Browse, Listing and Sign in: the logo, who is signed in with Sign out, or Sign in, and Post. |
+| [Admin navigation](components/admin-nav.html) | Navigation | The ink rail in Admin: the logo, who the admin is, the review queue with its count, the way back to the site, and Sign out. |
+| [Sign in](components/sign-in.html) | Forms | The sign-in form of either application: email, password, Sign in, and who creates accounts. |
+| [Admin gate](components/admin-gate.html) | Layout | Admin's ink page around one card: its sign-in and its forbidden page. |
 | [Skip link](components/skip-link.html) | Navigation | The first thing the Tab key reaches: a link past the header to the content. |
 | [Dialog](components/dialog.html) | Containers and overlays | A short task over the page: report a listing, confirm Remove, become a member. |
 | [Listing card](components/listing-card.html) | Data display | One listing on Browse: a photo for something for rent, a blue card with no photo for something wanted. |
@@ -73,7 +75,7 @@ christian.rent is four screens and narrow on purpose. The system documents the c
 | [Forms](patterns/forms.html) | How a member fills something in on christian.rent, and what happens when it goes wrong. |
 | [Feedback and loading](patterns/feedback-and-loading.html) | Which kind of feedback answers which action, and how waiting looks. |
 | [Empty and error states](patterns/empty-and-error-states.html) | What to show when there is nothing to show, and how to word it. |
-| [Navigation and page structure](patterns/navigation-and-page-structure.html) | How the four screens are put together and how a person moves between them. |
+| [Navigation and page structure](patterns/navigation-and-page-structure.html) | How the screens of the two applications are put together and how a person moves between them. |
 | [Dialogs and overlays](patterns/dialogs-and-overlays.html) | When something opens over the page, and how it behaves. |
 | [Lists of listings and the queue](patterns/lists.html) | How Browse’s grid and Admin’s queue load, grow and stay bounded. |
 | [Notifications](patterns/notifications.html) | How christian.rent tells someone that something happened. |

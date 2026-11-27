@@ -431,7 +431,7 @@ a.listing-card:hover, a.listing-card[data-state="hover"] { transform: translateY
 .confirmation__card { width: 100%; max-width: 18.75rem; text-align: left; margin-top: var(--space-5); }
 .confirmation__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); margin-top: var(--space-5); }/* ---------- Admin -------------------------------------------------------------- */
 .admin { display: flex; flex-direction: column; min-height: 100dvh; background: var(--color-bg-surface-sunken); }
-.admin-nav { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-2) var(--space-4); background: var(--color-bg-inverse); color: var(--color-fg-inverse); }
+.admin-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-2) var(--space-4); background: var(--color-bg-inverse); color: var(--color-fg-inverse); }
 .admin-nav__label { display: none; font: var(--text-overline); color: var(--color-fg-inverse-muted); padding: var(--space-1) var(--space-2) 0; }
 .admin-nav__links { display: flex; gap: var(--space-1); list-style: none; margin: 0; padding: 0; }
 .admin-nav__link { display: flex; align-items: center; gap: var(--space-3); min-height: var(--target-min); padding: 0 var(--space-3); border-radius: var(--radius-sm); color: var(--color-fg-inverse-muted); font: var(--text-label); text-decoration: none; white-space: nowrap; }
@@ -441,15 +441,16 @@ a.listing-card:hover, a.listing-card[data-state="hover"] { transform: translateY
 .admin-nav__link { min-width: var(--target-min); justify-content: center; }
 .admin-nav__count { margin-left: auto; min-width: 1.5rem; padding: 0 var(--space-2); border-radius: var(--radius-full); background: var(--color-rent); color: var(--color-fg-on-rent); font: var(--text-overline); font-weight: var(--font-weight-bold); text-align: center; font-variant-numeric: tabular-nums; }
 .admin-nav :focus-visible { outline-color: var(--color-fg-inverse); }
+.admin-nav__end { display: flex; gap: var(--space-1); margin-left: auto; }
 .admin__queue { display: flex; flex-direction: column; min-width: 0; min-height: 0; flex: 1; }
 .admin__detail { display: none; min-width: 0; }
 @media (min-width: 48rem) {
   .admin { flex-direction: row; height: 100dvh; }
-.admin-nav { flex-direction: column; align-items: stretch; justify-content: flex-start; width: 4.5rem; padding: var(--space-6) var(--space-3); flex: none; }
+.admin-nav { flex-direction: column; flex-wrap: nowrap; align-items: stretch; justify-content: flex-start; width: 4.5rem; padding: var(--space-6) var(--space-3); flex: none; }
 .admin-nav .wordmark { display: none; }
 .admin-nav__links { flex-direction: column; margin-top: var(--space-8); }
 .admin-nav__link { justify-content: center; padding: 0; }
-.admin-nav__exit { margin-top: auto; }
+.admin-nav__end { flex-direction: column; margin-top: auto; margin-left: 0; }
 .admin__queue { flex: none; width: min(40%, var(--layout-queue-width)); background: var(--color-bg-surface); border-right: 1px solid var(--color-border-default); overflow-y: auto; }
 .admin__detail { display: block; flex: 1; overflow-y: auto; }
 }
@@ -561,6 +562,38 @@ a.listing-card:hover, a.listing-card[data-state="hover"] { transform: translateY
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 .skeleton { animation: none; }
 }
+/* ---------- Header session control: "Sign in" or "Sign out" (L2-036) ---------- */
+.site-header__session { min-width: var(--target-min); }
+@media (max-width: 24.99rem) {
+  .site-header__session { padding-inline: 0; width: var(--target-min); }
+  .site-header__label { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+@media (max-width: 22.49rem) {
+  .site-header__actions { gap: var(--space-1); }
+  .site-header__post-icon { display: none; }
+}
+
+/* ---------- Sign in: the sign-in form of either application (L2-037, L2-038) ---------- */
+.sign-in { display: flex; flex-direction: column; gap: var(--space-6); width: 100%; max-width: 28rem; margin-inline: auto; padding-block: var(--space-12) var(--space-16); }
+.sign-in--admin { padding-block: 0; }
+.sign-in__head { display: flex; flex-direction: column; gap: var(--space-2); }
+.sign-in__overline { font: var(--text-overline); color: var(--color-fg-muted); text-transform: uppercase; }
+.sign-in__title { font: var(--text-h1); letter-spacing: var(--letter-spacing-tight); }
+.sign-in__text { color: var(--color-fg-muted); }
+.sign-in__form { display: flex; flex-direction: column; gap: var(--space-4); }
+.sign-in__note { font: var(--text-body-sm); color: var(--color-fg-muted); }
+.sign-in__links { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
+/* ---------- Admin gate: Admin's ink page around a card (sign-in, forbidden) ---------- */
+.admin-gate { display: flex; flex-direction: column; gap: var(--space-8); min-height: 100vh; min-height: 100dvh; padding: var(--space-4); background: var(--color-bg-inverse); color: var(--color-fg-inverse); }
+.admin-gate__top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.admin-gate__label { font: var(--text-overline); color: var(--color-fg-inverse-muted); text-transform: uppercase; }
+.admin-gate__card { width: 100%; max-width: 30rem; margin: auto auto var(--space-12); padding: var(--space-8) var(--space-6); border-radius: var(--radius-xl); background: var(--color-bg-surface); color: var(--color-fg-default); box-shadow: var(--shadow-3); }
+@media (min-width: 36rem) { .admin-gate { padding: var(--space-6) var(--space-8); } .admin-gate__card { padding: var(--space-10) var(--space-8); } }
+
+/* Admin's rail: "Sign out" is a button drawn as a rail link. */
+button.admin-nav__link { border: 0; background: none; cursor: pointer; }
+
 @media (forced-colors: active) {
   .btn, .input, .select, .textarea, .card { forced-color-adjust: none; border: 1px solid CanvasText; }
 .btn--primary { background: Highlight; color: HighlightText; }

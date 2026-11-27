@@ -1,0 +1,22 @@
+<cr-admin-gate>
+  @if (unreachable()) {
+    <cr-plain-page
+      icon="alert"
+      title="We couldn’t reach Admin."
+      text="Check your connection and try again."
+    >
+      <button cr-button variant="primary" type="button" (click)="tryAgain()">
+        <cr-icon name="refresh" />Try again
+      </button>
+    </cr-plain-page>
+  } @else {
+    <cr-plain-page icon="lock" title="This page is for admins." [text]="text()">
+      <button cr-button variant="primary" type="button" [busy]="signingOut()" (click)="signOut()">
+        Sign out
+      </button>
+      @if (siteUrl(); as siteUrl) {
+        <a cr-button variant="outline" [href]="siteUrl + '/'">Go to christian.rent</a>
+      }
+    </cr-plain-page>
+  }
+</cr-admin-gate>

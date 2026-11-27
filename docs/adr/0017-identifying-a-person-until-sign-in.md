@@ -1,6 +1,6 @@
 # 0017. How a person is identified before and after joining, until sign-in is designed
 
-**Status:** Accepted. Builds on [0005](0005-authentication-seam.md), which it does not replace.
+**Status:** Accepted. Builds on [0005](0005-authentication-seam.md), which it does not replace. Amended by [0029](0029-sign-in-and-two-sessions.md): sign-in exists, with its screens and a sign-in control in the header; the rest stands.
 
 ## Context
 

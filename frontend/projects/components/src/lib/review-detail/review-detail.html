@@ -86,9 +86,14 @@
           <cr-icon [name]="choice.decision === 'remove' ? 'x' : 'check'" />{{ choice.label }}
         </button>
       }
-      @if (view.type === 'listing' && view.siteHref; as href) {
-        <a class="decision-bar__view" [routerLink]="href"
-          >View on site <cr-icon name="external" size="sm"
+      @if (view.type === 'listing' && view.siteHref && siteUrl(); as siteUrl) {
+        <a
+          class="decision-bar__view"
+          [href]="siteUrl + view.siteHref"
+          target="_blank"
+          rel="noopener"
+          >View on site<span class="visually-hidden"> (opens in a new tab)</span>
+          <cr-icon name="external" size="sm"
         /></a>
       }
     </div>

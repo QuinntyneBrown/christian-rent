@@ -38,8 +38,12 @@ function setup({
   join = () => Promise.resolve(sarah),
 }: Setup = {}) {
   const session: Session = {
+    state: (() => 'signed-in') as never,
     member: (() => null) as never,
     refresh: vi.fn(() => Promise.resolve()),
+    signIn: vi.fn(),
+    signOut: vi.fn(),
+    expire: vi.fn(),
   };
   const joins: unknown[] = [];
   TestBed.configureTestingModule({

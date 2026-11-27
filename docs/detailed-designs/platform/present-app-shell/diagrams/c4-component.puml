@@ -10,7 +10,7 @@ Container_Boundary(spa, "rent application (Angular workspace)") {
   Component(header, "cr-site-header, cr-logo, cr-skip-link", "components library", "Wordmark on every screen")
   Component(fmt, "formatPrice, formatDistance, formatDate", "domain/listings", "CAD, km, month as a word")
   Component(pages, "BrowsePage, ListingPage, PostPage, NotFoundPage", "Lazy pages in rent", "One per route")
-  Component(admin, "ADMIN_ROUTES", "admin library", "Loaded only for an admin")
+  Component(admin, "admin application", "its own build and origin", "Admin and Admin sign-in; imports no rent code")
 }
 Rel(config, routes, "provideRouter")
 Rel(config, app, "Bootstraps")

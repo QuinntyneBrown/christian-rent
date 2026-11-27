@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System context — Sign in and sessions
+
+Person(anyone, "Anyone", "Browses and reads listings without signing in")
+Person(member, "Member", "Signs in to christian.rent to post, message and report")
+Person(admin, "Admin", "Signs in to Admin to work through the review queue")
+Person(operator, "Operator", "Creates accounts and makes admins with ChristianRent.Cli")
+System(cr, "christian.rent", "Two applications, christian.rent and Admin, on two origins, and one backend. No payment, no booking calendar.")
+Rel(anyone, cr, "Browses", "HTTPS")
+Rel(member, cr, "Signs in on christian.rent's sign-in page", "HTTPS")
+Rel(admin, cr, "Signs in on Admin's sign-in page", "HTTPS")
+Rel(operator, cr, "create-account, grant-admin", "CLI")
+@enduml

@@ -1,8 +1,10 @@
 <div class="field">
   <label class="field__label" [for]="fieldId()">{{ label() }}</label>
   <input
+    #box
     class="input"
-    type="text"
+    [type]="type()"
+    [attr.spellcheck]="type() === 'text' ? null : 'false'"
     [id]="fieldId()"
     [attr.name]="name()"
     [attr.maxlength]="maxlength()"

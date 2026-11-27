@@ -60,8 +60,12 @@ when a member leaves.
 
 - **Collected fields** — `Member` holds the name, the church, the join time, the two flags,
   the status, when they left, and the sign-in identifier (`SignInId`,
-  [ADR 0017](../../../adr/0017-identifying-a-person-until-sign-in.md)). No other personal field
-  exists (L2-028, criterion 1). The area of a listing is a city or neighbourhood.
+  [ADR 0017](../../../adr/0017-identifying-a-person-until-sign-in.md)), which is the id of
+  their account. The account (`Account`, ASP.NET Core Identity) holds the email, a salted hash
+  of the password, a security stamp and its failed count and lockout
+  ([ADR 0029](../../../adr/0029-sign-in-and-two-sessions.md)). No other personal field exists
+  (L2-028, criterion 1). The area of a listing is a city or neighbourhood. No log, span or
+  metric carries the email, the password or a cookie (criterion 3).
 - **`DeleteMembershipCommand`** — sent by `DELETE /api/members/me`, which answers 204. Its
   handler needs a member (`RequireMember()`, else 403 `not_a_member`) and calls
   `Member.Depart(now)`: `Status = Departed`, `DepartedAt = now`, and `SignInId` cleared, so
@@ -96,7 +100,9 @@ when a member leaves.
 - How a cleared message is shown to the other person: decided with the Messages inbox. The
   messages a departed member received are about their own listings and are deleted with them
   (ADR 0022).
-- The contact detail collected "to reach them", which depends on sign-in: `<TO SUPPLY>`.
+- The contact detail collected "to reach them": the account's email is used only to sign in;
+  any other is `<TO SUPPLY>` with the Messages inbox. Leaving ends every session of the
+  account (its security stamp is renewed); deleting the account itself is `<TO SUPPLY>`.
 
 ### Mocks
 

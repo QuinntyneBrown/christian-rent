@@ -20,19 +20,19 @@ export class HttpReviewQueueApi implements ReviewQueueApi {
 
   page(cursor: string | null, signal: AbortSignal): Promise<ReviewQueuePage> {
     const params = cursor === null ? new HttpParams() : new HttpParams().set('cursor', cursor);
-    return this.send(this.http.get<ReviewQueuePage>('/api/review-queue', { params }), signal);
+    return this.send(this.http.get<ReviewQueuePage>('/api/admin/review-queue', { params }), signal);
   }
 
   item(id: string, signal: AbortSignal): Promise<ReviewItemDetail> {
     return this.send(
-      this.http.get<ReviewItemDetail>(`/api/review-queue/${encodeURIComponent(id)}`),
+      this.http.get<ReviewItemDetail>(`/api/admin/review-queue/${encodeURIComponent(id)}`),
       signal,
     );
   }
 
   arrivals(since: string, signal: AbortSignal): Promise<ReviewArrivals> {
     // Encoded whole: HttpParams would leave an offset's "+", which a server reads as a space.
-    const url = `/api/review-queue/arrivals?since=${encodeURIComponent(since)}`;
+    const url = `/api/admin/review-queue/arrivals?since=${encodeURIComponent(since)}`;
     return this.send(this.http.get<ReviewArrivals>(url), signal);
   }
 
@@ -42,7 +42,7 @@ export class HttpReviewQueueApi implements ReviewQueueApi {
     version: number,
     signal: AbortSignal,
   ): Promise<ReviewDecided> {
-    const url = `/api/review-queue/${encodeURIComponent(id)}/decision`;
+    const url = `/api/admin/review-queue/${encodeURIComponent(id)}/decision`;
     return this.send(this.http.post<ReviewDecided>(url, { decision, version }), signal);
   }
 

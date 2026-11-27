@@ -1,0 +1,28 @@
+@startuml
+title UML sequence behaviour — Entering Admin
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Person" as person
+box "Frontend — admin" #E0F2FE
+  participant "Router" as router
+  participant "adminGuard" as guard
+  participant "AdminSession" as session
+  participant "Review chunk" as review
+end box
+participant "GET /api/admin/session" as api
+person -> router : open https://admin.../
+router -> guard : canMatch('')
+guard -> session : refresh()
+session -> api : GET
+alt 401 not signed in
+  guard --> router : UrlTree /sign-in?return=%2F (review chunk never requested)
+else 204, or 200 and not an admin
+  guard --> router : false -> forbidden page (Sign out, Go to christian.rent)
+else 200 admin
+  guard --> router : true
+  router -> review : loadComponent()
+end
+@enduml

@@ -20,4 +20,7 @@ public static class PhotoRenditions
 
     /// <summary>The address the API serves a rendition at.</summary>
     public static string Url(Guid photoId, string rendition) => $"/api/photos/{photoId}/{rendition}";
+
+    /// <summary>The same rendition on Admin's own path, read with the Admin session (ADR 0029).</summary>
+    public static string AdminUrl(Guid photoId, string rendition) => $"/api/admin/photos/{photoId}/{rendition}";
 }
