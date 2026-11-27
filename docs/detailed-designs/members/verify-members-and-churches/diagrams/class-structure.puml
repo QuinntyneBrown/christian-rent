@@ -35,7 +35,20 @@ enum MemberStatus {
   Departed
 }
 class VerifyChurchCommand {
-  +Guid ChurchId
+  +string Id
+}
+class NewMemberChurchDto {
+  +Guid Id
+  +string Name
+  +string City
+  +bool IsVerified
+}
+interface ChurchVerificationApi {
+  +verify(churchId, signal): Promise<void>
+}
+class ReviewQueueStore {
+  +confirmingChurch: Signal<boolean>
+  +confirmChurch(): Promise<ChurchOutcome>
 }
 class VerifyChurchCommandHandler {
   +Handle(command: VerifyChurchCommand): Task
@@ -59,5 +72,8 @@ VerifyChurchCommandHandler --> Church : verifies
 ListingVisibility ..> Member : reads Status
 PosterDto ..> Member : projects
 ChurchDto ..> Church : projects
+NewMemberChurchDto ..> Church : projects
+ReviewQueueStore --> ChurchVerificationApi
+ChurchVerificationApi ..> VerifyChurchCommand : POST sends
 PosterDto *-- ChurchDto
 @enduml

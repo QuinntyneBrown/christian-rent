@@ -111,8 +111,10 @@ it. Its entry is [sign-in-and-sessions](../../platform/sign-in-and-sessions/READ
     reporter. "View on site" opens the listing (criterion 8);
   - new member: name, when they joined, church, city, whether the church is verified and who
     entered it, the counts of the member's listings that are not removed (all, for rent,
-    public), and the count of messages sent. The panel has no control for the church
-    (criteria 9, 16 and 17).
+    public), and the count of messages sent. The detail carries the church's identifier,
+    and the panel offers "Confirm church" while the church is not verified
+    ([verify-members-and-churches](../../members/verify-members-and-churches/README.md);
+    criteria 9, 16 and 17).
 - **`ReviewItem`** — `{ Id, Kind, SubjectId, CreatedAt }`. `SubjectId` names a listing, a
   report or a member according to `Kind`. Journey 11 adds the decision.
 - **`Church.EnteredById`** — the member who entered the church when they joined, or null.

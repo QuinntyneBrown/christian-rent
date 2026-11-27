@@ -13,7 +13,8 @@ shows one mark, on the member.
   message, and their listings are no longer public
 
 This feature designs where the two flags live, how they reach every screen, what removal
-does, and who may change them. The admin's Approve and Remove buttons are designed in
+does, who may change them, and how an admin confirms a church (ADR 0031). The admin's Approve
+and Remove buttons are designed in
 [decide-review-item](../../review/decide-review-item/README.md).
 
 ## Description
@@ -29,10 +30,15 @@ does, and who may change them. The admin's Approve and Remove buttons are design
   `Member.Remove()` on Remove for a new-member item. Approve leaves the flag of the member's
   church unchanged (L2-018, criterion 6); see
   [decide-review-item](../../review/decide-review-item/README.md).
-- **`VerifyChurchCommand`** — `{ ChurchId }`, sent by
-  `POST /api/admin/churches/{id}/verification` on an Admin controller (under `/api/admin/`, so only the Admin session reaches it; ADR 0029), restricted to the `Admin`
-  policy. Its handler calls `Church.Verify()` and records the admin and the time on the
-  church (`VerifiedBy`, `VerifiedAt`).
+- **`VerifyChurchCommand`** — `{ Id }`, the address's text, sent by
+  `POST /api/admin/churches/{id}/verification` on `AdminChurchesController` (under
+  `/api/admin/`, so only the Admin session reaches it; ADR 0029), restricted to the `Admin`
+  policy. Its handler calls `Church.Verify(adminId, now)`, which sets the flag and records the
+  admin and the time on the church (`VerifiedBy`, `VerifiedAt`) once: a church already verified
+  is unchanged, and the answer is 204 either way (L2-018, criterion 10). A church that does not
+  exist is `not_found` (criterion 11). The request has no body.
+- **`NewMemberChurchDto.Id`** — the church's identifier in the detail of a new member, which
+  the control sends. No answer to a member carries it.
 - **`ListingVisibility.CanBeSeenBy`** — treats a listing as public only when its poster's
   `Status` is `Active`. A removal therefore hides every listing of the member at once,
   without rewriting the listings (L2-018, criterion 4). `BrowseListingsQueryHandler`,
@@ -54,15 +60,26 @@ does, and who may change them. The admin's Approve and Remove buttons are design
   `poster.isVerified`, and beside the church name when `poster.church.isVerified`. When a
   flag is false nothing is rendered in its place (L2-008, criterion 4).
 - **`cr-review-detail`** — shows the same marks to the admin. For a new member it shows the
-  row "Church status" ("New to christian.rent, entered by this member") and no control for
-  the church (L2-019, criterion 9).
+  row "Church status" and, while the church is not verified, the button "Confirm church"
+  beside it (L2-018, criterion 7). It takes `confirming` (the button is busy) and emits
+  `confirmChurch`; `off` turns the button off while a decision is in flight.
+- **`ChurchVerificationApi`** / **`CHURCH_VERIFICATION_API`** (`api`) — `verify(churchId,
+  signal)`, over HTTP as `HttpChurchVerificationApi`, which Admin's review route provides
+  beside `HttpReviewQueueApi`, so its code is in the review chunk.
+- **`ReviewQueueStore.confirmChurch()`** (`admin`) — confirms the church of the new member
+  whose detail is shown. One change is in flight at a time: it is ignored while a decision or
+  another confirmation is, and a decision is ignored while it is. On success the detail shown
+  reads "Verified" and a notification says so; on failure a notification offers "Try again",
+  which sends the same confirmation (L2-018, criteria 8 and 9). Destroying the store aborts it.
+- **`toChurchConfirmedToast`**, **`toChurchFailedToast`** (`domain`) — the notifications' words.
+- **`ReviewPage`** — moves focus to the selected row once a church is confirmed, as after a
+  decision.
 
 **Undecided**
 
-- The Admin control that confirms a church. L2-018 has an admin confirm a church; the
-  review queue holds listings, reports and new members, and the mocks draw no control
-  (mocks open question 4). The endpoint above is the backend half; its screen is
-  `<TO SUPPLY>`, and is not built before its mock exists.
+- How an admin confirms a church none of whose members waits as a new member, and how a
+  church's mark is taken away: `<TO SUPPLY>` (ADR 0031, consequences). Neither has a
+  requirement.
 - How an admin removes a member who has left the review queue: `<TO SUPPLY>`. Admin has no
   screen other than the queue, so `Member.Remove()` is reached only from a new-member item.
 - Whether removing a member also closes the open review items about their listings:
@@ -76,7 +93,10 @@ The mocks are the source of truth for the UI of this feature. The states this de
 - [`docs/mocks/pages/listing/default.html`](../../../mocks/pages/listing/default.html): member and church both verified
 - [`docs/mocks/pages/listing/wanted.html`](../../../mocks/pages/listing/wanted.html): member verified, church not
 - [`docs/mocks/pages/listing/unverified.html`](../../../mocks/pages/listing/unverified.html): neither verified
-- [`docs/mocks/pages/admin/new-member.html`](../../../mocks/pages/admin/new-member.html): a new member with the church's status
+- [`docs/mocks/pages/admin/new-member.html`](../../../mocks/pages/admin/new-member.html): a new member with the church's status and "Confirm church"
+- [`docs/mocks/pages/admin/church-confirming.html`](../../../mocks/pages/admin/church-confirming.html): the confirmation in flight
+- [`docs/mocks/pages/admin/church-confirmed.html`](../../../mocks/pages/admin/church-confirmed.html): the church verified, with its notification
+- [`docs/mocks/pages/admin/church-failed.html`](../../../mocks/pages/admin/church-failed.html): the confirmation not saved, with "Try again"
 
 ## Requirements
 
@@ -88,7 +108,7 @@ acceptance criteria in the specification remain authoritative.
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-008` | `L1-002` | A listing shall show the name of the member who posted it and the name of their church. The member and the church shall each be marked "Verified" with text and an icon only when verified. The member's initials and the year they became a member shall be shown. The member's email address, phone number and street address shall not be in the response. |
-| `L2-018` | `L1-006` | An admin's approval shall make a member verified. An admin's confirmation shall make a church verified for the listings of all its members. The two marks shall be independent, and approving a new member shall not verify their church. A removed member shall no longer sign in, post or message, and their listings shall no longer be public. The backend shall refuse anyone but an admin who sets a verified mark. |
+| `L2-018` | `L1-006` | An admin's approval shall make a member verified. An admin's confirmation, made from the detail of a new member of the church, shall make a church verified for the listings of all its members, shall be idempotent, and shall record the admin and the time. The two marks shall be independent, and approving a new member shall not verify their church. A removed member shall no longer sign in, post or message, and their listings shall no longer be public. The backend shall refuse anyone but an admin who sets a verified mark. |
 | `L2-025` | `L1-011` | Every endpoint other than browsing, searching, reading an approved listing and serving its photos shall respond 401 to anyone not signed in. Listing the churches, joining and asking who is signed in shall not be refused for want of membership. The backend shall refuse a request for, or a change to, anything that is not the member's own, and shall reveal nothing about it. A refusal a screen branches on shall be a ProblemDetails with a `code`. |
 
 ## Diagrams
@@ -101,13 +121,14 @@ The people involved are: admin, anyone, member. Each reaches the feature through
 
 ### Containers
 
-The rent application calls `ChristianRent.Api` over JSON/HTTPS. The API persists state through EF Core.
+The rent and admin applications call `ChristianRent.Api` over JSON/HTTPS. The API persists state through EF Core.
 
 ![C4 container view for Verify members and churches](diagrams/c4-container.png)
 
 ### Components
 
-Two handlers change the flags, both restricted to an admin. `GetListingQueryHandler` reads
+Two handlers change the flags, both restricted to an admin; Admin's review page reaches
+`VerifyChurchCommandHandler` through `ChurchVerificationApi`. `GetListingQueryHandler` reads
 the flags at request time, and `ListingVisibility` reads the member's status, so both
 changes take effect without touching any listing.
 
@@ -127,6 +148,14 @@ carries it, and `cr-poster` renders each mark only when its flag is true (`L2-01
 `L2-008`).
 
 ![Sequence diagram for show the verified marks](diagrams/sequence-show-marks.png)
+
+### Behaviour — confirm a church
+
+"Confirm church" sends one request. The church records the admin and the time once, the detail
+shown reads "Verified", and every listing of every member of the church carries the mark on its
+next read (`L2-018`, criteria 2 and 7 to 10).
+
+![Sequence diagram for confirm a church](diagrams/sequence-confirm-church.png)
 
 ### Behaviour — remove a member
 

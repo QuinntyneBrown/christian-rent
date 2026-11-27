@@ -41,3 +41,4 @@ record giving its reason (`AGENTS.md`, *Prefer best practice*).
 | [0028](0028-two-applications-deployed-separately.md) | `rent` and `admin` are two applications on two origins, each proxying `/api` to the one backend; a `shell` library and shared foundations; Admin reads the site's address at deploy time | Accepted |
 | [0029](0029-sign-in-and-two-sessions.md) | Sign-in with ASP.NET Core Identity and one cookie session per application, chosen by path (`/api/admin/`); lockout on `TimeProvider`; accounts made by `create-account` | Accepted |
 | [0030](0030-bundle-budgets-per-application.md) | A budget for each application | Accepted |
+| [0031](0031-confirming-a-church.md) | "Confirm church" in the detail of a new member; `POST /api/admin/churches/{id}/verification` is idempotent, answers 204 and records the admin and the time | Accepted |

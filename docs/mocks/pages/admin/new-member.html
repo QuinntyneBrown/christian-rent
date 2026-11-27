@@ -47,7 +47,7 @@
       </a></li></ul>
     </section>
     <section class="admin__detail" aria-label="Detail"><div class="review"><div class="review__member"><span class="avatar avatar--lg avatar--sky" aria-hidden="true">AG</span><div><h2 class="review__title">Dr. Alicia Gomez</h2><p class="text-muted">Joined Jun 8, 2026, 11:20 a.m.</p></div></div>
-      <dl class="review__facts"><div><dt>Name</dt><dd>Dr. Alicia Gomez</dd></div><div><dt>Church</dt><dd>St. Paul’s Anglican, Fort Langley</dd></div><div><dt>Declared</dt><dd>“I am a Christian”</dd></div><div><dt>Church status</dt><dd>New to christian.rent, entered by this member</dd></div><div><dt>Listings</dt><dd>1 wanted listing, public</dd></div><div><dt>Messages sent</dt><dd>None</dd></div></dl>
+      <dl class="review__facts"><div><dt>Name</dt><dd>Dr. Alicia Gomez</dd></div><div><dt>Church</dt><dd>St. Paul’s Anglican, Fort Langley</dd></div><div><dt>Declared</dt><dd>“I am a Christian”</dd></div><div><dt>Church status</dt><dd>New to christian.rent, entered by this member <button class="btn btn--sm" type="button">Confirm church</button></dd></div><div><dt>Listings</dt><dd>1 wanted listing, public</dd></div><div><dt>Messages sent</dt><dd>None</dd></div></dl>
       <div class="decision-bar">
         <button class="btn btn--success" type="button"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg>Approve</button>
         <a class="btn btn--danger-quiet" href="../../dialogs/confirm-remove/default.html"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>Remove</a>
@@ -56,11 +56,11 @@
   </main>
 </div>
 <div class="toast-region" role="status" aria-live="polite"></div>
-<p class="mock-note" style="top: 1rem; right: 1rem;">Approve makes the member verified. How an admin confirms the church itself is not designed yet.</p>
+<p class="mock-note" style="top: 1rem; right: 1rem;">Approve makes the member verified and leaves the church as it is. “Confirm church” makes the church verified on the listings of all its members; it is offered while the church is not verified, and it does not decide the member (L2-018, criteria 6 to 8; ADR 0031).</p>
 <nav class="mock-bar" aria-label="Mock navigation">
   <a class="mock-bar__home" href="../../index.html" aria-label="All mocks">⌂</a>
   <span class="mock-bar__screen">Admin</span>
-  <ul class="mock-bar__states"><li><a href="default.html">default</a></li><li><a href="report.html">report</a></li><li><a href="new-member.html" aria-current="page">new-member</a></li><li><a href="wanted.html">wanted</a></li><li><a href="deciding.html">deciding</a></li><li><a href="decided.html">decided</a></li><li><a href="loading.html">loading</a></li><li><a href="empty.html">empty</a></li><li><a href="error.html">error</a></li><li><a href="forbidden.html">forbidden</a></li><li><a href="unreachable.html">unreachable</a></li><li><a href="long.html">long</a></li><li><a href="photos.html">photos</a></li><li><a href="detail-error.html">detail-error</a></li><li><a href="detail-gone.html">detail-gone</a></li><li><a href="more-loading.html">more-loading</a></li><li><a href="more-error.html">more-error</a></li></ul>
+  <ul class="mock-bar__states"><li><a href="default.html">default</a></li><li><a href="report.html">report</a></li><li><a href="new-member.html" aria-current="page">new-member</a></li><li><a href="wanted.html">wanted</a></li><li><a href="deciding.html">deciding</a></li><li><a href="decided.html">decided</a></li><li><a href="church-confirming.html">church-confirming</a></li><li><a href="church-confirmed.html">church-confirmed</a></li><li><a href="church-failed.html">church-failed</a></li><li><a href="loading.html">loading</a></li><li><a href="empty.html">empty</a></li><li><a href="error.html">error</a></li><li><a href="forbidden.html">forbidden</a></li><li><a href="unreachable.html">unreachable</a></li><li><a href="long.html">long</a></li><li><a href="photos.html">photos</a></li><li><a href="detail-error.html">detail-error</a></li><li><a href="detail-gone.html">detail-gone</a></li><li><a href="more-loading.html">more-loading</a></li><li><a href="more-error.html">more-error</a></li></ul>
   <button type="button" data-theme-toggle aria-pressed="false">☾ Dark</button>
   <button type="button" data-chrome-toggle aria-label="Hide mock chrome">×</button>
 </nav>

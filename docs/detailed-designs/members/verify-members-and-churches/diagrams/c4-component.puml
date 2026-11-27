@@ -7,6 +7,11 @@ Container_Boundary(spa, "rent application (Angular workspace)") {
   Component(poster, "cr-poster", "components library", "Member, church and their marks")
   Component(mark, "cr-verified", "components library", "Icon and the word Verified")
 }
+Container_Boundary(admin, "admin application (Angular workspace)") {
+  Component(store, "ReviewQueueStore", "admin, provided by the review page", "Confirms the church of the new member shown")
+  Component(detail, "cr-review-detail", "components library", "Church status and Confirm church")
+  Component(client, "ChurchVerificationApi", "api library, HTTP", "POST /api/admin/churches/{id}/verification")
+}
 Container_Boundary(api, "ChristianRent backend") {
   Component(dec, "DecideReviewItemCommandHandler", "MediatR handler", "Approve or Remove a new member")
   Component(vch, "VerifyChurchCommandHandler", "MediatR handler, Admin policy", "Confirms a church")
@@ -19,7 +24,11 @@ ContainerDb(db, "Database", "EF Core; engine <TO SUPPLY>", "Persistent state")
 Rel(poster, mark, "Renders when a flag is true")
 Rel(poster, get, "Receives PosterDto from", "JSON/HTTPS")
 Rel(dec, member, "Verify() or Remove()")
-Rel(vch, church, "Verify()")
+Rel(vch, church, "Verify(adminId, now)")
+Rel(detail, store, "confirmChurch")
+Rel(store, client, "verify")
+Rel(client, vch, "Sends VerifyChurchCommand through AdminChurchesController", "JSON/HTTPS")
+Rel(vch, db, "Saves", "IAppDbContext")
 Rel(get, vis, "CanBeSeenBy")
 Rel(vis, member, "Reads Status")
 Rel(get, db, "Reads member and church", "IAppDbContext")
