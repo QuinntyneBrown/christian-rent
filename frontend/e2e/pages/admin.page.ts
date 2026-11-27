@@ -116,6 +116,17 @@ export class AdminPage {
     return this.detail.locator('.review__facts dt');
   }
 
+  /** Hides the page, as switching to another tab does, or shows it again. */
+  async setHidden(hidden: boolean): Promise<void> {
+    await this.page.evaluate((value) => {
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        get: () => (value ? 'hidden' : 'visible'),
+      });
+      document.dispatchEvent(new Event('visibilitychange'));
+    }, hidden);
+  }
+
   /** Scrolls the queue to its end, where the next page is asked for. */
   async scrollQueueToEnd(): Promise<void> {
     await this.items.last().scrollIntoViewIfNeeded();

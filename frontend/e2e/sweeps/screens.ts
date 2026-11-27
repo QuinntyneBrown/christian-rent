@@ -19,6 +19,7 @@ import {
   ALICIA,
   LOCKER,
   PARTY_BUS,
+  QUEUE,
   REVIEW_NOW,
   YARD,
   answerAdmin,
@@ -728,6 +729,25 @@ export const SCREENS: readonly Screen[] = [
       await approveOpenItem(page);
       await page.locator('.toast--danger').waitFor();
     }),
+  },
+  {
+    name: 'review-toast-info',
+    path: '/admin',
+    answer: (api) => {
+      answerReview(api);
+      // The page is read twice (on opening and after the clock is set); then two more wait.
+      let reads = 0;
+      api.answer('GET', '/api/review-queue', () => ({
+        body: { items: QUEUE, nextCursor: null, waitingCount: reads++ < 2 ? 4 : 6 },
+      }));
+    },
+    then: async (page) => {
+      await page.clock.install({ time: REVIEW_NOW });
+      await page.reload();
+      await page.locator('a.queue-item').first().waitFor();
+      await page.clock.runFor(60_000);
+      await page.locator('.toast--info').waitFor();
+    },
   },
   // The confirmation before Remove (docs/mocks/dialogs/confirm-remove/), over Admin.
   {

@@ -50,7 +50,14 @@ The queue and the detail panel are designed in
 - **`ToastQueue`** (`admin`) — route-scoped list of toasts, newest last, shown in a
   `cr-toast-region` at the top right, clear of the decision bar. A toast dismisses
   itself after 8 s; the timer pauses on hover and focus; a danger toast stays until
-  dismissed (L2-020, criterion 14). Timers are cleared on dismissal and on destroy. `cr-toast` renders inside a
+  dismissed (L2-020, criterion 14). Timers are cleared on dismissal and on destroy.
+- **`NewItemsWatch`** (`admin`, provided by `ReviewPage`) — every 60 s, while
+  `document.visibilityState` is `visible`, asks `ReviewQueueStore.arrivedSinceLoad()`, which
+  reads the first page without changing what is shown and answers how many more wait than
+  when the queue was read, less those decided since. When more have arrived than it has said,
+  it replaces its info toast, "2 new items are waiting" (or "1 new item is waiting") with "They
+  arrived while you were reviewing.", whose "Show them" reads the queue again (L2-019,
+  criterion 12). Its interval is cleared when Admin is left. `cr-toast` renders inside a
   live region so that a screen reader announces each (L2-032, criterion 4).
 
 **Backend**

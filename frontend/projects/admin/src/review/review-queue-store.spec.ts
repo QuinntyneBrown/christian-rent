@@ -154,6 +154,37 @@ describe('ReviewQueueStore', () => {
     expect(api.last().cursor).toBeNull();
   });
 
+  // L2-019 criterion 12; ADR 0025: how many arrived, without changing what is shown.
+  it('answers how many arrived since the queue was read, less those decided', async () => {
+    const store = create();
+    const loading = store.load();
+    api.last().resolve(pageOf(0, 4, 4));
+    await loading;
+    store.drop('item-0');
+
+    const asking = store.arrivedSinceLoad();
+    expect(api.last().cursor).toBeNull();
+    api.last().resolve(pageOf(0, 5, 5));
+
+    expect(await asking).toBe(2);
+    expect(store.items()).toHaveLength(3);
+    expect(store.waiting()).toBe(3);
+  });
+
+  it('answers that none arrived when it cannot ask, or while the queue loads', async () => {
+    const store = create();
+    expect(await store.arrivedSinceLoad()).toBe(0);
+    expect(api.calls).toHaveLength(0);
+    const loading = store.load();
+    api.last().resolve(pageOf(0, 1, 1));
+    await loading;
+
+    const asking = store.arrivedSinceLoad();
+    api.last().reject(unreachable);
+
+    expect(await asking).toBe(0);
+  });
+
   it('is empty when nothing waits (L2-019, criterion 3)', async () => {
     const store = create();
 

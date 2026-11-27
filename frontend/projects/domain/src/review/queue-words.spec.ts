@@ -1,5 +1,11 @@
 import type { ReviewItemSummary } from '@rent/api';
-import { formatWaited, queueSummary, selectedItem, toQueueItemView } from './queue-words';
+import {
+  formatWaited,
+  newItemsToast,
+  queueSummary,
+  selectedItem,
+  toQueueItemView,
+} from './queue-words';
 
 const now = new Date('2026-06-08T22:00:00Z');
 
@@ -105,5 +111,18 @@ describe('selectedItem', () => {
     ['z', [], null, null],
   ] as const)('asked for %s among %o with %s open is %s', (requested, listed, open, selected) => {
     expect(selectedItem(requested, listed, open)).toBe(selected);
+  });
+});
+
+// L2-019 criterion 12; ADR 0025.
+describe('newItemsToast', () => {
+  it.each([
+    [1, '1 new item is waiting'],
+    [2, '2 new items are waiting'],
+  ])('%i arrived: "%s"', (count, title) => {
+    expect(newItemsToast(count)).toEqual({
+      title,
+      text: 'They arrived while you were reviewing.',
+    });
   });
 });

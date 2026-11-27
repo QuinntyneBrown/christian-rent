@@ -29,6 +29,7 @@ import {
 } from '@rent/components';
 import { confirmRemoveWords, selectedItem } from '@rent/domain';
 import { map } from 'rxjs';
+import { NewItemsWatch } from './new-items-watch';
 import { ReviewDecider } from './review-decider';
 import { ReviewDetailStore } from './review-detail-store';
 import { ReviewQueueStore } from './review-queue-store';
@@ -45,7 +46,8 @@ const WIDE = '(min-width: 48rem)';
  * `/admin?item={id}`, and the detail is asked for only while the panel is shown, from 768 px
  * (ADR 0024). Leaving disconnects the observer and the width listener, and the stores, provided
  * here, abort their requests. A decision selects the next item and moves focus to it; Remove asks
- * first in a dialog whose code loads only then (ADR 0025).
+ * first in a dialog whose code loads only then. While the page is visible, new items are looked
+ * for every 60 s (ADR 0025).
  */
 @Component({
   selector: 'cr-review-page',
@@ -62,7 +64,7 @@ const WIDE = '(min-width: 48rem)';
     Toast,
     ToastRegion,
   ],
-  providers: [ReviewQueueStore, ReviewDetailStore, ToastQueue, ReviewDecider],
+  providers: [ReviewQueueStore, ReviewDetailStore, ToastQueue, ReviewDecider, NewItemsWatch],
   templateUrl: './review-page.html',
   styleUrl: './review-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -119,6 +121,7 @@ export class ReviewPage {
 
   constructor() {
     void this.store.load();
+    inject(NewItemsWatch).start();
 
     afterNextRender(() => {
       this.observer = new IntersectionObserver((entries) => this.reached(entries));
