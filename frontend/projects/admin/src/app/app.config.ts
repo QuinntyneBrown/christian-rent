@@ -7,8 +7,20 @@ import {
 } from '@angular/core';
 import { TitleStrategy, provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
-import { HttpMembersApi, MEMBERS_API, SESSION, SITE_LINKS, apiErrorInterceptor } from '@rent/api';
-import { ApiSession, GlobalErrorHandler, PageFocus, ShellTitleStrategy } from '@rent/shell';
+import {
+  HttpAdminSessionApi,
+  SESSION,
+  SESSION_API,
+  SITE_LINKS,
+  apiErrorInterceptor,
+} from '@rent/api';
+import {
+  ApiSession,
+  GlobalErrorHandler,
+  PageFocus,
+  ShellTitleStrategy,
+  sessionExpiryInterceptor,
+} from '@rent/shell';
 import { routes } from './app.routes';
 import { ConfigSiteLinks } from './site/config-site-links';
 
@@ -17,12 +29,17 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
-    provideHttpClient(withFetch(), withInterceptors([apiErrorInterceptor])),
+    // The expiry interceptor sits first, so it sees the ApiError the other makes (ADR 0029).
+    provideHttpClient(
+      withFetch(),
+      withInterceptors([sessionExpiryInterceptor, apiErrorInterceptor]),
+    ),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
     ShellTitleStrategy,
     { provide: TitleStrategy, useExisting: ShellTitleStrategy },
     provideAppInitializer(() => inject(PageFocus).start()),
-    { provide: MEMBERS_API, useClass: HttpMembersApi },
+    // Who is signed in to Admin, through Admin's own session (ADR 0029).
+    { provide: SESSION_API, useClass: HttpAdminSessionApi },
     ApiSession,
     { provide: SESSION, useExisting: ApiSession },
     // The site's address, from the deployment's config.json, before the first screen.

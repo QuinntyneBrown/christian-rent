@@ -195,6 +195,7 @@
         "empty",
         "error",
         "forbidden",
+        "unreachable",
         "long",
         "photos",
         "detail-error",

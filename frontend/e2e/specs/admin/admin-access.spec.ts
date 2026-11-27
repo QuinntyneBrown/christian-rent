@@ -1,10 +1,12 @@
-import { answerMember } from '../../fixtures/members';
+import { SARAH_KIM } from '../../fixtures/members';
 import { RENT_ORIGIN } from '../../fixtures/origins';
+import { ADMIN_SESSION, answerSigningOut } from '../../fixtures/session';
 import { answerAdmin } from '../../fixtures/review';
 import { expect, test } from '../../fixtures/test';
 import { AdminPage } from '../../pages/admin.page';
 import { ForbiddenPage } from '../../pages/forbidden.page';
 import { ScriptsPart } from '../../pages/scripts.part';
+import { SignInPage } from '../../pages/sign-in.page';
 
 /** The admin screen's selector, which only the review page's own code names. */
 const ADMIN_CODE = 'cr-review-page';
@@ -15,7 +17,7 @@ test.describe('Admin is for admins', () => {
     page,
     api,
   }) => {
-    answerMember(api);
+    api.answer('GET', '/api/admin/session', { body: SARAH_KIM });
     const scripts = new ScriptsPart(page);
     const forbidden = new ForbiddenPage(page);
 
@@ -40,7 +42,7 @@ test.describe('Admin is for admins', () => {
     page,
     api,
   }) => {
-    api.answer('GET', '/api/members/me', { status: 204 });
+    api.answer('GET', '/api/admin/session', { status: 204 });
     const forbidden = new ForbiddenPage(page);
 
     await forbidden.open();
@@ -48,6 +50,33 @@ test.describe('Admin is for admins', () => {
     await expect(forbidden.text).toHaveText(
       'You’re signed in, but not as an admin of christian.rent.',
     );
+  });
+
+  // L2-039 criterion 2: the forbidden page signs out of Admin alone.
+  test('lets someone who is not an admin sign out', async ({ page, api }) => {
+    api.answer('GET', '/api/admin/session', { body: SARAH_KIM });
+    answerSigningOut(api, ADMIN_SESSION);
+    const forbidden = new ForbiddenPage(page);
+    const signIn = new SignInPage(page);
+    await forbidden.open();
+
+    await forbidden.signOut.click();
+
+    await expect(signIn.heading).toHaveText('Sign in to Admin');
+    expect(api.requests).toContain('DELETE /api/admin/session');
+  });
+
+  // L2-019 criterion 22: Admin cannot tell who is signed in.
+  test('says so when it cannot tell who is signed in, and tries again', async ({ page, api }) => {
+    api.answer('GET', '/api/admin/session', { status: 503 });
+    const forbidden = new ForbiddenPage(page);
+    await forbidden.open();
+
+    await expect(forbidden.heading).toHaveText('We couldn’t reach Admin.');
+    answerAdmin(api);
+    await forbidden.tryAgain.click();
+
+    await expect(new AdminPage(page).heading).toBeVisible();
   });
 
   // L2-019 criterion 1. It also proves the check above can see the review page's code.

@@ -1,5 +1,5 @@
 import type { ApiFixtures } from './api';
-import { SARAH_KIM, answerMember, type MemberFixture } from './members';
+import { SARAH_KIM, type MemberFixture } from './members';
 import { photoFile } from './photos';
 
 /** Someone who is a member and an admin, from the mocks' cast. */
@@ -265,7 +265,8 @@ export function answerDetail(api: ApiFixtures, id: string, detail: object): void
 
 /** Admin as the backend answers it to an admin: who they are, the queue and each item. */
 export function answerAdmin(api: ApiFixtures, rows: ReviewRowFixture[] = QUEUE): void {
-  answerMember(api, NAOMI);
+  // Who is signed in to Admin, through Admin's own session (ADR 0029).
+  api.answer('GET', '/api/admin/session', { body: NAOMI });
   api.answer('GET', '/api/admin/review-queue', { body: queuePage(rows) });
   for (const [id, detail] of DETAILS) {
     answerDetail(api, id, detail);

@@ -10,7 +10,8 @@ export class ScriptsPart {
   constructor(page: Page) {
     page.on('response', (response: Response) => {
       if (response.request().resourceType() === 'script') {
-        this.bodies.push(response.text());
+        // A script still arriving when the spec ends cannot be read; it was not looked at.
+        this.bodies.push(response.text().catch(() => ''));
       }
     });
   }

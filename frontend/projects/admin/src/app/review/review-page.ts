@@ -13,6 +13,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { Dialog } from '@angular/cdk/dialog';
 import { type ReviewDecision, SESSION, SITE_LINKS } from '@rent/api';
 import {
@@ -78,7 +79,9 @@ export class ReviewPage {
 
   protected readonly store = inject(ReviewQueueStore);
   protected readonly toasts = inject(ToastQueue);
-  private readonly member = inject(SESSION).member;
+  private readonly session = inject(SESSION);
+  private readonly member = this.session.member;
+  private readonly router = inject(Router);
   /** The site's origin, for "Back to site" and "View on site" (ADR 0028). */
   protected readonly siteUrl = inject(SITE_LINKS).siteUrl;
   protected readonly name = computed(() => this.member()?.name ?? '');
@@ -153,6 +156,19 @@ export class ReviewPage {
     )
       .closed.pipe(takeUntilDestroyed(this.destroyed))
       .subscribe((outcome) => this.decided(outcome));
+  }
+
+  /**
+   * Ends the Admin session alone and shows Admin's sign-in page (L2-039, criterion 2). Leaving
+   * the page destroys its store, which aborts what it was loading.
+   */
+  protected async signOut(): Promise<void> {
+    try {
+      await this.session.signOut();
+    } catch {
+      // Forgotten here all the same; the backend's session ends with its lifetime.
+    }
+    await this.router.navigate(['/sign-in']);
   }
 
   protected goToNext(): void {

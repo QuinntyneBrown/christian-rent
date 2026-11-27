@@ -1,0 +1,17 @@
+<cr-admin-gate>
+  <cr-sign-in
+    [admin]="true"
+    [(email)]="store.email"
+    [(password)]="store.password"
+    [errors]="store.errors()"
+    [status]="store.status()"
+    [retryAt]="retryAt()"
+    [expired]="expired() !== undefined"
+    [focusOn]="store.focus()"
+    (submitted)="submit()"
+  >
+    @if (siteUrl(); as siteUrl) {
+      <a slot="links" cr-button variant="link" [href]="siteUrl + '/'">Go to christian.rent</a>
+    }
+  </cr-sign-in>
+</cr-admin-gate>

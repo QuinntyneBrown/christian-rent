@@ -4,6 +4,7 @@
     [name]="name()"
     [waiting]="store.state() === 'loaded' ? store.waitingCount() : null"
     [siteUrl]="siteUrl()"
+    (signOut)="signOut()"
   />
   <ng-container slot="queue">
     <cr-queue-header

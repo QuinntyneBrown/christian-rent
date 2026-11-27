@@ -4,8 +4,9 @@ import { adminGuard } from './admin-guard';
 
 /**
  * Admin's routes (ADR 0028). Every route is lazy (L2-029, criterion 2). The review page matches
- * for an admin alone, so nobody else downloads it or asks for its data; anyone else gets the
- * forbidden page at the same address. Any other address leads back to the review queue's.
+ * for an admin alone, so nobody else downloads it or asks for its data; anyone not signed in to
+ * Admin is sent to its sign-in page, and anyone else signed in gets the forbidden page at the
+ * same address. Any other address leads back to the review queue's.
  */
 export const routes: Routes = [
   {
@@ -22,6 +23,12 @@ export const routes: Routes = [
     pathMatch: 'full',
     title: 'Admin',
     loadComponent: () => import('./forbidden/forbidden-page').then((m) => m.ForbiddenPage),
+  },
+  {
+    // Admin's own sign-in page (L2-038); the address to come back to is `return`.
+    path: 'sign-in',
+    title: 'Sign in · Admin',
+    loadComponent: () => import('./sign-in/admin-sign-in-page').then((m) => m.AdminSignInPage),
   },
   { path: '**', redirectTo: '' },
 ];

@@ -243,7 +243,7 @@ const ADMIN_SCREENS: readonly Screen[] = [
   {
     name: 'admin-forbidden',
     path: `${ADMIN_ORIGIN}/`,
-    answer: (api) => answerMember(api),
+    answer: (api) => api.answer('GET', '/api/admin/session', { body: SARAH_KIM }),
     then: (page) => page.getByRole('heading', { name: 'This page is for admins' }).waitFor(),
   },
 ];
