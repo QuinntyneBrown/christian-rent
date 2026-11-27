@@ -1,7 +1,7 @@
 // Acceptance Test
-// Traces to: L2-007, L2-008, L2-026, L2-032
+// Traces to: L2-007, L2-008, L2-018, L2-026, L2-032
 // Description: Listing shows who posted it and their church, each marked Verified only when verified, and the wanted variant with no photo.
-import { answerListing, hall, office, van } from '../../fixtures/listing';
+import { answerListing, churchVerified, hall, office, van } from '../../fixtures/listing';
 import { expect, test } from '../../fixtures/test';
 import { ListingPage } from '../../pages/listing.page';
 
@@ -68,6 +68,23 @@ test.describe('Listing, who posted it', () => {
     await expect(screen.poster.root.locator('.verified')).toHaveCount(0);
     await expect(screen.poster.root).not.toContainText('Verified');
     await expect(screen.facts.last()).toHaveText('Posted 6 hours ago');
+  });
+
+  // L2-008 criteria 3 and 4; L2-018 criteria 2 and 3: a church an admin has confirmed is marked
+  // on the listing of a member who is not verified yet, as the church-verified mock draws it.
+  test('marks only the church when the member is not verified yet', async ({ page, api }) => {
+    const listing = churchVerified(office());
+    answerListing(api, listing);
+    const screen = new ListingPage(page);
+
+    await screen.open(listing.id);
+
+    await expect(screen.poster.name).toHaveText('Dr. Alicia Gomez');
+    await expect(screen.poster.church).toHaveText('St. Paul’s Anglican');
+    await expect(screen.poster.churchVerified).toHaveText('Verified church');
+    await expect(screen.poster.churchVerified.locator('svg')).toHaveCount(1);
+    await expect(screen.poster.memberVerified).toHaveCount(0);
+    await expect(screen.poster.root.locator('.verified')).toHaveCount(1);
   });
 
   // L2-007 criterion 2: a wanted listing that gave no price shows none.

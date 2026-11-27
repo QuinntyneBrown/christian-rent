@@ -114,6 +114,14 @@ export function van(overrides: Partial<ListingDetailFixture> = {}): ListingDetai
 }
 
 /** The counselling office, as `pages/listing/unverified.html` draws it: neither verified. */
+/** The listing once an admin has confirmed its poster's church; the member is as they were. */
+export function churchVerified(listing: ListingDetailFixture): ListingDetailFixture {
+  return {
+    ...listing,
+    poster: { ...listing.poster, church: { ...listing.poster.church, isVerified: true } },
+  };
+}
+
 export function office(overrides: Partial<ListingDetailFixture> = {}): ListingDetailFixture {
   return {
     id: '1157a000-0006-4000-8000-000000000006',

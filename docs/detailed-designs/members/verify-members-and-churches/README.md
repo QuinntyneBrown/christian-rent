@@ -93,6 +93,7 @@ The mocks are the source of truth for the UI of this feature. The states this de
 - [`docs/mocks/pages/listing/default.html`](../../../mocks/pages/listing/default.html): member and church both verified
 - [`docs/mocks/pages/listing/wanted.html`](../../../mocks/pages/listing/wanted.html): member verified, church not
 - [`docs/mocks/pages/listing/unverified.html`](../../../mocks/pages/listing/unverified.html): neither verified
+- [`docs/mocks/pages/listing/church-verified.html`](../../../mocks/pages/listing/church-verified.html): church verified, member not: a new member of a church an admin has confirmed
 - [`docs/mocks/pages/admin/new-member.html`](../../../mocks/pages/admin/new-member.html): a new member with the church's status and "Confirm church"
 - [`docs/mocks/pages/admin/church-confirming.html`](../../../mocks/pages/admin/church-confirming.html): the confirmation in flight
 - [`docs/mocks/pages/admin/church-confirmed.html`](../../../mocks/pages/admin/church-confirmed.html): the church verified, with its notification

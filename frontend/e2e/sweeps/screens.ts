@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import type { ApiFixtures } from '../fixtures/api';
-import { answerListing, gym, hall, office, van } from '../fixtures/listing';
+import { answerListing, churchVerified, gym, hall, office, van } from '../fixtures/listing';
 import {
   answerListings,
   answerPhotos,
@@ -453,6 +453,12 @@ export const SCREENS: readonly Screen[] = [
     name: 'listing-unverified',
     path: `/listings/${office().id}`,
     answer: (api) => answerListing(api, office()),
+  },
+  {
+    // A new member of a church an admin has confirmed (journey 12).
+    name: 'listing-church-verified',
+    path: `/listings/${office().id}`,
+    answer: (api) => answerListing(api, churchVerified(office())),
   },
   {
     name: 'listing-edge',

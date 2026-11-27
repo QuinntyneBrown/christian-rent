@@ -132,6 +132,7 @@ The mocks are the source of truth for the UI of this feature. The states this de
 - [`docs/mocks/pages/listing/default.html`](../../../mocks/pages/listing/default.html): a listing for rent, member and church verified
 - [`docs/mocks/pages/listing/wanted.html`](../../../mocks/pages/listing/wanted.html): a wanted listing; only the member verified
 - [`docs/mocks/pages/listing/unverified.html`](../../../mocks/pages/listing/unverified.html): neither verified; no mark shown
+- [`docs/mocks/pages/listing/church-verified.html`](../../../mocks/pages/listing/church-verified.html): the church verified and the member not; one mark, on the church
 - [`docs/mocks/pages/listing/own.html`](../../../mocks/pages/listing/own.html): the poster's own listing
 - [`docs/mocks/pages/listing/loading.html`](../../../mocks/pages/listing/loading.html): skeleton in the shape of the listing
 - [`docs/mocks/pages/listing/error.html`](../../../mocks/pages/listing/error.html): failed; "Try again"

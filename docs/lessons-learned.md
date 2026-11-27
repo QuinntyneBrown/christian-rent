@@ -72,6 +72,10 @@ Each journey's entry has three parts:
 | L56 | Code the initial chunk needs imports constants from a module of their own, never from a module that holds a class: the bundler then keeps the whole module, class and all, in `main`. | 13 |
 | L57 | Before adding a control to a crowded bar, measure the bar's parts in the mock at 320 px, and draw how it fits before building it. | 13 |
 | L58 | When two sessions share one backend, put each one's endpoints under its own path and choose the scheme by path, so the principal is the right one before the rate limiter runs; prove the separation with real cookies, in a table of cases. | 13 |
+| L59 | Before mutating files to prove a spec, commit the slice's work or copy the files aside, and restore from that copy: `git checkout <file>` also throws away the uncommitted work in it. | 12 |
+| L60 | A client only a lazy page uses is bound in that page's `providers`: a route's `providers` in `app.routes.ts` import its class statically, into the initial chunk. | 12 |
+| L61 | When a control joins a value a page object reads as text (a fact's `dd`), the page object leaves the control's label out, so the specs of the value keep saying what it is. | 12 |
+| L62 | A change that makes a new combination of drawn parts possible (a verified church with an unverified member) gets its own mock state and spec, though the component already renders it. | 12 |
 
 ## Journeys
 
@@ -759,6 +763,67 @@ Slices 11.1 to 11.3, finished on Nov 26, 2026, on Windows.
   for new items, and clear their timers, when the admin leaves.
 - L46: the build ran before the behaviour specs.
 - L48: missed once; editing scripts were otherwise files.
+
+### 12. Verify members and churches
+
+Slices 12.1 to 12.4, finished on Nov 27, 2026.
+
+**What slowed it**
+
+- The container had neither the .NET SDK nor PlantUML; `apt-get update` was needed before
+  Ubuntu's `dotnet-sdk-10.0`, `plantuml` and `graphviz` packages could be found.
+- The design left the Admin control `<TO SUPPLY>`, and L2-019 criterion 9 said there was none.
+  The mock (`pages/admin/new-member.html` and three new states), L2-018 criteria 7 to 11,
+  ADR 0031 and the design came before any code (L2).
+- The prompt and slice 12.3 put the marks on Browse; the Browse mocks draw none on a card. The
+  mocks won, and the prompt and the slices were brought in line (L17).
+- A script that mutated three files to prove the new specs ended with `git checkout` of those
+  files, which would have thrown away the slice's uncommitted work in them; the harness refused
+  it before anything ran. The mutations were repeated on files copied aside first (L59).
+- The first build bound the new client in the route, which put its class in Admin's initial
+  chunk (0.3 kB); the review page now binds it (L60).
+- Journey 10's spec of a new member's facts read the `dd`'s text, which the button's label
+  joined (L61).
+- The detail of a new member did not carry the church's identifier, so the control had nothing
+  to send; `NewMemberChurchDto` gained `Id`.
+
+**New lessons**: L59 to L62 above, and these details for later journeys:
+
+- A church is confirmed only from the detail of a new member of it (ADR 0031). A church none
+  of whose members waits cannot be confirmed from Admin, and nothing takes a mark away; both
+  wait for a design.
+- `ReviewQueueStore.busy` says that a decision or a confirmation is in flight; a new change an
+  admin can start on the detail joins it, so two are never in flight together.
+- A card on Browse carries no verified mark; `ListingCardDto` has no flag for one.
+- The migration `ChurchVerification` adds `VerifiedBy` and `VerifiedAt` to `churches`; apply it
+  with the CLI's migrate command when deploying.
+- Admin's initial chunks are 314.50 kB (warning at 320 kB) and `rent`'s 326.76 kB (330 kB).
+
+**Earlier lessons applied**
+
+- L1: `main` was fetched first; the branch was already on it.
+- L2 and L25: every new state had a mock and a criterion before code, and the mock and
+  design-system checkers passed.
+- L3 and L20: six specs and tests that passed at once (the refusals, no control for a verified
+  church, off while deciding, the abort on leaving, the church-only mark) were each proved by
+  breaking the rule they name.
+- L4 and L45: every commit followed a green run that was read.
+- L6: `MSBUILDDISABLENODEREUSE=1` for every `dotnet` run.
+- L12: the notifications' words are in `@rent/domain`, with a test per case, and the fact's
+  action is in the view type in `@rent/api`.
+- L13: the sweeps visit the three church states and the church-only Listing; none was run.
+- L17: the prompt disagreed with the mocks about Browse and was corrected in the same change.
+- L19: the new Admin spec was run 5 times.
+- L26: the press a busy button swallows is sent with `dispatchEvent('click')`.
+- L27 and L28: both production builds ran after the Admin slice, and their sizes were compared
+  with ADR 0030's, which found L60.
+- L31: every editing script asserted that the text it replaced was there.
+- L33: the spec of leaving Admin observes the confirmation's `requestfailed` with `ERR_ABORTED`.
+- L37: the policy was mutated by adding `AllowAnonymous`, so no import became unused.
+- L43: the page provides the store, which aborts a confirmation when the admin leaves.
+- L46: Admin was built before its behaviour specs ran.
+- L51: journey 10's spec listed the detail's controls by their texts, so adding "Confirm church"
+  changed a list a reader can check.
 
 ### 13. Two applications and sign-in
 

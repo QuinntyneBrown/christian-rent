@@ -58,6 +58,7 @@
         "wanted",
         "no-price",
         "unverified",
+        "church-verified",
         "own",
         "loading",
         "error",

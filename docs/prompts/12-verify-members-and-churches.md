@@ -105,6 +105,7 @@ are in `rent`.
   - `docs/mocks/pages/admin/new-member.html`
   - `docs/mocks/pages/listing/default.html`
   - `docs/mocks/pages/listing/unverified.html`
+  - `docs/mocks/pages/listing/church-verified.html`
   - `docs/mocks/pages/listing/wanted.html`
 - Check each state you will build exists and is complete (light and dark, phone to desktop, keyboard focus,
   real copy). If a state the design or the criteria need is missing, draw it before any code, add it to
