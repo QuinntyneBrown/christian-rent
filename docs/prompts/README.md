@@ -21,9 +21,12 @@ prompt, in a fresh session on a branch from `main`.
 | 10 | Admin | View the review queue | [10-view-the-review-queue.md](10-view-the-review-queue.md) |
 | 11 | Admin | Decide a review item | [11-decide-a-review-item.md](11-decide-a-review-item.md) |
 | 12 | Admin | Verify members and churches | [12-verify-members-and-churches.md](12-verify-members-and-churches.md) |
+| 13 | Both | Two applications and sign-in | [13-two-applications-and-sign-in.md](13-two-applications-and-sign-in.md) |
 
 Where the four platform designs in `docs/detailed-designs/platform/` are realised: the shell, access rules,
-failure handling and telemetry in journey 1; leaving (L2-028 criterion 2) in journey 5. Sign-in, the Messages
-inbox and "My listings" are not designed, so no prompt builds them.
+failure handling and telemetry in journey 1; leaving (L2-028 criterion 2) in journey 5; the two applications,
+sign-in and the sessions in journey 13. The Messages inbox, "My listings", sign-up and password reset are not
+designed, so no prompt builds them. Journey 13 changed the shape the earlier prompts describe; their rules blocks
+now describe the two applications, and journey 12's places its control and endpoint in Admin.
 
 When a journey's requirement, mock or design changes, update its prompt in the same change.

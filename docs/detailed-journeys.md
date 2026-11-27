@@ -160,8 +160,28 @@ Design: [verify-members-and-churches](detailed-designs/members/verify-members-an
 | 12.2 | `VerifyChurchCommand` confirms a church | L2-018, L2-025 |
 | 12.3 | Verified marks follow on Browse and Listing | L2-008, L2-018 |
 
+## 13. Two applications and sign-in (Both) — 10 days — 0% complete
+
+Designs: [sign-in-and-sessions](detailed-designs/platform/sign-in-and-sessions/README.md),
+[present-app-shell](detailed-designs/platform/present-app-shell/README.md),
+[enforce-access](detailed-designs/platform/enforce-access/README.md). Decisions: ADR 0028, 0029
+and 0030. Nobody can create their own account: an operator runs `create-account`.
+
+| # | Slice | L2 | Done |
+|---|---|---|---|
+| 13.1 | The split: `admin` an application on port 4300, the `shell` library, foundations in `components`, `/admin` not found in `rent`, ESLint, two dev servers, `verify.mjs` and CI | L2-041, L2-029 | No |
+| 13.2 | Identity's accounts, the migration with the data protection keys, and `create-account`, safe to repeat | L2-028, L2-027 | No |
+| 13.3 | Member sign-in, sign-out and who is signed in, replacing `NoSignIn` | L2-037, L2-039, L2-025 | No |
+| 13.4 | One refusal, lockout and throttling on `FakeTimeProvider`; the removed and the departed member | L2-037, L2-040, L2-018 | No |
+| 13.5 | The Admin session under `/api/admin/`: each session refused on the other's endpoints, the photo rules per caller | L2-038, L2-040, L2-025 | No |
+| 13.6 | Two allowed origins, cross-site sign-in and sign-out refused, nothing sensitive in telemetry | L2-041, L2-027, L2-028 | No |
+| 13.7 | `rent`'s sign-in page, the header's Sign in and Sign out | L2-037, L2-039, L2-036, L2-032 | No |
+| 13.8 | Back where the member was after sign-in, drafts kept; the session that ended | L2-037, L2-040, L2-009, L2-015, L2-021 | No |
+| 13.9 | Admin's sign-in page, guard, forbidden page, Sign out and expiry; no queue data or code before | L2-038, L2-039, L2-040, L2-019 | No |
+| 13.10 | Independent builds, Admin's site address from `config.json`, links across origins, hosting docs | L2-041, L2-036 | No |
+
 ## Total
 
 | Journeys | Effort (days) | % complete |
 |---|---|---|
-| 12 | 52 | 94 |
+| 13 | 62 | 79 |

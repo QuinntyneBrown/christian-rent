@@ -30,7 +30,7 @@ does, and who may change them. The admin's Approve and Remove buttons are design
   church unchanged (L2-018, criterion 6); see
   [decide-review-item](../../review/decide-review-item/README.md).
 - **`VerifyChurchCommand`** — `{ ChurchId }`, sent by
-  `POST /api/churches/{id}/verification` on `ChurchesController`, restricted to the `Admin`
+  `POST /api/admin/churches/{id}/verification` on an Admin controller (under `/api/admin/`, so only the Admin session reaches it; ADR 0029), restricted to the `Admin`
   policy. Its handler calls `Church.Verify()` and records the admin and the time on the
   church (`VerifiedBy`, `VerifiedAt`).
 - **`ListingVisibility.CanBeSeenBy`** — treats a listing as public only when its poster's

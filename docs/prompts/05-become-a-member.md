@@ -48,17 +48,18 @@ names (`ICurrentMember` on the backend, `SESSION` on the frontend) and builds no
 
 - Follow the repo's agent instructions exactly (`AGENTS.md`, which `CLAUDE.md` points to, and
   `CONTRIBUTING.md`), especially:
-  - **Scope.** christian.rent is four screens: Browse, Listing, Post and Admin. No payment, booking calendar,
-    reviews, ratings, social feed or adverts. A Messages inbox, "My listings" and sign-in are not designed;
-    build none of them. Do not invent the L0 mission.
+  - **Scope.** christian.rent is two applications: `rent` (Browse, Listing, Post, Sign in) and `admin`
+    (Admin, Admin sign-in), on two origins, using one backend (ADR 0028). No payment, booking calendar,
+    reviews, ratings, social feed or adverts. A Messages inbox, "My listings", sign-up and password reset
+    are not designed; build none of them. Do not invent the L0 mission.
   - **The mocks are the source of truth** (`docs/mocks/`, listed in `docs/mocks/manifest.json`). When a mock
     changes, bring the requirement (`docs/specs/L2.md`), the ADR it touches and the detailed design in line,
     in that order, before any code. Keep the mocks' BEM classes; e2e locators depend on them.
   - **Words.** listing, for rent, wanted, space, thing, member, church, verified, message, review queue,
     report. No synonyms in code, docs or UI. The wordmark is lowercase **christian.rent** with ".rent" in
     orange. Prices in CAD, distances in km, Canadian spelling.
-  - **Frontend** (`frontend/`, run npm from there): libraries `api`, `domain`, `components` (plus `admin`
-    once journey 10 adds it) and the app `rent`, imported as `@rent/<library>`; the dependency direction in
+  - **Frontend** (`frontend/`, run npm from there): libraries `api`, `domain`, `components` and `shell`, and
+    the applications `rent` and `admin` (no application imports the other), libraries imported as `@rent/<library>`; the dependency direction in
     `AGENTS.md`, enforced by ESLint. Standalone, signals, `OnPush`, zoneless. `cr-*` selectors. File per
     type (`name.ts` + `name.html` + `name.scss`), one encapsulated BEM stylesheet per component, tokens read
     by role, no inline styles. Presentation components in `components` inject no app service, token or
@@ -71,7 +72,8 @@ names (`ICurrentMember` on the backend, `SESSION` on the frontend) and builds no
   - **Backend** (`backend/`, run dotnet from there): `ChristianRent.Domain` <- `ChristianRent.Application`
     <- `ChristianRent.Infrastructure` <- `ChristianRent.Api`, plus `ChristianRent.Cli`. Controllers send one
     MediatR request and check nothing. Authentication by fallback policy; `[AllowAnonymous]` only for
-    browsing and reading an approved listing (and any exception an ADR states). Errors are ProblemDetails
+    browsing, reading an approved listing, and signing in and out (and any exception an ADR states). Admin's
+    endpoints are under `/api/admin/` and accept only the Admin session (ADR 0029). Errors are ProblemDetails
     with a `code`. No contact detail, token, message text, query string or body in telemetry.
   - **Tests.** Backend: acceptance tests through the API on EF Core InMemory (one store per fixture), a
     direct test per row for a rule with a table of cases, never a real database, never sleep (use
